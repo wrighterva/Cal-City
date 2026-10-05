@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.08 -->
+<!-- CALVIN'S CITY — VERSION 4.09 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.08</title>
+<title>Calvin's City 4.09</title>
 
 <style>
 
@@ -80,7 +80,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 .s1,.s2,.s3{padding:0;background:transparent;border:0;box-shadow:none;overflow:hidden;min-height:0}
 
-.s1{left:72%;top:40%;width:17%;height:92px}.s2{left:9%;top:71%;width:17%;height:92px}.s3{left:42%;top:72%;width:17%;height:92px}.stadium span{font-size:6.5px}.s3 .image-building-label{position:absolute;left:0;right:0;bottom:5px}
+.s1{left:74%;top:40%;width:17%;height:92px}.s2{left:9%;top:71%;width:17%;height:92px}.s3{left:42%;top:72%;width:17%;height:92px}.stadium span{font-size:6.5px}.s3 .image-building-label{position:absolute;left:0;right:0;bottom:5px}
 
 .city-label{position:absolute;z-index:7;font-size:7.5px;font-weight:900;color:rgba(255,255,255,.82);letter-spacing:.4px;pointer-events:none;text-transform:uppercase}
 
@@ -106,7 +106,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.06</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.08</div></header>
+<header><h1>🏙️ Calvin's City — 4.06</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.09</div></header>
 
 <main>
 
@@ -202,9 +202,9 @@ document.getElementById("teamPageTitle").textContent=t.name;
 
 const rosterTable='<table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th></tr>'+
 
-rows.map(p=>'<tr><td>'+p.pos+'</td><td>'+p.name+'</td><td>'+(p.contract==="—"?"—":"$"+p.contract+"M")+'</td><td>'+p.years+'</td><td>—</td><td>—</td></tr>').join("")+
+rows.map(p=>'<tr><td>'+p.pos+'</td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:12px"></td><td>'+(p.contract==="—"?"—":"$"+p.contract+"M")+'</td><td>'+p.years+'</td><td>—</td><td>—</td></tr>').join("")+
 
-'</table><p class="team-note">Roster shows each player by position, contract, years left, career PTS and career REB.</p>';
+'</table><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Edit player names here and save them to this device.</p>';
 
  
 
@@ -221,6 +221,28 @@ document.getElementById("teamPageBody").innerHTML=
  
 
 document.getElementById("teamPageModal").classList.add("show");
+
+const saveTeamRoster=document.getElementById("saveTeamRoster");
+
+if(saveTeamRoster)saveTeamRoster.onclick=()=>{
+
+document.querySelectorAll(".team-player-name").forEach(input=>{
+
+const team=input.dataset.team,pos=input.dataset.pos,value=input.value.trim();
+
+if(value)state.roster[team+"_"+pos]=value;
+
+});
+
+save();
+
+document.getElementById("teamRosterSaved").textContent="Player names saved on this device.";
+
+buildRosterInputs();
+
+buildContractBoard();
+
+};
 
 }
 
@@ -308,7 +330,7 @@ function buildRosterInputs(){let h='<table><tr><th>Team</th><th>C</th><th>SG</th
 
 function saveRoster(){TEAMS.forEach(t=>POSITIONS.forEach(p=>{const k=t+"_"+p,e=document.getElementById("r_"+k);if(e&&e.value.trim())state.roster[k]=e.value.trim()}));save();document.getElementById("rosterSaved").textContent="Roster names saved on this device."}
 
-function buildContractBoard(){let h='<p class="tiny">Current team gets the first bid. Maximum term is 3 years.</p>';TEAMS.forEach(t=>{h+='<div class="team"><h3>'+t+'</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>';POSITIONS.forEach(p=>{const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};h+='<tr><td>'+playerName(t,p)+' ('+p+')</td><td>'+money(Number(c.value)||0)+'</td><td>'+c.years+'</td><td><select><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>'});h+='</table></div>'});document.getElementById("contractBoard").innerHTML=h}
+function buildContractBoard(){let h='<p class="tiny">Current team gets the first bid. Maximum term is 3 years. Player names can be edited here.</p>';TEAMS.forEach(t=>{h+='<div class="team"><h3>'+t+'</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>';POSITIONS.forEach(p=>{const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};h+='<tr><td><input class="contract-player-name" data-team="'+t+'" data-pos="'+p+'" value="'+String(playerName(t,p)).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:12px"><div class="tiny">'+p+'</div></td><td>'+money(Number(c.value)||0)+'</td><td>'+c.years+'</td><td><select><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>'});h+='</table></div>'});h+='<button id="saveContractPlayerNames" class="goodbtn">Save Player Names</button><p id="contractNamesSaved" class="tiny"></p>';document.getElementById("contractBoard").innerHTML=h;const saveNames=document.getElementById("saveContractPlayerNames");if(saveNames)saveNames.onclick=()=>{document.querySelectorAll(".contract-player-name").forEach(input=>{const team=input.dataset.team,pos=input.dataset.pos,value=input.value.trim();if(value)state.roster[team+"_"+pos]=value});save();document.getElementById("contractNamesSaved").textContent="Player names saved on this device.";buildRosterInputs();}}
 
 function buildGMBoard(){let h='<table><tr><th>Former Player</th><th>GM PPG</th><th>Games</th><th>Titles</th><th>Team</th></tr>';FORMER_PLAYERS.forEach(n=>{const g=state.gms[n]||{};h+='<tr><td>'+n+'</td><td>'+Number(g.ppg||0).toFixed(1)+'</td><td>'+(g.games||0)+'</td><td>'+(g.titles||0)+'</td><td>'+(g.team||"Free Agent")+'</td></tr>'});document.getElementById("gmBoard").innerHTML=h+'</table>'}
 
