@@ -214,6 +214,64 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 @keyframes highwayWest{from{transform:translateX(0)}to{transform:translateX(-1030px)}}
 
+ 
+
+.map-title{position:absolute;z-index:30;background:rgba(8,16,27,.9);border:1px solid rgba(255,255,255,.35);border-radius:9px;color:#fff;padding:7px 10px;font-size:11px;font-weight:900;box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:pointer;white-space:nowrap}
+
+.map-title small{display:block;color:#b9c6d8;font-size:8px;font-weight:600;margin-top:2px}
+
+.map-title:hover{transform:translateY(-1px)}
+
+.map-title.biz{border-left:4px solid #55a8ff}.map-title.sport{border-left:4px solid #e5a74f}.map-title.gov{border-left:4px solid #9b8cff}.map-title.res{border-left:4px solid #65c57a}
+
+.business-panel{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+
+.mini-card{background:#172338;border:1px solid var(--line);border-radius:15px;padding:12px;cursor:pointer}
+
+.mini-card b{display:block;font-size:14px}.mini-card span{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+
+.inside-header{display:flex;gap:12px;align-items:center}.inside-icon{font-size:38px}
+
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.kpi div{background:#172338;border:1px solid var(--line);border-radius:13px;padding:10px;color:var(--muted);font-size:11px}.kpi b{display:block;color:#fff;font-size:17px;margin-top:3px}
+
+.backbtn{border:0;background:#29384e;border-radius:12px;padding:10px 12px;font-weight:800;margin-top:12px}
+
+ 
+
+/* V8 visual polish */
+
+.city{background:linear-gradient(135deg,#a9bd91 0%,#9fb489 48%,#a7ba8e 100%)}
+
+.city:after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+
+background:linear-gradient(115deg,transparent 0 49%,rgba(255,255,255,.08) 50%,transparent 51%);
+
+opacity:.45}
+
+.block{background:rgba(177,194,153,.42);border-color:rgba(48,67,50,.18)}
+
+.building{box-shadow:0 2px 5px rgba(0,0,0,.24)}
+
+.home{background:#d2c9ac}.office{background:#c8d5dc}.factory{background:#9da6a5}
+
+.retailb{background:#d9ccb1}.hotel{background:#d4bbaa}.arena{background:#778497}
+
+.map-title{font-size:10px;padding:6px 9px;border-radius:8px;backdrop-filter:blur(4px)}
+
+.map-title small{font-size:7.5px}
+
+.arena{border-radius:22px}
+
+.arena:after{inset:10px;border-radius:50%}
+
+.arena1{left:385px;top:575px;width:110px;height:82px}
+
+.arena2{left:575px;top:455px;width:110px;height:82px}
+
+.arena3{left:815px;top:565px;width:110px;height:82px}
+
+.m1{left:420px;top:622px}.m2{left:610px;top:502px}.m3{left:850px;top:612px}
+
 </style>
 
 </head>
@@ -254,6 +312,24 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 </div></div>
 
+<div class="card"><h2>🔎 Places</h2><p class="muted">The map is becoming the game's navigation system. Tap a title on the city to enter that business, district or team.</p>
+
+<div class="business-panel">
+
+<div class="mini-card" onclick="openPlace('lions')"><b>🏀 Lions</b><span>Team headquarters</span></div>
+
+<div class="mini-card" onclick="openPlace('rims')"><b>🏀 Rims</b><span>Team headquarters</span></div>
+
+<div class="mini-card" onclick="openPlace('dunks')"><b>🏀 Dunks</b><span>Team headquarters</span></div>
+
+<div class="mini-card" onclick="openPlace('industrial')"><b>🏭 Industrial</b><span>Factories & logistics</span></div>
+
+<div class="mini-card" onclick="openPlace('retail')"><b>🛍️ Retail</b><span>Stores & restaurants</span></div>
+
+<div class="mini-card" onclick="openPlace('downtown')"><b>🏙️ Downtown</b><span>Government & finance</span></div>
+
+</div></div>
+
 <div class="card"><h2>🎯 Overseer</h2><p class="muted">You decide what gets built, who owns it and where the city expands. The simulation will eventually handle everyday business activity automatically.</p></div>
 
 </section>
@@ -262,9 +338,9 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 <section id="city" class="screen">
 
-<div class="card"><h2>🗺️ City</h2><p class="muted">This is the physical city. The highway carries through-traffic around the city, while major roads bring cars into the districts where economic activity happens.</p>
+<div class="card"><h2>🗺️ City</h2><p class="muted">The city map is the main navigation screen. The Calvin Loop carries through-traffic around the perimeter; smaller roads feed individual districts and businesses.</p>
 
-<div class="city-shell"><div class="city" id="cityMap">
+<div class="city-shell" aria-label="Interactive Calvin City map"><div class="city" id="cityMap">
 
 <div class="water river"></div><div class="water lake"></div><div class="water bay"></div>
 
@@ -390,13 +466,45 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 <div class="building home low home5"></div><div class="building home low home6"></div><div class="building home low home7"></div><div class="building home low home8"></div>
 
-<div class="building arena arena1" onclick="inspect('SP-01')"><div class="arena-title">ARENA 1</div></div>
+<div class="building arena arena1" onclick="openPlace('lions')"><div class="arena-title">LIONS</div></div>
 
-<div class="building arena arena2" onclick="inspect('SP-02')"><div class="arena-title">ARENA 2</div></div>
+<div class="building arena arena2" onclick="openPlace('rims')"><div class="arena-title">RIMS</div></div>
 
-<div class="building arena arena3" onclick="inspect('SP-03')"><div class="arena-title">ARENA 3</div></div>
+<div class="building arena arena3" onclick="openPlace('dunks')"><div class="arena-title">DUNKS</div></div>
 
 <div class="marker m1">1</div><div class="marker m2">2</div><div class="marker m3">3</div>
+
+ 
+
+<!-- Interactive district/business/team labels -->
+
+<div class="map-title res" style="left:82px;top:48px" onclick="openPlace('north')">🏠 North Residential<small>Housing • 3 neighborhoods</small></div>
+
+<div class="map-title gov" style="left:350px;top:92px" onclick="openPlace('downtown')">🏙️ Downtown<small>Government • Finance • Offices</small></div>
+
+<div class="map-title biz" style="left:785px;top:50px" onclick="openPlace('industrial')">🏭 North Industrial<small>Factories • Warehouses</small></div>
+
+<div class="map-title res" style="left:78px;top:298px" onclick="openPlace('west')">🏠 West Residential<small>Homes • Apartments</small></div>
+
+<div class="map-title biz" style="left:815px;top:310px" onclick="openPlace('retail')">🛍️ Retail District<small>Stores • Food • Services</small></div>
+
+<div class="map-title sport" style="left:378px;top:665px" onclick="openPlace('lions')">🦁 Lions Arena<small>Tap to enter team</small></div>
+
+<div class="map-title sport" style="left:565px;top:425px" onclick="openPlace('rims')">⭕ Rims Arena<small>Tap to enter team</small></div>
+
+<div class="map-title sport" style="left:805px;top:665px" onclick="openPlace('dunks')">🏀 Dunks Arena<small>Tap to enter team</small></div>
+
+<div class="map-title biz" style="left:345px;top:700px" onclick="openPlace('commercial')">🛍️ South Commercial<small>Shopping • Restaurants</small></div>
+
+<div class="map-title res" style="left:700px;top:675px" onclick="openPlace('south')">🏠 South Residential<small>Housing • New development</small></div>
+
+<div class="map-title biz" style="left:1030px;top:680px" onclick="openPlace('port')">⚓ Port & Logistics<small>Shipping • Distribution</small></div>
+
+<div class="map-title biz" style="left:90px;top:550px" onclick="openPlace('university')">🎓 University & Research<small>Education • R&D</small></div>
+
+<div class="map-title biz" style="left:1030px;top:385px" onclick="openPlace('hospital')">🏥 Hospital<small>Healthcare</small></div>
+
+ 
 
 <div class="tree" style="left:75px;top:105px"></div><div class="tree" style="left:245px;top:115px"></div><div class="tree" style="left:70px;top:245px"></div><div class="tree" style="left:280px;top:245px"></div>
 
@@ -422,7 +530,7 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 </div></div>
 
-<div class="notice">🛣️ <b>Roads are infrastructure.</b> Tap a road to see its construction cost, maintenance cost and capacity. Traffic will grow as the city grows.</div><div class="legend"><span><i class="dot"></i>Buildings</span><span><i class="dot g"></i>Parks/land</span><span><i class="dot r"></i>Roads</span><span>🏟️ Stadiums</span><span>🌊 Water</span></div>
+<div class="notice">🛣️ <b>Roads are infrastructure.</b> Tap a road to see its construction cost, maintenance cost and capacity. Traffic will grow as the city grows.</div><div class="notice">👆 <b>Tap a city label or stadium.</b> Labels are the doors into businesses, districts and teams. The map is designed to become the main game interface.</div><div class="legend"><span><i class="dot"></i>Buildings</span><span><i class="dot g"></i>Parks/land</span><span><i class="dot r"></i>Roads</span><span>🏟️ Stadiums</span><span>🌊 Water</span></div>
 
 </div>
 
@@ -531,6 +639,74 @@ function money(n){return '$'+Number(n).toFixed(0)+'M'}
 function save(){state.propertyValue=state.parcels.filter(p=>p.owned).reduce((a,p)=>a+p.price,0);localStorage.setItem(KEY,JSON.stringify(state));render()}
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));if(id==='property')renderProperties();window.scrollTo(0,0)}
+
+ 
+
+const places={
+
+north:{icon:'🏠',name:'North Residential',kind:'District',desc:'A growing residential district with apartments, homes and neighborhood services.',items:[['🏬','North Apartments','Housing'],['🏠','North Homes','Residential'],['🛒','Neighborhood Market','Retail']]},
+
+downtown:{icon:'🏙️',name:'Downtown',kind:'District',desc:'The city center for government, finance and corporate offices.',items:[['🏛️','City Hall','Government'],['🏦','First City Bank','Financial'],['🏢','Whitmore Tower','Corporate HQ']]},
+
+industrial:{icon:'🏭',name:'North Industrial',kind:'District',desc:'Factories and warehouses move goods into the city through the road network.',items:[['🏭','Prosper Manufacturing','Factory'],['📦','Central Warehouse','Logistics'],['🚚','City Distribution','Transportation']]},
+
+west:{icon:'🏠',name:'West Residential',kind:'District',desc:'Established neighborhoods with room for future population growth.',items:[['🏠','West Homes','Residential'],['🏬','West Apartments','Housing'],['🌳','West Park','Public Space']]},
+
+retail:{icon:'🛍️',name:'Retail District',kind:'District',desc:'Consumer-facing businesses compete for the city's spending.',items:[['🛍️','East Retail Center','Retail'],['🍽️','City Restaurants','Food'],['👟','Shoe Company Store','Consumer Goods']]},
+
+commercial:{icon:'🛍️',name:'South Commercial',kind:'District',desc:'Shopping, restaurants and entertainment connected to the sports economy.',items:[['🛍️','South Shopping Center','Retail'],['🍽️','Stadium Row Restaurants','Food'],['🎬','Entertainment Complex','Entertainment']]},
+
+university:{icon:'🎓',name:'University & Research',kind:'District',desc:'Education, healthcare and research support long-term productivity.',items:[['🎓','Calvin University','Education'],['🔬','Research Center','Technology'],['🏥','Medical Center','Healthcare']]},
+
+hospital:{icon:'🏥',name:'City Hospital',kind:'Business',desc:'Healthcare facility serving residents, workers and visitors.',items:[['🏥','City Hospital','Healthcare'],['🚑','Emergency Services','Public Service']]},
+
+south:{icon:'🏠',name:'South Residential',kind:'District',desc:'New residential development along the waterfront and commercial corridor.',items:[['🏠','South Homes','Residential'],['🏨','Calvin Hotel','Hospitality'],['🏬','South Apartments','Housing']]},
+
+port:{icon:'⚓',name:'Port & Logistics',kind:'District',desc:'Imports, exports, warehouses and transportation infrastructure.',items:[['⚓','Calvin Port','Port'],['📦','Port Warehouse','Logistics'],['🚛','Freight Terminal','Transportation']]},
+
+lions:{icon:'🦁',name:'Lions',kind:'Basketball Team',desc:'Lions headquarters and arena. Team operations, players, contracts and finances will live here.',items:[['🏟️','Lions Arena','Stadium'],['👥','Roster','Players'],['💰','Team Finance','Finance']]},
+
+rims:{icon:'⭕',name:'Rims',kind:'Basketball Team',desc:'Rims headquarters and arena. Team operations, players, contracts and finances will live here.',items:[['🏟️','Rims Arena','Stadium'],['👥','Roster','Players'],['💰','Team Finance','Finance']]},
+
+dunks:{icon:'🏀',name:'Dunks',kind:'Basketball Team',desc:'Dunks headquarters and arena. Team operations, players, contracts and finances will live here.',items:[['🏟️','Dunks Arena','Stadium'],['👥','Roster','Players'],['💰','Team Finance','Finance']]}
+
+};
+
+function openPlace(id){
+
+const p=places[id]; if(!p)return;
+
+document.getElementById('sheetContent').innerHTML=
+
+`<div class="inside-header"><div class="inside-icon">${p.icon}</div><div><h2>${p.name}</h2><p class="muted">${p.kind}</p></div></div>
+
+<p class="muted">${p.desc}</p>
+
+<div class="business-panel">${p.items.map((x,i)=>`<div class="mini-card" onclick="openItem('${id}',${i})"><b>${x[0]} ${x[1]}</b><span>${x[2]} • Tap to enter</span></div>`).join('')}</div>
+
+<button class="backbtn" onclick="closeModal()">← Back to City</button>`;
+
+document.getElementById('modal').classList.add('show');
+
+}
+
+function openItem(placeId,index){
+
+const p=places[placeId], x=p.items[index];
+
+document.getElementById('sheetContent').innerHTML=
+
+`<div class="inside-header"><div class="inside-icon">${x[0]}</div><div><h2>${x[1]}</h2><p class="muted">${x[2]}</p></div></div>
+
+<div class="kpi"><div>Status<b>Operating</b></div><div>Location<b>${p.name}</b></div><div>Employees<b>—</b></div><div>Cash / Value<b>—</b></div></div>
+
+<div class="notice" style="margin-top:12px">This is the doorway into the business/team. Later this screen will contain the full operating model, employees, revenue, expenses, contracts, inventory, profits and decisions.</div>
+
+<button class="backbtn" onclick="openPlace('${placeId}')">← Back to ${p.name}</button>`;
+
+}
+
+ 
 
 function render(){
 
