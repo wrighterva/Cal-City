@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.15 -->
+<!-- CALVIN'S CITY — VERSION 4.15.1 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.15</title>
+<title>Calvin's City 4.15.1</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -64,7 +64,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.15</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.15</div></header>
+<header><h1>🏙️ Calvin's City — 4.15.1</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.15.1</div></header>
 <main>
 <section id="home" class="screen active"><div class="card"><h2>City Overview</h2><div class="grid"><div class="metric"><small>Year</small><strong id="homeYear">1</strong></div><div class="metric"><small>Population</small><strong>10,000</strong></div><div class="metric"><small>Economy</small><strong>Normal</strong></div><div class="metric"><small>CSP</small><strong>$20</strong><span style="display:block;font-size:9px;color:#7f8b99;margin-top:3px">Consumer Spending Power</span></div></div></div>
 <div class="card"><h2>🏀 Basketball</h2><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div></section>
@@ -175,7 +175,7 @@ const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,pt
 let state={year:1,defendingChampion:"Lions",seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},gms:{},lastSeason:null,lastGame:null,records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
-function seedRecords(){const map={};state.records.retiredPlayers.forEach(p=>map[p.name]=p);HISTORICAL_RETIRED.forEach(x=>{const [name,pts,reb,mvp,titles]=x;if(!map[name])state.records.retiredPlayers.push({name,careerPts:pts,careerRebs:reb,mvps:mvp,championships:titles,champStreak:CHAMP_STREAKS[name]||0,currentChampStreak:CHAMP_STREAKS[name]||0,status:"Retired",retirementCash:RETIREMENT_CASH[name]??null});else{map[name].careerPts=pts;map[name].careerRebs=reb;map[name].mvps=mvp;map[name].championships=titles;if(map[name].champStreak==null)map[name].champStreak=CHAMP_STREAKS[name]||0;if(map[name].currentChampStreak==null)map[name].currentChampStreak=CHAMP_STREAKS[name]||0;if(map[name].retirementCash==null&&RETIREMENT_CASH[name]!=null)map[name].retirementCash=RETIREMENT_CASH[name]}});const existing=new Set((state.records.gameRecords||[]).filter(g=>g.stage==="Championship").map(g=>g.year));HISTORICAL_CHAMPIONSHIPS.forEach(x=>{const [year,winner,mvp,winnerPts,loserPts]=x;if(!existing.has(year))state.records.gameRecords.push({year,stage:"Championship",a:winner,b:"N/A",winner,loser:"N/A",scoreA:null,scoreB:null,championMvp:mvp,mvpPts:winnerPts,mvpRebs:null,spread:null,spreadWinner:null,moneylineA:null,moneylineB:null,winningMoneyline:null,bettingResult:null})})}
+function seedRecords(){const map={};state.records.retiredPlayers.forEach(p=>map[p.name]=p);HISTORICAL_RETIRED.forEach(x=>{const [name,pts,reb,mvp,titles]=x;if(!map[name])state.records.retiredPlayers.push({name,careerPts:pts,careerRebs:reb,mvps:mvp,championships:titles,champStreak:CHAMP_STREAKS[name]||0,currentChampStreak:CHAMP_STREAKS[name]||0,status:"Retired",retirementCash:RETIREMENT_CASH[name]??null});else{map[name].careerPts=pts;map[name].careerRebs=reb;map[name].mvps=mvp;map[name].championships=titles;if(map[name].champStreak==null)map[name].champStreak=CHAMP_STREAKS[name]||0;if(map[name].currentChampStreak==null)map[name].currentChampStreak=CHAMP_STREAKS[name]||0;if(map[name].retirementCash==null&&RETIREMENT_CASH[name]!=null)map[name].retirementCash=RETIREMENT_CASH[name]}});const existing=new Set((state.records.gameRecords||[]).filter(g=>g.stage==="Championship").map(g=>g.year));HISTORICAL_CHAMPIONSHIPS.forEach(x=>{const [year,winner,mvp,winnerPts,loserPts]=x;if(!existing.has(year))state.records.gameRecords.push({year,stage:"Championship",a:winner,b:"N/A",winner,loser:"N/A",scoreA:null,scoreB:null,championMvp:mvp,mvpPts:winnerPts,mvpRebs:loserPts,spread:null,spreadWinner:null,moneylineA:null,moneylineB:null,winningMoneyline:null,bettingResult:null})})}
 function recordHistoryGame(g,stage){const mvp=g.winner.players.slice().sort((a,b)=>b.pts-a.pts)[0];state.records.gameRecords.push({year:state.year,stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,championMvp:stage==="Championship"?mvp.name:null,mvpPts:stage==="Championship"?mvp.pts:null,mvpRebs:stage==="Championship"?mvp.rebs:null,spread:null,spreadWinner:null,moneylineA:null,moneylineB:null,winningMoneyline:null,bettingResult:null})}
 seedRecords();
 function save(){localStorage.setItem("calvins_city_v24",JSON.stringify(state))}
@@ -229,7 +229,7 @@ const knownScore=x.scoreA!=null&&x.scoreB!=null;
 const finalScore=knownScore?(x.winner===x.a?(x.scoreA+"-"+x.scoreB):(x.scoreB+"-"+x.scoreA)):"N/A";
 const mvp=x.championMvp||"N/A";
 const pts=x.mvpPts==null?"N/A":x.mvpPts;
-const reb=x.mvpRebs==null?"N/A":x.mvpRebs;
+const reb=x.mvpRebs==null?(Array.isArray(HISTORICAL_CHAMPIONSHIPS)&&HISTORICAL_CHAMPIONSHIPS.find(h=>h[0]===x.year)?HISTORICAL_CHAMPIONSHIPS.find(h=>h[0]===x.year)[4]:"N/A"):x.mvpRebs;
 const loser=x.loser||"N/A";
 champHtml+='<div class="champ-record"><div class="champ-main">Year '+x.year+' — '+x.winner.toUpperCase()+'</div><div class="champ-mvp">🏆 '+mvp+' — MVP • '+pts+' PTS / '+reb+' REB</div><div class="champ-loser">'+loser+' • Final: '+finalScore+'</div></div>';
 });
