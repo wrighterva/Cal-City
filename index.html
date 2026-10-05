@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.16 -->
+<!-- CALVIN'S CITY — VERSION 4.16.1 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.16</title>
+<title>Calvin's City 4.16.1</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -48,7 +48,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
 .team-table{width:100%;border-collapse:collapse;font-size:12px}.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}.team-note{color:#9eabba;font-size:11px;margin-top:10px}
 .team-switch{margin:10px 0 12px}.team-switch button{margin:0;padding:10px 8px;background:#2f6fed;font-size:13px}
-.record-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 12px}
+.record-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 12px}
 .record-tabs button{margin:0;padding:9px 4px;background:#344255;font-size:11px}
 .record-tabs button.active{background:#2f6fed}
 .record-panel{display:none}.record-panel.active{display:block}
@@ -67,7 +67,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.16</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16</div></header>
+<header><h1>🏙️ Calvin's City — 4.16</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.1</div></header>
 <main>
 <section id="home" class="screen active"><div class="card"><h2>City Overview</h2><div class="grid"><div class="metric"><small>Year</small><strong id="homeYear">1</strong></div><div class="metric"><small>Population</small><strong>10,000</strong></div><div class="metric"><small>Economy</small><strong>Normal</strong></div><div class="metric"><small>CSP</small><strong>$20</strong><span style="display:block;font-size:9px;color:#7f8b99;margin-top:3px">Consumer Spending Power</span></div></div></div>
 <div class="card"><h2>🏀 Basketball</h2><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div></section>
@@ -267,6 +267,19 @@ function buildContractBoard(){let h='<p class="tiny">Current team gets the first
 function buildGMBoard(){let h='<table><tr><th>Former Player</th><th>GM PPG</th><th>Games</th><th>Titles</th><th>Team</th></tr>';FORMER_PLAYERS.forEach(n=>{const g=state.gms[n]||{};h+='<tr><td>'+n+'</td><td>'+Number(g.ppg||0).toFixed(1)+'</td><td>'+(g.games||0)+'</td><td>'+(g.titles||0)+'</td><td>'+(g.team||"Free Agent")+'</td></tr>'});document.getElementById("gmBoard").innerHTML=h+'</table>'}
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
 function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";document.getElementById("homeYear").textContent=state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";alert("Offseason finalized. Calvin's City is ready for the new year.")}
+function renderCitizenLedger(){
+syncCitizenLedger();
+const out=document.getElementById("citizenLedgerBody");if(!out)return;
+const rows=(state.citizens||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+let h='<p class="tiny">Each person has one permanent Citizen ID connecting basketball, cash, businesses and future financial systems.</p>';
+if(!rows.length)h+='<p class="muted">No citizens recorded yet.</p>';
+rows.forEach(c=>{
+const biz=(c.businesses||[]).map(x=>x.business+' '+Number(x.ownership).toFixed(Number(x.ownership%1?1:0))+'%').join(' • ')||'None';
+const cash=c.cash==null?'—':'$'+Number(c.cash).toFixed(0)+'M';
+h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+(c.status||"Active")+(c.currentTeam?' • '+c.currentTeam:'')+(c.position?' • '+c.position:'')+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>Titles <b>'+(c.championships||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div></div>';
+});
+out.innerHTML=h;
+}
 function renderRecords(){
 const r=state.records.retiredPlayers||[],g=state.records.gameRecords||[];
 const a=document.getElementById("retiredCount"),b=document.getElementById("recordGameCount"),cc=document.getElementById("citizenCount");
@@ -303,16 +316,6 @@ champHtml+='<div class="champ-record"><div class="champ-main">Year '+x.year+' �
 });
 champHtml+='</div>';
  
-const citizenRows=(state.citizens||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
-let citizenHtml='<div id="recordCitizens" class="record-panel"><h3>Citizen Ledger</h3><p class="tiny">One permanent identity per person. Cash, business ownership, basketball history and future financial systems all connect to this citizen ID.</p>';
-if(!citizenRows.length)citizenHtml+='<p class="muted">No citizens recorded yet.</p>';
-citizenRows.forEach(c=>{
-const biz=(c.businesses||[]).map(x=>x.business+' '+(Number(x.ownership).toFixed(Number(x.ownership%1?1:0))+'%')).join(' • ')||'None';
-const cash=c.cash==null?'—':'$'+Number(c.cash).toFixed(0)+'M';
-citizenHtml+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+(c.status||"Active")+(c.currentTeam?' • '+c.currentTeam:'')+(c.position?' • '+c.position:'')+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>Titles <b>'+(c.championships||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div></div>';
-});
-citizenHtml+='</div>';
- 
 body.innerHTML=
 panel("recordPoints","All-Time Points Leaders — Top 10",points,"careerPts","PTS")+
 panel("recordRebounds","All-Time Rebounds Leaders — Top 10",rebounds,"careerRebs","REB")+
@@ -325,8 +328,7 @@ const tabs=[
 ["recordTabRebounds","recordRebounds"],
 ["recordTabTitles","recordTitles"],
 ["recordTabMVP","recordMvp"],
-["recordTabChamps","recordChamps"],
-["recordTabCitizens","recordCitizens"]
+["recordTabChamps","recordChamps"]
 ];
 tabs.forEach(pair=>{
 const btn=document.getElementById(pair[0]);
@@ -373,12 +375,23 @@ if(modal){modal.classList.remove("show");unlockRecordsScroll();}
 });
  
 document.addEventListener("click",function(e){
+if(e.target && e.target.id==="openCitizenLedger"){
+renderCitizenLedger();
+const cm=document.getElementById("citizenLedgerModal");
+if(cm)cm.classList.add("show");
+}
+if(e.target && e.target.id==="citizenLedgerClose"){
+const cm=document.getElementById("citizenLedgerModal");
+if(cm)cm.classList.remove("show");
+}
+const citizenModal=document.getElementById("citizenLedgerModal");
+if(citizenModal && e.target===citizenModal)citizenModal.classList.remove("show");
 const modal=document.getElementById("recordsModal");
 if(modal && e.target===modal){modal.classList.remove("show");unlockRecordsScroll();}
 });
  
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("saveRoster").addEventListener("click",saveRoster);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
-syncCitizenLedger();buildRosterInputs();renderProgress();renderRecords();save();document.getElementById("homeYear").textContent=state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
+buildRosterInputs();renderProgress();renderRecords();save();document.getElementById("homeYear").textContent=state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
 })();
 </script>
  
@@ -388,10 +401,11 @@ syncCitizenLedger();buildRosterInputs();renderProgress();renderRecords();save();
 <button id="recordTabRebounds" type="button">REB</button>
 <button id="recordTabTitles" type="button">TITLES</button>
 <button id="recordTabMVP" type="button">MVP</button>
-<button id="recordTabChamps" type="button">CHAMPS</button><button id="recordTabCitizens" type="button">PEOPLE</button>
+<button id="recordTabChamps" type="button">CHAMPS</button>
 </div>
 <div id="recordsBody" class="log"></div>
+<button id="openCitizenLedger" class="goodbtn">👤 Open Citizen Ledger</button>
 <button id="recordsClose" class="secondary">Close</button>
-</div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
+</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
 <div id="mallModal" class="modal"><div class="modalbox"><h2>🏬 Calvin's Mall</h2><p>The mall is a shared retail location for five independent shoe companies.</p><div class="mall-grid"><div class="mall-brand"><strong>👟 Nike</strong><small>Cash: $5,040M</small></div><div class="mall-brand"><strong>👟 Reebok</strong><small>Cash: $4,150M</small></div><div class="mall-brand"><strong>👟 Puma</strong><small>Cash: $2,930M</small></div><div class="mall-brand"><strong>👟 Adidas</strong><small>Cash: $5,080M</small></div><div class="mall-brand"><strong>👟 New Balance</strong><small>Cash: $3,300M</small></div></div><p class="team-note">The mall itself has no separate cash, value, profit or debt system yet.</p><button id="mallClose" class="secondary">Close</button></div></div>
 </body></html>
