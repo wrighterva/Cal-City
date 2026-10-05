@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.11.1 -->
+<!-- CALVIN'S CITY — VERSION 4.12 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.11.1</title>
+<title>Calvin's City 4.12</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -48,11 +48,19 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
 .team-table{width:100%;border-collapse:collapse;font-size:12px}.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}.team-note{color:#9eabba;font-size:11px;margin-top:10px}
 .team-switch{margin:10px 0 12px}.team-switch button{margin:0;padding:10px 8px;background:#2f6fed;font-size:13px}
+.record-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}
+.record-tabs button{margin:0;padding:9px 4px;background:#344255;font-size:11px}
+.record-tabs button.active{background:#2f6fed}
+.record-panel{display:none}.record-panel.active{display:block}
+.record-rank{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #334155}
+.record-rank:last-child{border-bottom:0}
+.record-rank .rank{color:#9eabba;font-weight:900}.record-rank .name{font-weight:800}.record-rank .value{font-weight:900;color:#f1d37a}
+ 
 .mall-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mall-brand{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:11px}.mall-brand strong{display:block;font-size:15px}.mall-brand small{color:#9eabba}
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.11.1</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.11.1</div></header>
+<header><h1>🏙️ Calvin's City — 4.12</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.12</div></header>
 <main>
 <section id="home" class="screen active"><div class="card"><h2>City Overview</h2><div class="grid"><div class="metric"><small>Year</small><strong id="homeYear">1</strong></div><div class="metric"><small>Population</small><strong>10,000</strong></div><div class="metric"><small>Economy</small><strong>Normal</strong></div><div class="metric"><small>CSP</small><strong>$20</strong><span style="display:block;font-size:9px;color:#7f8b99;margin-top:3px">Consumer Spending Power</span></div></div></div>
 <div class="card"><h2>🏀 Basketball</h2><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div></section>
@@ -175,7 +183,53 @@ function buildContractBoard(){let h='<p class="tiny">Current team gets the first
 function buildGMBoard(){let h='<table><tr><th>Former Player</th><th>GM PPG</th><th>Games</th><th>Titles</th><th>Team</th></tr>';FORMER_PLAYERS.forEach(n=>{const g=state.gms[n]||{};h+='<tr><td>'+n+'</td><td>'+Number(g.ppg||0).toFixed(1)+'</td><td>'+(g.games||0)+'</td><td>'+(g.titles||0)+'</td><td>'+(g.team||"Free Agent")+'</td></tr>'});document.getElementById("gmBoard").innerHTML=h+'</table>'}
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
 function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";document.getElementById("homeYear").textContent=state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";alert("Offseason finalized. Calvin's City is ready for the new year.")}
-function renderRecords(){const r=state.records.retiredPlayers||[],g=state.records.gameRecords||[];const a=document.getElementById("retiredCount"),b=document.getElementById("recordGameCount");if(a)a.textContent=r.length;if(b)b.textContent=g.length;let h='<h3>Retired Player Career Records</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th><th>MVP</th><th>Titles</th><th>Cash</th></tr>';r.slice().sort((x,y)=>(y.careerPts||0)-(x.careerPts||0)).forEach(p=>h+='<tr><td>'+p.name+'</td><td>'+p.careerPts+'</td><td>'+p.careerRebs+'</td><td>'+p.mvps+'</td><td>'+p.championships+'</td><td>'+(p.retirementCash==null?"—":money(p.retirementCash))+'</td></tr>');h+='</table><h3>Game History</h3>';if(!g.length)h+='<p class="muted">No completed games recorded yet.</p>';else{h+='<table><tr><th>Year</th><th>Stage</th><th>Matchup</th><th>Winner</th><th>Score</th><th>Spread</th><th>Cover</th></tr>';g.slice().reverse().forEach(x=>h+='<tr><td>'+x.year+'</td><td>'+x.stage+'</td><td>'+x.a+' vs '+x.b+'</td><td>'+x.winner+'</td><td>'+x.scoreA+'-'+x.scoreB+'</td><td>'+(x.spread==null?"—":x.spread)+'</td><td>'+(x.spreadWinner||"—")+'</td></tr>');h+='</table>'}h+='<p class="tiny">Spread and moneyline fields are reserved for the future betting system. No odds are invented in 4.11.</p>';document.getElementById("recordsBody").innerHTML=h}
+function renderRecords(){
+const r=state.records.retiredPlayers||[],g=state.records.gameRecords||[];
+const a=document.getElementById("retiredCount"),b=document.getElementById("recordGameCount");
+if(a)a.textContent=r.length;if(b)b.textContent=g.length;
+const body=document.getElementById("recordsBody");if(!body)return;
+ 
+const points=r.slice().sort((x,y)=>(y.careerPts||0)-(x.careerPts||0)).slice(0,10);
+const rebounds=r.slice().sort((x,y)=>(y.careerRebs||0)-(x.careerRebs||0)).slice(0,10);
+const titles=r.slice().sort((x,y)=>(y.championships||0)-(x.championships||0)||(y.careerPts||0)-(x.careerPts||0)).slice(0,5);
+const mvps=r.slice().sort((x,y)=>(y.mvps||0)-(x.mvps||0)||(y.careerPts||0)-(x.careerPts||0)).slice(0,5);
+ 
+function panel(id,title,rows,field,label){
+let h='<div id="'+id+'" class="record-panel">';
+h+='<h3>'+title+'</h3>';
+if(!rows.length)h+='<p class="muted">No records available yet.</p>';
+rows.forEach((p,i)=>{
+const value=Number(p[field])||0;
+h+='<div class="record-rank"><span class="rank">'+(i+1)+'</span><span class="name">'+p.name+'</span><span class="value">'+value+' '+label+'</span></div>';
+});
+return h+'</div>';
+}
+ 
+body.innerHTML=
+panel("recordPoints","All-Time Points Leaders — Top 10",points,"careerPts","PTS")+
+panel("recordRebounds","All-Time Rebounds Leaders — Top 10",rebounds,"careerRebs","REB")+
+panel("recordTitles","Championship Leaders — Top 5",titles,"championships","Titles")+
+panel("recordMvp","MVP Leaders — Top 5",mvps,"mvps","MVPs");
+ 
+const tabs=[
+["recordTabPoints","recordPoints"],
+["recordTabRebounds","recordRebounds"],
+["recordTabTitles","recordTitles"],
+["recordTabMVP","recordMvp"]
+];
+tabs.forEach(pair=>{
+const btn=document.getElementById(pair[0]),panelEl=document.getElementById(pair[1]);
+if(btn)btn.onclick=()=>{
+tabs.forEach(other=>{
+const b2=document.getElementById(other[0]),p2=document.getElementById(other[1]);
+if(b2)b2.classList.toggle("active",other===pair);
+if(p2)p2.classList.toggle("active",other===pair);
+});
+};
+});
+document.getElementById("recordPoints").classList.add("active");
+document.getElementById("recordTabPoints").classList.add("active");
+}
 function openRecords(){renderRecords();document.getElementById("recordsModal").classList.add("show")}
 function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0)}
 document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
@@ -198,6 +252,15 @@ buildRosterInputs();renderProgress();renderRecords();save();document.getElementB
 })();
 </script>
  
-<div id="recordsModal" class="modal"><div class="modalbox"><h2>📚 Calvin's City Records</h2><div id="recordsBody" class="log"></div><button id="recordsClose" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
+<div id="recordsModal" class="modal"><div class="modalbox"><h2>📚 Calvin's City Records</h2>
+<div class="record-tabs">
+<button id="recordTabPoints" class="active" type="button">PTS</button>
+<button id="recordTabRebounds" type="button">REB</button>
+<button id="recordTabTitles" type="button">TITLES</button>
+<button id="recordTabMVP" type="button">MVP</button>
+</div>
+<div id="recordsBody" class="log"></div>
+<button id="recordsClose" class="secondary">Close</button>
+</div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
 <div id="mallModal" class="modal"><div class="modalbox"><h2>🏬 Calvin's Mall</h2><p>The mall is a shared retail location for five independent shoe companies.</p><div class="mall-grid"><div class="mall-brand"><strong>👟 Nike</strong><small>Cash: $5,040M</small></div><div class="mall-brand"><strong>👟 Reebok</strong><small>Cash: $4,150M</small></div><div class="mall-brand"><strong>👟 Puma</strong><small>Cash: $2,930M</small></div><div class="mall-brand"><strong>👟 Adidas</strong><small>Cash: $5,080M</small></div><div class="mall-brand"><strong>👟 New Balance</strong><small>Cash: $3,300M</small></div></div><p class="team-note">The mall itself has no separate cash, value, profit or debt system yet.</p><button id="mallClose" class="secondary">Close</button></div></div>
 </body></html>
