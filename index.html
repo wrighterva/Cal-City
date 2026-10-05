@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.14 -->
+<!-- CALVIN'S CITY — VERSION 4.15 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.14</title>
+<title>Calvin's City 4.15</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -64,7 +64,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.14</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.14</div></header>
+<header><h1>🏙️ Calvin's City — 4.15</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.15</div></header>
 <main>
 <section id="home" class="screen active"><div class="card"><h2>City Overview</h2><div class="grid"><div class="metric"><small>Year</small><strong id="homeYear">1</strong></div><div class="metric"><small>Population</small><strong>10,000</strong></div><div class="metric"><small>Economy</small><strong>Normal</strong></div><div class="metric"><small>CSP</small><strong>$20</strong><span style="display:block;font-size:9px;color:#7f8b99;margin-top:3px">Consumer Spending Power</span></div></div></div>
 <div class="card"><h2>🏀 Basketball</h2><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div></section>
@@ -158,15 +158,15 @@ const TEAMS=["Lions","Rims","Dunks"],POSITIONS=["C","SG","PG"],SHOES=["Nike","Re
 RETIREMENT_CASH={"S. Oliver":600,"E. Ali":353,"R. Boxi":500,"Benmack II":520,"Nail":370,"Jacks":353,"Corva":387,"Reese":160,"Lui":467,"Joel":215,"Hendi":219},
 HISTORICAL_RETIRED=[["Coffvee",525,518,2,3],["Poley",513,488,1,3],["Kasey",526,507,1,2],["Loon",594,554,0,1],["Fall",738,736,0,2],["Kobal",695,670,0,4],["Benmack",839,825,1,6],["Jones",700,710,1,1],["White",716,727,0,0],["Fox",652,641,1,3],["Mason",616,599,2,4],["Folcook",649,659,0,0],["Bole",540,504,0,1],["Hall",628,633,1,3],["Mak",562,636,0,2],["Wallace",527,529,0,0],["House",715,725,1,3],["June",753,628,0,2],["Coast",721,731,1,2],["West",650,651,1,2],["S. Oliver",568,552,1,3],["Carter",707,713,2,3],["E.Ali",644,679,2,3],["R. Boxi",580,614,0,0],["Benmack II",629,663,0,2],["Nail",589,614,0,2],["Jacks",643,596,1,2],["Corva",707,708,1,4],["Reese",574,562,3,4],["Peb",601,618,0,2],["Sam",625,617,1,1],["Joel",508,520,0,4],["Hendi",580,580,0,2],["Lui",629,594,1,3]],
 HISTORICAL_CHAMPIONSHIPS=[
-[1,"Lions","Coffvee",40,39], [2,"Rims","Kasey",35,39], [3,"Lions","Poley",29,35],
-[4,"Rims","Jones",41,31], [5,"Lions","Coffvee",43,37], [6,"Lions","Mason",37,36],
-[7,"Lions","Benmack",43,30], [8,"Lions","Fox",34,41], [9,"Rims","Hall",37,36],
-[10,"Rims","House",38,35], [11,"Lions","Mason",41,33], [12,"Rims","Coast",36,40],
-[13,"Lions","E.Ali",41,27], [14,"Dunks","Carter",44,28], [15,"Dunks","West",37,30],
-[16,"Lions","E.Ali",35,38], [17,"Dunks","Carter",35,32], [18,"Lions","S. Oliver",27,31],
-[19,"Dunks","Jacks",35,26], [20,"Rims","Reese",41,29], [21,"Rims","Reese",33,31],
-[22,"Rims","Corva",36,30], [23,"Rims","Reese",31,33], [24,"Dunks","Lui",33,29],
-[25,"Lions","Sam",36,34], [26,"Dunks","Bic",34,20], [27,"Lions","Wall",35,26],
+[1,"Lions","Coffvee",40,39],[2,"Rims","Kasey",35,39],[3,"Lions","Poley",29,35],
+[4,"Rims","Jones",41,31],[5,"Lions","Coffvee",43,37],[6,"Lions","Mason",37,36],
+[7,"Lions","Benmack",43,30],[8,"Lions","Fox",34,41],[9,"Rims","Hall",37,36],
+[10,"Rims","House",38,35],[11,"Lions","Mason",41,33],[12,"Rims","Coast",36,40],
+[13,"Lions","E.Ali",41,27],[14,"Dunks","Carter",44,28],[15,"Dunks","West",37,30],
+[16,"Lions","E.Ali",35,38],[17,"Dunks","Carter",35,32],[18,"Lions","S. Oliver",27,31],
+[19,"Dunks","Jacks",35,26],[20,"Rims","Reese",41,29],[21,"Rims","Reese",33,31],
+[22,"Rims","Corva",36,30],[23,"Rims","Reese",31,33],[24,"Dunks","Lui",33,29],
+[25,"Lions","Sam",36,34],[26,"Dunks","Bic",34,20],[27,"Lions","Wall",35,26],
 [28,"Dunks","Vico",43,25]
 ],
 CHAMP_STREAKS={"Benmack":4,"Fox":3,"Mason":3,"Hall":2,"House":2,"June":2,"West":2,"Carter":2,"Corva":4,"Reese":4},
