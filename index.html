@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION V17 -->
+<!-- CALVIN'S CITY — VERSION V18 -->
 <!-- Personal Paper City -> Digital City -->
 <!-- V16: LIVING CITY MAP + GAME-BY-GAME BASKETBALL + OFFSEASON MANAGEMENT -->
 <!-- V16 UPDATE: RESTORED V13 LIVING CITY MAP + ONE-GAME-AT-A-TIME SEASON -->
 <html lang="en">
-<head> 
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Calvin's City V16</title>
@@ -93,6 +93,14 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
 .nav button{margin:0;padding:11px 4px;font-size:12px;background:#273446}.nav button.active{background:#2f6fed}
 .divider{height:1px;background:#334155;margin:12px 0}.pill{padding:6px 8px;border-radius:8px;background:#273446;display:inline-block;font-size:12px;margin:2px}
+ 
+.teamSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.teamSummary>div{padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.04)}
+.dataTable{width:100%;border-collapse:collapse;font-size:13px}
+.dataTable th,.dataTable td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.1);text-align:left;white-space:nowrap}
+.dataTable th{font-weight:700}
+.muted{opacity:.7;font-size:12px}
+ 
 </style>
 </head>
 <body>
@@ -225,7 +233,7 @@ let state={
 };
  
 try{
- const v16=localStorage.getItem("calvins_city_v17");
+ const v16=localStorage.getItem("calvins_city_v18");
  const old=localStorage.getItem("calvins_city_v15_basketball");
  if(v16){
    state={...state,...JSON.parse(v16)};
@@ -244,7 +252,7 @@ try{
  }
 }catch(e){}
  
-function save(){localStorage.setItem("calvins_city_v17",JSON.stringify(state))}
+function save(){localStorage.setItem("calvins_city_v18",JSON.stringify(state))}
 function die(){return Math.floor(Math.random()*6)+1}
 function money(n){return "$"+n.toFixed(0)+"M"}
 function ticketRevenue(){return (die()+die())*10}
@@ -538,15 +546,7 @@ function openCityLocation(id){
  const go=document.getElementById("goBasketball");
  if(go)go.addEventListener("click",()=>{modal.classList.remove("show");showScreen("basketball")});
 }
-document.querySelectorAll("[data-place]").forEach(b=>b.addEventListener("click",()=>{
- const place=b.dataset.place;
- if(place==="lions"||place==="rims"||place==="dunks"){
-   showScreen("basketball");
-   window.scrollTo({top:0,behavior:"smooth"});
-   return;
- }
- openCityLocation(place);
-}));
+document.querySelectorAll("[data-place]").forEach(b=>b.addEventListener("click",()=>openCityLocation(b.dataset.place)));
 document.getElementById("closeModal").addEventListener("click",()=>modal.classList.remove("show"));
 modal.addEventListener("click",e=>{if(e.target===modal)modal.classList.remove("show")});
  
@@ -561,6 +561,79 @@ if(state.offseasonOpen){
 })();
 </script>
  
+ 
+<div id="teamPage" class="modal" style="display:none">
+ <div class="modalCard">
+   <button class="closeBtn" onclick="closeTeamPage()">✕</button>
+   <h2 id="teamPageTitle">Team</h2>
+   <div id="teamPageBody"></div>
+ </div>
+</div>
+<script>
+const TEAM_PAGE_DATA = {
+ lions:  {name:"Lions", arena:"Lions Arena"},
+ rims:   {name:"Rimmers", arena:"Rims Arena"},
+ dunks:  {name:"Dunkers", arena:"Dunks Arena"}
+};
+ 
+function openTeamPage(teamKey){
+ const t = TEAM_PAGE_DATA[teamKey];
+ if(!t) return;
+ const state = (typeof gameState !== "undefined" && gameState) ? gameState : null;
+ const team = state && state.teams ? state.teams[teamKey] : null;
+ const players = team && Array.isArray(team.players) ? team.players : [];
+ const cash = team && team.cash != null ? team.cash : "—";
+ 
+ let rows = players.map(p => `
+   <tr>
+     <td>${p.name || "Player"}</td>
+     <td>${p.pos || p.position || "—"}</td>
+     <td>${p.contract != null ? "$"+p.contract+"M" : "—"}</td>
+     <td>${p.yearsLeft != null ? p.yearsLeft : "—"}</td>
+     <td>${p.totalPoints != null ? p.totalPoints : (p.pts != null ? p.pts : 0)}</td>
+     <td>${p.totalRebounds != null ? p.totalRebounds : (p.reb != null ? p.reb : 0)}</td>
+   </tr>`).join("");
+ 
+ if(!rows) rows = `<tr><td colspan="6">Roster tracking will populate as player/team data is added.</td></tr>`;
+ 
+ document.getElementById("teamPageTitle").textContent = t.name;
+ document.getElementById("teamPageBody").innerHTML = `
+   <div class="teamSummary">
+     <div><strong>Arena</strong><br>${t.arena}</div>
+     <div><strong>Team Cash</strong><br>${cash}${typeof cash==="number" ? "M" : ""}</div>
+   </div>
+   <h3>Roster & Contracts</h3>
+   <div style="overflow-x:auto">
+     <table class="dataTable">
+       <thead><tr><th>Player</th><th>Pos.</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th></tr></thead>
+       <tbody>${rows}</tbody>
+     </table>
+   </div>
+   <p class="muted">Career statistics stay with the player when a player changes teams.</p>
+ `;
+ document.getElementById("teamPage").style.display = "flex";
+}
+ 
+function closeTeamPage(){
+ document.getElementById("teamPage").style.display = "none";
+}
+ 
+document.addEventListener("click", function(e){
+ const b = e.target.closest("[data-place]");
+ if(!b) return;
+ const place = (b.dataset.place || "").toLowerCase();
+ if(place==="lions" || place==="lions arena"){
+   e.preventDefault(); e.stopPropagation(); openTeamPage("lions"); return;
+ }
+ if(place==="rims" || place==="rims arena" || place==="rimmers"){
+   e.preventDefault(); e.stopPropagation(); openTeamPage("rims"); return;
+ }
+ if(place==="dunks" || place==="dunks arena" || place==="dunkers"){
+   e.preventDefault(); e.stopPropagation(); openTeamPage("dunks"); return;
+ }
+}, true);
+</script>
+ 
 <div id="modal" class="modal">
  <div class="modalbox">
    <h2 id="modalTitle">Calvin's City</h2>
@@ -569,3 +642,4 @@ if(state.offseasonOpen){
  </div>
 </div>
 </body>
+</html>
