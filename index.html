@@ -1,163 +1,433 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#0b1220">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Calvin's City">
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
 <title>Calvin's City</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#0b1220;color:#f5f7fb;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;padding-bottom:84px}
-header{position:sticky;top:0;z-index:10;background:#101827ee;backdrop-filter:blur(14px);padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;border-bottom:1px solid #263247}
-h1{font-size:24px;margin:0 0 4px}.sub,.muted,.small{color:#94a3b8}.sub{font-size:13px}
-.screen{padding:16px;max-width:900px;margin:auto}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.card{background:#141e2e;border:1px solid #263247;border-radius:16px;padding:14px;margin-bottom:12px}
-.metric{font-size:23px;font-weight:700;margin-top:4px}.label{font-size:12px;color:#9aa8bd}.section{font-size:17px;font-weight:700;margin:18px 0 10px}
-button{border:0;border-radius:12px;padding:12px 14px;background:#2b6df3;color:white;font-weight:700;font-size:14px;min-height:44px}
-button.secondary{background:#263247}button.good{background:#15803d}.row{display:flex;gap:8px;flex-wrap:wrap}
-.item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #263247}.item:last-child{border-bottom:0}
-.log{max-height:220px;overflow:auto;font-size:12px;color:#b8c3d5}
- 
-/* SimCity-style map */
-.city-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:5px}
-.city-map{min-width:680px;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(3,minmax(190px,auto));gap:8px;padding:10px;border-radius:20px;background:#09131f;border:1px solid #263b54}
-.city-district{padding:10px;border-radius:15px;background:#142235;border:1px solid #314761;overflow:hidden}
-.city-district:nth-child(1){grid-column:1/span 6;grid-row:1}.city-district:nth-child(2){grid-column:7/span 6;grid-row:1}
-.city-district:nth-child(3){grid-column:1/span 6;grid-row:2}.city-district:nth-child(4){grid-column:7/span 6;grid-row:2}
-.city-district:nth-child(5){grid-column:1/span 6;grid-row:3}.city-district:nth-child(6){grid-column:7/span 6;grid-row:3}
-.city-district-head{display:flex;align-items:center;gap:7px;min-height:32px}.city-district-icon{font-size:22px;width:28px;text-align:center;flex:0 0 28px}
-.city-district-name{font-size:12px;font-weight:800}.city-district-desc{color:#91a3ba;font-size:9px;line-height:1.2;margin-top:2px}
-.city-street{height:6px;margin:7px 0;border-radius:5px;background:#34465b}.city-road-label{font-size:7px;color:#70849b;text-align:center;letter-spacing:.5px}
-.city-parcels{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.city-parcel{min-height:82px;padding:6px;border-radius:9px;background:#1a2b40;border:1px solid #334a64;display:flex;flex-direction:column;justify-content:space-between}
-.city-parcel.available{background:#162d29}.city-parcel.owned{background:#192c4b}.city-parcel.built{background:#3a2b1a}
-.city-parcel-id{font-size:8px;color:#91a3ba;font-weight:800}.city-building{display:flex;align-items:center;justify-content:center;min-height:30px}
-.city-building-icon{font-size:22px;line-height:1}.city-building-name{font-size:8px;text-align:center;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.city-status{font-size:7px;text-transform:uppercase;font-weight:800;color:#a9b7c9;text-align:center;margin-top:2px}
-.city-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.city-legend span{font-size:9px;color:#a7b5c7;background:#18263a;border:1px solid #2b4058;border-radius:999px;padding:5px 7px}
-.property-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.property-card{background:#101a2b;border:1px solid #2b3b55;border-radius:14px;padding:12px}
-.property-title{font-weight:700;font-size:13px}.property-desc{font-size:10px;color:#94a3b8;margin:4px 0 9px;line-height:1.35}.cost{font-size:13px;font-weight:800;margin-bottom:8px}
-.badge{font-size:9px;font-weight:800;padding:4px 6px;border-radius:999px;background:#263247;color:#cbd5e1;white-space:nowrap}.badge.available{background:#14532d;color:#86efac}.badge.owned{background:#1e3a8a;color:#bfdbfe}.badge.built{background:#78350f;color:#fde68a}
-.nav{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#101827f2;backdrop-filter:blur(14px);border-top:1px solid #263247;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px calc(env(safe-area-inset-bottom) + 7px)}
-.nav button{background:transparent;color:#8f9db2;padding:7px 2px;font-size:11px;min-height:42px}.nav button.active{color:white}
-@media(max-width:600px){.city-map{min-width:640px}.property-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:390px){.grid{grid-template-columns:1fr 1fr}.property-grid{grid-template-columns:1fr 1fr}}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+:root{--bg:#09101d;--panel:#121b2c;--panel2:#172237;--line:#2d3d58;--text:#f4f7fb;--muted:#9eabc0;--road:#394960;--land:#243c32;--owned:#2e4d42;--blue:#5579b8;--gold:#d6ad52}
+
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+
+button{font:inherit;color:inherit}
+
+.app{min-height:100vh;padding-bottom:88px}
+
+header{padding:28px 22px 18px;border-bottom:1px solid var(--line)}
+
+h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:800;letter-spacing:-1.5px}
+
+.sub{font-size:16px;color:var(--muted);font-weight:700}
+
+.screen{display:none;padding:18px}.screen.active{display:block}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:16px}
+
+.card h2{margin:0 0 6px;font-size:22px}.muted{color:var(--muted)}
+
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:13px}
+
+.stat b{display:block;font-size:21px;margin-top:4px}
+
+.city-wrap{overflow:auto;border-radius:18px;border:1px solid var(--line);background:#101a29}
+
+.city{position:relative;width:940px;height:760px;background:#b8a77e;overflow:hidden}
+
+.road{position:absolute;background:var(--road);z-index:2;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05)}
+
+.road.h{height:38px;left:0;right:0}.road.v{width:38px;top:0;bottom:0}
+
+.road:after{content:"";position:absolute;opacity:.38}
+
+.road.h:after{left:0;right:0;top:18px;border-top:2px dashed #e0d6b7}
+
+.road.v:after{top:0;bottom:0;left:18px;border-left:2px dashed #e0d6b7}
+
+.district{position:absolute;border:2px solid rgba(20,30,35,.2);border-radius:16px;padding:8px 10px;font-weight:800;color:#243027;z-index:1}
+
+.district small{display:block;font-weight:600;opacity:.7}
+
+.downtown{left:25px;top:25px;width:300px;height:250px;background:#b8a77e}
+
+.north{left:355px;top:25px;width:560px;height:160px;background:#a9b68a}
+
+.west{left:25px;top:310px;width:300px;height:420px;background:#9eaf8a}
+
+.east{left:355px;top:220px;width:560px;height:220px;background:#b9aa83}
+
+.south{left:355px;top:475px;width:250px;height:255px;background:#a9b28a}
+
+.sports{left:635px;top:475px;width:280px;height:255px;background:#9faa7d}
+
+.parcel{position:absolute;z-index:3;border:2px solid rgba(22,33,36,.45);border-radius:7px;background:var(--land);display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.16)}
+
+.parcel.owned{background:var(--owned);border-color:#7ea99a}
+
+.parcel.empty{background:#53614b}
+
+.building{position:absolute;left:8px;right:8px;top:8px;bottom:22px;border-radius:4px;background:#dfe7ee;color:#162033;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 3px 6px rgba(0,0,0,.28)}
+
+.parcel.empty .building{display:none}
+
+.parcel .label{position:absolute;bottom:3px;left:3px;right:3px;font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.parcel .id{position:absolute;top:2px;left:4px;font-size:8px;font-weight:800;opacity:.85}
+
+.p1{left:48px;top:75px;width:120px;height:72px}.p2{left:183px;top:75px;width:105px;height:72px}
+
+.p3{left:48px;top:165px;width:120px;height:65px}.p4{left:183px;top:165px;width:105px;height:65px}
+
+.p5{left:385px;top:62px;width:125px;height:85px}.p6{left:525px;top:62px;width:125px;height:85px}.p7{left:665px;top:62px;width:125px;height:85px}
+
+.p8{left:48px;top:365px;width:120px;height:75px}.p9{left:183px;top:365px;width:105px;height:75px}
+
+.p10{left:48px;top:455px;width:120px;height:75px}.p11{left:183px;top:455px;width:105px;height:75px}
+
+.p12{left:48px;top:545px;width:120px;height:75px}.p13{left:183px;top:545px;width:105px;height:75px}
+
+.p14{left:385px;top:270px;width:125px;height:75px}.p15{left:525px;top:270px;width:125px;height:75px}.p16{left:665px;top:270px;width:125px;height:75px}
+
+.p17{left:385px;top:365px;width:125px;height:55px}.p18{left:525px;top:365px;width:125px;height:55px}
+
+.p19{left:385px;top:525px;width:90px;height:80px}.p20{left:485px;top:525px;width:90px;height:80px}
+
+.p21{left:665px;top:535px;width:100px;height:100px}.p22{left:780px;top:535px;width:100px;height:100px}
+
+.p23{left:665px;top:650px;width:100px;height:60px}.p24{left:780px;top:650px;width:100px;height:60px}
+
+.park{position:absolute;background:#6d9362;border-radius:12px;border:2px solid rgba(30,55,32,.25);z-index:1;display:flex;align-items:center;justify-content:center;font-size:25px}
+
+.park.a{left:700px;top:205px;width:175px;height:45px}.park.b{left:70px;top:285px;width:190px;height:35px}
+
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+
+.legend span{display:flex;align-items:center;gap:5px}.dot{width:12px;height:12px;border-radius:3px;background:#53614b}.dot.b{background:#dfe7ee}.dot.r{background:var(--road)}
+
+.action{width:100%;padding:13px;border:0;border-radius:14px;background:#315c96;font-weight:800;margin-top:10px}
+
+.action.alt{background:#29374e}.action.danger{background:#713b45}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:flex-end;z-index:50}.modal.show{display:flex}
+
+.sheet{background:#101a2b;border:1px solid var(--line);border-radius:26px 26px 0 0;width:100%;padding:22px;max-height:80vh;overflow:auto}
+
+.sheet h2{margin:0 0 5px}.close{float:right;border:0;background:#27354b;border-radius:50%;width:38px;height:38px}
+
+.nav{position:fixed;bottom:0;left:0;right:0;height:82px;background:#0d1524;border-top:1px solid var(--line);display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+
+.nav button{flex:1;border:0;background:none;color:#8995aa;font-weight:800;font-size:12px}.nav button.active{color:#fff}.nav span{display:block;font-size:22px;margin-bottom:3px}
+
+.notice{padding:12px 14px;border-radius:14px;background:#1c2a40;color:#c7d3e5;font-size:13px;margin-bottom:14px}
+
 </style>
+
 </head>
+
 <body>
-<header><h1>Calvin's City</h1><div class="sub" id="headerSub"></div></header>
-<main id="app"></main><nav class="nav" id="nav"></nav>
+
+<div class="app">
+
+<header>
+
+ <h1>Calvin's City</h1>
+
+ <div class="sub" id="yearLine">Year 1 • Normal Economy</div>
+
+</header>
+
+ 
+
+<section id="home" class="screen active">
+
+ <div class="card">
+
+   <h2>🏙️ Your City</h2>
+
+   <p class="muted">You are the Overseer. The city runs itself; you make the important decisions.</p>
+
+   <div class="statgrid">
+
+     <div class="stat">💰 City Cash<b id="cash">$500M</b></div>
+
+     <div class="stat">👥 Population<b id="pop">10,000</b></div>
+
+     <div class="stat">🏢 Property Value<b id="propVal">$0M</b></div>
+
+     <div class="stat">📈 Economy<b id="econ">Normal</b></div>
+
+   </div>
+
+   <button class="action" onclick="show('city')">Open City Map</button>
+
+ </div>
+
+ <div class="card"><h2>🎯 Current Phase</h2><p class="muted">Build the physical city first. Businesses, jobs, housing, basketball and the wider economy will connect to these locations.</p></div>
+
+</section>
+
+ 
+
+<section id="city" class="screen">
+
+ <div class="card">
+
+   <h2>🗺️ City Map</h2>
+
+   <p class="muted">Scroll around the city. Roads divide the districts. Tap land or a building to inspect it.</p>
+
+   <div class="city-wrap">
+
+     <div class="city" id="cityMap">
+
+       <div class="district downtown">DOWNTOWN<small>Finance • Offices • HQ</small></div>
+
+       <div class="district north">NORTH DISTRICT<small>Residential • Neighborhoods</small></div>
+
+       <div class="district west">WEST INDUSTRIAL<small>Factories • Warehouses • Logistics</small></div>
+
+       <div class="district east">EAST RETAIL<small>Stores • Food • Services</small></div>
+
+       <div class="district south">SOUTH DISTRICT<small>Hotels • Residential</small></div>
+
+       <div class="district sports">SPORTS DISTRICT<small>Stadiums • Entertainment</small></div>
+
+       <div class="park a">🌳 PARK</div><div class="park b">🌲 GREEN SPACE</div>
+
+       <div class="road h" style="top:285px"></div><div class="road h" style="top:445px"></div>
+
+       <div class="road h" style="top:635px"></div><div class="road v" style="left:325px"></div>
+
+       <div class="road v" style="left:615px"></div>
+
+       <div id="parcels"></div>
+
+     </div>
+
+   </div>
+
+   <div class="legend">
+
+     <span><i class="dot"></i>Land</span><span><i class="dot b"></i>Building</span><span><i class="dot r"></i>Road</span>
+
+   </div>
+
+ </div>
+
+</section>
+
+ 
+
+<section id="property" class="screen">
+
+ <div class="card"><h2>🏗️ Property</h2><p class="muted">Property management will become the physical foundation of businesses and housing.</p><div id="propertyList"></div></div>
+
+</section>
+
+ 
+
+<section id="markets" class="screen">
+
+ <div class="card"><h2>📊 Markets</h2><p class="muted">Future market clearinghouse: food, commodities, housing, transportation, entertainment and more.</p></div>
+
+</section>
+
+ 
+
+<section id="finance" class="screen">
+
+ <div class="card"><h2>💰 Finance</h2><p class="muted">Treasury, Federal Reserve, taxes, loans and company finance will connect here.</p></div>
+
+</section>
+
+</div>
+
+ 
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+
+<div class="sheet">
+
+  <button class="close" onclick="closeModal()">✕</button>
+
+  <div id="sheetContent"></div>
+
+</div>
+
+</div>
+
+ 
+
+<nav class="nav">
+
+<button data-screen="home" onclick="show('home')"><span>⌂</span>Home</button>
+
+<button data-screen="city" onclick="show('city')"><span>🏙️</span>City</button>
+
+<button data-screen="property" onclick="show('property')"><span>🏗️</span>Property</button>
+
+<button data-screen="markets" onclick="show('markets')"><span>📊</span>Markets</button>
+
+<button data-screen="finance" onclick="show('finance')"><span>💰</span>Finance</button>
+
+</nav>
+
+ 
+
 <script>
-const KEY="calvins_city_property_v1";
+
+const KEY='calvins_city_v3';
+
 const fresh={
-year:1,pop:10000,mwtp:20,econ:"Normal",fedRate:4,treasury:0,cityCash:500,propertyValue:0,
-commodities:{Grain:2,Meat:2.2,Produce:1.8},
-food:[
- {name:"Prosper Foods",cash:180,quality:7,brand:6,inventory:0,price:20},
- {name:"Whitmore Foods",cash:180,quality:8,brand:7,inventory:0,price:20}
-],
-banks:[{name:"First City Bank",cash:500,loans:0}],
-stocks:[{name:"Prosper Foods",price:50,shares:1000000},{name:"Whitmore Foods",price:50,shares:1000000}],
-properties:[
- ["DT-01","Downtown","Office","Medium",50],["DT-02","Downtown","Bank","Medium",40],
- ["N-01","North District","Apartment","Medium",35],["N-02","North District","Homes","Small",20],
- ["W-01","West Industrial","Factory","Large",60],["W-02","West Industrial","Warehouse","Medium",30],
- ["E-01","East Retail","Retail","Large",55],["E-02","East Retail","Restaurant","Medium",30],
- ["S-01","South District","Hotel","Large",70],["S-02","South District","Homes","Medium",30],
- ["SP-01","Sports District","Stadium","Landmark",100],["SP-02","Sports District","Stadium","Landmark",100],["SP-03","Sports District","Stadium","Landmark",100]
-].map(x=>({id:x[0],district:x[1],type:x[2],size:x[3],price:x[4],status:"available",building:null})),
-log:["Calvin's City founded. The map is now the physical foundation of the economy."]
+
+year:11,population:10000,economy:'Normal',cityCash:500,propertyValue:0,
+
+parcels:[
+
+ ['DT-01','Downtown','Office','Medium',50,'🏢','p1'],['DT-02','Downtown','Bank','Medium',40,'🏦','p2'],
+
+ ['DT-03','Downtown','Office','Small',35,'🏢','p3'],['DT-04','Downtown','HQ','Medium',45,'🏢','p4'],
+
+ ['N-01','North District','Apartment','Medium',35,'🏬','p5'],['N-02','North District','Homes','Small',20,'🏠','p6'],['N-03','North District','Apartment','Large',55,'🏬','p7'],
+
+ ['W-01','West Industrial','Factory','Large',60,'🏭','p8'],['W-02','West Industrial','Warehouse','Medium',30,'📦','p9'],['W-03','West Industrial','Factory','Large',65,'🏭','p10'],
+
+ ['W-04','West Industrial','Warehouse','Medium',32,'📦','p11'],['W-05','West Industrial','Factory','Medium',48,'🏭','p12'],['W-06','West Industrial','Logistics','Large',52,'🚚','p13'],
+
+ ['E-01','East Retail','Retail','Large',55,'🛍️','p14'],['E-02','East Retail','Restaurant','Medium',30,'🍽️','p15'],['E-03','East Retail','Retail','Medium',38,'🛍️','p16'],
+
+ ['E-04','East Retail','Office','Medium',32,'🏢','p17'],['E-05','East Retail','Restaurant','Medium',34,'🍽️','p18'],
+
+ ['S-01','South District','Hotel','Large',70,'🏨','p19'],['S-02','South District','Homes','Medium',30,'🏠','p20'],
+
+ ['SP-01','Sports District','Stadium','Landmark',100,'🏟️','p21'],['SP-02','Sports District','Stadium','Landmark',100,'🏟️','p22'],
+
+ ['SP-03','Sports District','Stadium','Landmark',100,'🏟️','p23'],['SP-04','Sports District','Entertainment','Large',60,'🎟️','p24']
+
+].map(x=>({id:x[0],district:x[1],type:x[2],size:x[3],price:x[4],icon:x[5],css:x[6],owned:false,built:false}))
+
 };
-let s=JSON.parse(localStorage.getItem(KEY)||"null")||fresh,tab="home";
-const districtInfo={
-"Downtown":["🏙️","Finance, offices and headquarters"],"North District":["🏘️","Permanent housing and apartments"],
-"West Industrial":["🏭","Factories, warehouses and logistics"],"East Retail":["🛍️","Stores, restaurants and consumer businesses"],
-"South District":["🏨","Hotels and residential development"],"Sports District":["🏀","Three stadiums and the sports economy"]
-};
-const buildingInfo={Office:["Office Building","🏢"],Bank:["Bank Branch","🏦"],Apartment:["Apartment Building","🏬"],Homes:["Housing","🏠"],Factory:["Factory","🏭"],Warehouse:["Warehouse","📦"],Retail:["Retail Center","🛍️"],Restaurant:["Restaurant","🍽️"],Hotel:["Hotel","🏨"],Stadium:["Stadium","🏟️"]};
-function save(){localStorage.setItem(KEY,JSON.stringify(s))}
-function money(x){return "$"+Number(x).toFixed(2)+"M"}
-function log(x){s.log.unshift("Y"+s.year+": "+x);s.log=s.log.slice(0,70);save()}
-function roll(){return Math.floor(Math.random()*6)+1+Math.floor(Math.random()*6)+1}
-function card(title,body){return `<div class="card"><div class="section" style="margin-top:0">${title}</div>${body}</div>`}
- 
-function buyProperty(id){let p=s.properties.find(x=>x.id===id);if(!p||p.status!="available")return;if(s.cityCash<p.price)return alert("Not enough city capital.");s.cityCash-=p.price;s.propertyValue+=p.price;p.status="owned";log("City acquired "+p.id+" in "+p.district+" for "+money(p.price)+".");render()}
-function buildProperty(id){let p=s.properties.find(x=>x.id===id);if(!p||p.status!="owned")return;let cost=Math.round(p.price*.35*100)/100;if(s.cityCash<cost)return alert("Not enough development capital.");s.cityCash-=cost;p.status="built";p.building=buildingInfo[p.type][0];log("Built "+p.building+" on "+p.id+" for "+money(cost)+".");render()}
-function sellProperty(id){let p=s.properties.find(x=>x.id===id);if(!p||p.status=="available")return;let value=p.price*(p.status=="built"?1.15:1);s.cityCash+=value;s.propertyValue-=p.price;log("Sold "+p.id+" for "+money(value)+".");p.status="available";p.building=null;render()}
- 
-function city(){
-const districts=Object.keys(districtInfo);
-return `<div class="screen">
-${card("🏙️ City Map",`
- <div class="city-scroll"><div class="city-map">
-  ${districts.map(d=>{
-   const props=s.properties.filter(p=>p.district===d),built=props.filter(p=>p.status==="built").length;
-   return `<section class="city-district">
-    <div class="city-district-head"><div class="city-district-icon">${districtInfo[d][0]}</div><div>
-     <div class="city-district-name">${d}</div><div class="city-district-desc">${districtInfo[d][1]}</div>
-    </div></div>
-    <div class="city-street"></div><div class="city-road-label">CITY STREET</div>
-    <div class="city-parcels">${props.map(p=>`<div class="city-parcel ${p.status}" onclick="tab='property';render()">
-     <div class="city-parcel-id">${p.id} • ${p.size}</div>
-     <div class="city-building"><div>
-      <div class="city-building-icon">${p.building?buildingInfo[p.type][1]:"▫️"}</div>
-      <div class="city-building-name">${p.building||"Empty Lot"}</div>
-     </div></div>
-     <div class="city-status">${p.status}</div>
-    </div>`).join("")}</div>
-    <div class="city-street"></div>
-    <div class="city-road-label">${built}/${props.length} DEVELOPED</div>
-   </section>`}).join("")}
- </div></div>
- <div class="city-legend"><span>▫️ Empty lot</span><span>🏢 Building</span><span>🛣️ Road</span><span>🟢 Available</span><span>🟦 Owned</span><span>🟤 Built</span></div>
- <div class="small" style="margin-top:8px">Swipe left/right on the map to see the full city on smaller iPhones.</div>
-`)}
-${card("🏗️ City Development",`<p class="muted">Every property is represented as a physical parcel. As businesses are added, their buildings will occupy these lots.</p><button onclick="tab='property';render()">🏗️ Manage Property</button>`)}
-</div>`
+
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||fresh;
+
+function money(n){return '$'+Number(n).toFixed(0)+'M'}
+
+function save(){state.propertyValue=state.parcels.filter(p=>p.owned).reduce((a,p)=>a+p.price,0);localStorage.setItem(KEY,JSON.stringify(state));render()}
+
+function show(id){
+
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+
+document.getElementById(id).classList.add('active');
+
+document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
+
+if(id==='city')renderMap(); if(id==='property')renderProperties();
+
+window.scrollTo(0,0);
+
 }
- 
-function propertyMarket(){
-const owned=s.properties.filter(p=>p.status!="available").length,built=s.properties.filter(p=>p.status=="built").length;
-return `<div class="screen">
-${card("🏗️ Property Market",`<div class="grid">
- <div><div class="label">City capital</div><div class="metric">${money(s.cityCash)}</div></div>
- <div><div class="label">Property value</div><div class="metric">${money(s.propertyValue)}</div></div>
- <div><div class="label">Properties owned</div><div class="metric">${owned}</div></div>
- <div><div class="label">Buildings built</div><div class="metric">${built}</div></div>
-</div><p class="muted">Land is bought first. Construction costs 35% of land value.</p>`)}
-${card("Available Land",`<div class="property-grid">${s.properties.filter(p=>p.status=="available").map(p=>`<div class="property-card">
- <div class="property-title">${p.id} • ${p.district}</div><div class="property-desc">${p.size} ${p.type} parcel</div><div class="cost">${money(p.price)}</div>
- <button onclick="buyProperty('${p.id}')">Buy Property</button></div>`).join("")}</div>`)}
-${card("Your Properties",owned?`<div class="property-grid">${s.properties.filter(p=>p.status!="available").map(p=>`<div class="property-card">
- <div class="property-title">${p.id} • ${p.district}</div><div class="property-desc">${p.size} ${p.type}</div><div class="badge ${p.status}">${p.status.toUpperCase()}</div>
- <div style="margin-top:8px;font-size:18px">${p.building?buildingInfo[p.type][1]+" "+p.building:"▫️ Raw land"}</div>
- <div class="row" style="margin-top:10px">${p.status=="owned"?`<button onclick="buildProperty('${p.id}')">Build ${money(p.price*.35)}</button>`:""}<button class="secondary" onclick="sellProperty('${p.id}')">Sell</button></div>
-</div>`).join("")}</div>`:`<div class="muted">You do not own any property yet.</div>`)}
-</div>`
-}
-function home(){return `<div class="screen">
-${card("City Overview",`<div class="grid"><div><div class="label">Population</div><div class="metric">${s.pop.toLocaleString()}</div></div><div><div class="label">Economy</div><div class="metric">${s.econ}</div></div><div><div class="label">City Capital</div><div class="metric">${money(s.cityCash)}</div></div><div><div class="label">Property Value</div><div class="metric">${money(s.propertyValue)}</div></div></div>`)}
-${card("City Development",`<p class="muted">The map now shows the physical city. Property remains connected underneath it.</p><div class="row"><button onclick="tab='city';render()">🏙️ View City</button><button onclick="tab='property';render()">🏗️ Buy Property</button></div>`)}
-${card("Yearly Controls",`<div class="row"><button onclick="popRoll();render()">🎲 Population</button><button onclick="econRoll();render()">🎲 Economy</button><button onclick="mwtpReset();render()">💵 MWTP</button><button onclick="commodityRoll();render()">🌾 Commodities</button><button class="good" onclick="newYear()">▶ Start New Year</button></div>`)}
-${card("Recent Activity",`<div class="log">${s.log.map(x=>`<div style="padding:5px 0">${x}</div>`).join("")}</div>`)}
-</div>`}
-function markets(){return `<div class="screen">${card("Commodity Market",Object.entries(s.commodities).map(([k,v])=>`<div class="item"><span>${k}</span><b>${money(v)}</b></div>`).join(""))}${card("Food Competition",s.food.map(f=>`<div class="card" style="background:#101827"><b>${f.name}</b><div class="item"><span>Price</span><b>${money(f.price)}</b></div><div class="item"><span>Quality / Brand</span><span>${f.quality}/10 • ${f.brand}/10</span></div><div class="item"><span>Cash</span><b>${money(f.cash)}</b></div></div>`).join(""))}</div>`}
-function finance(){return `<div class="screen">${card("Federal Treasury",`<div class="metric">${money(s.treasury)}</div><div class="muted">Collected from modeled transaction taxes.</div>`)}${card("Federal Reserve",`<div class="item"><span>Policy rate</span><b>${s.fedRate.toFixed(2)}%</b></div><div class="row"><button class="secondary" onclick="s.fedRate=Math.max(0,s.fedRate-.25);log('Fed cut rates 0.25%.');render()">−0.25%</button><button class="secondary" onclick="s.fedRate+=.25;log('Fed raised rates 0.25%.');render()">+0.25%</button></div>`)}${card("Banks",s.banks.map(b=>`<div class="item"><span>${b.name}</span><b>${money(b.cash)}</b></div>`).join(""))}${card("Stock Market",s.stocks.map(x=>`<div class="item"><span>${x.name}</span><b>$${x.price.toFixed(2)}</b></div>`).join(""))}</div>`}
-function econRoll(){let r=roll();s.econ=r<=4?"Recession":r<=9?"Normal":"Boom";log("Economic roll: "+r+" → "+s.econ);return r}
-function popRoll(){let r=roll(),pct=r<=4?-1:r<=6?0:r<=8?1:r<=10?2:3;s.pop=Math.max(1000,Math.round(s.pop*(1+pct/100)));log("Population roll "+r+" → "+(pct>=0?"+":"")+pct+"%.")}
-function mwtpReset(){let r=roll(),pct=(s.econ=="Boom"?2:s.econ=="Recession"?-2:0)+(r>=10?2:r<=4?-2:0);s.mwtp=Math.max(5,Math.round(s.mwtp*(1+pct/100)*100)/100);log("MWTP reset → "+money(s.mwtp)+" per meal.")}
-function commodityRoll(){const moves={2:-10,3:-8,4:-6,5:-4,6:-2,7:2,8:4,9:6,10:8,11:10,12:12},r=roll();for(const k in s.commodities)s.commodities[k]=Math.round(s.commodities[k]*(1+moves[r]/100)*100)/100;log("Commodity roll "+r+" → "+(moves[r]>=0?"+":"")+moves[r]+"%.")}
-function newYear(){s.year++;popRoll();econRoll();mwtpReset();commodityRoll();save();render()}
+
 function render(){
-document.getElementById("headerSub").textContent=`Year ${s.year} • ${s.econ} Economy`;
-const pages={home,city,property:propertyMarket,markets,finance};
-document.getElementById("app").innerHTML=pages[tab]();
-const labels=[["home","⌂","Home"],["city","🏙","City"],["property","🏗","Property"],["markets","📊","Markets"],["finance","💰","Finance"]];
-document.getElementById("nav").innerHTML=labels.map(([id,ic,name])=>`<button class="${tab==id?"active":""}" onclick="tab='${id}';render()">${ic}<br>${name}</button>`).join("");
-save();
+
+document.getElementById('yearLine').textContent=`Year ${state.year} • ${state.economy} Economy`;
+
+document.getElementById('cash').textContent=money(state.cityCash);
+
+document.getElementById('pop').textContent=state.population.toLocaleString();
+
+document.getElementById('propVal').textContent=money(state.propertyValue);
+
+document.getElementById('econ').textContent=state.economy;
+
+renderMap();renderProperties();
+
 }
+
+function renderMap(){
+
+const host=document.getElementById('parcels'); if(!host)return; host.innerHTML='';
+
+state.parcels.forEach(p=>{
+
+ const el=document.createElement('div');el.className=`parcel ${p.owned?'owned':'empty'}`;el.classList.add(p.css);
+
+ el.innerHTML=`<div class="id">${p.id}</div><div class="building">${p.built?p.icon:''}</div><div class="label">${p.built?p.type:'LAND'}</div>`;
+
+ el.onclick=()=>inspect(p.id);host.appendChild(el);
+
+});
+
+}
+
+function inspect(id){
+
+const p=state.parcels.find(x=>x.id===id);
+
+let action=p.owned&&!p.built?`<button class="action" onclick="build('${p.id}')">Build ${p.type} • ${money(p.price*.35)}</button>`:
+
+p.owned&&p.built?`<button class="action danger" onclick="sell('${p.id}')">Sell Property • ${money(p.price*1.15)}</button>`:
+
+`<button class="action" onclick="buy('${p.id}')">Buy Land • ${money(p.price)}</button>`;
+
+document.getElementById('sheetContent').innerHTML=`<h2>${p.icon} ${p.id}</h2><p class="muted">${p.district} • ${p.size} • ${p.type}</p><div class="notice">${p.owned?(p.built?'Owned • Built':'Owned • Empty lot'):'Available land'}<br>Land value: ${money(p.price)}</div>${action}`;
+
+document.getElementById('modal').classList.add('show');
+
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+
+function buy(id){
+
+const p=state.parcels.find(x=>x.id===id);if(p.owned||state.cityCash<p.price)return;
+
+state.cityCash-=p.price;p.owned=true;save();closeModal();
+
+}
+
+function build(id){
+
+const p=state.parcels.find(x=>x.id===id);const cost=p.price*.35;if(!p.owned||p.built||state.cityCash<cost)return;
+
+state.cityCash-=cost;p.built=true;save();closeModal();
+
+}
+
+function sell(id){
+
+const p=state.parcels.find(x=>x.id===id);if(!p.owned)return;
+
+state.cityCash+=p.built?p.price*1.15:p.price;p.owned=false;p.built=false;save();closeModal();
+
+}
+
+function renderProperties(){
+
+const box=document.getElementById('propertyList');if(!box)return;
+
+const owned=state.parcels.filter(p=>p.owned);
+
+box.innerHTML=owned.length?owned.map(p=>`<div class="stat" style="margin-top:8px"><b>${p.icon} ${p.id}</b><span class="muted">${p.type} • ${p.size} • ${p.built?'Built':'Empty lot'}</span></div>`).join(''):'<p class="muted">You do not own any property yet.</p>';
+
+}
+
 render();
+
+show('home');
+
 </script>
+
 </body>
+
 </html>
