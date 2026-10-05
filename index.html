@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.15.1 -->
+<!-- CALVIN'S CITY — VERSION 4.16 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.15.1</title>
+<title>Calvin's City 4.16</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -48,7 +48,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
 .team-table{width:100%;border-collapse:collapse;font-size:12px}.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}.team-note{color:#9eabba;font-size:11px;margin-top:10px}
 .team-switch{margin:10px 0 12px}.team-switch button{margin:0;padding:10px 8px;background:#2f6fed;font-size:13px}
-.record-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 12px}
+.record-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 12px}
 .record-tabs button{margin:0;padding:9px 4px;background:#344255;font-size:11px}
 .record-tabs button.active{background:#2f6fed}
 .record-panel{display:none}.record-panel.active{display:block}
@@ -58,13 +58,16 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .champ-record{padding:10px 0;border-bottom:1px solid #334155}.champ-record:last-child{border-bottom:0}
 .champ-main{font-weight:900;font-size:14px}.champ-mvp{display:block;font-size:10px;color:#f1d37a;font-weight:500;margin:3px 0 0 2px}
 .champ-loser{font-size:9px;color:#7f8b99;margin-top:4px;padding-left:2px}
+.citizen-card{padding:10px 0;border-bottom:1px solid #334155}.citizen-card:last-child{border-bottom:0}
+.citizen-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.citizen-head b{font-size:14px}
+.citizen-meta{font-size:10px;color:#9eabba;margin:3px 0 7px}.citizen-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;font-size:10px}.citizen-grid span{background:#121b27;border:1px solid #2d3a4d;border-radius:7px;padding:6px}.citizen-grid b{float:right;color:#f1d37a}.citizen-business{font-size:10px;color:#9eabba;margin-top:7px}
  
  
 .mall-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mall-brand{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:11px}.mall-brand strong{display:block;font-size:15px}.mall-brand small{color:#9eabba}
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.15.1</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.15.1</div></header>
+<header><h1>🏙️ Calvin's City — 4.16</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16</div></header>
 <main>
 <section id="home" class="screen active"><div class="card"><h2>City Overview</h2><div class="grid"><div class="metric"><small>Year</small><strong id="homeYear">1</strong></div><div class="metric"><small>Population</small><strong>10,000</strong></div><div class="metric"><small>Economy</small><strong>Normal</strong></div><div class="metric"><small>CSP</small><strong>$20</strong><span style="display:block;font-size:9px;color:#7f8b99;margin-top:3px">Consumer Spending Power</span></div></div></div>
 <div class="card"><h2>🏀 Basketball</h2><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div></section>
@@ -92,7 +95,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <div class="card"><h2>🧾 Current Season</h2><div id="standingsOutput"><p class="muted">No games played yet.</p></div></div>
 <div class="card"><h2>📋 Offseason Management</h2><p><b>The year does not advance automatically.</b> Finish contracts, trades, releases and roster decisions first.</p><div class="grid"><div class="metric"><small>Season Status</small><strong id="seasonStatus">Not Played</strong></div><div class="metric"><small>Offseason</small><strong id="offseasonStatus">Locked</strong></div></div><button id="openOffseason">Open Offseason</button></div>
 <div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div id="contractBoard"></div><div class="divider"></div><h3>Former-Player GM System</h3><div id="gmBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
-<div class="card"><h2>📚 Record & History</h2><p>Permanent player and game history. Existing retired-player records are preserved here.</p><div class="grid"><div class="metric"><small>Retired Players</small><strong id="retiredCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button></div><div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
+<div class="card"><h2>📚 Record & History</h2><p>Permanent history plus the Citizen Ledger. Every person gets one identity that connects basketball, cash, businesses and future financial systems.</p><div class="grid"><div class="metric"><small>Citizens</small><strong id="citizenCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button></div><div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 </section></main>
  
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button><button data-nav="finance">🏦<br>Finance</button></nav>
@@ -101,6 +104,17 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 (function(){
 const TEAM_PAGE={lions:{name:"Lions",arena:"Lions Arena",key:"Lions"},rims:{name:"Rimmers",arena:"Rims Arena",key:"Rims"},dunks:{name:"Dunkers",arena:"Dunks Arena",key:"Dunks"}};
 const TEAM_CASH={Lions:4430,Rims:4470,Dunks:4450};
+const BUSINESS_OWNERSHIP={
+Nike:[["Coffvee",100]],
+Reebok:[["Kobal",50],["Benmack",50]],
+Puma:[["House",50],["West",50]],
+Adidas:[["Wallace",50],["Poley",50]],
+"New Balance":[["Folcook",33.3333333333],["Bole",33.3333333333],["Hall",33.3333333333]],
+"TV Company":[["Coffvee",100]],
+"Sports Bets Company":[["June",35],["Coast",35],["Peb",15],["Sam",15]]
+};
+const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+const CITIZEN_NAMES=()=>Array.from(new Set([...(HISTORICAL_RETIRED||[]).map(x=>x[0]),...Object.values(state.roster||{}).filter(Boolean)]));
  
 function openTeamPage(k){
 const t=TEAM_PAGE[k]; if(!t)return;
@@ -127,7 +141,7 @@ document.querySelectorAll(".team-player-name").forEach(input=>{
 const team=input.dataset.team,pos=input.dataset.pos,value=input.value.trim();
 if(value)state.roster[team+"_"+pos]=value;
 });
-save();
+syncCitizenLedger();save();
 document.getElementById("teamRosterSaved").textContent="Player names saved on this device.";
 buildRosterInputs();
 buildContractBoard();
@@ -172,9 +186,57 @@ HISTORICAL_CHAMPIONSHIPS=[
 CHAMP_STREAKS={"Benmack":4,"Fox":3,"Mason":3,"Hall":2,"House":2,"June":2,"West":2,"Carter":2,"Corva":4,"Reese":4},
 FORMER_PLAYERS=["S. Oliver","E. Ali","R. Boxi","Benmack II","Nail","Jacks","Corva","Reese","Lui","Joel","Hendi"],REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
-let state={year:1,defendingChampion:"Lions",seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},gms:{},lastSeason:null,lastGame:null,records:{retiredPlayers:[],gameRecords:[]}};
+let state={year:1,defendingChampion:"Lions",seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},gms:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+state.citizens=Array.isArray(state.citizens)?state.citizens:[];
+function citizenByName(name){return state.citizens.find(c=>c.name===name)}
+function citizenBusinessSummary(name){
+const out=[];
+Object.entries(BUSINESS_OWNERSHIP).forEach(([business,owners])=>{
+const hit=owners.find(x=>x[0]===name);
+if(hit)out.push({business,ownership:Number(hit[1]),cash:Number(BUSINESS_CASH[business]||0)});
+});
+return out;
+}
+function ensureCitizen(name,seed={}){
+if(!name||!String(name).trim())return null;
+name=String(name).trim();
+let c=citizenByName(name);
+if(!c){
+const id="C"+String(state.citizens.length+1).padStart(3,"0");
+c={id,name,status:seed.status||"Active",position:seed.position||null,currentTeam:seed.currentTeam||null,
+cash:seed.cash==null?null:Number(seed.cash),debt:seed.debt==null?0:Number(seed.debt),
+careerPts:seed.careerPts||0,careerRebs:seed.careerRebs||0,mvps:seed.mvps||0,championships:seed.championships||0,
+champStreak:seed.champStreak||0,currentChampStreak:seed.currentChampStreak||0,
+businesses:[],contracts:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
+state.citizens.push(c);
+}
+if(seed.status)c.status=seed.status;
+if(seed.position)c.position=seed.position;
+if(seed.currentTeam)c.currentTeam=seed.currentTeam;
+if(seed.cash!=null)c.cash=Number(seed.cash);
+return c;
+}
+function syncCitizenLedger(){
+const retiredMap={};(state.records.retiredPlayers||[]).forEach(p=>retiredMap[p.name]=p);
+CITIZEN_NAMES().forEach(name=>{
+const p=retiredMap[name];
+const rosterKey=Object.keys(state.roster||{}).find(k=>state.roster[k]===name);
+const team=rosterKey?rosterKey.split("_")[0]:null;
+const pos=rosterKey?rosterKey.split("_")[1]:null;
+const c=ensureCitizen(name,{status:p?"Retired":(team?"Active Player":"Active"),position:pos,currentTeam:team,
+cash:p&&p.retirementCash!=null?p.retirementCash:null,careerPts:p?p.careerPts:0,careerRebs:p?p.careerRebs:0,
+mvps:p?p.mvps:0,championships:p?p.championships:0,champStreak:p?p.champStreak:0,currentChampStreak:p?p.currentChampStreak:0});
+if(c){
+if(p&&p.retirementCash!=null)c.cash=p.retirementCash;
+c.businesses=citizenBusinessSummary(name);
+}
+});
+state.citizens.forEach(c=>{c.businesses=citizenBusinessSummary(c.name)});
+}
+function citizenCount(){return state.citizens.length}
+ 
 function seedRecords(){const map={};state.records.retiredPlayers.forEach(p=>map[p.name]=p);HISTORICAL_RETIRED.forEach(x=>{const [name,pts,reb,mvp,titles]=x;if(!map[name])state.records.retiredPlayers.push({name,careerPts:pts,careerRebs:reb,mvps:mvp,championships:titles,champStreak:CHAMP_STREAKS[name]||0,currentChampStreak:CHAMP_STREAKS[name]||0,status:"Retired",retirementCash:RETIREMENT_CASH[name]??null});else{map[name].careerPts=pts;map[name].careerRebs=reb;map[name].mvps=mvp;map[name].championships=titles;if(map[name].champStreak==null)map[name].champStreak=CHAMP_STREAKS[name]||0;if(map[name].currentChampStreak==null)map[name].currentChampStreak=CHAMP_STREAKS[name]||0;if(map[name].retirementCash==null&&RETIREMENT_CASH[name]!=null)map[name].retirementCash=RETIREMENT_CASH[name]}});const existing=new Set((state.records.gameRecords||[]).filter(g=>g.stage==="Championship").map(g=>g.year));HISTORICAL_CHAMPIONSHIPS.forEach(x=>{const [year,winner,mvp,winnerPts,loserPts]=x;if(!existing.has(year))state.records.gameRecords.push({year,stage:"Championship",a:winner,b:"N/A",winner,loser:"N/A",scoreA:null,scoreB:null,championMvp:mvp,mvpPts:winnerPts,mvpRebs:loserPts,spread:null,spreadWinner:null,moneylineA:null,moneylineB:null,winningMoneyline:null,bettingResult:null})})}
 function recordHistoryGame(g,stage){const mvp=g.winner.players.slice().sort((a,b)=>b.pts-a.pts)[0];state.records.gameRecords.push({year:state.year,stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,championMvp:stage==="Championship"?mvp.name:null,mvpPts:stage==="Championship"?mvp.pts:null,mvpRebs:stage==="Championship"?mvp.rebs:null,spread:null,spreadWinner:null,moneylineA:null,moneylineB:null,winningMoneyline:null,bettingResult:null})}
 seedRecords();
@@ -194,15 +256,21 @@ function nextGameDescription(){if(state.seasonPhase==="regular"){const p=REGULAR
 function renderProgress(){const b=document.getElementById("nextGameBox"),btn=document.getElementById("playNextGame");b.innerHTML='<div class="metric"><small>Next</small><strong>'+nextGameDescription()+'</strong></div>';btn.style.display=state.seasonPhase==="offseason"?"none":"block";if(state.seasonPhase==="championship")btn.textContent="🏆 PLAY CHAMPIONSHIP";const s=document.getElementById("seasonStatus"),o=document.getElementById("offseasonStatus");if(state.seasonPhase==="regular"){s.textContent='Game '+state.regularGameIndex+' of 3 played';o.textContent="Locked"}else if(state.seasonPhase==="semifinal"){s.textContent="Regular Season Complete";o.textContent="Locked"}else if(state.seasonPhase==="championship"){s.textContent="Semifinal Complete";o.textContent="Locked"}else{s.textContent="Season Complete";o.textContent="Ready"}renderStandings()}
 function renderStandings(){const out=document.getElementById("standingsOutput");if(!state.gamesPlayed.length){out.innerHTML='<p class="muted">Game 1 is ready. Nothing has been played yet.</p>';return}let h='<p><b>Games Played:</b> '+state.gamesPlayed.length+'</p><table><tr><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr>';TEAMS.slice().sort((a,b)=>state.standings[b].w-state.standings[a].w).forEach(t=>h+='<tr><td>'+t+'</td><td>'+state.standings[t].w+'</td><td>'+state.standings[t].l+'</td><td>'+state.standings[t].ptsFor+'</td><td>'+state.standings[t].ptsAgainst+'</td></tr>');h+='</table>';if(state.playoff.bye)h+='<p><b>Playoff Bye:</b> '+state.playoff.bye+'</p>';if(state.lastSeason)h+='<p class="gold"><b>Champion:</b> '+state.lastSeason.champion+' • <b>MVP:</b> '+state.lastSeason.championship.mvp+'</p>';out.innerHTML=h}
 function buildRosterInputs(){let h='<table><tr><th>Team</th><th>C</th><th>SG</th><th>PG</th></tr>';TEAMS.forEach(t=>{h+='<tr><td>'+t+'</td>';POSITIONS.forEach(p=>{const k=t+"_"+p;h+='<td><input id="r_'+k+'" placeholder="'+p+'" value="'+(state.roster[k]||"")+'"></td>'});h+='</tr>'});document.getElementById("rosterInputs").innerHTML=h+'</table>'}
-function saveRoster(){TEAMS.forEach(t=>POSITIONS.forEach(p=>{const k=t+"_"+p,e=document.getElementById("r_"+k);if(e&&e.value.trim())state.roster[k]=e.value.trim()}));save();document.getElementById("rosterSaved").textContent="Roster names saved on this device."}
+function saveRoster(){
+const proposed={...state.roster},seen={};
+TEAMS.forEach(t=>POSITIONS.forEach(p=>{const k=t+"_"+p,e=document.getElementById("r_"+k);if(e&&e.value.trim()){const name=e.value.trim();if(seen[name]&&seen[name]!==k){alert("Each citizen name must be unique. "+name+" is already assigned.");return}seen[name]=k;proposed[k]=name}}));
+const names=Object.values(proposed).filter(Boolean);
+if(new Set(names).size!==names.length){alert("Each citizen name must be unique.");return}
+state.roster=proposed;syncCitizenLedger();save();document.getElementById("rosterSaved").textContent="Roster names and citizen identities saved on this device."
+}
 function buildContractBoard(){let h='<p class="tiny">Current team gets the first bid. Maximum term is 3 years. Player names can be edited here.</p>';TEAMS.forEach(t=>{h+='<div class="team"><h3>'+t+'</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>';POSITIONS.forEach(p=>{const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};h+='<tr><td><input class="contract-player-name" data-team="'+t+'" data-pos="'+p+'" value="'+String(playerName(t,p)).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:12px"><div class="tiny">'+p+'</div></td><td>'+money(Number(c.value)||0)+'</td><td>'+c.years+'</td><td><select><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>'});h+='</table></div>'});h+='<button id="saveContractPlayerNames" class="goodbtn">Save Player Names</button><p id="contractNamesSaved" class="tiny"></p>';document.getElementById("contractBoard").innerHTML=h;const saveNames=document.getElementById("saveContractPlayerNames");if(saveNames)saveNames.onclick=()=>{document.querySelectorAll(".contract-player-name").forEach(input=>{const team=input.dataset.team,pos=input.dataset.pos,value=input.value.trim();if(value)state.roster[team+"_"+pos]=value});save();document.getElementById("contractNamesSaved").textContent="Player names saved on this device.";buildRosterInputs();}}
 function buildGMBoard(){let h='<table><tr><th>Former Player</th><th>GM PPG</th><th>Games</th><th>Titles</th><th>Team</th></tr>';FORMER_PLAYERS.forEach(n=>{const g=state.gms[n]||{};h+='<tr><td>'+n+'</td><td>'+Number(g.ppg||0).toFixed(1)+'</td><td>'+(g.games||0)+'</td><td>'+(g.titles||0)+'</td><td>'+(g.team||"Free Agent")+'</td></tr>'});document.getElementById("gmBoard").innerHTML=h+'</table>'}
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
 function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";document.getElementById("homeYear").textContent=state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";alert("Offseason finalized. Calvin's City is ready for the new year.")}
 function renderRecords(){
 const r=state.records.retiredPlayers||[],g=state.records.gameRecords||[];
-const a=document.getElementById("retiredCount"),b=document.getElementById("recordGameCount");
-if(a)a.textContent=r.length;if(b)b.textContent=g.length;
+const a=document.getElementById("retiredCount"),b=document.getElementById("recordGameCount"),cc=document.getElementById("citizenCount");
+if(a)a.textContent=r.length;if(b)b.textContent=g.length;if(cc)cc.textContent=(state.citizens||[]).length;
 const body=document.getElementById("recordsBody");if(!body)return;
  
 const points=r.slice().sort((x,y)=>(y.careerPts||0)-(x.careerPts||0)).slice(0,10);
@@ -235,6 +303,16 @@ champHtml+='<div class="champ-record"><div class="champ-main">Year '+x.year+' �
 });
 champHtml+='</div>';
  
+const citizenRows=(state.citizens||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+let citizenHtml='<div id="recordCitizens" class="record-panel"><h3>Citizen Ledger</h3><p class="tiny">One permanent identity per person. Cash, business ownership, basketball history and future financial systems all connect to this citizen ID.</p>';
+if(!citizenRows.length)citizenHtml+='<p class="muted">No citizens recorded yet.</p>';
+citizenRows.forEach(c=>{
+const biz=(c.businesses||[]).map(x=>x.business+' '+(Number(x.ownership).toFixed(Number(x.ownership%1?1:0))+'%')).join(' • ')||'None';
+const cash=c.cash==null?'—':'$'+Number(c.cash).toFixed(0)+'M';
+citizenHtml+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+(c.status||"Active")+(c.currentTeam?' • '+c.currentTeam:'')+(c.position?' • '+c.position:'')+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>Titles <b>'+(c.championships||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div></div>';
+});
+citizenHtml+='</div>';
+ 
 body.innerHTML=
 panel("recordPoints","All-Time Points Leaders — Top 10",points,"careerPts","PTS")+
 panel("recordRebounds","All-Time Rebounds Leaders — Top 10",rebounds,"careerRebs","REB")+
@@ -247,7 +325,8 @@ const tabs=[
 ["recordTabRebounds","recordRebounds"],
 ["recordTabTitles","recordTitles"],
 ["recordTabMVP","recordMvp"],
-["recordTabChamps","recordChamps"]
+["recordTabChamps","recordChamps"],
+["recordTabCitizens","recordCitizens"]
 ];
 tabs.forEach(pair=>{
 const btn=document.getElementById(pair[0]);
@@ -299,7 +378,7 @@ if(modal && e.target===modal){modal.classList.remove("show");unlockRecordsScroll
 });
  
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("saveRoster").addEventListener("click",saveRoster);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
-buildRosterInputs();renderProgress();renderRecords();save();document.getElementById("homeYear").textContent=state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
+syncCitizenLedger();buildRosterInputs();renderProgress();renderRecords();save();document.getElementById("homeYear").textContent=state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
 })();
 </script>
  
@@ -309,7 +388,7 @@ buildRosterInputs();renderProgress();renderRecords();save();document.getElementB
 <button id="recordTabRebounds" type="button">REB</button>
 <button id="recordTabTitles" type="button">TITLES</button>
 <button id="recordTabMVP" type="button">MVP</button>
-<button id="recordTabChamps" type="button">CHAMPS</button>
+<button id="recordTabChamps" type="button">CHAMPS</button><button id="recordTabCitizens" type="button">PEOPLE</button>
 </div>
 <div id="recordsBody" class="log"></div>
 <button id="recordsClose" class="secondary">Close</button>
