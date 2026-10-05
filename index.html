@@ -1,13 +1,13 @@
-Calvin's City — V12 Code
-V12: compact city map with buildings, roads, intersections and moving traffic. No bridges or water.
+Calvin's City — V13 Code
+V13: compact living city map, connected road system, moving cars, parks, and three separate basketball stadiums.
 
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION V12 -->
+<!-- CALVIN'S CITY — VERSION V13 -->
 
 <!-- Personal Paper City -> Digital City -->
 
-<!-- V12: COMPACT CITY MAP + BUILDINGS + ROAD SYSTEM -->
+<!-- V13: LIVING CITY BLOCKS + THREE SEPARATE STADIUMS -->
 
  
 
@@ -19,7 +19,7 @@ V12: compact city map with buildings, roads, intersections and moving traffic. N
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City V12</title>
+<title>Calvin's City V13</title>
 
 <style>
 
@@ -29,11 +29,11 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 
 header{padding:16px;background:#182230;border-bottom:1px solid #334155;position:sticky;top:0;z-index:20}
 
-header h1{margin:0 0 4px;font-size:22px} header p{margin:0;color:#aeb9c7;font-size:13px}
+header h1{margin:0 0 4px;font-size:22px}header p{margin:0;color:#aeb9c7;font-size:13px}
 
 .status{margin-top:10px;padding:9px;border-radius:10px;background:#12351f;color:#9ff0b5;font-weight:800;text-align:center;font-size:13px}
 
-main{padding:14px;padding-bottom:92px}.screen{display:none}.screen.active{display:block}
+main{padding:14px;padding-bottom:94px}.screen{display:none}.screen.active{display:block}
 
 .card{background:#1b2635;border:1px solid #344255;border-radius:14px;padding:14px;margin-bottom:12px}
 
@@ -51,69 +51,51 @@ button:active{transform:scale(.98)}button.secondary{background:#344255}
 
  
 
-/* COMPACT CITY MAP */
+/* COMPACT CITY */
 
-.map{
+.map{position:relative;width:100%;height:570px;overflow:hidden;border-radius:18px;background:#6d826a;border:2px solid #839583;box-shadow:inset 0 0 0 5px rgba(255,255,255,.04)}
 
-position:relative;width:100%;height:560px;overflow:hidden;border-radius:18px;
-
-background:#6b8069;border:2px solid #839583;
-
-box-shadow:inset 0 0 0 5px rgba(255,255,255,.04);
-
-}
-
-.map:before{
-
-content:"";position:absolute;inset:0;opacity:.25;
-
-background:linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px),
-
-linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px);
-
-background-size:34px 34px;
-
-}
+.map:before{content:"";position:absolute;inset:0;opacity:.22;background:linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px);background-size:34px 34px}
 
  
 
-/* roads: no water, no bridges */
+/* road network */
 
-.ring{position:absolute;left:4%;top:4%;width:92%;height:92%;border:12px solid #39434f;border-radius:34px;z-index:2;pointer-events:none;box-shadow:0 0 0 2px rgba(255,255,255,.08)}
+.ring{position:absolute;left:3.5%;top:3.5%;width:93%;height:93%;border:12px solid #39434f;border-radius:34px;z-index:2;pointer-events:none;box-shadow:0 0 0 2px rgba(255,255,255,.08)}
 
 .road{position:absolute;background:#3d4753;z-index:3;pointer-events:none}
 
-.rh{height:22px;left:5%;width:90%}.rv{width:22px;top:5%;height:90%}
+.rh{height:21px;left:5%;width:90%}.rv{width:21px;top:5%;height:90%}
 
 .r1{top:28%}.r2{top:62%}.c1{left:29%}.c2{left:67%}
 
-.road:after{content:"";position:absolute;left:0;right:0;top:10px;border-top:2px dashed rgba(255,255,255,.25)}
+.road.h:after{content:"";position:absolute;left:0;right:0;top:9px;border-top:2px dashed rgba(255,255,255,.25)}
 
-.rv:after{top:0;bottom:0;left:10px;right:auto;height:auto;border-top:0;border-left:2px dashed rgba(255,255,255,.25)}
+.road.v:after{content:"";position:absolute;top:0;bottom:0;left:9px;border-left:2px dashed rgba(255,255,255,.25)}
 
-.intersection{position:absolute;width:26px;height:26px;background:#39434f;z-index:4;pointer-events:none;border-radius:4px}
+.intersection{position:absolute;width:25px;height:25px;background:#39434f;z-index:4;pointer-events:none;border-radius:4px}
 
  
 
-/* moving cars */
+/* cars */
 
 .car{position:absolute;width:14px;height:8px;border-radius:4px;background:#e8edf2;z-index:6;pointer-events:none;box-shadow:0 0 0 1px #202832}
 
-.car.a{top:26.9%;animation:driveA 8s linear infinite}.car.b{top:60.9%;animation:driveB 11s linear infinite}
+.car.a{top:26.7%;animation:driveA 8s linear infinite}.car.b{top:60.7%;animation:driveB 11s linear infinite}
 
-.car.c{left:28.2%;animation:driveC 9s linear infinite}.car.d{left:66.2%;animation:driveD 12s linear infinite}
+.car.c{left:28.1%;animation:driveC 9s linear infinite}.car.d{left:66.1%;animation:driveD 12s linear infinite}
 
-@keyframes driveA{from{left:6%}to{left:92%}}
+.car.e{top:28%;animation:driveE 14s linear infinite}
 
-@keyframes driveB{from{left:92%}to{left:6%}}
+@keyframes driveA{from{left:6%}to{left:92%}}@keyframes driveB{from{left:92%}to{left:6%}}
 
-@keyframes driveC{from{top:6%}to{top:91%}}
+@keyframes driveC{from{top:6%}to{top:91%}}@keyframes driveD{from{top:91%}to{top:6%}}
 
-@keyframes driveD{from{top:91%}to{top:6%}}
+@keyframes driveE{from{left:88%}to{left:7%}}
 
  
 
-/* blocks */
+/* city blocks */
 
 .block{position:absolute;background:#70856d;border:1px solid rgba(255,255,255,.12);z-index:1}
 
@@ -127,23 +109,11 @@ background-size:34px 34px;
 
 /* small buildings */
 
-.building{
+.building{position:absolute;z-index:8;border:2px solid #26313b;border-radius:7px;background:#d9d2bc;color:#17202b;box-shadow:0 3px 5px rgba(0,0,0,.22);padding:4px 3px;font-size:8.5px;font-weight:900;line-height:1.05;margin:0;min-height:35px;touch-action:manipulation}
 
-position:absolute;z-index:8;border:2px solid #26313b;border-radius:7px;
+.building span{display:block;font-size:6.5px;color:#5d6670;font-weight:700;margin-top:2px}
 
-background:#d9d2bc;color:#17202b;box-shadow:0 3px 5px rgba(0,0,0,.22);
-
-padding:4px 3px;font-size:9px;font-weight:900;line-height:1.05;
-
-margin:0;min-height:35px;touch-action:manipulation;
-
-}
-
-.building span{display:block;font-size:7px;color:#5d6670;font-weight:700;margin-top:2px}
-
-.tall{background:#c7cdd2}.retail{background:#ded0a9}.factory{background:#b8b7ad}.sports{background:#e5d2a6}
-
-.city-label{position:absolute;z-index:7;font-size:8px;font-weight:900;color:rgba(255,255,255,.8);letter-spacing:.4px;pointer-events:none;text-transform:uppercase}
+.tall{background:#c7cdd2}.retail{background:#ded0a9}.factory{background:#b8b7ad}.sports{background:#e5d2a6}.residential{background:#cbd7c5}.medical{background:#d6c8c8}.education{background:#c9d3df}
 
  
 
@@ -151,11 +121,11 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 .d1{left:10%;top:11%;width:12%}.d2{left:18%;top:17%;width:9%}.d3{left:36%;top:11%;width:12%}.d4{left:49%;top:17%;width:10%}
 
-.d5{left:73%;top:11%;width:15%}.d6{left:77%;top:18%;width:10%}
+.d5{left:73%;top:11%;width:15%}.d6{left:78%;top:18%;width:10%}
 
 .d7{left:10%;top:39%;width:12%}.d8{left:17%;top:48%;width:9%}.d9{left:37%;top:39%;width:12%}.d10{left:50%;top:48%;width:10%}
 
-.d11{left:73%;top:39%;width:14%}.d12{left:78%;top:49%;width:9%}
+.d11{left:72%;top:39%;width:14%}.d12{left:79%;top:49%;width:9%}
 
 .d13{left:10%;top:73%;width:13%}.d14{left:18%;top:82%;width:9%}.d15{left:37%;top:73%;width:13%}.d16{left:50%;top:82%;width:10%}
 
@@ -165,13 +135,37 @@ margin:0;min-height:35px;touch-action:manipulation;
 
  
 
-/* district labels */
+/* three stadiums: deliberately separated */
+
+.stadium{min-height:54px;font-size:9px;border-radius:9px;background:#e6d1a2;box-shadow:0 4px 7px rgba(0,0,0,.28)}
+
+.s1{left:70%;top:40%;width:17%}
+
+.s2{left:9%;top:71%;width:17%}
+
+.s3{left:38%;top:72%;width:17%}
+
+.stadium span{font-size:6.5px}
+
+ 
+
+/* parks */
+
+.park{position:absolute;z-index:5;background:#86a477;border:1px solid #60775a;border-radius:8px;pointer-events:none}
+
+.pk1{left:23%;top:10%;width:7%;height:9%}.pk2{left:58%;top:39%;width:7%;height:12%}.pk3{left:27%;top:74%;width:7%;height:11%}
+
+ 
+
+/* labels */
+
+.city-label{position:absolute;z-index:7;font-size:7.5px;font-weight:900;color:rgba(255,255,255,.82);letter-spacing:.4px;pointer-events:none;text-transform:uppercase}
 
 .l1{left:9%;top:9%}.l2{left:35%;top:9%}.l3{left:73%;top:9%}
 
 .l4{left:9%;top:35%}.l5{left:35%;top:35%}.l6{left:73%;top:35%}
 
-.l7{left:9%;top:69%}.l8{left:35%;top:69%}.l9{left:73%;top:69%}
+.l7{left:9%;top:69%}.l8{left:35%;top:69%}.l9{left:72%;top:69%}
 
  
 
@@ -185,7 +179,7 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 .modalbox h2{margin-top:0}.ok{color:#9ff0b5}.log{color:#b9c5d2;font-size:13px;line-height:1.5}
 
-@media(max-width:380px){.map{height:520px}.building{font-size:8px}.building span{font-size:6px}}
+@media(max-width:380px){.map{height:530px}.building{font-size:8px}.building span{font-size:6px}}
 
 </style>
 
@@ -195,11 +189,11 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 <header>
 
-<h1>🏙️ Calvin's City — V12</h1>
+<h1>🏙️ Calvin's City — V13</h1>
 
 <p>Personal Paper City → Digital City</p>
 
-<div id="systemStatus" class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V12</div>
+<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V13</div>
 
 </header>
 
@@ -209,9 +203,7 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 <section id="home" class="screen active">
 
-<div class="card"><h2>City Overview</h2>
-
-<div class="grid">
+<div class="card"><h2>City Overview</h2><div class="grid">
 
 <div class="metric"><small>Year</small><strong>1</strong></div>
 
@@ -223,9 +215,27 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 </div></div>
 
-<div class="card"><h2>V12 City Map</h2><p>The map is now compact like V11, but buildings sit inside city blocks and roads run through the city.</p>
+<div class="card"><h2>🏀 Three-Stadium City</h2>
+
+<p>V13 keeps the compact map but gives the city three separate basketball venues. Each venue is a real clickable location.</p>
+
+<div class="grid">
+
+<div class="metric"><small>Lions</small><strong>1 Arena</strong></div>
+
+<div class="metric"><small>Rims</small><strong>1 Arena</strong></div>
+
+<div class="metric"><small>Dunks</small><strong>1 Arena</strong></div>
+
+<div class="metric"><small>Roads</small><strong>Connected</strong></div>
+
+</div>
 
 <button data-open="lions">🏀 Open Lions Arena</button>
+
+<button data-open="rims">🏀 Open Rims Arena</button>
+
+<button data-open="dunks">🏀 Open Dunks Arena</button>
 
 </div>
 
@@ -239,57 +249,41 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 <h2>🗺️ Calvin's City</h2>
 
-<p>Compact city map • buildings • intersections • moving traffic • no bridges needed.</p>
+<p>Compact blocks, small buildings, connected roads, moving traffic, parks and three separate stadiums.</p>
 
 <div class="map">
 
 <div class="ring"></div>
 
-<div class="road rh r1"></div><div class="road rh r2"></div>
+<div class="road rh r1"></div><div class="road rh r2"></div><div class="road rv c1"></div><div class="road rv c2"></div>
 
-<div class="road rv c1"></div><div class="road rv c2"></div>
+<div class="intersection" style="left:26%;top:26%"></div><div class="intersection" style="left:64%;top:26%"></div>
 
-<div class="intersection" style="left:26%;top:26%"></div>
+<div class="intersection" style="left:26%;top:60%"></div><div class="intersection" style="left:64%;top:60%"></div>
 
-<div class="intersection" style="left:64%;top:26%"></div>
+<div class="block b1"></div><div class="block b2"></div><div class="block b3"></div><div class="block b4"></div><div class="block b5"></div><div class="block b6"></div><div class="block b7"></div><div class="block b8"></div><div class="block b9"></div>
 
-<div class="intersection" style="left:26%;top:60%"></div>
-
-<div class="intersection" style="left:64%;top:60%"></div>
-
- 
-
-<div class="block b1"></div><div class="block b2"></div><div class="block b3"></div>
-
-<div class="block b4"></div><div class="block b5"></div><div class="block b6"></div>
-
-<div class="block b7"></div><div class="block b8"></div><div class="block b9"></div>
-
- 
+<div class="park pk1"></div><div class="park pk2"></div><div class="park pk3"></div>
 
 <div class="city-label l1">DOWNTOWN</div><div class="city-label l2">FINANCE</div><div class="city-label l3">UNIVERSITY</div>
 
 <div class="city-label l4">RETAIL</div><div class="city-label l5">CENTRAL</div><div class="city-label l6">SPORTS</div>
 
-<div class="city-label l7">INDUSTRIAL</div><div class="city-label l8">FOOD</div><div class="city-label l9">SPORTS / RESIDENTIAL</div>
+<div class="city-label l7">INDUSTRIAL</div><div class="city-label l8">FOOD</div><div class="city-label l9">RESIDENTIAL</div>
+
+<div class="car a"></div><div class="car b"></div><div class="car c"></div><div class="car d"></div><div class="car e"></div>
 
  
 
-<div class="car a"></div><div class="car b"></div><div class="car c"></div><div class="car d"></div>
+<button class="building tall d1" data-place="cityhall">City Hall<span>Government</span></button>
 
- 
-
-<button class="building tall d1" data-place="downtown">City Hall<span>Government</span></button>
-
-<button class="building d2" data-place="downtown2">Downtown Shops<span>Retail</span></button>
+<button class="building d2" data-place="shops">Downtown Shops<span>Retail</span></button>
 
 <button class="building tall d3" data-place="bank">First City Bank<span>Finance</span></button>
 
 <button class="building d4" data-place="office">Office Tower<span>Business</span></button>
 
- 
-
-<button class="building d5" data-place="university">University<span>Education</span></button>
+<button class="building education d5" data-place="university">University<span>Education</span></button>
 
 <button class="building d6" data-place="research">Research Center<span>Technology</span></button>
 
@@ -301,17 +295,17 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 <button class="building d9" data-place="hotel">Central Hotel<span>Hospitality</span></button>
 
-<button class="building d10" data-place="hospital">Hospital<span>Healthcare</span></button>
+<button class="building medical d10" data-place="hospital">Hospital<span>Healthcare</span></button>
 
  
 
-<button class="building sports d11" data-place="lions">🏀 Lions Arena<span>Sports</span></button>
+<button class="building stadium s1" data-place="lions">🏀 Lions Arena<span>Basketball</span></button>
 
-<button class="building sports d12" data-place="sports2">Sports Venue<span>Sports</span></button>
+<button class="building sports d12" data-place="sportscenter">Sports Center<span>Events</span></button>
 
  
 
-<button class="building factory d13" data-place="industrial">Factory 1<span>Industrial</span></button>
+<button class="building factory d13" data-place="factory1">Factory 1<span>Industrial</span></button>
 
 <button class="building factory d14" data-place="factory2">Factory 2<span>Industrial</span></button>
 
@@ -321,9 +315,11 @@ margin:0;min-height:35px;touch-action:manipulation;
 
  
 
-<button class="building d17" data-place="housing">Apartments<span>Residential</span></button>
+<button class="building stadium s2" data-place="rims">🏀 Rims Arena<span>Basketball</span></button>
 
-<button class="building d18" data-place="housing2">Homes<span>Residential</span></button>
+<button class="building residential d18" data-place="homes">Homes<span>Residential</span></button>
+
+<button class="building stadium s3" data-place="dunks">🏀 Dunks Arena<span>Basketball</span></button>
 
 </div>
 
@@ -333,7 +329,7 @@ margin:0;min-height:35px;touch-action:manipulation;
 
  
 
-<section id="property" class="screen"><div class="card"><h2>🏠 Property</h2><p>Property management will grow from the paper city rules.</p><button data-open="property">Open Property System</button></div></section>
+<section id="property" class="screen"><div class="card"><h2>🏠 Property</h2><p>Property management will connect buildings, land, ownership, construction and city value.</p><button data-open="property">Open Property System</button></div></section>
 
 <section id="markets" class="screen"><div class="card"><h2>📈 Markets</h2><div class="grid">
 
@@ -351,27 +347,15 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 <nav class="nav">
 
-<button data-nav="home" class="active">🏠<br>Home</button>
+<button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button>
 
-<button data-nav="city">🗺️<br>City</button>
-
-<button data-nav="property">🏠<br>Property</button>
-
-<button data-nav="markets">📈<br>Markets</button>
-
-<button data-nav="finance">🏦<br>Finance</button>
+<button data-nav="property">🏠<br>Property</button><button data-nav="markets">📈<br>Markets</button><button data-nav="finance">🏦<br>Finance</button>
 
 </nav>
 
  
 
-<div id="modal" class="modal"><div class="modalbox">
-
-<h2 id="modalTitle">Calvin's City</h2><div id="modalBody" class="log"></div>
-
-<button id="closeModal">Close</button>
-
-</div></div>
+<div id="modal" class="modal"><div class="modalbox"><h2 id="modalTitle">Calvin's City</h2><div id="modalBody" class="log"></div><button id="closeModal">Close</button></div></div>
 
  
 
@@ -383,51 +367,37 @@ margin:0;min-height:35px;touch-action:manipulation;
 
 const data={
 
-downtown:["City Hall","Government headquarters for Calvin's City."],
+cityhall:["City Hall","Government headquarters and city administration."],shops:["Downtown Shops","Retail businesses serving city demand."],
 
-downtown2:["Downtown Shops","Small commercial buildings serving downtown demand."],
+bank:["First City Bank","Banking, loans and financial activity."],office:["Office Tower","Business and professional services."],
 
-bank:["First City Bank","Banking, loans and financial activity."],
+university:["University","Education and research."],research:["Research Center","Technology and future development."],
 
-office:["Office Tower","Business and professional services."],
+retail:["Retail Center","Retail businesses compete for city demand."],store:["City Store","Local retail business."],
 
-university:["University","Education and research."],
+hotel:["Central Hotel","Visitors, basketball, media and tourism."],hospital:["Hospital","Healthcare services."],
 
-research:["Research Center","Technology and future development."],
+lions:["Lions Arena","The Lions basketball team and game-day economy."],
 
-retail:["Retail Center","Retail businesses compete for city demand."],
+rims:["Rims Arena","The Rims basketball team and game-day economy."],
 
-store:["City Store","Local retail business."],
+dunks:["Dunks Arena","The Dunks basketball team and game-day economy."],
 
-hotel:["Central Hotel","Visitors, basketball and tourism."],
+sportscenter:["Sports Center","Additional sports and events."],
 
-hospital:["Hospital","Healthcare services."],
+factory1:["Factory 1","Industrial production."],factory2:["Factory 2","Industrial production."],
 
-lions:["Lions Arena","Basketball team and game-day economy."],
+foods:["Prosper Foods","Food company serving the city market."],warehouse:["Warehouse","Storage and logistics."],
 
-sports2:["Sports Venue","Additional sports activity."],
+homes:["Residential Homes","Permanent residential capacity."],
 
-industrial:["Factory 1","Industrial production."],
-
-factory2:["Factory 2","Industrial production."],
-
-foods:["Prosper Foods","Food company serving the city market."],
-
-warehouse:["Warehouse","Storage and logistics."],
-
-housing:["Apartments","Permanent residential capacity."],
-
-housing2:["Homes","Permanent residential capacity."],
-
-property:["Property System","Property, construction and ownership."],
-
-finance:["Finance System","Cash, Treasury, banks and stocks."]
+property:["Property System","Property, construction and ownership."],finance:["Finance System","Cash, Treasury, banks and stocks."]
 
 };
 
 const modal=document.getElementById("modal"),title=document.getElementById("modalTitle"),body=document.getElementById("modalBody");
 
-function openModal(key){const x=data[key]||["Calvin's City","Location registered."];title.textContent=x[0];body.innerHTML="<p class='ok'>✓ V12 click registered.</p><p>"+x[1]+"</p>";modal.classList.add("show")}
+function openModal(k){const x=data[k]||["Calvin's City","Location registered."];title.textContent=x[0];body.innerHTML="<p class='ok'>✓ V13 click registered.</p><p>"+x[1]+"</p>";modal.classList.add("show")}
 
 function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0)}
 
