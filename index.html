@@ -48,7 +48,7 @@ h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:850;letter-spacing:-1
 
 .stat b{display:block;font-size:21px;margin-top:4px}
 
-.city-shell{overflow:auto;border-radius:20px;border:1px solid #30415a;background:#6f806b;box-shadow:0 8px 30px rgba(0,0,0,.28)}
+.city-shell{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;border-radius:20px;border:1px solid #30415a;background:#6f806b;box-shadow:0 8px 30px rgba(0,0,0,.28)}
 
 .city{position:relative;width:1220px;height:860px;overflow:hidden;background:var(--grass)}
 
@@ -68,7 +68,7 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 .bay{right:-70px;top:530px;width:390px;height:350px;border-radius:55% 0 0 0}
 
-.road{position:absolute;background:var(--road);z-index:3;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05)}
+.road{position:absolute;background:var(--road);z-index:3;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05)}
 
 .road.h{height:44px;left:0;right:0}.road.v{width:44px;top:0;bottom:0}
 
@@ -80,7 +80,7 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 .road.v:after,.road.smallv:after{top:0;bottom:0;left:50%;border-left:2px dashed #ded8bf}
 
-.bridge{position:absolute;z-index:4;background:#606f80;border:3px solid #8a8f91}
+.bridge{position:absolute;z-index:4;pointer-events:none;background:#606f80;border:3px solid #8a8f91}
 
 .district{position:absolute;z-index:2;color:#203027;font-weight:900;letter-spacing:.5px;font-size:12px;text-shadow:0 1px rgba(255,255,255,.35)}
 
@@ -188,11 +188,11 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
  
 
-.highway-ring{position:absolute;z-index:2;left:24px;top:24px;width:1172px;height:812px;border:18px solid #263448;border-radius:78px;box-shadow:0 0 0 3px rgba(220,213,186,.25),inset 0 0 0 2px rgba(255,255,255,.06)}
+.highway-ring{position:absolute;z-index:2;pointer-events:none;left:24px;top:24px;width:1172px;height:812px;border:18px solid #263448;border-radius:78px;box-shadow:0 0 0 3px rgba(220,213,186,.25),inset 0 0 0 2px rgba(255,255,255,.06)}
 
 .highway-ring:before{content:"";position:absolute;inset:-5px;border:2px dashed #d8d1b5;border-radius:64px;opacity:.8}
 
-.exit{position:absolute;z-index:4;background:#536174;border:3px solid #29374b;border-radius:5px}
+.exit{position:absolute;z-index:4;pointer-events:none;background:#536174;border:3px solid #29374b;border-radius:5px}
 
 .exit.e1{left:274px;top:18px;width:52px;height:54px}.exit.e2{left:705px;top:18px;width:52px;height:54px}
 
@@ -220,7 +220,7 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 .map-title small{display:block;color:#b9c6d8;font-size:8px;font-weight:600;margin-top:2px}
 
-.map-title:hover{transform:translateY(-1px)}
+.map-title:hover{transform:translateY(-1px)}.map-title:focus{outline:3px solid #7db8ff;outline-offset:2px}
 
 .map-title.biz{border-left:4px solid #55a8ff}.map-title.sport{border-left:4px solid #e5a74f}.map-title.gov{border-left:4px solid #9b8cff}.map-title.res{border-left:4px solid #65c57a}
 
@@ -350,9 +350,9 @@ opacity:.45}
 
 <div class="highway-ring"></div>
 
-<div class="highway-label top">CALVIN LOOP • HIGHWAY</div>
+<div class="highway-label top" onclick="inspectRoad('CALVIN-LOOP')" role="button" tabindex="0">CALVIN LOOP • HIGHWAY</div>
 
-<div class="highway-label bottom">CALVIN LOOP • HIGHWAY</div>
+<div class="highway-label bottom" onclick="inspectRoad('CALVIN-LOOP')" role="button" tabindex="0">CALVIN LOOP • HIGHWAY</div>
 
 <div class="exit e1"></div><div class="exit e2"></div><div class="exit e3"></div><div class="exit e4"></div><div class="exit e5"></div><div class="exit e6"></div>
 
@@ -384,33 +384,33 @@ opacity:.45}
 
 <!-- tappable road sections -->
 
-<div class="road-hit" style="left:0;top:275px;width:1220px;height:44px" onclick="inspectRoad('MAIN-1')"></div>
+ 
 
-<div class="road-hit" style="left:0;top:520px;width:1220px;height:44px" onclick="inspectRoad('MAIN-2')"></div>
+ 
 
-<div class="road-hit" style="left:520px;top:0;width:44px;height:860px" onclick="inspectRoad('AVENUE-C')"></div>
+ 
 
-<div class="road-hit" style="left:725px;top:0;width:44px;height:860px" onclick="inspectRoad('AVENUE-E')"></div>
+ 
 
-<div class="road-hit" style="left:300px;top:400px;width:24px;height:460px" onclick="inspectRoad('CONNECTOR-W')"></div>
+ 
 
-<div class="road-hit" style="left:990px;top:0;width:24px;height:860px" onclick="inspectRoad('CONNECTOR-E')"></div>
+ 
 
-<div class="road-hit" style="left:95px;top:24px;width:180px;height:28px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+ 
 
-<div class="road-hit" style="left:760px;top:24px;width:300px;height:28px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+ 
 
-<div class="road-hit" style="left:24px;top:100px;width:28px;height:260px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+ 
 
-<div class="road-hit" style="left:1168px;top:100px;width:28px;height:260px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+ 
 
-<div class="road-hit" style="left:24px;top:500px;width:28px;height:250px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+ 
 
-<div class="road-hit" style="left:1168px;top:500px;width:28px;height:250px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+ 
 
-<div class="road-hit" style="left:95px;top:808px;width:180px;height:28px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+ 
 
-<div class="road-hit" style="left:760px;top:808px;width:300px;height:28px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+ 
 
 <div class="district north">NORTH RESIDENTIAL<span>Homes • Apartments • Neighborhoods</span></div>
 
@@ -783,6 +783,26 @@ function sell(id){const p=state.parcels.find(x=>x.id===id);if(!p.owned)return;st
 function renderProperties(){const box=document.getElementById('propertyList');if(!box)return;const owned=state.parcels.filter(p=>p.owned);box.innerHTML=owned.length?owned.map(p=>`<div class="stat" style="margin-top:8px"><b>${p.icon} ${p.id}</b><span class="muted">${p.type} • ${p.size} • ${p.built?'Built':'Empty lot'}</span></div>`).join(''):'<p class="muted">You do not own any property yet.</p>'}
 
 render();
+
+ 
+
+document.getElementById('cityMap').addEventListener('click', function(e){
+
+const title=e.target.closest('.map-title');
+
+if(title){
+
+  const m=title.getAttribute('onclick')||'';
+
+  const match=m.match(/openPlace\('([^']+)'\)/);
+
+  if(match) openPlace(match[1]);
+
+}
+
+});
+
+ 
 
 </script>
 
