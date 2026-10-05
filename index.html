@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION V22 -->
+<!-- CALVIN'S CITY — VERSION V23 -->
 <!-- Personal Paper City -> Digital City -->
 <!-- V16: LIVING CITY MAP + GAME-BY-GAME BASKETBALL + OFFSEASON MANAGEMENT -->
 <!-- V16 UPDATE: RESTORED V13 LIVING CITY MAP + ONE-GAME-AT-A-TIME SEASON -->
@@ -7,7 +7,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City V22</title>
+<title>Calvin's City V21</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .d19{left:35%;top:14%;width:10%}.d20{left:69%;top:44%;width:12%}
 
 /* three stadiums: deliberately separated */
-.stadium{min-height:54px;font-size:9px;border-radius:9px;background:#e6d1a2;box-shadow:0 4px 7px rgba(0,0,0,.28)}
+.stadium{z-index:35;pointer-events:auto;min-height:54px;font-size:9px;border-radius:9px;background:#e6d1a2;box-shadow:0 4px 7px rgba(0,0,0,.28)}
 .s1{left:70%;top:40%;width:17%}
 .s2{left:9%;top:71%;width:17%}
 .s3{left:38%;top:72%;width:17%}
@@ -115,9 +115,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </head>
 <body>
 <header>
-<h1>🏙️ Calvin's City — V22</h1>
+<h1>🏙️ Calvin's City — V21</h1>
 <p>Personal Paper City → Digital City</p>
-<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V22</div>
+<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V21</div>
 </header>
 <main>
 <section id="home" class="screen active">
@@ -748,6 +748,26 @@ if(state.offseasonOpen){
  buildContractBoard();
  buildGMBoard();
 }
+})();
+
+// V23 FIX: Stadiums are directly wired so they remain tappable on iPhone.
+(function(){
+ function wireStadiums(){
+   ["lions","rims","dunks"].forEach(function(key){
+     const el=document.querySelector('[data-place="'+key+'"]');
+     if(!el || el.dataset.stadiumWired==="1") return;
+     el.dataset.stadiumWired="1";
+     const activate=function(ev){
+       ev.preventDefault();
+       ev.stopPropagation();
+       if(typeof openTeamPage==="function") openTeamPage(key);
+     };
+     el.addEventListener("pointerup",activate,{passive:false});
+     el.addEventListener("click",activate,false);
+   });
+ }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",wireStadiums);
+ else wireStadiums();
 })();
 </script>
 
