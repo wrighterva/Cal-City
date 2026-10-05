@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION V23 -->
+<!-- CALVIN'S CITY — VERSION V24 -->
 <!-- Personal Paper City -> Digital City -->
 <!-- V16: LIVING CITY MAP + GAME-BY-GAME BASKETBALL + OFFSEASON MANAGEMENT -->
 <!-- V16 UPDATE: RESTORED V13 LIVING CITY MAP + ONE-GAME-AT-A-TIME SEASON -->
@@ -7,7 +7,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City V21</title>
+<title>Calvin's City V24</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -66,10 +66,10 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .mall-building .mall-caption b{font-size:7px}
 
 /* building positions */
-.d1{left:10%;top:11%;width:12%}.d2{left:18%;top:17%;width:9%}.d3{left:36%;top:11%;width:12%}.d4{left:49%;top:17%;width:10%}
-.d5{left:73%;top:11%;width:15%}.d6{left:78%;top:18%;width:10%}
+.d1{left:10%;top:11%;width:12%}.d3{left:36%;top:11%;width:12%}
+.d5{left:73%;top:11%;width:15%}
 .d7{left:10%;top:39%;width:12%}.d8{left:17%;top:48%;width:9%}.d9{left:37%;top:39%;width:12%}.d10{left:50%;top:48%;width:10%}
-.d11{left:72%;top:39%;width:14%}.d12{left:79%;top:49%;width:9%}
+.d11{left:72%;top:39%;width:14%}
 .d13{left:10%;top:73%;width:13%}.d14{left:18%;top:82%;width:9%}.d15{left:37%;top:73%;width:13%}.d16{left:50%;top:82%;width:10%}
 .d17{left:72%;top:73%;width:14%}.d18{left:79%;top:82%;width:9%}
 .d19{left:35%;top:14%;width:10%}.d20{left:69%;top:44%;width:12%}
@@ -115,9 +115,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </head>
 <body>
 <header>
-<h1>🏙️ Calvin's City — V21</h1>
+<h1>🏙️ Calvin's City — V24</h1>
 <p>Personal Paper City → Digital City</p>
-<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V21</div>
+<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V24</div>
 </header>
 <main>
 <section id="home" class="screen active">
@@ -146,11 +146,11 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <div class="car a"></div><div class="car b"></div><div class="car c"></div><div class="car d"></div><div class="car e"></div>
 
 <button class="building tall d1" data-place="cityhall">City Hall<span>Government</span></button>
-<button class="building d2" data-place="shops">Downtown Shops<span>Retail</span></button>
+
 <button class="building tall d3" data-place="bank">FirstCiti Bank<span>Finance</span></button>
-<button class="building d4" data-place="office">Office Tower<span>Business</span></button>
+
 <button class="building education d5" data-place="university">University<span>Education</span></button>
-<button class="building d6" data-place="research">Research Center<span>Technology</span></button>
+
 
 <button class="building mall-building d7" data-place="mall" aria-label="Calvin's City Mall">
 <svg class="mall-art" viewBox="0 0 220 125" role="img" aria-label="Illustrated Calvin's City Mall building">
@@ -173,7 +173,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <button class="building medical d10" data-place="hospital">Hospital<span>Healthcare</span></button>
 
 <button class="building stadium s1" data-place="lions">🏀 Lions Arena<span>Basketball</span></button>
-<button class="building sports d12" data-place="sportscenter">Sports Center<span>Events</span></button>
+
 
 <button class="building factory d13" data-place="factory1">Factory 1<span>Industrial</span></button>
 <button class="building factory d14" data-place="factory2">Factory 2<span>Industrial</span></button>
@@ -242,7 +242,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
    let s={};
    try{
-     s=JSON.parse(localStorage.getItem("calvins_city_v22")||"{}");
+     s=JSON.parse(localStorage.getItem("calvins_city_v24")||"{}");
    }catch(e){}
 
    const roster=s.roster||{};
@@ -320,7 +320,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
  function teamData(teamKey){
    let s = {};
-   try { s = JSON.parse(localStorage.getItem("calvins_city_v22") || "{}"); } catch(e){}
+   try { s = JSON.parse(localStorage.getItem("calvins_city_v24") || "{}"); } catch(e){}
    const roster = s.roster || {};
    const contracts = s.contracts || {};
    const standings = s.standings || {};
@@ -423,8 +423,8 @@ let state={
 };
 
 try{
- const v16=localStorage.getItem("calvins_city_v22");
- const old=localStorage.getItem("calvins_city_v15_basketball");
+ const v16=localStorage.getItem("calvins_city_v24");
+ const old=localStorage.getItem("calvins_city_v24_basketball");
  if(v16){
    state={...state,...JSON.parse(v16)};
    state.standings=state.standings||freshStandings();
@@ -442,7 +442,7 @@ try{
  }
 }catch(e){}
 
-function save(){localStorage.setItem("calvins_city_v22",JSON.stringify(state))}
+function save(){localStorage.setItem("calvins_city_v24",JSON.stringify(state))}
 function die(){return Math.floor(Math.random()*6)+1}
 function money(n){return "$"+n.toFixed(0)+"M"}
 function ticketRevenue(){return (die()+die())*10}
@@ -703,11 +703,11 @@ document.getElementById("finalizeOffseason").addEventListener("click",finalizeOf
 
 const CITY_LOCATIONS={
  cityhall:["City Hall","Government headquarters and city administration."],
- shops:["Downtown Shops","Retail businesses serving city demand."],
+ 
  bank:["FirstCiti Bank","Banking, loans and financial activity."],
- office:["Office Tower","Business and professional services."],
+ 
  university:["University","Education and research."],
- research:["Research Center","Technology and future development."],
+ 
  
  
  hotel:["Central Hotel","Visitors, basketball, media and tourism."],
@@ -715,7 +715,7 @@ const CITY_LOCATIONS={
  lions:["Lions Arena","The Lions basketball team and game-day economy."],
  rims:["Rims Arena","The Rims basketball team and game-day economy."],
  dunks:["Dunks Arena","The Dunks basketball team and game-day economy."],
- sportscenter:["Sports Center","Additional sports and events."],
+ 
  factory1:["Factory 1","Industrial production."],
  factory2:["Factory 2","Industrial production."],
  foods:["Prosper Foods","Food company serving the city market."],
@@ -750,7 +750,7 @@ if(state.offseasonOpen){
 }
 })();
 
-// V23 FIX: Stadiums are directly wired so they remain tappable on iPhone.
+// V24 FIX: Stadiums are directly wired so they remain tappable on iPhone.
 (function(){
  function wireStadiums(){
    ["lions","rims","dunks"].forEach(function(key){
