@@ -1,11 +1,11 @@
-Calvin's City V15 — Code
-
-Complete pasteable index.html for GitHub Pages. Version V15.
+Calvin's City V15 — Updated Code
+Update: Game stats are now split by team. Each team shows its player stats followed by a Game Total.
 
 <!DOCTYPE html>
 <!-- CALVIN'S CITY — VERSION V15 -->
 <!-- Personal Paper City -> Digital City -->
 <!-- V15: BASKETBALL SEASON + OFFSEASON MANAGEMENT -->
+<!-- V15 UPDATE: SPLIT GAME STATS BY TEAM WITH PLAYER STATS + GAME TOTAL -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -55,35 +55,35 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <section id="property" class="screen"><div class="card"><h2>🏠 Property</h2><p>Property management continues to grow from the paper city rules.</p></div></section>
 <section id="markets" class="screen"><div class="card"><h2>📈 Markets</h2><div class="grid"><div class="metric"><small>Grain</small><strong>$2.00</strong></div><div class="metric"><small>Meat</small><strong>$2.20</strong></div><div class="metric"><small>Produce</small><strong>$1.80</strong></div><div class="metric"><small>Food Demand</small><strong>30,000 meals</strong></div></div></div></section>
 <section id="finance" class="screen"><div class="card"><h2>🏦 Finance</h2><p>City cash, Treasury, banks, stocks and financing.</p></div></section>
- 
+
 <section id="basketball" class="screen">
 <div class="card"><h2>🏀 Calvin's City Basketball</h2><p><span class="badge">3 Teams</span><span class="badge">3 Players Each</span><span class="badge">4 Quarters</span><span class="badge">1–3 Year Contracts</span></p>
 <p>Each player gets two point dice and two rebound dice per quarter. Overtime uses one point die and one rebound die per player until the tie is broken.</p></div>
- 
+
 <div class="card"><h2>👥 League Roster Setup</h2><p>V15 uses position slots so no player names are invented or overwritten. Enter your real player names when ready.</p>
 <div id="rosterInputs"></div><button class="goodbtn" id="saveRoster">Save Roster Names</button><p id="rosterSaved" class="tiny"></p></div>
- 
+
 <div class="card"><h2>Season Rules</h2><ol class="log"><li>Each team plays every other team once.</li><li>Best record normally receives the championship bye.</li><li>If tied for best record, the defending champion gets the bye when involved.</li><li>If all three tie, the previous champion gets the bye.</li><li>The other two teams play the semifinal.</li><li>Semifinal winner plays the bye team for the championship.</li><li>Champion receives $100M; runner-up receives $50M.</li></ol></div>
- 
+
 <div class="card"><h2>🎟️ Ticket Revenue</h2><p>Every game gets two dice rolls. Each die is worth $10M.</p><div class="grid"><div class="metric"><small>Minimum</small><strong>$20M</strong></div><div class="metric"><small>Maximum</small><strong>$120M</strong></div></div><p>Ticket revenue is split 70% to the winner and 30% to the loser.</p></div>
- 
+
 <div class="card"><h2>👟 Shoe Revenue</h2><p>Each shoe company gets two dice rolls per game. Dice total × $10M = shoe revenue. Range: $20M–$120M per game.</p></div>
- 
+
 <div class="card"><h2>▶️ Run Full Season</h2><p>This runs the 3 regular-season games, applies the defending-champion bye rule, plays the semifinal and championship, calculates ticket revenue, and calculates shoe revenue.</p>
 <button id="runSeason">🏆 Run Complete Season</button><div id="seasonOutput" class="log" style="margin-top:12px"></div></div>
- 
+
 <div class="card"><h2>🧾 Current Season</h2><div id="standingsOutput"><p class="muted">Run a season to populate standings and results.</p></div></div>
- 
+
 <div class="card"><h2>📋 Offseason Management</h2><p><b>The year does not advance here automatically.</b> Finish contracts, trades, releases and roster decisions first.</p><div class="grid"><div class="metric"><small>Season Status</small><strong id="seasonStatus">Not Played</strong></div><div class="metric"><small>Offseason</small><strong id="offseasonStatus">Locked</strong></div></div>
 <button id="openOffseason">Open Offseason</button></div>
- 
+
 <div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority. GMs can recommend deals, but you approve the final outcome.</p>
 <div id="contractBoard"></div>
 <div class="divider"></div>
 <h3>Former-Player GM System</h3><p>GMs come from prior players. Their permanent GM record tracks PPG, games managed, seasons and championships.</p><div id="gmBoard"></div>
 <button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button>
 <p id="offseasonMessage" class="tiny"></p></div>
- 
+
 <div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 </section>
 </main>
@@ -106,7 +106,20 @@ function playerName(team,pos){return state.roster[team+"_"+pos]||pos}
 function rollPlayer(){let pts=0,rebs=0,detail=[];for(let q=1;q<=4;q++){const p1=die(),p2=die(),r1=die(),r2=die();pts+=p1+p2;rebs+=r1+r2;detail.push({q,pts:p1+p2,rebs:r1+r2});}return{pts,rebs,detail}}
 function playTeam(team){const players=POSITIONS.map(pos=>({team,pos,name:playerName(team,pos),...rollPlayer()}));return{team,players,score:players.reduce((a,p)=>a+p.pts,0),rebs:players.reduce((a,p)=>a+p.rebs,0)}}
 function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((pos,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;const ticket=ticketRevenue();return{A,B,winner,loser,ot,ticket,shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeRevenue()]))}}
-function gameText(g){let h=`<p class="gold"><b>${g.winner.team} wins ${g.winner.score}-${g.loser.score}</b>${g.ot?` after ${g.ot} OT`:``}</p>`;h+=`<p>🎟️ Ticket revenue: <b>${money(g.ticket)}</b> — ${g.winner.team} ${money(g.ticket*.7)} / ${g.loser.team} ${money(g.ticket*.3)}</p>`;h+=`<p>👟 Shoe revenue: `+SHOES.map(s=>`${s} ${money(g.shoeByCompany[s])}`).join(" • ")+`</p>`;h+="<table><tr><th>Team / Player</th><th>PTS</th><th>REB</th></tr>";[g.A,g.B].forEach(t=>t.players.forEach(p=>h+=`<tr><td>${t.team} ${p.name}</td><td>${p.pts}</td><td>${p.rebs}</td></tr>`));return h+="</table>"}
+function gameText(g){
+let h=`<p class="gold"><b>${g.winner.team} wins ${g.winner.score}-${g.loser.score}</b>${g.ot?` after ${g.ot} OT`:``}</p>`;
+h+=`<p>🎟️ Ticket revenue: <b>${money(g.ticket)}</b> — ${g.winner.team} ${money(g.ticket*.7)} / ${g.loser.team} ${money(g.ticket*.3)}</p>`;
+h+=`<p>👟 Shoe revenue: `+SHOES.map(s=>`${s} ${money(g.shoeByCompany[s])}`).join(" • ")+`</p>`;
+h+=`<div class="team"><h3>🏀 ${g.A.team} — Player Stats</h3>`;
+h+=`<table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>`;
+g.A.players.forEach(p=>h+=`<tr><td>${p.name} (${p.pos})</td><td>${p.pts}</td><td>${p.rebs}</td></tr>`);
+h+=`</table><p><b>Game Total:</b> ${g.A.score} PTS • ${g.A.rebs} REB</p></div>`;
+h+=`<div class="team"><h3>🏀 ${g.B.team} — Player Stats</h3>`;
+h+=`<table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>`;
+g.B.players.forEach(p=>h+=`<tr><td>${p.name} (${p.pos})</td><td>${p.pts}</td><td>${p.rebs}</td></tr>`);
+h+=`</table><p><b>Game Total:</b> ${g.B.score} PTS • ${g.B.rebs} REB</p></div>`;
+return h;
+}
 function seasonGames(){return[[TEAMS[0],TEAMS[1]],[TEAMS[0],TEAMS[2]],[TEAMS[1],TEAMS[2]]]}
 function chooseBye(standings){const max=Math.max(...TEAMS.map(t=>standings[t].w));const leaders=TEAMS.filter(t=>standings[t].w===max);if(leaders.length===1)return leaders[0];if(leaders.includes(state.defendingChampion))return state.defendingChampion;return state.defendingChampion}
 function runSeason(){if(state.seasonPlayed&&!state.offseasonFinalized){alert("Finish the current offseason before starting another season.");return}const standings=Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));let html="<p><b>Regular Season</b></p>";seasonGames().forEach(pair=>{const g=playGame(pair[0],pair[1]);standings[g.winner.team].w++;standings[g.loser.team].l++;standings[pair[0]].ptsFor+=g.A.score;standings[pair[0]].ptsAgainst+=g.B.score;standings[pair[1]].ptsFor+=g.B.score;standings[pair[1]].ptsAgainst+=g.A.score;standings[g.winner.team].ticket+=g.ticket*.7;standings[g.loser.team].ticket+=g.ticket*.3;SHOES.forEach(s=>{standings[g.A.team].shoe[s]=(standings[g.A.team].shoe[s]||0)+g.shoeByCompany[s];standings[g.B.team].shoe[s]=(standings[g.B.team].shoe[s]||0)+g.shoeByCompany[s]});html+=`<p>${g.winner.team} defeated ${g.loser.team}, <b>${g.winner.score}-${g.loser.score}</b>. Tickets ${money(g.ticket)}.</p>`});
