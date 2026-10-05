@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#101827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Calvin's City">
+<title>Calvin's City</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ background:#0b1220;
+ color:#f5f7fb;
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;
+ padding-bottom:82px
+}
+
+header{
+ position:sticky;
+ top:0;
+ z-index:5;
+ background:#101827ee;
+ backdrop-filter:blur(14px);
+ padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
+ border-bottom:1px solid #263247
+}
+
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:#9aa8bd;font-size:13px}
+
+.screen{
+ padding:16px;
+ max-width:760px;
+ margin:auto
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px
+}
+
+.card{
+ background:#141e2e;
+ border:1px solid #263247;
+ border-radius:16px;
+ padding:14px;
+ margin-bottom:12px
+}
+
+.metric{
+ font-size:23px;
+ font-weight:700;
+ margin-top:4px
+}
+
+.label{
+ font-size:12px;
+ color:#9aa8bd
+}
+
+.section{
+ font-size:17px;
+ font-weight:700;
+ margin:18px 0 10px
+}
+
+button{
+ border:0;
+ border-radius:12px;
+ padding:12px 14px;
+ background:#2b6df3;
+ color:white;
+ font-weight:700;
+ font-size:14px;
+ min-height:44px
+}
+
+button.secondary{background:#263247}
+button.good{background:#15803d}
+button.warn{background:#b45309}
+
+.row{
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap
+}
+
+.item{
+ display:flex;
+ justify-content:space-between;
+ gap:10px;
+ padding:10px 0;
+ border-bottom:1px solid #263247
+}
+
+.item:last-child{border-bottom:0}
+
+.muted{color:#9aa8bd}
+
+.map{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:7px
+}
+
+.district{
+ min-height:105px;
+ border-radius:13px;
+ padding:10px;
+ background:#18253a;
+ border:1px solid #30415c
+}
+
+.district b{font-size:12px}
+
+.building{
+ margin-top:8px;
+ font-size:11px;
+ color:#aebbd0
+}
+
+.nav{
+ position:fixed;
+ bottom:0;
+ left:0;
+ right:0;
+ z-index:10;
+ background:#101827f2;
+ backdrop-filter:blur(14px);
+ border-top:1px solid #263247;
+ display:grid;
+ grid-template-columns:repeat(5,1fr);
+ padding:7px 5px calc(env(safe-area-inset-bottom) + 7px)
+}
+
+.nav button{
+ background:transparent;
+ color:#8f9db2;
+ padding:7px 2px;
+ font-size:11px;
+ min-height:42px
+}
+
+.nav button.active{color:white}
+
+.log{
+ max-height:230px;
+ overflow:auto;
+ font-size:12px;
+ color:#b8c3d5
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Calvin's City</h1>
+<div class="sub" id="headerSub">Year 1 • Normal Economy</div>
+</header>
+
+<main id="app"></main>
+
+<nav class="nav" id="nav"></nav>
+
+<script>
+
+const KEY="calvins_city_v1";
+
+const fresh={
+ year:1,
+ pop:10000,
+ mwtp:20,
+ econ:"Normal",
+ fedRate:4.0,
+ treasury:0,
+
+ commodities:{
+  Grain:2.00,
+  Meat:2.20,
+  Produce:1.80
+ },
+
+ food:[
+  {
+   name:"Prosper Foods",
+   cash:180,
+   quality:7,
+   brand:6,
+   inventory:0,
+   price:20
+  },
+  {
+   name:"Whitmore Foods",
+   cash:180,
+   quality:8,
+   brand:7,
+   inventory:0,
+   price:20
+  }
+ ],
+
+ banks:[
+  {
+   name:"First City Bank",
+   cash:500,
+   loans:0
+  }
+ ],
+
+ stocks:[
+  {
+   name:"Prosper Foods",
+   price:50,
+   shares:1000000
+  },
+  {
+   name:"Whitmore Foods",
+   price:50,
+   shares:1000000
+  }
+ ],
+
+ log:[
+  "Calvin's City founded. The economy is ready."
+ ]
+};
+
+let s=JSON.parse(localStorage.getItem(KEY)||"null")||fresh;
+
+let tab="home";
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(s));
+}
+
+function money(x){
+ return "$"+Number(x).toFixed(2)+"M";
+}
+
+function log(x){
+ s.log.unshift("Y"+s.year+": "+x);
+ s.log=s.log.slice(0,60);
+ save();
+}
+
+function roll(){
+ return Math.floor(Math.random()*6)+1+
+        Math.floor(Math.random()*6)+1;
+}
+
+function econRoll(){
+
+ const r=roll();
+
+ s.econ=
+   r<=4 ? "Recession":
+   r<=9 ? "Normal":
+   "Boom";
+
+ log("Economic roll: "+r+" → "+s.econ);
+
+ return r;
+}
+
+function popRoll(){
+
+ const r=roll();
+
+ const pct=
+   r<=4 ? -1:
+   r<=6 ? 0:
+   r<=8 ? 1:
+   r<=10 ? 2:
+   3;
+
+ s.pop=Math.max(
+   1000,
+   Math.round(s.pop*(1+pct/100))
+ );
+
+ log(
+   "Population roll "+r+
+   " → "+(pct>=0?"+":"")+pct+
+   "% population."
+ );
+
+ return {r,pct};
+}
+
+function mwtpReset(){
+
+ const r=roll();
+
+ const base=s.mwtp;
+
+ let pct=
+   (s.econ==="Boom"?2:
+    s.econ==="Recession"?-2:0)
+   +(r>=10?2:r<=4?-2:0);
+
+ s.mwtp=Math.max(
+   5,
+   Math.round(base*(1+pct/100)*100)/100
+ );
+
+ log(
+  "MWTP reset: "+
+  money(base)+
+  " → "+
+  money(s.mwtp)+
+  " per meal."
+ );
+
+ return {r,pct};
+}
+
+function commodityRoll(){
+
+ const moves={
+  2:-10,
+  3:-8,
+  4:-6,
+  5:-4,
+  6:-2,
+  7:2,
+  8:4,
+  9:6,
+  10:8,
+  11:10,
+  12:12
+ };
+
+ const r=roll();
+
+ for(const k in s.commodities){
+
+  s.commodities[k]=Math.round(
+   s.commodities[k]*
+   (1+moves[r]/100)*100
+  )/100;
+
+ }
+
+ log(
+  "Commodity roll "+r+
+  " → prices move "+
+  (moves[r]>=0?"+":"")+
+  moves[r]+"%."
+ );
+
+ return {
+  r,
+  move:moves[r]
+ };
+}
+
+function season(){
+
+ const demand=Math.round(s.pop*3);
+
+ const avg=
+  (s.food[0].price+
+   s.food[1].price)/2;
+
+ const sensitivity=Math.max(
+  .2,
+  1-Math.max(0,avg-s.mwtp)*.12
+ );
+
+ let total=Math.round(
+  demand*sensitivity
+ );
+
+ let weights=s.food.map(
+  f=>Math.max(
+   .1,
+   (100-f.price*2)+
+   (f.quality*4)+
+   (f.brand*3)
+  )
+ );
+
+ let sum=weights.reduce(
+  (a,b)=>a+b,
+  0
+ );
+
+ s.food.forEach((f,i)=>{
+
+  const sales=Math.round(
+   total*weights[i]/sum
+  );
+
+  const costPer=
+   s.commodities.Grain*.3+
+   s.commodities.Meat*.35+
+   s.commodities.Produce*.25;
+
+  const revenue=sales*f.price;
+
+  const costs=sales*costPer;
+
+  const profit=
+   (revenue-costs)/1000000;
+
+  f.cash+=profit;
+
+  f.inventory=
+   Math.max(0,30000-sales);
+
+  s.treasury+=
+   revenue*.05/1000000;
+
+  const stock=s.stocks[i];
+
+  stock.price=Math.max(
+   1,
+   stock.price*
+   (1+
+   profit/
+   Math.max(1,f.cash)*.25)
+  );
+
+  log(
+   f.name+
+   " sold "+
+   sales.toLocaleString()+
+   " meals, profit "+
+   money(profit)+"."
+  );
+
+ });
+
+ log(
+  "Federal Market cleared "+
+  total.toLocaleString()+
+  " meals from "+
+  demand.toLocaleString()+
+  " potential demand."
+ );
+}
+
+function newYear(){
+
+ s.year++;
+
+ popRoll();
+
+ econRoll();
+
+ mwtpReset();
+
+ commodityRoll();
+
+ save();
+
+ render();
+}
+
+function card(title,body){
+
+ return `
+ <div class="card">
+  <div class="section" style="margin-top:0">
+   ${title}
+  </div>
+  ${body}
+ </div>
+ `;
+}
+
+function home(){
+
+ return `
+ <div class="screen">
+
+ ${card("City Overview",`
+
+ <div class="grid">
+
+ <div>
+  <div class="label">Population</div>
+  <div class="metric">
+   ${s.pop.toLocaleString()}
+  </div>
+ </div>
+
+ <div>
+  <div class="label">Economy</div>
+  <div class="metric">
+   ${s.econ}
+  </div>
+ </div>
+
+ <div>
+  <div class="label">MWTP / meal</div>
+  <div class="metric">
+   ${money(s.mwtp)}
+  </div>
+ </div>
+
+ <div>
+  <div class="label">Fed rate</div>
+  <div class="metric">
+   ${s.fedRate.toFixed(2)}%
+  </div>
+ </div>
+
+ </div>
+
+ `)}
+
+ ${card("Yearly Controls",`
+
+ <div class="row">
+
+ <button onclick="popRoll();render()">
+ 🎲 Population
+ </button>
+
+ <button onclick="econRoll();render()">
+ 🎲 Economy
+ </button>
+
+ <button onclick="mwtpReset();render()">
+ 💵 MWTP
+ </button>
+
+ <button onclick="commodityRoll();render()">
+ 🌾 Commodities
+ </button>
+
+ <button class="good" onclick="newYear()">
+ ▶ Start New Year
+ </button>
+
+ </div>
+
+ `)}
+
+ ${card("Basketball Season",`
+
+ <p class="muted">
+ Three teams • best record gets a bye •
+ championship can create up to five game dates.
+ </p>
+
+ <button onclick="season();render()">
+ 🏀 Run Season Market
+ </button>
+
+ `)}
+
+ ${card("Recent Activity",`
+
+ <div class="log">
+
+ ${s.log.map(
+  x=>"<div style='padding:5px 0'>"+x+"</div>"
+ ).join("")}
+
+ </div>
+
+ `)}
+
+ </div>
+ `;
+}
+
+function city(){
+
+ return `
+ <div class="screen">
+
+ ${card("City Map",`
+
+ <div class="map">
+
+ ${[
+  ["Downtown","Banks • Offices"],
+  ["North District","Apartments • Homes"],
+  ["West Industrial","Factories • Warehouses"],
+  ["East Retail","Retail • Food"],
+  ["South District","Housing • Hotels"],
+  ["Sports District","3 Stadiums • Vendors"]
+ ].map(x=>`
+
+ <div class="district">
+  <b>${x[0]}</b>
+  <div class="building">
+   ${x[1]}
+  </div>
+ </div>
+
+ `).join("")}
+
+ </div>
+
+ `)}
+
+ ${card("Housing & Population",`
+
+ <div class="item">
+  <span>Permanent residents</span>
+  <b>${s.pop.toLocaleString()}</b>
+ </div>
+
+ <div class="item">
+  <span>Annual food demand</span>
+  <b>${(s.pop*3).toLocaleString()} meals</b>
+ </div>
+
+ `)}
+
+ </div>
+ `;
+}
+
+function markets(){
+
+ return `
+ <div class="screen">
+
+ ${card("Commodity Market",
+
+ Object.entries(s.commodities).map(
+ ([k,v])=>`
+
+ <div class="item">
+  <span>${k}</span>
+  <b>${money(v)}</b>
+ </div>
+
+ `).join("")
+
+ )}
+
+ ${card("Food Competition",
+
+ s.food.map((f,i)=>`
+
+ <div class="card" style="background:#101827">
+
+ <b>${f.name}</b>
+
+ <div class="item">
+  <span>Price</span>
+  <b>${money(f.price)}</b>
+ </div>
+
+ <div class="item">
+  <span>Quality / Brand</span>
+  <span>${f.quality}/10 • ${f.brand}/10</span>
+ </div>
+
+ <div class="item">
+  <span>Cash</span>
+  <b>${money(f.cash)}</b>
+ </div>
+
+ </div>
+
+ `).join("")
+
+ )}
+
+ </div>
+ `;
+}
+
+function finance(){
+
+ return `
+ <div class="screen">
+
+ ${card("Federal Treasury",`
+
+ <div class="metric">
+  ${money(s.treasury)}
+ </div>
+
+ <div class="muted">
+  Collected from modeled transaction taxes.
+ </div>
+
+ `)}
+
+ ${card("Federal Reserve",`
+
+ <div class="item">
+  <span>Policy rate</span>
+  <b>${s.fedRate.toFixed(2)}%</b>
+ </div>
+
+ <div class="row">
+
+ <button class="secondary"
+ onclick="
+ s.fedRate=Math.max(0,s.fedRate-.25);
+ log('Fed cut rates 0.25%.');
+ render()
+ ">
+ −0.25%
+ </button>
+
+ <button class="secondary"
+ onclick="
+ s.fedRate+=.25;
+ log('Fed raised rates 0.25%.');
+ render()
+ ">
+ +0.25%
+ </button>
+
+ </div>
+
+ `)}
+
+ ${card("Banks",
+
+ s.banks.map(
+ b=>`
+
+ <div class="item">
+  <span>${b.name}</span>
+  <b>${money(b.cash)}</b>
+ </div>
+
+ `).join("")
+
+ )}
+
+ ${card("Stock Market",
+
+ s.stocks.map(
+ x=>`
+
+ <div class="item">
+  <span>${x.name}</span>
+  <b>$${x.price.toFixed(2)}</b>
+ </div>
+
+ `).join("")
+
+ )}
+
+ </div>
+ `;
+}
+
+function render(){
+
+ document.getElementById("headerSub").textContent=
+  `Year ${s.year} • ${s.econ} Economy`;
+
+ const pages={
+  home,
+  city,
+  markets,
+  finance
+ };
+
+ document.getElementById("app").innerHTML=
+  pages[tab]();
+
+ const labels=[
+  ["home","⌂","Home"],
+  ["city","🏙","City"],
+  ["markets","📊","Markets"],
+  ["finance","💰","Finance"],
+  ["reset","↻","Reset"]
+ ];
+
+ document.getElementById("nav").innerHTML=
+ labels.map(
+ ([id,ic,name])=>`
+
+ <button
+ class="${tab===id?'active':''}"
+ onclick="${
+  id==='reset'
+  ?'resetGame()'
+  :`tab='${id}';render()`
+ }">
+
+ ${ic}<br>${name}
+
+ </button>
+
+ `).join("");
+}
+
+function resetGame(){
+
+ if(confirm("Reset the entire city?")){
+
+  s=JSON.parse(
+   JSON.stringify(fresh)
+  );
+
+  save();
+
+  tab="home";
+
+  render();
+ }
+}
+
+render();
+
+</script>
+
+</body>
+</html>
