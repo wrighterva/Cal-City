@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION V18 -->
+<!-- CALVIN'S CITY — VERSION V20 -->
 <!-- Personal Paper City -> Digital City -->
 <!-- V16: LIVING CITY MAP + GAME-BY-GAME BASKETBALL + OFFSEASON MANAGEMENT -->
 <!-- V16 UPDATE: RESTORED V13 LIVING CITY MAP + ONE-GAME-AT-A-TIME SEASON -->
 <html lang="en">
-<head> 
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City V16</title>
+<title>Calvin's City V20</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -94,20 +94,22 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .nav button{margin:0;padding:11px 4px;font-size:12px;background:#273446}.nav button.active{background:#2f6fed}
 .divider{height:1px;background:#334155;margin:12px 0}.pill{padding:6px 8px;border-radius:8px;background:#273446;display:inline-block;font-size:12px;margin:2px}
  
-.teamSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
-.teamSummary>div{padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.04)}
-.dataTable{width:100%;border-collapse:collapse;font-size:13px}
-.dataTable th,.dataTable td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.1);text-align:left;white-space:nowrap}
-.dataTable th{font-weight:700}
-.muted{opacity:.7;font-size:12px}
+#teamPageModal .modalbox{max-height:82vh}
+.team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}
+.team-stat small{display:block;color:#9eabba;margin-bottom:4px}
+.team-stat strong{font-size:16px}
+.team-table{width:100%;border-collapse:collapse;font-size:12px}
+.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}
+.team-note{color:#9eabba;font-size:11px;margin-top:10px}
  
 </style>
 </head>
 <body>
 <header>
-<h1>🏙️ Calvin's City — V16</h1>
+<h1>🏙️ Calvin's City — V20</h1>
 <p>Personal Paper City → Digital City</p>
-<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V16</div>
+<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V20</div>
 </header>
 <main>
 <section id="home" class="screen active">
@@ -115,7 +117,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <div class="metric"><small>Year</small><strong id="homeYear">1</strong></div><div class="metric"><small>Population</small><strong>10,000</strong></div>
 <div class="metric"><small>Economy</small><strong>Normal</strong></div><div class="metric"><small>MWTP</small><strong>$20</strong></div>
 </div></div>
-<div class="card"><h2>🏀 Basketball</h2><p>V16 plays every basketball game individually. Each result saves immediately, and the next game unlocks only after the current game is complete.</p>
+<div class="card"><h2>🏀 Basketball</h2><p>V19 plays every basketball game individually. Each result saves immediately, and the next game unlocks only after the current game is complete.</p>
 <div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div>
 <button data-navjump="basketball">Open Basketball</button></div>
 </section>
@@ -169,7 +171,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <div class="card"><h2>🏀 Calvin's City Basketball</h2><p><span class="badge">3 Teams</span><span class="badge">3 Players Each</span><span class="badge">4 Quarters</span><span class="badge">1–3 Year Contracts</span></p>
 <p>Each player gets two point dice and two rebound dice per quarter. Overtime uses one point die and one rebound die per player until the tie is broken.</p></div>
  
-<div class="card"><h2>👥 League Roster Setup</h2><p>V15 uses position slots so no player names are invented or overwritten. Enter your real player names when ready.</p>
+<div class="card"><h2>👥 League Roster Setup</h2><p>V19 uses position slots so no player names are invented or overwritten. Enter your real player names when ready.</p>
 <div id="rosterInputs"></div><button class="goodbtn" id="saveRoster">Save Roster Names</button><p id="rosterSaved" class="tiny"></p></div>
  
 <div class="card"><h2>Season Rules</h2><ol class="log"><li>Each team plays every other team once.</li><li>Best record normally receives the championship bye.</li><li>If tied for best record, the defending champion gets the bye when involved.</li><li>If all three tie, the previous champion gets the bye.</li><li>The other two teams play the semifinal.</li><li>Semifinal winner plays the bye team for the championship.</li><li>Champion receives $100M; runner-up receives $50M.</li></ol></div>
@@ -201,6 +203,161 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </section>
 </main>
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="property">🏠<br>Property</button><button data-nav="markets">📈<br>Markets</button><button data-nav="finance">🏦<br>Finance</button></nav>
+ 
+<script>
+/* V20_TEAM_PAGE_HANDLER */
+(function(){
+ const TEAM_PAGE = {
+   lions:{name:"Lions", arena:"Lions Arena", key:"Lions"},
+   rims:{name:"Rimmers", arena:"Rims Arena", key:"Rims"},
+   dunks:{name:"Dunkers", arena:"Dunks Arena", key:"Dunks"}
+ };
+ 
+ function openTeamPage(k){
+   const t=TEAM_PAGE[k];
+   if(!t) return;
+ 
+   let s={};
+   try{
+     s=JSON.parse(localStorage.getItem("calvins_city_v20")||"{}");
+   }catch(e){}
+ 
+   const roster=s.roster||{};
+   const contracts=s.contracts||{};
+   const standings=(s.standings||{})[t.key]||{w:0,l:0,ptsFor:0,ptsAgainst:0};
+ 
+   const rows=["C","SG","PG"].map(pos=>{
+     const key=t.key+"_"+pos;
+     const c=contracts[key]||{};
+     return {
+       name:roster[key]||pos,
+       pos:pos,
+       contract:c.value==null?"—":c.value,
+       years:c.years==null?"—":c.years
+     };
+   });
+ 
+   document.getElementById("teamPageTitle").textContent=t.name;
+   document.getElementById("teamPageBody").innerHTML=
+     '<div class="team-head">'+
+     '<div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div>'+
+     '<div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div>'+
+     '<div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div>'+
+     '<div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div>'+
+     '</div><h3>Roster & Contracts</h3>'+
+     '<table class="team-table"><tr><th>Player</th><th>Pos.</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th></tr>'+
+     rows.map(p=>'<tr><td>'+p.name+'</td><td>'+p.pos+'</td><td>'+(p.contract==="—"?"—":"$"+p.contract+"M")+'</td><td>'+p.years+'</td><td>—</td><td>—</td></tr>').join("")+
+     '</table><p class="team-note">Career PTS/REB will stay with the player when they change teams. These career columns will be connected to permanent player records in the basketball expansion.</p>';
+ 
+   document.getElementById("teamPageModal").classList.add("show");
+ }
+ 
+ document.addEventListener("click",function(e){
+   const b=e.target.closest("[data-place]");
+   if(!b) return;
+   const p=(b.dataset.place||"").toLowerCase();
+   if(p==="lions"||p==="rims"||p==="dunks"){
+     e.preventDefault();
+     e.stopImmediatePropagation();
+     openTeamPage(p);
+   }
+ },true);
+ 
+ document.addEventListener("DOMContentLoaded",function(){
+   const close=document.getElementById("teamPageClose");
+   const modal=document.getElementById("teamPageModal");
+   const basketball=document.getElementById("teamPageBasketball");
+   if(close) close.onclick=()=>modal.classList.remove("show");
+   if(modal) modal.onclick=e=>{if(e.target===modal)modal.classList.remove("show")};
+   if(basketball) basketball.onclick=()=>{
+     modal.classList.remove("show");
+     const jump=document.querySelector('[data-navjump="basketball"]');
+     if(jump) jump.click();
+   };
+ });
+})();
+</script>
+<script>
+(function(){
+ const teamMap = {
+   lions: {name:"Lions", arena:"Lions Arena"},
+   rims: {name:"Rimmers", arena:"Rims Arena"},
+   dunks: {name:"Dunkers", arena:"Dunks Arena"}
+ };
+ 
+ function teamData(teamKey){
+   let s = {};
+   try { s = JSON.parse(localStorage.getItem("calvins_city_v20") || "{}"); } catch(e){}
+   const roster = s.roster || {};
+   const contracts = s.contracts || {};
+   const standings = s.standings || {};
+   const teamName = teamKey==="lions" ? "Lions" : teamKey==="rims" ? "Rims" : "Dunks";
+   const positions = ["C","SG","PG"];
+   const rows = positions.map(pos => {
+     const key = teamName + "_" + pos;
+     const name = roster[key] || pos;
+     const c = contracts[key] || {};
+     return {name, pos, contract:c.value ?? "—", years:c.years ?? "—"};
+   });
+   return {teamName, rows, standings:standings[teamName] || {w:0,l:0,ptsFor:0,ptsAgainst:0}};
+ }
+ 
+ function openTeamPage(teamKey){
+   const t = teamMap[teamKey];
+   const d = teamData(teamKey);
+   document.getElementById("teamPageTitle").textContent = t.name;
+   document.getElementById("teamPageBody").innerHTML =
+     `<div class="team-head">
+       <div class="team-stat"><small>Arena</small><strong>${t.arena}</strong></div>
+       <div class="team-stat"><small>Record</small><strong>${d.standings.w}-${d.standings.l}</strong></div>
+       <div class="team-stat"><small>Points For</small><strong>${d.standings.ptsFor || 0}</strong></div>
+       <div class="team-stat"><small>Points Against</small><strong>${d.standings.ptsAgainst || 0}</strong></div>
+     </div>
+     <h3>Roster & Contracts</h3>
+     <table class="team-table">
+       <tr><th>Player</th><th>Pos.</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th></tr>
+       ${d.rows.map(p=>`<tr>
+         <td>${p.name}</td><td>${p.pos}</td>
+         <td>${p.contract==="—" ? "—" : "$"+p.contract+"M"}</td>
+         <td>${p.years}</td><td>—</td><td>—</td>
+       </tr>`).join("")}
+     </table>
+     <p class="team-note">Career PTS/REB will remain attached to each player when the player changes teams. This page is the permanent home for team contracts and player career tracking.</p>`;
+   document.getElementById("teamPageModal").classList.add("show");
+   document.getElementById("teamPageBasketball").onclick = function(){
+     document.getElementById("teamPageModal").classList.remove("show");
+     const b = document.querySelector('[data-navjump="basketball"]');
+     if(b) b.click();
+     else {
+       document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+       const s=document.getElementById("basketball"); if(s)s.classList.add("active");
+       window.scrollTo(0,0);
+     }
+   };
+ }
+ 
+ document.addEventListener("click", function(e){
+   const b=e.target.closest("[data-place]");
+   if(!b) return;
+   const p=(b.dataset.place||"").toLowerCase();
+   if(p==="lions"||p==="rims"||p==="dunks"){
+     e.preventDefault();
+     e.stopImmediatePropagation();
+     openTeamPage(p);
+   }
+ }, true);
+ 
+ document.addEventListener("DOMContentLoaded", function(){
+   const close=document.getElementById("teamPageClose");
+   const page=document.getElementById("teamPageModal");
+   if(close) close.addEventListener("click",()=>page.classList.remove("show"));
+   if(page) page.addEventListener("click",e=>{
+     if(e.target.id==="teamPageModal") page.classList.remove("show");
+   });
+ });
+})();
+</script>
+ 
 <script>
 (function(){
 "use strict";
@@ -233,7 +390,7 @@ let state={
 };
  
 try{
- const v16=localStorage.getItem("calvins_city_v18");
+ const v16=localStorage.getItem("calvins_city_v20");
  const old=localStorage.getItem("calvins_city_v15_basketball");
  if(v16){
    state={...state,...JSON.parse(v16)};
@@ -252,7 +409,7 @@ try{
  }
 }catch(e){}
  
-function save(){localStorage.setItem("calvins_city_v18",JSON.stringify(state))}
+function save(){localStorage.setItem("calvins_city_v20",JSON.stringify(state))}
 function die(){return Math.floor(Math.random()*6)+1}
 function money(n){return "$"+n.toFixed(0)+"M"}
 function ticketRevenue(){return (die()+die())*10}
@@ -499,7 +656,7 @@ function renderStandings(){
 function buildRosterInputs(){const box=document.getElementById("rosterInputs");let h="<table><tr><th>Team</th><th>C</th><th>SG</th><th>PG</th></tr>";TEAMS.forEach(t=>{h+=`<tr><td>${t}</td>`;POSITIONS.forEach(p=>{const key=t+"_"+p;h+=`<td><input id="r_${key}" placeholder="${p}" value="${state.roster[key]||""}"></td>`});h+="</tr>"});box.innerHTML=h+"</table>"}
 function saveRoster(){TEAMS.forEach(t=>POSITIONS.forEach(p=>{const key=t+"_"+p;const el=document.getElementById("r_"+key);if(el&&el.value.trim())state.roster[key]=el.value.trim()}));save();document.getElementById("rosterSaved").textContent="Roster names saved on this device."}
 function buildContractBoard(){const box=document.getElementById("contractBoard");let h="<p class='tiny'>Current team gets the first bid. Players may renegotiate in the final year. Maximum term is 3 years. Contract values are entered as total contract value.</p>";TEAMS.forEach(t=>{h+=`<div class='team'><h3>${t}</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>`;POSITIONS.forEach(p=>{const key=t+"_"+p;const c=state.contracts[key]||{value:0,years:0,status:"Unsigned"};h+=`<tr><td>${playerName(t,p)} (${p})</td><td>${money(Number(c.value)||0)}</td><td>${c.years||0}</td><td><select id="c_${key}"><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>`});h+="</table></div>"});box.innerHTML=h}
-function buildGMBoard(){const box=document.getElementById("gmBoard");let h="<table><tr><th>Former Player</th><th>GM PPG</th><th>Games</th><th>Titles</th><th>Team</th></tr>";FORMER_PLAYERS.forEach(n=>{const g=state.gms[n]||{ppg:0,games:0,titles:0,team:"Free Agent"};h+=`<tr><td>${n}</td><td>${Number(g.ppg||0).toFixed(1)}</td><td>${g.games||0}</td><td>${g.titles||0}</td><td>${g.team||"Free Agent"}</td></tr>`});box.innerHTML=h+"</table><p class='tiny'>GM records are permanent career records. V15 displays the structure; GM assignments and live GM production will be connected to future roster simulation.</p>"}
+function buildGMBoard(){const box=document.getElementById("gmBoard");let h="<table><tr><th>Former Player</th><th>GM PPG</th><th>Games</th><th>Titles</th><th>Team</th></tr>";FORMER_PLAYERS.forEach(n=>{const g=state.gms[n]||{ppg:0,games:0,titles:0,team:"Free Agent"};h+=`<tr><td>${n}</td><td>${Number(g.ppg||0).toFixed(1)}</td><td>${g.games||0}</td><td>${g.titles||0}</td><td>${g.team||"Free Agent"}</td></tr>`});box.innerHTML=h+"</table><p class='tiny'>GM records are permanent career records. V19 displays the structure; GM assignments and live GM production will be connected to future roster simulation.</p>"}
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard();}
 function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen){return}state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;save();document.getElementById("offseasonCard").style.display="none";document.getElementById("homeYear").textContent=state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";document.getElementById("offseasonMessage").textContent="Offseason finalized. New year advanced only after offseason completion.";alert("Offseason finalized. Calvin's City is now ready for the new year.");}
 function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0)}
@@ -562,78 +719,23 @@ if(state.offseasonOpen){
 </script>
  
  
-<div id="teamPage" class="modal" style="display:none">
- <div class="modalCard">
-   <button class="closeBtn" onclick="closeTeamPage()">✕</button>
+<div id="teamPageModal" class="modal">
+ <div class="modalbox">
    <h2 id="teamPageTitle">Team</h2>
-   <div id="teamPageBody"></div>
+   <div id="teamPageBody" class="log"></div>
+   <button id="teamPageBasketball" class="goodbtn">🏀 Open Basketball</button>
+   <button id="teamPageClose" class="secondary">Close</button>
  </div>
 </div>
-<script>
-const TEAM_PAGE_DATA = {
- lions:  {name:"Lions", arena:"Lions Arena"},
- rims:   {name:"Rimmers", arena:"Rims Arena"},
- dunks:  {name:"Dunkers", arena:"Dunks Arena"}
-};
  
-function openTeamPage(teamKey){
- const t = TEAM_PAGE_DATA[teamKey];
- if(!t) return;
- const state = (typeof gameState !== "undefined" && gameState) ? gameState : null;
- const team = state && state.teams ? state.teams[teamKey] : null;
- const players = team && Array.isArray(team.players) ? team.players : [];
- const cash = team && team.cash != null ? team.cash : "—";
- 
- let rows = players.map(p => `
-   <tr>
-     <td>${p.name || "Player"}</td>
-     <td>${p.pos || p.position || "—"}</td>
-     <td>${p.contract != null ? "$"+p.contract+"M" : "—"}</td>
-     <td>${p.yearsLeft != null ? p.yearsLeft : "—"}</td>
-     <td>${p.totalPoints != null ? p.totalPoints : (p.pts != null ? p.pts : 0)}</td>
-     <td>${p.totalRebounds != null ? p.totalRebounds : (p.reb != null ? p.reb : 0)}</td>
-   </tr>`).join("");
- 
- if(!rows) rows = `<tr><td colspan="6">Roster tracking will populate as player/team data is added.</td></tr>`;
- 
- document.getElementById("teamPageTitle").textContent = t.name;
- document.getElementById("teamPageBody").innerHTML = `
-   <div class="teamSummary">
-     <div><strong>Arena</strong><br>${t.arena}</div>
-     <div><strong>Team Cash</strong><br>${cash}${typeof cash==="number" ? "M" : ""}</div>
-   </div>
-   <h3>Roster & Contracts</h3>
-   <div style="overflow-x:auto">
-     <table class="dataTable">
-       <thead><tr><th>Player</th><th>Pos.</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th></tr></thead>
-       <tbody>${rows}</tbody>
-     </table>
-   </div>
-   <p class="muted">Career statistics stay with the player when a player changes teams.</p>
- `;
- document.getElementById("teamPage").style.display = "flex";
-}
- 
-function closeTeamPage(){
- document.getElementById("teamPage").style.display = "none";
-}
- 
-document.addEventListener("click", function(e){
- const b = e.target.closest("[data-place]");
- if(!b) return;
- const place = (b.dataset.place || "").toLowerCase();
- if(place==="lions" || place==="lions arena"){
-   e.preventDefault(); e.stopPropagation(); openTeamPage("lions"); return;
- }
- if(place==="rims" || place==="rims arena" || place==="rimmers"){
-   e.preventDefault(); e.stopPropagation(); openTeamPage("rims"); return;
- }
- if(place==="dunks" || place==="dunks arena" || place==="dunkers"){
-   e.preventDefault(); e.stopPropagation(); openTeamPage("dunks"); return;
- }
-}, true);
-</script>
- 
+<div id="teamPageModal" class="modal">
+<div class="modalbox">
+ <h2 id="teamPageTitle">Team</h2>
+ <div id="teamPageBody" class="log"></div>
+ <button id="teamPageBasketball" class="goodbtn">🏀 Open Basketball</button>
+ <button id="teamPageClose" class="secondary">Close</button>
+</div>
+</div>
 <div id="modal" class="modal">
  <div class="modalbox">
    <h2 id="modalTitle">Calvin's City</h2>
