@@ -1,13 +1,13 @@
-Calvin's City — V13 Code
-V13: compact living city map, connected road system, moving cars, parks, and three separate basketball stadiums.
+Calvin's City — V14 Code
+V14: basketball engine foundation. Preserves V13 city concept and adds player dice, games, regular season, shoe revenue, and prize rules.
 
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION V13 -->
+<!-- CALVIN'S CITY — VERSION V14 -->
 
 <!-- Personal Paper City -> Digital City -->
 
-<!-- V13: LIVING CITY BLOCKS + THREE SEPARATE STADIUMS -->
+<!-- V14: BASKETBALL ENGINE FOUNDATION -->
 
  
 
@@ -19,7 +19,7 @@ V13: compact living city map, connected road system, moving cars, parks, and thr
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City V13</title>
+<title>Calvin's City V14</title>
 
 <style>
 
@@ -49,125 +49,15 @@ button{width:100%;border:0;border-radius:12px;padding:13px 12px;background:#2f6f
 
 button:active{transform:scale(.98)}button.secondary{background:#344255}
 
- 
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}th{color:#9eabba}
 
-/* COMPACT CITY */
+.score{font-size:30px;font-weight:900}.team{background:#121b27;border:1px solid #2d3a4d;border-radius:12px;padding:12px;margin-top:10px}
 
-.map{position:relative;width:100%;height:570px;overflow:hidden;border-radius:18px;background:#6d826a;border:2px solid #839583;box-shadow:inset 0 0 0 5px rgba(255,255,255,.04)}
+.badge{display:inline-block;padding:4px 8px;border-radius:8px;background:#344255;font-size:11px;font-weight:800;margin-right:5px}
 
-.map:before{content:"";position:absolute;inset:0;opacity:.22;background:linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px);background-size:34px 34px}
+.good{color:#9ff0b5}.gold{color:#f1d37a}.muted{color:#9eabba}
 
- 
-
-/* road network */
-
-.ring{position:absolute;left:3.5%;top:3.5%;width:93%;height:93%;border:12px solid #39434f;border-radius:34px;z-index:2;pointer-events:none;box-shadow:0 0 0 2px rgba(255,255,255,.08)}
-
-.road{position:absolute;background:#3d4753;z-index:3;pointer-events:none}
-
-.rh{height:21px;left:5%;width:90%}.rv{width:21px;top:5%;height:90%}
-
-.r1{top:28%}.r2{top:62%}.c1{left:29%}.c2{left:67%}
-
-.road.h:after{content:"";position:absolute;left:0;right:0;top:9px;border-top:2px dashed rgba(255,255,255,.25)}
-
-.road.v:after{content:"";position:absolute;top:0;bottom:0;left:9px;border-left:2px dashed rgba(255,255,255,.25)}
-
-.intersection{position:absolute;width:25px;height:25px;background:#39434f;z-index:4;pointer-events:none;border-radius:4px}
-
- 
-
-/* cars */
-
-.car{position:absolute;width:14px;height:8px;border-radius:4px;background:#e8edf2;z-index:6;pointer-events:none;box-shadow:0 0 0 1px #202832}
-
-.car.a{top:26.7%;animation:driveA 8s linear infinite}.car.b{top:60.7%;animation:driveB 11s linear infinite}
-
-.car.c{left:28.1%;animation:driveC 9s linear infinite}.car.d{left:66.1%;animation:driveD 12s linear infinite}
-
-.car.e{top:28%;animation:driveE 14s linear infinite}
-
-@keyframes driveA{from{left:6%}to{left:92%}}@keyframes driveB{from{left:92%}to{left:6%}}
-
-@keyframes driveC{from{top:6%}to{top:91%}}@keyframes driveD{from{top:91%}to{top:6%}}
-
-@keyframes driveE{from{left:88%}to{left:7%}}
-
- 
-
-/* city blocks */
-
-.block{position:absolute;background:#70856d;border:1px solid rgba(255,255,255,.12);z-index:1}
-
-.b1{left:7%;top:8%;width:20%;height:18%}.b2{left:32%;top:8%;width:32%;height:18%}.b3{left:70%;top:8%;width:22%;height:18%}
-
-.b4{left:7%;top:34%;width:20%;height:25%}.b5{left:32%;top:34%;width:32%;height:25%}.b6{left:70%;top:34%;width:22%;height:25%}
-
-.b7{left:7%;top:68%;width:20%;height:23%}.b8{left:32%;top:68%;width:32%;height:23%}.b9{left:70%;top:68%;width:22%;height:23%}
-
- 
-
-/* small buildings */
-
-.building{position:absolute;z-index:8;border:2px solid #26313b;border-radius:7px;background:#d9d2bc;color:#17202b;box-shadow:0 3px 5px rgba(0,0,0,.22);padding:4px 3px;font-size:8.5px;font-weight:900;line-height:1.05;margin:0;min-height:35px;touch-action:manipulation}
-
-.building span{display:block;font-size:6.5px;color:#5d6670;font-weight:700;margin-top:2px}
-
-.tall{background:#c7cdd2}.retail{background:#ded0a9}.factory{background:#b8b7ad}.sports{background:#e5d2a6}.residential{background:#cbd7c5}.medical{background:#d6c8c8}.education{background:#c9d3df}
-
- 
-
-/* building positions */
-
-.d1{left:10%;top:11%;width:12%}.d2{left:18%;top:17%;width:9%}.d3{left:36%;top:11%;width:12%}.d4{left:49%;top:17%;width:10%}
-
-.d5{left:73%;top:11%;width:15%}.d6{left:78%;top:18%;width:10%}
-
-.d7{left:10%;top:39%;width:12%}.d8{left:17%;top:48%;width:9%}.d9{left:37%;top:39%;width:12%}.d10{left:50%;top:48%;width:10%}
-
-.d11{left:72%;top:39%;width:14%}.d12{left:79%;top:49%;width:9%}
-
-.d13{left:10%;top:73%;width:13%}.d14{left:18%;top:82%;width:9%}.d15{left:37%;top:73%;width:13%}.d16{left:50%;top:82%;width:10%}
-
-.d17{left:72%;top:73%;width:14%}.d18{left:79%;top:82%;width:9%}
-
-.d19{left:35%;top:14%;width:10%}.d20{left:69%;top:44%;width:12%}
-
- 
-
-/* three stadiums: deliberately separated */
-
-.stadium{min-height:54px;font-size:9px;border-radius:9px;background:#e6d1a2;box-shadow:0 4px 7px rgba(0,0,0,.28)}
-
-.s1{left:70%;top:40%;width:17%}
-
-.s2{left:9%;top:71%;width:17%}
-
-.s3{left:38%;top:72%;width:17%}
-
-.stadium span{font-size:6.5px}
-
- 
-
-/* parks */
-
-.park{position:absolute;z-index:5;background:#86a477;border:1px solid #60775a;border-radius:8px;pointer-events:none}
-
-.pk1{left:23%;top:10%;width:7%;height:9%}.pk2{left:58%;top:39%;width:7%;height:12%}.pk3{left:27%;top:74%;width:7%;height:11%}
-
- 
-
-/* labels */
-
-.city-label{position:absolute;z-index:7;font-size:7.5px;font-weight:900;color:rgba(255,255,255,.82);letter-spacing:.4px;pointer-events:none;text-transform:uppercase}
-
-.l1{left:9%;top:9%}.l2{left:35%;top:9%}.l3{left:73%;top:9%}
-
-.l4{left:9%;top:35%}.l5{left:35%;top:35%}.l6{left:73%;top:35%}
-
-.l7{left:9%;top:69%}.l8{left:35%;top:69%}.l9{left:72%;top:69%}
-
- 
+.log{font-size:12px;color:#b9c5d2;line-height:1.5;max-height:300px;overflow:auto}
 
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
 
@@ -175,11 +65,9 @@ button:active{transform:scale(.98)}button.secondary{background:#344255}
 
 .modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center}
 
-.modal.show{display:flex}.modalbox{width:min(100%,420px);max-height:80vh;overflow:auto;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px}
+.modal.show{display:flex}.modalbox{width:min(100%,440px);max-height:85vh;overflow:auto;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px}
 
-.modalbox h2{margin-top:0}.ok{color:#9ff0b5}.log{color:#b9c5d2;font-size:13px;line-height:1.5}
-
-@media(max-width:380px){.map{height:530px}.building{font-size:8px}.building span{font-size:6px}}
+.modalbox h2{margin-top:0}
 
 </style>
 
@@ -189,11 +77,11 @@ button:active{transform:scale(.98)}button.secondary{background:#344255}
 
 <header>
 
-<h1>🏙️ Calvin's City — V13</h1>
+<h1>🏙️ Calvin's City — V14</h1>
 
 <p>Personal Paper City → Digital City</p>
 
-<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V13</div>
+<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V14</div>
 
 </header>
 
@@ -215,27 +103,23 @@ button:active{transform:scale(.98)}button.secondary{background:#344255}
 
 </div></div>
 
-<div class="card"><h2>🏀 Three-Stadium City</h2>
+<div class="card"><h2>🏀 Basketball</h2>
 
-<p>V13 keeps the compact map but gives the city three separate basketball venues. Each venue is a real clickable location.</p>
+<p>V14 adds the basketball engine foundation while preserving the working V13 city.</p>
 
 <div class="grid">
 
-<div class="metric"><small>Lions</small><strong>1 Arena</strong></div>
+<div class="metric"><small>Teams</small><strong>3</strong></div>
 
-<div class="metric"><small>Rims</small><strong>1 Arena</strong></div>
+<div class="metric"><small>Players / Team</small><strong>3</strong></div>
 
-<div class="metric"><small>Dunks</small><strong>1 Arena</strong></div>
+<div class="metric"><small>Regular Games</small><strong>3</strong></div>
 
-<div class="metric"><small>Roads</small><strong>Connected</strong></div>
+<div class="metric"><small>Championship</small><strong>$100M</strong></div>
 
 </div>
 
-<button data-open="lions">🏀 Open Lions Arena</button>
-
-<button data-open="rims">🏀 Open Rims Arena</button>
-
-<button data-open="dunks">🏀 Open Dunks Arena</button>
+<button data-navjump="basketball">Open Basketball</button>
 
 </div>
 
@@ -245,91 +129,17 @@ button:active{transform:scale(.98)}button.secondary{background:#344255}
 
 <section id="city" class="screen">
 
-<div class="card">
+<div class="card"><h2>🗺️ Calvin's City</h2><p>V13 map foundation remains here. Three separate stadiums remain part of the city.</p>
 
-<h2>🗺️ Calvin's City</h2>
-
-<p>Compact blocks, small buildings, connected roads, moving traffic, parks and three separate stadiums.</p>
-
-<div class="map">
-
-<div class="ring"></div>
-
-<div class="road rh r1"></div><div class="road rh r2"></div><div class="road rv c1"></div><div class="road rv c2"></div>
-
-<div class="intersection" style="left:26%;top:26%"></div><div class="intersection" style="left:64%;top:26%"></div>
-
-<div class="intersection" style="left:26%;top:60%"></div><div class="intersection" style="left:64%;top:60%"></div>
-
-<div class="block b1"></div><div class="block b2"></div><div class="block b3"></div><div class="block b4"></div><div class="block b5"></div><div class="block b6"></div><div class="block b7"></div><div class="block b8"></div><div class="block b9"></div>
-
-<div class="park pk1"></div><div class="park pk2"></div><div class="park pk3"></div>
-
-<div class="city-label l1">DOWNTOWN</div><div class="city-label l2">FINANCE</div><div class="city-label l3">UNIVERSITY</div>
-
-<div class="city-label l4">RETAIL</div><div class="city-label l5">CENTRAL</div><div class="city-label l6">SPORTS</div>
-
-<div class="city-label l7">INDUSTRIAL</div><div class="city-label l8">FOOD</div><div class="city-label l9">RESIDENTIAL</div>
-
-<div class="car a"></div><div class="car b"></div><div class="car c"></div><div class="car d"></div><div class="car e"></div>
-
- 
-
-<button class="building tall d1" data-place="cityhall">City Hall<span>Government</span></button>
-
-<button class="building d2" data-place="shops">Downtown Shops<span>Retail</span></button>
-
-<button class="building tall d3" data-place="bank">First City Bank<span>Finance</span></button>
-
-<button class="building d4" data-place="office">Office Tower<span>Business</span></button>
-
-<button class="building education d5" data-place="university">University<span>Education</span></button>
-
-<button class="building d6" data-place="research">Research Center<span>Technology</span></button>
-
- 
-
-<button class="building retail d7" data-place="retail">Retail Center<span>Shopping</span></button>
-
-<button class="building retail d8" data-place="store">City Store<span>Retail</span></button>
-
-<button class="building d9" data-place="hotel">Central Hotel<span>Hospitality</span></button>
-
-<button class="building medical d10" data-place="hospital">Hospital<span>Healthcare</span></button>
-
- 
-
-<button class="building stadium s1" data-place="lions">🏀 Lions Arena<span>Basketball</span></button>
-
-<button class="building sports d12" data-place="sportscenter">Sports Center<span>Events</span></button>
-
- 
-
-<button class="building factory d13" data-place="factory1">Factory 1<span>Industrial</span></button>
-
-<button class="building factory d14" data-place="factory2">Factory 2<span>Industrial</span></button>
-
-<button class="building factory d15" data-place="foods">Prosper Foods<span>Food</span></button>
-
-<button class="building factory d16" data-place="warehouse">Warehouse<span>Logistics</span></button>
-
- 
-
-<button class="building stadium s2" data-place="rims">🏀 Rims Arena<span>Basketball</span></button>
-
-<button class="building residential d18" data-place="homes">Homes<span>Residential</span></button>
-
-<button class="building stadium s3" data-place="dunks">🏀 Dunks Arena<span>Basketball</span></button>
-
-</div>
-
-</div>
+<button data-navjump="basketball">🏀 Basketball System</button></div>
 
 </section>
 
  
 
-<section id="property" class="screen"><div class="card"><h2>🏠 Property</h2><p>Property management will connect buildings, land, ownership, construction and city value.</p><button data-open="property">Open Property System</button></div></section>
+<section id="property" class="screen"><div class="card"><h2>🏠 Property</h2><p>Property management continues to grow from the paper city rules.</p></div></section>
+
+ 
 
 <section id="markets" class="screen"><div class="card"><h2>📈 Markets</h2><div class="grid">
 
@@ -339,7 +149,121 @@ button:active{transform:scale(.98)}button.secondary{background:#344255}
 
 </div></div></section>
 
-<section id="finance" class="screen"><div class="card"><h2>🏦 Finance</h2><p>City cash, Treasury, banks, stocks and financing will live here.</p><button data-open="finance">Open Finance</button></div></section>
+ 
+
+<section id="finance" class="screen"><div class="card"><h2>🏦 Finance</h2><p>City cash, Treasury, banks, stocks and financing.</p></div></section>
+
+ 
+
+<section id="basketball" class="screen">
+
+<div class="card">
+
+<h2>🏀 Calvin's City Basketball</h2>
+
+<p><span class="badge">3 Teams</span><span class="badge">3 Players Each</span><span class="badge">4 Quarters</span></p>
+
+<p>Each team has a <b>C</b>, <b>SG</b>, and <b>PG</b>. Every player gets two point rolls and two rebound rolls each quarter.</p>
+
+</div>
+
+ 
+
+<div class="card">
+
+<h2>Season Format</h2>
+
+<ol class="log">
+
+<li>Each team plays every other team once.</li>
+
+<li>Best record normally receives the championship bye.</li>
+
+<li>If teams tie for the best record, the defending champion gets the bye when involved.</li>
+
+<li>If all three teams tie, the previous champion gets the bye.</li>
+
+<li>The other two teams play the semifinal.</li>
+
+<li>Semifinal winner plays the bye team for the championship.</li>
+
+</ol>
+
+</div>
+
+ 
+
+<div class="card">
+
+<h2>💰 Prize Money</h2>
+
+<div class="grid">
+
+<div class="metric"><small>Champion</small><strong>$100M</strong></div>
+
+<div class="metric"><small>Runner-up</small><strong>$50M</strong></div>
+
+</div>
+
+</div>
+
+ 
+
+<div class="card">
+
+<h2>🎲 Player Dice System</h2>
+
+<table>
+
+<tr><th>Player</th><th>Points</th><th>Rebounds</th></tr>
+
+<tr><td>C</td><td>2 dice / quarter</td><td>2 dice / quarter</td></tr>
+
+<tr><td>SG</td><td>2 dice / quarter</td><td>2 dice / quarter</td></tr>
+
+<tr><td>PG</td><td>2 dice / quarter</td><td>2 dice / quarter</td></tr>
+
+</table>
+
+<p>Each player can reach <b>48 points</b> and <b>48 rebounds</b> in regulation. Team score is the sum of the three players' points. Rebounds are tracked separately.</p>
+
+</div>
+
+ 
+
+<div class="card">
+
+<h2>👟 Shoe Revenue</h2>
+
+<p>Each shoe business gets two dice rolls per game. The dice total × $10M is that game's shoe revenue.</p>
+
+<table>
+
+<tr><th>Rolls</th><th>Revenue</th></tr>
+
+<tr><td>1 + 3</td><td>$40M</td></tr><tr><td>5 + 3</td><td>$80M</td></tr><tr><td>6 + 6</td><td>$120M</td></tr>
+
+</table>
+
+</div>
+
+ 
+
+<div class="card">
+
+<h2>🏀 Run a Game</h2>
+
+<p>V14 can now run the player dice engine. Player names will be connected to your saved league names next; positions remain C, SG and PG.</p>
+
+<button id="runGame">🎲 Run Test Game</button>
+
+<button class="secondary" id="runSeason">🏆 Run 3-Game Regular Season</button>
+
+<div id="gameOutput" class="log" style="margin-top:12px"></div>
+
+</div>
+
+</section>
 
 </main>
 
@@ -347,15 +271,17 @@ button:active{transform:scale(.98)}button.secondary{background:#344255}
 
 <nav class="nav">
 
-<button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button>
+<button data-nav="home" class="active">🏠<br>Home</button>
 
-<button data-nav="property">🏠<br>Property</button><button data-nav="markets">📈<br>Markets</button><button data-nav="finance">🏦<br>Finance</button>
+<button data-nav="city">🗺️<br>City</button>
+
+<button data-nav="property">🏠<br>Property</button>
+
+<button data-nav="markets">📈<br>Markets</button>
+
+<button data-nav="finance">🏦<br>Finance</button>
 
 </nav>
-
- 
-
-<div id="modal" class="modal"><div class="modalbox"><h2 id="modalTitle">Calvin's City</h2><div id="modalBody" class="log"></div><button id="closeModal">Close</button></div></div>
 
  
 
@@ -365,51 +291,149 @@ button:active{transform:scale(.98)}button.secondary{background:#344255}
 
 "use strict";
 
-const data={
+const teams=["Lions","Rims","Dunks"];
 
-cityhall:["City Hall","Government headquarters and city administration."],shops:["Downtown Shops","Retail businesses serving city demand."],
+const positions=["C","SG","PG"];
 
-bank:["First City Bank","Banking, loans and financial activity."],office:["Office Tower","Business and professional services."],
+let lastGame=null;
 
-university:["University","Education and research."],research:["Research Center","Technology and future development."],
+ 
 
-retail:["Retail Center","Retail businesses compete for city demand."],store:["City Store","Local retail business."],
+function die(){return Math.floor(Math.random()*6)+1}
 
-hotel:["Central Hotel","Visitors, basketball, media and tourism."],hospital:["Hospital","Healthcare services."],
+function rollPlayer(){
 
-lions:["Lions Arena","The Lions basketball team and game-day economy."],
+ let pts=0,rebs=0,detail=[];
 
-rims:["Rims Arena","The Rims basketball team and game-day economy."],
+ for(let q=1;q<=4;q++){
 
-dunks:["Dunks Arena","The Dunks basketball team and game-day economy."],
+   const p1=die(),p2=die(),r1=die(),r2=die();
 
-sportscenter:["Sports Center","Additional sports and events."],
+   pts+=p1+p2; rebs+=r1+r2;
 
-factory1:["Factory 1","Industrial production."],factory2:["Factory 2","Industrial production."],
+   detail.push({q,pts:p1+p2,rebs:r1+r2,raw:`P ${p1}+${p2} / R ${r1}+${r2}`});
 
-foods:["Prosper Foods","Food company serving the city market."],warehouse:["Warehouse","Storage and logistics."],
+ }
 
-homes:["Residential Homes","Permanent residential capacity."],
+ return {pts,rebs,detail};
 
-property:["Property System","Property, construction and ownership."],finance:["Finance System","Cash, Treasury, banks and stocks."]
+}
 
-};
+function playTeam(team){
 
-const modal=document.getElementById("modal"),title=document.getElementById("modalTitle"),body=document.getElementById("modalBody");
+ const players=positions.map(pos=>({team,pos,...rollPlayer()}));
 
-function openModal(k){const x=data[k]||["Calvin's City","Location registered."];title.textContent=x[0];body.innerHTML="<p class='ok'>✓ V13 click registered.</p><p>"+x[1]+"</p>";modal.classList.add("show")}
+ return {team,players,score:players.reduce((a,p)=>a+p.pts,0),rebs:players.reduce((a,p)=>a+p.rebs,0)};
 
-function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0)}
+}
+
+function shoeRevenue(){return (die()+die())*10}
+
+ 
+
+function playGame(a,b){
+
+ let A=playTeam(a),B=playTeam(b),ot=0;
+
+ while(A.score===B.score){
+
+   ot++;
+
+   positions.forEach((pos,i)=>{
+
+     const ap=die(),ar=die(),bp=die(),br=die();
+
+     A.players[i].pts+=ap; A.players[i].rebs+=ar;
+
+     B.players[i].pts+=bp; B.players[i].rebs+=br;
+
+   });
+
+   A.score=A.players.reduce((x,p)=>x+p.pts,0); A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);
+
+   B.score=B.players.reduce((x,p)=>x+p.pts,0); B.rebs=B.players.reduce((x,p)=>x+p.rebs,0);
+
+ }
+
+ const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;
+
+ return {A,B,winner,loser,ot,shoe:shoeRevenue()};
+
+}
+
+function gameHTML(g){
+
+ let h=`<p class="gold"><b>${g.winner.team} wins ${g.winner.score}-${g.loser.score}</b>${g.ot?` after ${g.ot} OT`:``}</p>`;
+
+ h+=`<p>Shoe revenue: <b>$${g.shoe}M</b></p>`;
+
+ h+=`<table><tr><th>Team / Player</th><th>PTS</th><th>REB</th></tr>`;
+
+ [g.A,g.B].forEach(t=>t.players.forEach(p=>h+=`<tr><td>${t.team} ${p.pos}</td><td>${p.pts}</td><td>${p.rebs}</td></tr>`));
+
+ h+=`</table>`;
+
+ return h;
+
+}
+
+function playSeason(){
+
+ const games=[[teams[0],teams[1]],[teams[0],teams[2]],[teams[1],teams[2]]];
+
+ const standings=Object.fromEntries(teams.map(t=>[t,{w:0,l:0,pts:0}]));
+
+ let html="<p><b>Regular Season</b></p>";
+
+ games.forEach(pair=>{
+
+   const g=playGame(pair[0],pair[1]);
+
+   standings[g.winner.team].w++;standings[g.loser.team].l++;
+
+   standings[g.winner.team].pts+=g.winner.score;standings[g.loser.team].pts+=g.loser.score;
+
+   html+=`<p>${g.winner.team} defeated ${g.loser.team}, ${g.winner.score}-${g.loser.score}. Shoe revenue: $${g.shoe}M.</p>`;
+
+ });
+
+ const order=teams.slice().sort((x,y)=>standings[y].w-standings[x].w);
+
+ html+="<p><b>Standings</b></p><table><tr><th>Team</th><th>W</th><th>L</th><th>PTS</th></tr>";
+
+ order.forEach(t=>html+=`<tr><td>${t}</td><td>${standings[t].w}</td><td>${standings[t].l}</td><td>${standings[t].pts}</td></tr>`);
+
+ html+="</table><p class='muted'>V14 regular-season engine complete. Playoff tie-break logic is documented above; defending-champion identity will be connected to the saved historical league data.</p>";
+
+ document.getElementById("gameOutput").innerHTML=html;
+
+}
+
+function showScreen(id){
+
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+
+const s=document.getElementById(id);if(s)s.classList.add("active");
+
+document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));
+
+window.scrollTo(0,0);
+
+}
 
 document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));
 
-document.querySelectorAll("[data-place]").forEach(b=>b.addEventListener("click",()=>openModal(b.dataset.place)));
+document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
 
-document.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>openModal(b.dataset.open)));
+document.getElementById("runGame").addEventListener("click",()=>{
 
-document.getElementById("closeModal").addEventListener("click",()=>modal.classList.remove("show"));
+lastGame=playGame("Lions","Rims");
 
-modal.addEventListener("click",e=>{if(e.target===modal)modal.classList.remove("show")});
+document.getElementById("gameOutput").innerHTML=gameHTML(lastGame);
+
+});
+
+document.getElementById("runSeason").addEventListener("click",playSeason);
 
 })();
 
