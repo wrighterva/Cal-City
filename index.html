@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION V20 -->
+<!-- CALVIN'S CITY — VERSION V21 -->
 <!-- Personal Paper City -> Digital City -->
 <!-- V16: LIVING CITY MAP + GAME-BY-GAME BASKETBALL + OFFSEASON MANAGEMENT -->
 <!-- V16 UPDATE: RESTORED V13 LIVING CITY MAP + ONE-GAME-AT-A-TIME SEASON -->
@@ -7,7 +7,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City V20</title>
+<title>Calvin's City V21</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -103,13 +103,16 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}
 .team-note{color:#9eabba;font-size:11px;margin-top:10px}
  
+.mall-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mall-brand{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:11px}
+.mall-brand strong{display:block;font-size:15px}.mall-brand small{color:#9eabba}
 </style>
 </head>
 <body>
 <header>
-<h1>🏙️ Calvin's City — V20</h1>
+<h1>🏙️ Calvin's City — V21</h1>
 <p>Personal Paper City → Digital City</p>
-<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V20</div>
+<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V21</div>
 </header>
 <main>
 <section id="home" class="screen active">
@@ -144,8 +147,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <button class="building education d5" data-place="university">University<span>Education</span></button>
 <button class="building d6" data-place="research">Research Center<span>Technology</span></button>
  
-<button class="building retail d7" data-place="retail">Retail Center<span>Shopping</span></button>
-<button class="building retail d8" data-place="store">City Store<span>Retail</span></button>
+<button class="building retail d7" data-place="mall">🏬 Calvin's City Mall<span>5 Shoe Brands</span></button>
 <button class="building d9" data-place="hotel">Central Hotel<span>Hospitality</span></button>
 <button class="building medical d10" data-place="hospital">Hospital<span>Healthcare</span></button>
  
@@ -219,7 +221,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
  
    let s={};
    try{
-     s=JSON.parse(localStorage.getItem("calvins_city_v20")||"{}");
+     s=JSON.parse(localStorage.getItem("calvins_city_v21")||"{}");
    }catch(e){}
  
    const roster=s.roster||{};
@@ -240,7 +242,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
    document.getElementById("teamPageTitle").textContent=t.name;
    document.getElementById("teamPageBody").innerHTML=
      '<div class="team-head">'+
-     '<div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div>'+
+     '<div class="team-stat"><small>Cash</small><strong>$'+teamCash[t.key]+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div>'+
      '<div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div>'+
      '<div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div>'+
      '<div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div>'+
@@ -256,6 +258,12 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
    const b=e.target.closest("[data-place]");
    if(!b) return;
    const p=(b.dataset.place||"").toLowerCase();
+   if(p==="mall"){
+     e.preventDefault();
+     e.stopImmediatePropagation();
+     document.getElementById("mallModal").classList.add("show");
+     return;
+   }
    if(p==="lions"||p==="rims"||p==="dunks"){
      e.preventDefault();
      e.stopImmediatePropagation();
@@ -266,6 +274,10 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
  document.addEventListener("DOMContentLoaded",function(){
    const close=document.getElementById("teamPageClose");
    const modal=document.getElementById("teamPageModal");
+   const mallClose=document.getElementById("mallClose");
+   const mallModal=document.getElementById("mallModal");
+   if(mallClose) mallClose.onclick=()=>mallModal.classList.remove("show");
+   if(mallModal) mallModal.onclick=e=>{if(e.target===mallModal)mallModal.classList.remove("show")};
    const basketball=document.getElementById("teamPageBasketball");
    if(close) close.onclick=()=>modal.classList.remove("show");
    if(modal) modal.onclick=e=>{if(e.target===modal)modal.classList.remove("show")};
@@ -287,7 +299,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
  
  function teamData(teamKey){
    let s = {};
-   try { s = JSON.parse(localStorage.getItem("calvins_city_v20") || "{}"); } catch(e){}
+   try { s = JSON.parse(localStorage.getItem("calvins_city_v21") || "{}"); } catch(e){}
    const roster = s.roster || {};
    const contracts = s.contracts || {};
    const standings = s.standings || {};
@@ -390,7 +402,7 @@ let state={
 };
  
 try{
- const v16=localStorage.getItem("calvins_city_v20");
+ const v16=localStorage.getItem("calvins_city_v21");
  const old=localStorage.getItem("calvins_city_v15_basketball");
  if(v16){
    state={...state,...JSON.parse(v16)};
@@ -409,7 +421,7 @@ try{
  }
 }catch(e){}
  
-function save(){localStorage.setItem("calvins_city_v20",JSON.stringify(state))}
+function save(){localStorage.setItem("calvins_city_v21",JSON.stringify(state))}
 function die(){return Math.floor(Math.random()*6)+1}
 function money(n){return "$"+n.toFixed(0)+"M"}
 function ticketRevenue(){return (die()+die())*10}
@@ -675,8 +687,8 @@ const CITY_LOCATIONS={
  office:["Office Tower","Business and professional services."],
  university:["University","Education and research."],
  research:["Research Center","Technology and future development."],
- retail:["Retail Center","Retail businesses compete for city demand."],
- store:["City Store","Local retail business."],
+ 
+ 
  hotel:["Central Hotel","Visitors, basketball, media and tourism."],
  hospital:["Hospital","Healthcare services."],
  lions:["Lions Arena","The Lions basketball team and game-day economy."],
@@ -736,6 +748,16 @@ if(state.offseasonOpen){
  <button id="teamPageClose" class="secondary">Close</button>
 </div>
 </div>
+<div id="mallModal" class="modal"><div class="modalbox">
+<h2>🏬 Calvin's City Mall</h2><p>Five shoe brands compete under one roof.</p>
+<div class="mall-grid">
+<div class="mall-brand"><strong>👟 Nike</strong><small>Cash: $5,040M</small></div>
+<div class="mall-brand"><strong>👟 Reebok</strong><small>Cash: $4,150M</small></div>
+<div class="mall-brand"><strong>👟 Puma</strong><small>Cash: $2,930M</small></div>
+<div class="mall-brand"><strong>👟 Adidas</strong><small>Cash: $5,080M</small></div>
+<div class="mall-brand"><strong>👟 New Balance</strong><small>Cash: $3,300M</small></div>
+</div><p class="team-note">All five shoe companies share one compact retail destination while remaining separate businesses.</p>
+<button id="mallClose" class="secondary">Close</button></div></div>
 <div id="modal" class="modal">
  <div class="modalbox">
    <h2 id="modalTitle">Calvin's City</h2>
