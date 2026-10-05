@@ -1,4 +1,15 @@
+Calvin's City — V11 Code
+Diagnostic rebuild: native buttons, simple navigation, and visible JavaScript status.
+
 <!DOCTYPE html>
+
+<!-- CALVIN'S CITY — VERSION V11 -->
+
+<!-- Personal Paper City -> Digital City -->
+
+<!-- V11 DIAGNOSTIC BUILD -->
+
+ 
 
 <html lang="en">
 
@@ -6,849 +17,549 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City</title>
+<title>Calvin's City V11</title>
 
 <style>
 
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+ * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-:root{
+ body {
 
---bg:#07101c;--panel:#111c2d;--line:#2d405d;--text:#f5f7fb;--muted:#9eabc0;
+   margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
---grass:#9eb58a;--grass2:#91aa7e;--road:#37465b;--road2:#46566d;
+   background:#101722; color:#f5f7fa; min-height:100vh;
 
---water:#5e94ad;--water2:#6da5b8;--building:#d9d8ce;--roof:#778294;
+ }
 
-}
+ header {
 
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+   padding:16px; background:#182230; border-bottom:1px solid #334155;
 
-button{font:inherit;color:inherit}
+   position:sticky; top:0; z-index:10;
 
-.app{min-height:100vh;padding-bottom:88px}
+ }
 
-header{padding:27px 22px 17px;border-bottom:1px solid var(--line)}
+ header h1 { margin:0 0 4px; font-size:22px; }
 
-h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:850;letter-spacing:-1.6px}
+ header p { margin:0; color:#aeb9c7; font-size:13px; }
 
-.sub{font-size:16px;color:var(--muted);font-weight:700}
+ .status {
 
-.screen{display:none;padding:18px}.screen.active{display:block}
+   margin-top:10px; padding:10px; border-radius:10px;
 
-.card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:16px}
+   background:#12351f; color:#9ff0b5; font-weight:700; text-align:center;
 
-.card h2{margin:0 0 6px;font-size:22px}.muted{color:var(--muted)}
+ }
 
-.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ main { padding:14px; padding-bottom:90px; }
 
-.stat{background:#172338;border:1px solid var(--line);border-radius:16px;padding:13px}
+ .screen { display:none; }
 
-.stat b{display:block;font-size:21px;margin-top:4px}
+ .screen.active { display:block; }
 
-.city-shell{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;border-radius:20px;border:1px solid #30415a;background:#6f806b;box-shadow:0 8px 30px rgba(0,0,0,.28)}
+ .card {
 
-.city{position:relative;width:1220px;height:860px;overflow:hidden;background:var(--grass)}
+   background:#1b2635; border:1px solid #344255; border-radius:14px;
 
-.city:before{content:"";position:absolute;inset:0;background:
+   padding:14px; margin-bottom:12px;
 
-radial-gradient(circle at 12% 18%,rgba(255,255,255,.18) 0 2px,transparent 3px),
+ }
 
-radial-gradient(circle at 70% 65%,rgba(255,255,255,.12) 0 2px,transparent 3px);
+ .card h2 { margin:0 0 10px; font-size:18px; }
 
-background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
+ .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 
-.water{position:absolute;background:linear-gradient(120deg,var(--water),var(--water2));z-index:1;box-shadow:inset 0 0 18px rgba(0,0,0,.12)}
+ .metric {
 
-.river{left:500px;top:-80px;width:135px;height:1030px;transform:rotate(6deg);border-radius:45%}
+   background:#121b27; border:1px solid #2d3a4d; border-radius:12px; padding:12px;
 
-.lake{left:-70px;top:650px;width:540px;height:250px;border-radius:50% 55% 0 0}
+ }
 
-.bay{right:-70px;top:530px;width:390px;height:350px;border-radius:55% 0 0 0}
+ .metric small { color:#9eabba; display:block; margin-bottom:5px; }
 
-.road{position:absolute;background:var(--road);z-index:3;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05)}
+ .metric strong { font-size:18px; }
 
-.road.h{height:44px;left:0;right:0}.road.v{width:44px;top:0;bottom:0}
+ button {
 
-.road.smallh{height:24px}.road.smallv{width:24px}
+   width:100%; border:0; border-radius:12px; padding:13px 12px;
 
-.road:after{content:"";position:absolute;opacity:.55}
+   background:#2f6fed; color:white; font-size:15px; font-weight:700;
 
-.road.h:after,.road.smallh:after{left:0;right:0;top:50%;border-top:2px dashed #ded8bf}
+   margin-top:8px; cursor:pointer; touch-action:manipulation;
 
-.road.v:after,.road.smallv:after{top:0;bottom:0;left:50%;border-left:2px dashed #ded8bf}
+   position:relative; z-index:20;
 
-.bridge{position:absolute;z-index:4;pointer-events:none;background:#606f80;border:3px solid #8a8f91}
+ }
 
-.district{position:absolute;z-index:2;color:#203027;font-weight:900;letter-spacing:.5px;font-size:12px;text-shadow:0 1px rgba(255,255,255,.35)}
+ button:active { transform:scale(.98); }
 
-.district span{display:block;font-size:9px;font-weight:700;opacity:.7;margin-top:2px}
+ .secondary { background:#344255; }
 
-.downtown{left:310px;top:92px}.north{left:80px;top:50px}.industrial{left:785px;top:58px}
+ .map {
 
-.west{left:65px;top:300px}.east{left:790px;top:315px}.sports{left:440px;top:560px}
+   position:relative; height:520px; overflow:hidden; border-radius:16px;
 
-.south{left:700px;top:680px}.university{left:90px;top:560px}.retail{left:320px;top:700px}.port{left:1040px;top:690px}
+   background:
 
-.block{position:absolute;z-index:2;background:rgba(153,174,132,.6);border:1px solid rgba(45,65,47,.22);border-radius:10px}
+     linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),
 
-.b1{left:55px;top:80px;width:240px;height:170px}.b2{left:650px;top:75px;width:500px;height:170px}
+     linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
 
-.b3{left:60px;top:330px;width:250px;height:190px}.b4{left:750px;top:350px;width:390px;height:190px}
+     #526b58;
 
-.b5{left:75px;top:590px;width:250px;height:90px}.b6{left:670px;top:705px;width:300px;height:105px}
+   background-size:42px 42px;
 
-.building{position:absolute;z-index:5;border:1px solid rgba(25,31,39,.35);border-radius:4px;background:var(--building);box-shadow:0 3px 7px rgba(0,0,0,.28);cursor:pointer}
+   border:2px solid #718276;
 
-.building:after{content:"";position:absolute;inset:5px;background:repeating-linear-gradient(90deg,rgba(55,66,80,.22) 0 5px,transparent 5px 10px);opacity:.7}
+ }
 
-.low{height:30px}.med{height:42px}.high{height:58px}.tower{height:80px}
+ .water { position:absolute; background:#3f7d9b; z-index:1; }
 
-.bldg-label{position:absolute;z-index:7;left:2px;right:2px;bottom:-13px;text-align:center;font-size:7px;font-weight:900;color:#18222f;white-space:nowrap}
+ .water.top { left:0; top:0; width:100%; height:52px; }
 
-.home{background:#c8c4a9}.factory{background:#8f999a}.retailb{background:#d2c5aa}.office{background:#bfcbd2}.hotel{background:#cdb7a6}.arena{background:#727d91;border-radius:18px}.arena:after{border-radius:50%;background:radial-gradient(circle,#d7dce3 0 30%,#8994a5 31% 52%,#4d596b 53% 100%)}
+ .water.right { right:0; top:52px; width:58px; height:468px; }
 
-.bldg1{left:90px;top:115px;width:48px}.bldg2{left:155px;top:105px;width:58px}.bldg3{left:220px;top:135px;width:44px}
+ .highway {
 
-.bldg4{left:365px;top:120px;width:55px}.bldg5{left:435px;top:112px;width:48px}.bldg6{left:365px;top:185px;width:70px}
+   position:absolute; inset:18px; border:14px solid #303944;
 
-.bldg7{left:690px;top:110px;width:65px}.bldg8{left:775px;top:105px;width:52px}.bldg9{left:845px;top:120px;width:72px}.bldg10{left:935px;top:100px;width:56px}.bldg11{left:1010px;top:130px;width:75px}
+   border-radius:70px; z-index:2; pointer-events:none;
 
-.bldg12{left:105px;top:375px;width:58px}.bldg13{left:180px;top:365px;width:70px}.bldg14{left:95px;top:445px;width:55px}.bldg15{left:190px;top:445px;width:65px}
+   box-shadow:0 0 0 2px #69727c inset;
 
-.bldg16{left:790px;top:390px;width:65px}.bldg17{left:875px;top:380px;width:52px}.bldg18{left:950px;top:400px;width:75px}.bldg19{left:1030px;top:380px;width:58px}
+ }
 
-.bldg20{left:350px;top:735px;width:55px}.bldg21{left:425px;top:720px;width:65px}.bldg22{left:515px;top:740px;width:52px}
+ .road {
 
-.bldg23{left:720px;top:735px;width:75px}.bldg24{left:815px;top:725px;width:60px}.bldg25{left:895px;top:750px;width:70px}
+   position:absolute; background:#39434e; z-index:3; pointer-events:none;
 
-.home1{left:105px;top:620px;width:38px}.home2{left:160px;top:605px;width:42px}.home3{left:220px;top:625px;width:38px}.home4{left:280px;top:605px;width:42px}
+   box-shadow:0 0 0 2px rgba(255,255,255,.08);
 
-.home5{left:680px;top:740px;width:42px}.home6{left:735px;top:720px;width:38px}.home7{left:790px;top:750px;width:42px}.home8{left:850px;top:725px;width:38px}
+ }
 
-.arena1{left:385px;top:590px;width:145px;height:105px}.arena2{left:555px;top:570px;width:155px;height:115px}.arena3{left:740px;top:570px;width:145px;height:105px}
+ .road.h { left:5%; width:90%; height:24px; }
 
-.arena-title{position:absolute;z-index:8;bottom:7px;left:0;right:0;text-align:center;font-size:10px;font-weight:900;color:white;text-shadow:0 1px 2px #000}
+ .road.v { top:8%; height:84%; width:24px; }
 
-.tree{position:absolute;z-index:4;width:20px;height:20px;border-radius:50%;background:#46724b;border:2px solid #315936;box-shadow:0 2px 3px rgba(0,0,0,.2)}
+ .road.one { top:28%; } .road.two { top:62%; }
 
-.tree:after{content:"";position:absolute;width:7px;height:9px;background:#765b42;left:5px;top:14px;z-index:-1}
+ .road.a { left:24%; } .road.b { left:65%; }
 
-.park{position:absolute;z-index:2;background:#78976b;border:1px solid #567451;border-radius:15px}
+ .place {
 
-.p1{left:250px;top:60px;width:45px;height:80px}.p2{left:1040px;top:270px;width:90px;height:55px}.p3{left:320px;top:545px;width:80px;height:55px}
+   position:absolute; z-index:8; width:110px; min-height:62px;
 
-.car{position:absolute;z-index:8;width:12px;height:7px;border-radius:3px;background:#d9d7ca;box-shadow:0 0 0 1px rgba(0,0,0,.35);animation:drive 9s linear infinite}
+   padding:8px 5px; background:#f7f4e9; color:#17202b;
 
-.car.c2{animation-duration:12s;animation-delay:-5s}.car.c3{animation-duration:15s;animation-delay:-9s}
+   border:2px solid #202b36; border-radius:10px; font-size:12px;
 
-@keyframes drive{from{transform:translateX(-80px)}to{transform:translateX(1300px)}}
+   line-height:1.15; font-weight:800; box-shadow:0 4px 8px rgba(0,0,0,.25);
 
-.lamp{position:absolute;z-index:6;width:5px;height:5px;border-radius:50%;background:#f5d889;box-shadow:0 0 8px #f5d889}
+   margin:0; touch-action:manipulation;
 
-.sign{position:absolute;z-index:10;background:rgba(10,18,28,.78);color:#fff;border:1px solid rgba(255,255,255,.35);padding:5px 8px;border-radius:5px;font-size:10px;font-weight:900;white-space:nowrap}
+ }
 
-.city-title{left:465px;top:20px}.city-title small{font-weight:600;color:#c2ccda}
+ .place small { display:block; font-weight:600; margin-top:4px; color:#53606d; }
 
-.marker{position:absolute;z-index:12;width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+ .p1{left:8%;top:12%}.p2{left:38%;top:12%}.p3{left:69%;top:16%}
 
-.m1{left:397px;top:645px}.m2{left:567px;top:625px}.m3{left:752px;top:625px}
+ .p4{left:10%;top:38%}.p5{left:40%;top:40%}.p6{left:70%;top:43%}
 
-.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+ .p7{left:10%;top:72%}.p8{left:40%;top:72%}.p9{left:70%;top:72%}
 
-.legend span{display:flex;align-items:center;gap:5px}.dot{width:12px;height:12px;border-radius:3px;background:#d9d8ce}.dot.g{background:#78976b}.dot.r{background:var(--road)}
+ .place.sports { background:#eadbb8; }
 
-.notice{padding:12px 14px;border-radius:14px;background:#1b2a40;color:#c7d3e5;font-size:13px;margin-bottom:14px}
+ .nav {
 
-.action{width:100%;padding:13px;border:0;border-radius:14px;background:#315c96;font-weight:800;margin-top:10px}.action.danger{background:#713b45}
+   position:fixed; left:0; right:0; bottom:0; z-index:50;
 
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:flex-end;z-index:50}.modal.show{display:flex}
+   display:grid; grid-template-columns:repeat(5,1fr); gap:4px;
 
-.sheet{background:#101a2b;border:1px solid var(--line);border-radius:26px 26px 0 0;width:100%;padding:22px;max-height:80vh;overflow:auto}
+   padding:8px max(8px,env(safe-area-inset-left))
 
-.sheet h2{margin:0 0 5px}.close{float:right;border:0;background:#27354b;border-radius:50%;width:38px;height:38px}
+            calc(8px + env(safe-area-inset-bottom))
 
-.nav{position:fixed;bottom:0;left:0;right:0;height:82px;background:#0d1524;border-top:1px solid var(--line);display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+            max(8px,env(safe-area-inset-right));
 
-.nav button{flex:1;border:0;background:none;color:#8995aa;font-weight:800;font-size:12px}.nav button.active{color:#fff}.nav span{display:block;font-size:22px;margin-bottom:3px}
+   background:#111a26; border-top:1px solid #344255;
 
- 
+ }
 
-.roadinfo{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .nav button { margin:0; padding:11px 4px; font-size:12px; background:#273446; }
 
-.roadstat{background:#172338;border:1px solid var(--line);border-radius:13px;padding:10px;font-size:12px;color:var(--muted)}
+ .nav button.active { background:#2f6fed; }
 
-.roadstat b{display:block;color:#fff;font-size:16px;margin-top:3px}
+ .modal {
 
-.road-hit{position:absolute;z-index:6;background:transparent;cursor:pointer}
+   display:none; position:fixed; inset:0; z-index:100;
 
-.traffic-dot{position:absolute;z-index:10;width:8px;height:5px;border-radius:3px;background:#f4f1dc;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+   background:rgba(0,0,0,.68); padding:22px;
 
- 
+   align-items:center; justify-content:center;
 
-.highway-ring{position:absolute;z-index:2;pointer-events:none;left:24px;top:24px;width:1172px;height:812px;border:18px solid #263448;border-radius:78px;box-shadow:0 0 0 3px rgba(220,213,186,.25),inset 0 0 0 2px rgba(255,255,255,.06)}
+ }
 
-.highway-ring:before{content:"";position:absolute;inset:-5px;border:2px dashed #d8d1b5;border-radius:64px;opacity:.8}
+ .modal.show { display:flex; }
 
-.exit{position:absolute;z-index:4;pointer-events:none;background:#536174;border:3px solid #29374b;border-radius:5px}
+ .modalbox {
 
-.exit.e1{left:274px;top:18px;width:52px;height:54px}.exit.e2{left:705px;top:18px;width:52px;height:54px}
+   width:min(100%,420px); max-height:80vh; overflow:auto;
 
-.exit.e3{left:1144px;top:382px;width:54px;height:52px}.exit.e4{left:274px;top:788px;width:52px;height:54px}
+   background:#182230; border:1px solid #526176; border-radius:18px;
 
-.exit.e5{left:705px;top:788px;width:52px;height:54px}.exit.e6{left:22px;top:382px;width:54px;height:52px}
+   padding:18px;
 
-.highway-label{position:absolute;z-index:6;background:#253247;color:#fff;border:1px solid #718096;border-radius:6px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.5px}
+ }
 
-.highway-label.top{left:505px;top:31px}.highway-label.bottom{left:505px;top:812px}
+ .modalbox h2 { margin-top:0; }
 
-.traffic-car{position:absolute;z-index:8;width:15px;height:7px;border-radius:3px;background:#e5e0c8;box-shadow:0 0 0 1px rgba(0,0,0,.45)}
+ .ok { color:#9ff0b5; }
 
-.hcar1{top:38px;left:90px;animation:highwayEast 10s linear infinite}.hcar2{top:38px;left:800px;animation:highwayEast 13s linear infinite -5s}
+ .danger { color:#ff9b9b; }
 
-.hcar3{top:817px;left:900px;animation:highwayWest 11s linear infinite}.hcar4{top:817px;left:250px;animation:highwayWest 14s linear infinite -7s}
-
-@keyframes highwayEast{from{transform:translateX(0)}to{transform:translateX(1030px)}}
-
-@keyframes highwayWest{from{transform:translateX(0)}to{transform:translateX(-1030px)}}
-
- 
-
-.map-title{position:absolute;z-index:30;background:rgba(8,16,27,.9);border:1px solid rgba(255,255,255,.35);border-radius:9px;color:#fff;padding:7px 10px;font-size:11px;font-weight:900;box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:pointer;white-space:nowrap}
-
-.map-title small{display:block;color:#b9c6d8;font-size:8px;font-weight:600;margin-top:2px}
-
-.map-title:hover{transform:translateY(-1px)}.map-title:focus{outline:3px solid #7db8ff;outline-offset:2px}
-
-.map-title.biz{border-left:4px solid #55a8ff}.map-title.sport{border-left:4px solid #e5a74f}.map-title.gov{border-left:4px solid #9b8cff}.map-title.res{border-left:4px solid #65c57a}
-
-.business-panel{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
-
-.mini-card{background:#172338;border:1px solid var(--line);border-radius:15px;padding:12px;cursor:pointer}
-
-.mini-card b{display:block;font-size:14px}.mini-card span{display:block;color:var(--muted);font-size:11px;margin-top:4px}
-
-.inside-header{display:flex;gap:12px;align-items:center}.inside-icon{font-size:38px}
-
-.kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.kpi div{background:#172338;border:1px solid var(--line);border-radius:13px;padding:10px;color:var(--muted);font-size:11px}.kpi b{display:block;color:#fff;font-size:17px;margin-top:3px}
-
-.backbtn{border:0;background:#29384e;border-radius:12px;padding:10px 12px;font-weight:800;margin-top:12px}
-
- 
-
-/* V8 visual polish */
-
-.city{background:linear-gradient(135deg,#a9bd91 0%,#9fb489 48%,#a7ba8e 100%)}
-
-.city:after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-
-background:linear-gradient(115deg,transparent 0 49%,rgba(255,255,255,.08) 50%,transparent 51%);
-
-opacity:.45}
-
-.block{background:rgba(177,194,153,.42);border-color:rgba(48,67,50,.18)}
-
-.building{box-shadow:0 2px 5px rgba(0,0,0,.24)}
-
-.home{background:#d2c9ac}.office{background:#c8d5dc}.factory{background:#9da6a5}
-
-.retailb{background:#d9ccb1}.hotel{background:#d4bbaa}.arena{background:#778497}
-
-.map-title{font-size:10px;padding:6px 9px;border-radius:8px;backdrop-filter:blur(4px)}
-
-.map-title small{font-size:7.5px}
-
-.arena{border-radius:22px}
-
-.arena:after{inset:10px;border-radius:50%}
-
-.arena1{left:385px;top:575px;width:110px;height:82px}
-
-.arena2{left:575px;top:455px;width:110px;height:82px}
-
-.arena3{left:815px;top:565px;width:110px;height:82px}
-
-.m1{left:420px;top:622px}.m2{left:610px;top:502px}.m3{left:850px;top:612px}
-
- 
-
-.map-title,.highway-label{appearance:none;-webkit-appearance:none;border:1px solid rgba(255,255,255,.35);font-family:inherit;line-height:1.15;pointer-events:auto;touch-action:manipulation;cursor:pointer}
-
-.map-title{background:rgba(8,16,27,.9);color:#fff}
-
-.highway-label{color:#fff;cursor:pointer}
-
-.city-shell,.city{touch-action:pan-x pan-y}
-
- 
-
-.modal{pointer-events:auto}
-
-.sheet{pointer-events:auto}
+ .log { color:#b9c5d2; font-size:13px; line-height:1.5; }
 
 </style>
 
 </head>
 
+ 
+
 <body>
 
-<div class="app">
+<header>
 
-<header><h1>Calvin's City</h1><div class="sub" id="yearLine"></div></header>
+ <h1>🏙️ Calvin's City — V11</h1>
 
- 
+ <p>Personal Paper City → Digital City</p>
 
-<section id="home" class="screen active">
+ <div id="systemStatus" class="status">SYSTEM WORKING — V11 LOADED</div>
 
-<div class="card"><h2>🏙️ Your City</h2><p class="muted">A living city. Roads, neighborhoods, businesses, sports and the economy will grow together.</p>
-
-<div class="statgrid">
-
-<div class="stat">💰 City Cash<b id="cash"></b></div><div class="stat">👥 Population<b id="pop"></b></div>
-
-<div class="stat">🏢 Property Value<b id="propVal"></b></div><div class="stat">📈 Economy<b id="econ"></b></div>
-
-</div><button class="action" onclick="show('city')">Enter City</button></div>
-
-<div class="card"><h2>🛣️ Road Infrastructure</h2>
-
-<p class="muted">Cars represent movement through the economy. The highway loop carries through-traffic while city roads distribute people and goods to homes, businesses and stadiums.</p>
-
-<div class="statgrid">
-
-<div class="stat">🚗 Traffic<b id="trafficLevel">Light</b></div>
-
-<div class="stat">🛣️ Road Value<b id="roadValue">$0M</b></div>
-
-<div class="stat">🔧 Annual Maintenance<b id="roadMaint">$0M</b></div>
-
-<div class="stat">📦 Network Capacity<b id="roadCap">0</b></div>
-
-</div></div>
-
-<div class="card"><h2>🔎 Places</h2><p class="muted">The map is becoming the game's navigation system. Tap a title on the city to enter that business, district or team.</p>
-
-<div class="business-panel">
-
-<div class="mini-card" onclick="openPlace('lions')"><b>🏀 Lions</b><span>Team headquarters</span></div>
-
-<div class="mini-card" onclick="openPlace('rims')"><b>🏀 Rims</b><span>Team headquarters</span></div>
-
-<div class="mini-card" onclick="openPlace('dunks')"><b>🏀 Dunks</b><span>Team headquarters</span></div>
-
-<div class="mini-card" onclick="openPlace('industrial')"><b>🏭 Industrial</b><span>Factories & logistics</span></div>
-
-<div class="mini-card" onclick="openPlace('retail')"><b>🛍️ Retail</b><span>Stores & restaurants</span></div>
-
-<div class="mini-card" onclick="openPlace('downtown')"><b>🏙️ Downtown</b><span>Government & finance</span></div>
-
-</div></div>
-
-<div class="card"><h2>🎯 Overseer</h2><p class="muted">You decide what gets built, who owns it and where the city expands. The simulation will eventually handle everyday business activity automatically.</p></div>
-
-</section>
+</header>
 
  
 
-<section id="city" class="screen">
+<main>
 
-<div class="card"><h2>🗺️ City</h2><p class="muted">The city map is the main navigation screen. The Calvin Loop carries through-traffic around the perimeter; smaller roads feed individual districts and businesses.</p>
+ <section id="home" class="screen active">
 
-<div class="city-shell" aria-label="Interactive Calvin City map"><div class="city" id="cityMap">
+   <div class="card">
 
-<div class="water river"></div><div class="water lake"></div><div class="water bay"></div>
+     <h2>City Overview</h2>
 
-<div class="block b1"></div><div class="block b2"></div><div class="block b3"></div><div class="block b4"></div><div class="block b5"></div><div class="block b6"></div>
+     <div class="grid">
 
-<div class="park p1"></div><div class="park p2"></div><div class="park p3"></div>
+       <div class="metric"><small>Year</small><strong id="year">1</strong></div>
 
-<div class="highway-ring"></div>
+       <div class="metric"><small>Population</small><strong id="population">10,000</strong></div>
 
-<button type="button" class="highway-label top" data-road="CALVIN-LOOP">CALVIN LOOP • HIGHWAY</button>
+       <div class="metric"><small>Economy</small><strong id="economy">Normal</strong></div>
 
-<button type="button" class="highway-label bottom" data-road="CALVIN-LOOP">CALVIN LOOP • HIGHWAY</button>
+       <div class="metric"><small>MWTP</small><strong>$20</strong></div>
 
-<div class="exit e1"></div><div class="exit e2"></div><div class="exit e3"></div><div class="exit e4"></div><div class="exit e5"></div><div class="exit e6"></div>
+     </div>
 
-<div class="traffic-car hcar1"></div><div class="traffic-car hcar2"></div><div class="traffic-car hcar3"></div><div class="traffic-car hcar4"></div>
+   </div>
 
-<div class="road h" style="top:275px"></div>
+   <div class="card">
 
-<div class="road h" style="top:520px"></div>
+     <h2>V11 Test</h2>
 
-<div class="road v" style="left:520px"></div>
+     <p>These are intentionally simple native buttons. If these work, the app's JavaScript is running.</p>
 
-<div class="road v" style="left:725px"></div>
+     <button data-test="button">TEST BUTTON</button>
 
-<div class="road smallh" style="top:400px"></div>
+     <button class="secondary" data-open="lions">🏀 Open Lions Arena</button>
 
-<div class="road smallv" style="left:300px"></div>
+   </div>
 
-<div class="road smallv" style="left:990px"></div>
-
- 
-
-<!-- logical bridges over the river -->
-
-<div class="bridge" style="left:505px;top:255px;width:150px;height:84px"></div>
-
-<div class="bridge" style="left:475px;top:500px;width:195px;height:84px"></div>
+ </section>
 
  
 
-<!-- tappable road sections -->
+ <section id="city" class="screen">
+
+   <div class="card">
+
+     <h2>Calvin's City Map</h2>
+
+     <p>Tap a building. V11 uses native buttons for map locations.</p>
+
+     <div class="map">
+
+       <div class="water top"></div><div class="water right"></div>
+
+       <div class="highway"></div>
+
+       <div class="road h one"></div><div class="road h two"></div>
+
+       <div class="road v a"></div><div class="road v b"></div>
 
  
 
- 
+       <button class="place p1" data-place="downtown">Downtown<small>City Center</small></button>
+
+       <button class="place p2" data-place="bank">First City Bank<small>Finance</small></button>
+
+       <button class="place p3" data-place="university">University<small>Education</small></button>
+
+       <button class="place p4" data-place="retail">East Retail<small>Shopping</small></button>
+
+       <button class="place p5" data-place="hotel">Central Hotel<small>Hospitality</small></button>
+
+       <button class="place p6 sports" data-place="lions">🏀 Lions Arena<small>Sports</small></button>
+
+       <button class="place p7" data-place="industrial">Industrial District<small>Factories</small></button>
+
+       <button class="place p8" data-place="foods">Prosper Foods<small>Food</small></button>
+
+       <button class="place p9 sports" data-place="stadium2">🏀 Sports Stadium<small>Sports</small></button>
+
+     </div>
+
+   </div>
+
+ </section>
 
  
 
- 
+ <section id="property" class="screen">
+
+   <div class="card"><h2>🏠 Property</h2><p>Property management will grow from the paper city rules.</p>
+
+     <button data-open="property">Open Property System</button></div>
+
+ </section>
 
  
 
- 
+ <section id="markets" class="screen">
+
+   <div class="card"><h2>📈 Markets</h2><div class="grid">
+
+     <div class="metric"><small>Grain</small><strong>$2.00</strong></div>
+
+     <div class="metric"><small>Meat</small><strong>$2.20</strong></div>
+
+     <div class="metric"><small>Produce</small><strong>$1.80</strong></div>
+
+     <div class="metric"><small>Food Demand</small><strong>30,000 meals</strong></div>
+
+   </div></div>
+
+ </section>
 
  
 
- 
+ <section id="finance" class="screen">
+
+   <div class="card"><h2>🏦 Finance</h2><p>City cash, Treasury, banks, stocks and future financing will live here.</p>
+
+     <button data-open="finance">Open Finance</button></div>
+
+ </section>
+
+</main>
 
  
 
- 
+<nav class="nav">
+
+ <button data-nav="home" class="active">🏠<br>Home</button>
+
+ <button data-nav="city">🗺️<br>City</button>
+
+ <button data-nav="property">🏠<br>Property</button>
+
+ <button data-nav="markets">📈<br>Markets</button>
+
+ <button data-nav="finance">🏦<br>Finance</button>
+
+</nav>
 
  
 
- 
+<div id="modal" class="modal">
 
- 
+ <div class="modalbox">
 
- 
+   <h2 id="modalTitle">Calvin's City</h2>
 
-<div class="district north">NORTH RESIDENTIAL<span>Homes • Apartments • Neighborhoods</span></div>
+   <div id="modalBody" class="log"></div>
 
-<div class="district downtown">DOWNTOWN / GOVERNMENT<span>Finance • Offices • Government</span></div>
+   <button id="closeModal">Close</button>
 
-<div class="district industrial">INDUSTRIAL DISTRICT<span>Factories • Warehouses • Logistics</span></div>
-
-<div class="district west">WEST RESIDENTIAL<span>Homes • Apartments</span></div>
-
-<div class="district east">EAST RESIDENTIAL<span>Homes • Services</span></div>
-
-<div class="district sports">ENTERTAINMENT & SPORTS<span>Stadiums • Media • Events</span></div>
-
-<div class="district south">SOUTH RESIDENTIAL<span>Homes • New development</span></div>
-
-<div class="district university">UNIVERSITY & RESEARCH<span>Education • Healthcare • R&D</span></div>
-
-<div class="district retail">RETAIL & SHOPPING<span>Stores • Food • Consumer goods</span></div>
-
-<div class="district port">PORT & LOGISTICS<span>Shipping • Distribution</span></div>
-
-<div class="sign city-title">CALVIN'S CITY <small>• YEAR 11 • 10,000 PEOPLE</small></div>
-
- 
-
-<div class="building office high bldg4" onclick="inspect('DT-01')"><div class="bldg-label">CITY HALL</div></div>
-
-<div class="building office tower bldg5" onclick="inspect('DT-02')"><div class="bldg-label">BANK</div></div>
-
-<div class="building office med bldg6" onclick="inspect('DT-03')"><div class="bldg-label">OFFICE</div></div>
-
-<div class="building home low bldg1" onclick="inspect('N-01')"></div><div class="building home low bldg2" onclick="inspect('N-02')"></div><div class="building home low bldg3" onclick="inspect('N-03')"></div>
-
-<div class="building factory high bldg7" onclick="inspect('W-01')"><div class="bldg-label">FACTORY</div></div>
-
-<div class="building factory med bldg8" onclick="inspect('W-02')"><div class="bldg-label">WAREHOUSE</div></div>
-
-<div class="building factory high bldg9" onclick="inspect('W-03')"><div class="bldg-label">FACTORY</div></div>
-
-<div class="building factory med bldg10" onclick="inspect('W-04')"><div class="bldg-label">WAREHOUSE</div></div>
-
-<div class="building factory high bldg11" onclick="inspect('W-05')"><div class="bldg-label">MANUFACTURING</div></div>
-
-<div class="building home low bldg12" onclick="inspect('N-04')"></div><div class="building home low bldg13" onclick="inspect('N-05')"></div><div class="building home low bldg14" onclick="inspect('N-06')"></div><div class="building home low bldg15" onclick="inspect('N-07')"></div>
-
-<div class="building retailb med bldg16" onclick="inspect('E-01')"><div class="bldg-label">RETAIL</div></div><div class="building retailb med bldg17" onclick="inspect('E-02')"><div class="bldg-label">FOOD</div></div><div class="building retailb med bldg18" onclick="inspect('E-03')"><div class="bldg-label">SHOPPING</div></div><div class="building retailb med bldg19" onclick="inspect('E-04')"><div class="bldg-label">RETAIL</div></div>
-
-<div class="building retailb low bldg20" onclick="inspect('R-01')"></div><div class="building retailb low bldg21" onclick="inspect('R-02')"></div><div class="building retailb low bldg22" onclick="inspect('R-03')"></div>
-
-<div class="building hotel tower bldg23" onclick="inspect('S-01')"><div class="bldg-label">HOTEL</div></div><div class="building home low bldg24" onclick="inspect('S-02')"></div><div class="building home low bldg25" onclick="inspect('S-03')"></div>
-
-<div class="building home low home1"></div><div class="building home low home2"></div><div class="building home low home3"></div><div class="building home low home4"></div>
-
-<div class="building home low home5"></div><div class="building home low home6"></div><div class="building home low home7"></div><div class="building home low home8"></div>
-
-<div class="building arena arena1" onclick="openPlace('lions')"><div class="arena-title">LIONS</div></div>
-
-<div class="building arena arena2" onclick="openPlace('rims')"><div class="arena-title">RIMS</div></div>
-
-<div class="building arena arena3" onclick="openPlace('dunks')"><div class="arena-title">DUNKS</div></div>
-
-<div class="marker m1">1</div><div class="marker m2">2</div><div class="marker m3">3</div>
-
- 
-
-<!-- Interactive district/business/team labels -->
-
-<button type="button" class="map-title res" style="left:82px;top:48px" data-place="north">🏠 North Residential<small>Housing • 3 neighborhoods</small></button>
-
-<button type="button" class="map-title gov" style="left:350px;top:92px" data-place="downtown">🏙️ Downtown<small>Government • Finance • Offices</small></button>
-
-<button type="button" class="map-title biz" style="left:785px;top:50px" data-place="industrial">🏭 North Industrial<small>Factories • Warehouses</small></button>
-
-<button type="button" class="map-title res" style="left:78px;top:298px" data-place="west">🏠 West Residential<small>Homes • Apartments</small></button>
-
-<button type="button" class="map-title biz" style="left:815px;top:310px" data-place="retail">🛍️ Retail District<small>Stores • Food • Services</small></button>
-
-<button type="button" class="map-title sport" style="left:378px;top:665px" data-place="lions">🦁 Lions Arena<small>Tap to enter team</small></button>
-
-<button type="button" class="map-title sport" style="left:565px;top:425px" data-place="rims">⭕ Rims Arena<small>Tap to enter team</small></button>
-
-<button type="button" class="map-title sport" style="left:805px;top:665px" data-place="dunks">🏀 Dunks Arena<small>Tap to enter team</small></button>
-
-<button type="button" class="map-title biz" style="left:345px;top:700px" data-place="commercial">🛍️ South Commercial<small>Shopping • Restaurants</small></button>
-
-<button type="button" class="map-title res" style="left:700px;top:675px" data-place="south">🏠 South Residential<small>Housing • New development</small></button>
-
-<button type="button" class="map-title biz" style="left:1030px;top:680px" data-place="port">⚓ Port & Logistics<small>Shipping • Distribution</small></button>
-
-<button type="button" class="map-title biz" style="left:90px;top:550px" data-place="university">🎓 University & Research<small>Education • R&D</small></button>
-
-<button type="button" class="map-title biz" style="left:1030px;top:385px" data-place="hospital">🏥 Hospital<small>Healthcare</small></button>
-
- 
-
-<div class="tree" style="left:75px;top:105px"></div><div class="tree" style="left:245px;top:115px"></div><div class="tree" style="left:70px;top:245px"></div><div class="tree" style="left:280px;top:245px"></div>
-
-<div class="tree" style="left:720px;top:270px"></div><div class="tree" style="left:1080px;top:300px"></div><div class="tree" style="left:730px;top:530px"></div><div class="tree" style="left:940px;top:560px"></div>
-
-<div class="tree" style="left:340px;top:620px"></div><div class="tree" style="left:970px;top:730px"></div><div class="tree" style="left:1100px;top:760px"></div>
-
-<div class="lamp" style="left:305px;top:295px"></div><div class="lamp" style="left:525px;top:295px"></div><div class="lamp" style="left:745px;top:295px"></div><div class="lamp" style="left:1005px;top:295px"></div>
-
-<div class="lamp" style="left:305px;top:540px"></div><div class="lamp" style="left:745px;top:540px"></div><div class="lamp" style="left:995px;top:540px"></div>
-
-<div class="car" style="top:293px;left:10px"></div>
-
-<div class="car c2" style="top:293px;left:420px"></div>
-
-<div class="car c3" style="top:538px;left:120px"></div>
-
-<div class="car c2" style="top:538px;left:620px"></div>
-
-<div class="car c3" style="top:693px;left:300px"></div>
-
-<div class="car" style="top:693px;left:800px"></div>
-
-</div></div>
-
-<div class="notice">🛣️ <b>Roads are infrastructure.</b> Tap a road to see its construction cost, maintenance cost and capacity. Traffic will grow as the city grows.</div><div class="notice">👆 <b>Tap a city label or stadium.</b> Labels are the doors into businesses, districts and teams. The map is designed to become the main game interface.</div><div class="legend"><span><i class="dot"></i>Buildings</span><span><i class="dot g"></i>Parks/land</span><span><i class="dot r"></i>Roads</span><span>🏟️ Stadiums</span><span>🌊 Water</span></div>
+ </div>
 
 </div>
-
-</section>
-
- 
-
-<section id="property" class="screen"><div class="card"><h2>🏗️ Property</h2><p class="muted">Land and buildings are the foundation of the city's economy.</p><div id="propertyList"></div></div></section>
-
-<section id="markets" class="screen"><div class="card"><h2>📊 Markets</h2><p class="muted">The market clearinghouse will connect businesses, consumers and commodities.</p></div></section>
-
-<section id="finance" class="screen"><div class="card"><h2>💰 Finance</h2><p class="muted">Treasury, Federal Reserve, taxes, loans and company finance will connect here.</p></div></section>
-
-</div>
-
- 
-
-<div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="sheet"><button class="close" onclick="closeModal()">✕</button><div id="sheetContent"></div></div></div>
-
-<nav class="nav"><button data-screen="home" onclick="show('home')"><span>⌂</span>Home</button><button data-screen="city" onclick="show('city')"><span>🏙️</span>City</button><button data-screen="property" onclick="show('property')"><span>🏗️</span>Property</button><button data-screen="markets" onclick="show('markets')"><span>📊</span>Markets</button><button data-screen="finance" onclick="show('finance')"><span>💰</span>Finance</button></nav>
 
  
 
 <script>
 
-const KEY='calvins_city_v4';
+(function(){
 
-const ROAD_KEY='calvins_city_roads_v1';
-
-const fresh={year:11,population:10000,economy:'Normal',cityCash:500,propertyValue:0,
-
-parcels:[
-
-['DT-01','Downtown','City Hall','Large',50,'🏛️'],['DT-02','Downtown','Bank','Medium',40,'🏦'],['DT-03','Downtown','Office','Medium',35,'🏢'],
-
-['N-01','North Residential','Apartment','Medium',35,'🏬'],['N-02','North Residential','Homes','Small',20,'🏠'],['N-03','North Residential','Apartment','Large',55,'🏬'],
-
-['W-01','Industrial','Factory','Large',60,'🏭'],['W-02','Industrial','Warehouse','Medium',30,'📦'],['W-03','Industrial','Factory','Large',65,'🏭'],['W-04','Industrial','Warehouse','Medium',32,'📦'],['W-05','Industrial','Manufacturing','Large',52,'🏭'],
-
-['E-01','East Residential','Retail','Large',55,'🛍️'],['E-02','East Residential','Food','Medium',30,'🍽️'],['E-03','East Residential','Shopping','Medium',38,'🛍️'],['E-04','East Residential','Retail','Medium',32,'🛍️'],
-
-['R-01','Retail & Shopping','Retail','Small',28,'🛍️'],['R-02','Retail & Shopping','Restaurant','Medium',34,'🍽️'],['R-03','Retail & Shopping','Retail','Medium',38,'🛍️'],
-
-['S-01','South Residential','Hotel','Large',70,'🏨'],['S-02','South Residential','Homes','Medium',30,'🏠'],['S-03','South Residential','Homes','Medium',30,'🏠'],
-
-['SP-01','Sports District','Stadium','Landmark',100,'🏟️'],['SP-02','Sports District','Stadium','Landmark',100,'🏟️'],['SP-03','Sports District','Stadium','Landmark',100,'🏟️']
-
-].map(x=>({id:x[0],district:x[1],type:x[2],size:x[3],price:x[4],icon:x[5],owned:false,built:false}))};
+ "use strict";
 
  
 
-const roads=[
+ const data = {
 
-{id:'CALVIN-LOOP',name:'Calvin Loop',type:'Highway',cost:18,maint:.75,capacity:9000},
+   downtown:["Downtown","City center and major commerce."],
 
-{id:'MAIN-1',name:'Central Boulevard',type:'Main Road',cost:3,maint:.12,capacity:1200},
+   bank:["First City Bank","Banking, loans and financial activity."],
 
-{id:'MAIN-2',name:'Sports Connector',type:'Main Road',cost:4,maint:.15,capacity:1500},
+   university:["University","Education and future research."],
 
-{id:'AVENUE-C',name:'Central Avenue',type:'Main Road',cost:3.5,maint:.14,capacity:1300},
+   retail:["East Retail District","Stores compete for city demand."],
 
-{id:'AVENUE-E',name:'East Avenue',type:'Main Road',cost:3,maint:.12,capacity:1100},
+   hotel:["Central Hotel","Visitors, basketball and tourism."],
 
-{id:'CONNECTOR-W',name:'West Connector',type:'Local Connector',cost:1.5,maint:.06,capacity:600},
+   lions:["Lions Arena","Basketball team and game-day economy."],
 
-{id:'CONNECTOR-E',name:'East Connector',type:'Local Connector',cost:1.5,maint:.06,capacity:600}
+   industrial:["Industrial District","Production and supply chains."],
 
-];
+   foods:["Prosper Foods","Food company serving the city market."],
 
-let roadState=JSON.parse(localStorage.getItem(ROAD_KEY)||'null')||{built:roads.map(r=>r.id)};
+   stadium2:["Sports Stadium","Another sports venue."],
 
-roadState.built=roads.map(r=>r.id);localStorage.setItem(ROAD_KEY,JSON.stringify(roadState));
+   property:["Property System","Property, construction and ownership."],
 
-function roadTotals(){
+   finance:["Finance System","Cash, Treasury, banks and stocks."]
 
-let built=roads.filter(r=>roadState.built.includes(r.id));
-
-let value=built.reduce((a,r)=>a+r.cost,0), maint=built.reduce((a,r)=>a+r.maint,0);
-
-let capacity=built.reduce((a,r)=>a+r.capacity,0);
-
-let activity=state.population/10000 + state.parcels.filter(p=>p.built).length*.12;
-
-let traffic=Math.round(500*activity);
-
-return {built,value,maint,capacity,traffic,ratio:capacity?traffic/capacity:0};
-
-}
-
-function trafficText(){
-
-let x=roadTotals().ratio;
-
-return x>.9?'Heavy':x>.65?'Busy':x>.4?'Moderate':'Light';
-
-}
-
-function saveRoads(){localStorage.setItem(ROAD_KEY,JSON.stringify(roadState));render();}
+ };
 
  
 
-let state=JSON.parse(localStorage.getItem(KEY)||'null')||fresh;
+ const modal = document.getElementById("modal");
 
-function money(n){return '$'+Number(n).toFixed(0)+'M'}
+ const title = document.getElementById("modalTitle");
 
-function save(){state.propertyValue=state.parcels.filter(p=>p.owned).reduce((a,p)=>a+p.price,0);localStorage.setItem(KEY,JSON.stringify(state));render()}
-
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));if(id==='property')renderProperties();window.scrollTo(0,0)}
+ const body = document.getElementById("modalBody");
 
  
 
-const places={
+ function openModal(key){
 
-north:{icon:'🏠',name:'North Residential',kind:'District',desc:'A growing residential district with apartments, homes and neighborhood services.',items:[['🏬','North Apartments','Housing'],['🏠','North Homes','Residential'],['🛒','Neighborhood Market','Retail']]},
+   const item = data[key] || ["Calvin's City","The city system is working."];
 
-downtown:{icon:'🏙️',name:'Downtown',kind:'District',desc:'The city center for government, finance and corporate offices.',items:[['🏛️','City Hall','Government'],['🏦','First City Bank','Financial'],['🏢','Whitmore Tower','Corporate HQ']]},
+   title.textContent = item[0];
 
-industrial:{icon:'🏭',name:'North Industrial',kind:'District',desc:'Factories and warehouses move goods into the city through the road network.',items:[['🏭','Prosper Manufacturing','Factory'],['📦','Central Warehouse','Logistics'],['🚚','City Distribution','Transportation']]},
+   body.innerHTML = "<p class='ok'>✓ V11 click registered.</p><p>"+item[1]+"</p>";
 
-west:{icon:'🏠',name:'West Residential',kind:'District',desc:'Established neighborhoods with room for future population growth.',items:[['🏠','West Homes','Residential'],['🏬','West Apartments','Housing'],['🌳','West Park','Public Space']]},
+   modal.classList.add("show");
 
-retail:{icon:'🛍️',name:'Retail District',kind:'District',desc:'Consumer-facing businesses compete for the city's spending.',items:[['🛍️','East Retail Center','Retail'],['🍽️','City Restaurants','Food'],['👟','Shoe Company Store','Consumer Goods']]},
-
-commercial:{icon:'🛍️',name:'South Commercial',kind:'District',desc:'Shopping, restaurants and entertainment connected to the sports economy.',items:[['🛍️','South Shopping Center','Retail'],['🍽️','Stadium Row Restaurants','Food'],['🎬','Entertainment Complex','Entertainment']]},
-
-university:{icon:'🎓',name:'University & Research',kind:'District',desc:'Education, healthcare and research support long-term productivity.',items:[['🎓','Calvin University','Education'],['🔬','Research Center','Technology'],['🏥','Medical Center','Healthcare']]},
-
-hospital:{icon:'🏥',name:'City Hospital',kind:'Business',desc:'Healthcare facility serving residents, workers and visitors.',items:[['🏥','City Hospital','Healthcare'],['🚑','Emergency Services','Public Service']]},
-
-south:{icon:'🏠',name:'South Residential',kind:'District',desc:'New residential development along the waterfront and commercial corridor.',items:[['🏠','South Homes','Residential'],['🏨','Calvin Hotel','Hospitality'],['🏬','South Apartments','Housing']]},
-
-port:{icon:'⚓',name:'Port & Logistics',kind:'District',desc:'Imports, exports, warehouses and transportation infrastructure.',items:[['⚓','Calvin Port','Port'],['📦','Port Warehouse','Logistics'],['🚛','Freight Terminal','Transportation']]},
-
-lions:{icon:'🦁',name:'Lions',kind:'Basketball Team',desc:'Lions headquarters and arena. Team operations, players, contracts and finances will live here.',items:[['🏟️','Lions Arena','Stadium'],['👥','Roster','Players'],['💰','Team Finance','Finance']]},
-
-rims:{icon:'⭕',name:'Rims',kind:'Basketball Team',desc:'Rims headquarters and arena. Team operations, players, contracts and finances will live here.',items:[['🏟️','Rims Arena','Stadium'],['👥','Roster','Players'],['💰','Team Finance','Finance']]},
-
-dunks:{icon:'🏀',name:'Dunks',kind:'Basketball Team',desc:'Dunks headquarters and arena. Team operations, players, contracts and finances will live here.',items:[['🏟️','Dunks Arena','Stadium'],['👥','Roster','Players'],['💰','Team Finance','Finance']]}
-
-};
-
-function openPlace(id){
-
-const p=places[id]; if(!p)return;
-
-document.getElementById('sheetContent').innerHTML=
-
-`<div class="inside-header"><div class="inside-icon">${p.icon}</div><div><h2>${p.name}</h2><p class="muted">${p.kind}</p></div></div>
-
-<p class="muted">${p.desc}</p>
-
-<div class="business-panel">${p.items.map((x,i)=>`<div class="mini-card" onclick="openItem('${id}',${i})"><b>${x[0]} ${x[1]}</b><span>${x[2]} • Tap to enter</span></div>`).join('')}</div>
-
-<button class="backbtn" onclick="closeModal()">← Back to City</button>`;
-
-document.getElementById('modal').classList.add('show');
-
-}
-
-function openItem(placeId,index){
-
-const p=places[placeId], x=p.items[index];
-
-document.getElementById('sheetContent').innerHTML=
-
-`<div class="inside-header"><div class="inside-icon">${x[0]}</div><div><h2>${x[1]}</h2><p class="muted">${x[2]}</p></div></div>
-
-<div class="kpi"><div>Status<b>Operating</b></div><div>Location<b>${p.name}</b></div><div>Employees<b>—</b></div><div>Cash / Value<b>—</b></div></div>
-
-<div class="notice" style="margin-top:12px">This is the doorway into the business/team. Later this screen will contain the full operating model, employees, revenue, expenses, contracts, inventory, profits and decisions.</div>
-
-<button class="backbtn" onclick="openPlace('${placeId}')">← Back to ${p.name}</button>`;
-
-}
+ }
 
  
 
-function render(){
+ function showScreen(id){
 
-document.getElementById('yearLine').textContent=`Year ${state.year} • ${state.economy} Economy`;
+   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
 
-document.getElementById('cash').textContent=money(state.cityCash);
+   const screen = document.getElementById(id);
 
-document.getElementById('pop').textContent=state.population.toLocaleString();
+   if(screen) screen.classList.add("active");
 
-document.getElementById('propVal').textContent=money(state.propertyValue);
+   document.querySelectorAll(".nav button").forEach(b =>
 
-document.getElementById('econ').textContent=state.economy;
+     b.classList.toggle("active", b.dataset.nav === id)
 
-const rt=roadTotals();
+   );
 
-document.getElementById('trafficLevel').textContent=trafficText();
+   window.scrollTo(0,0);
 
-document.getElementById('roadValue').textContent=money(rt.value);
-
-document.getElementById('roadMaint').textContent=money(rt.maint);
-
-document.getElementById('roadCap').textContent=rt.capacity.toLocaleString();
-
-renderProperties()
-
-}
-
-function inspect(id){const p=state.parcels.find(x=>x.id===id);if(!p)return;let action=p.owned&&!p.built?`<button class="action" onclick="build('${p.id}')">Build ${p.type} • ${money(p.price*.35)}</button>`:p.owned&&p.built?`<button class="action danger" onclick="sell('${p.id}')">Sell Property • ${money(p.price*1.15)}</button>`:`<button class="action" onclick="buy('${p.id}')">Buy Land • ${money(p.price)}</button>`;document.getElementById('sheetContent').innerHTML=`<h2>${p.icon} ${p.id}</h2><p class="muted">${p.district} • ${p.size} • ${p.type}</p><div class="notice">${p.owned?(p.built?'Owned • Built':'Owned • Empty lot'):'Available land'}<br>Land value: ${money(p.price)}</div>${action}`;document.getElementById('modal').classList.add('show')}
+ }
 
  
 
-function inspectRoad(id){
+ document.querySelectorAll("[data-nav]").forEach(btn=>{
 
-const r=roads.find(x=>x.id===id); if(!r)return;
+   btn.addEventListener("click", function(e){
 
-const rt=roadTotals();
+     e.preventDefault();
 
-const traffic=Math.round((rt.traffic/Math.max(1,rt.capacity))*100);
+     showScreen(this.dataset.nav);
 
-document.getElementById('sheetContent').innerHTML=
+   });
 
-`<h2>🛣️ ${r.name}</h2>
+   btn.addEventListener("touchend", function(e){
 
-<p class="muted">${r.type} • ${r.capacity.toLocaleString()} vehicle capacity</p>
+     e.preventDefault();
 
-<div class="notice">This road connects parts of the city and carries economic activity.<br>Current network traffic: ${traffic}% of capacity.</div>
+     showScreen(this.dataset.nav);
 
-<div class="roadinfo">
+   }, {passive:false});
 
-<div class="roadstat">Construction<b>${money(r.cost)}</b></div>
-
-<div class="roadstat">Maintenance<b>${money(r.maint)}/yr</b></div>
-
-<div class="roadstat">Capacity<b>${r.capacity.toLocaleString()}</b></div>
-
-<div class="roadstat">Status<b>${roadState.built.includes(r.id)?'Built':'Planned'}</b></div>
-
-</div>`;
-
-document.getElementById('modal').classList.add('show')
-
-}
+ });
 
  
 
-function closeModal(){document.getElementById('modal').classList.remove('show')}
+ document.querySelectorAll("[data-place]").forEach(btn=>{
 
-function buy(id){const p=state.parcels.find(x=>x.id===id);if(p.owned||state.cityCash<p.price)return;state.cityCash-=p.price;p.owned=true;save();closeModal()}
+   btn.addEventListener("click", function(e){
 
-function build(id){const p=state.parcels.find(x=>x.id===id),cost=p.price*.35;if(!p.owned||p.built||state.cityCash<cost)return;state.cityCash-=cost;p.built=true;save();closeModal()}
+     e.preventDefault();
 
-function sell(id){const p=state.parcels.find(x=>x.id===id);if(!p.owned)return;state.cityCash+=p.built?p.price*1.15:p.price;p.owned=false;p.built=false;save();closeModal()}
+     openModal(this.dataset.place);
 
-function renderProperties(){const box=document.getElementById('propertyList');if(!box)return;const owned=state.parcels.filter(p=>p.owned);box.innerHTML=owned.length?owned.map(p=>`<div class="stat" style="margin-top:8px"><b>${p.icon} ${p.id}</b><span class="muted">${p.type} • ${p.size} • ${p.built?'Built':'Empty lot'}</span></div>`).join(''):'<p class="muted">You do not own any property yet.</p>'}
+   });
 
-render();
+   btn.addEventListener("touchend", function(e){
+
+     e.preventDefault();
+
+     openModal(this.dataset.place);
+
+   }, {passive:false});
+
+ });
+
+ 
+
+ document.querySelectorAll("[data-open]").forEach(btn=>{
+
+   btn.addEventListener("click", function(e){
+
+     e.preventDefault();
+
+     openModal(this.dataset.open);
+
+   });
+
+ });
 
  
 
- 
+ document.querySelector("[data-test]").addEventListener("click", function(){
+
+   openModal("downtown");
+
+ });
 
  
 
- 
+ document.getElementById("closeModal").addEventListener("click", function(){
 
-const cityMapEl=document.getElementById('cityMap');
+   modal.classList.remove("show");
 
-if(cityMapEl){
-
-cityMapEl.addEventListener('click',function(e){
-
-  const place=e.target.closest('[data-place]');
-
-  if(place){ e.preventDefault(); e.stopPropagation(); openPlace(place.dataset.place); return; }
-
-  const road=e.target.closest('[data-road]');
-
-  if(road){ e.preventDefault(); e.stopPropagation(); inspectRoad(road.dataset.road); return; }
-
-});
-
-cityMapEl.addEventListener('touchend',function(e){
-
-  const target=e.target.closest('[data-place],[data-road]');
-
-  if(target){
-
-    e.preventDefault();
-
-    if(target.dataset.place) openPlace(target.dataset.place);
-
-    else if(target.dataset.road) inspectRoad(target.dataset.road);
-
-  }
-
-},{passive:false});
-
-}
-
-document.querySelectorAll('.nav button').forEach(function(btn){
-
-btn.addEventListener('click',function(){ show(btn.dataset.screen); });
-
-});
+ });
 
  
+
+ modal.addEventListener("click", function(e){
+
+   if(e.target === modal) modal.classList.remove("show");
+
+ });
+
+ 
+
+ document.getElementById("systemStatus").textContent = "SYSTEM WORKING — JAVASCRIPT ACTIVE — V11";
+
+})();
 
 </script>
 
