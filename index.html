@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION V26 -->
+<!-- CALVIN'S CITY — VERSION 2.6 -->
 <!-- Personal Paper City -> Digital City -->
 <!-- V16: LIVING CITY MAP + GAME-BY-GAME BASKETBALL + OFFSEASON MANAGEMENT -->
 <!-- V16 UPDATE: RESTORED V13 LIVING CITY MAP + ONE-GAME-AT-A-TIME SEASON -->
 <html lang="en">
-<head> 
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City V26</title>
+<title>Calvin's City 2.6</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -60,7 +60,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .building span{display:block;font-size:6.5px;color:#5d6670;font-weight:700;margin-top:2px}
  
 /* V22: illustrated mall building */
-.mall-building{padding:2px 2px 3px;background:transparent;border:0;box-shadow:none;overflow:visible;min-height:0}
+.mall-building{position:absolute;left:8%;top:37%;width:24%;z-index:8;padding:2px 2px 3px;background:transparent;border:0;box-shadow:none;overflow:visible;min-height:0}
 .mall-building .mall-art{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 3px rgba(0,0,0,.28))}
 .mall-building .mall-caption{display:block;background:#17202b;color:#fff;border-radius:5px;padding:2px 3px;margin-top:2px;font-size:6.5px;line-height:1.05;text-shadow:0 1px 1px rgba(0,0,0,.4)}
 .mall-building .mall-caption b{font-size:7px}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
  
  
 /* three stadiums: deliberately separated */
-.stadium{position:absolute;z-index:9999!important;pointer-events:auto!important;touch-action:manipulation;min-height:54px;font-size:9px;border-radius:9px;background:#e6d1a2;box-shadow:0 4px 7px rgba(0,0,0,.28)}
+.stadium{position:absolute;z-index:9!important;pointer-events:auto!important;touch-action:manipulation;min-height:54px;font-size:9px;border-radius:9px;background:#e6d1a2;box-shadow:0 4px 7px rgba(0,0,0,.28)}
 .s1{left:70%;top:40%;width:17%}
 .s2{left:9%;top:71%;width:17%}
 .s3{left:38%;top:72%;width:17%}
@@ -115,9 +115,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </head>
 <body>
 <header>
-<h1>🏙️ Calvin's City — V26</h1>
+<h1>🏙️ Calvin's City — 2.6</h1>
 <p>Personal Paper City → Digital City</p>
-<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V26</div>
+<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 2.6</div>
 </header>
 <main>
 <section id="home" class="screen active">
@@ -149,7 +149,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
  
  
  
-<button class="building mall-building d7" data-place="mall" aria-label="Calvin's City Mall">
+<button class="building mall-building" data-place="mall" aria-label="Calvin's City Mall">
 <svg class="mall-art" viewBox="0 0 220 125" role="img" aria-label="Illustrated Calvin's City Mall building">
  <defs><linearGradient id="mallSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9d9f0"/><stop offset="1" stop-color="#eaf4fb"/></linearGradient><linearGradient id="mallWall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9dde3"/><stop offset="1" stop-color="#aeb7c2"/></linearGradient></defs>
  <rect x="5" y="5" width="210" height="115" rx="9" fill="url(#mallSky)"/>
@@ -603,10 +603,10 @@ if(state.offseasonOpen){
  buildContractBoard();
  buildGMBoard();
 }
-
 })();
-</script>
-
+ 
+ 
+ 
 <div id="teamPageModal" class="modal">
  <div class="modalbox">
    <h2 id="teamPageTitle">Team</h2>
