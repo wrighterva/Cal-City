@@ -272,6 +272,22 @@ opacity:.45}
 
 .m1{left:420px;top:622px}.m2{left:610px;top:502px}.m3{left:850px;top:612px}
 
+ 
+
+.map-title,.highway-label{appearance:none;-webkit-appearance:none;border:1px solid rgba(255,255,255,.35);font-family:inherit;line-height:1.15;pointer-events:auto;touch-action:manipulation;cursor:pointer}
+
+.map-title{background:rgba(8,16,27,.9);color:#fff}
+
+.highway-label{color:#fff;cursor:pointer}
+
+.city-shell,.city{touch-action:pan-x pan-y}
+
+ 
+
+.modal{pointer-events:auto}
+
+.sheet{pointer-events:auto}
+
 </style>
 
 </head>
@@ -350,9 +366,9 @@ opacity:.45}
 
 <div class="highway-ring"></div>
 
-<div class="highway-label top" onclick="inspectRoad('CALVIN-LOOP')" role="button" tabindex="0">CALVIN LOOP • HIGHWAY</div>
+<button type="button" class="highway-label top" data-road="CALVIN-LOOP">CALVIN LOOP • HIGHWAY</button>
 
-<div class="highway-label bottom" onclick="inspectRoad('CALVIN-LOOP')" role="button" tabindex="0">CALVIN LOOP • HIGHWAY</div>
+<button type="button" class="highway-label bottom" data-road="CALVIN-LOOP">CALVIN LOOP • HIGHWAY</button>
 
 <div class="exit e1"></div><div class="exit e2"></div><div class="exit e3"></div><div class="exit e4"></div><div class="exit e5"></div><div class="exit e6"></div>
 
@@ -478,31 +494,31 @@ opacity:.45}
 
 <!-- Interactive district/business/team labels -->
 
-<div class="map-title res" style="left:82px;top:48px" onclick="openPlace('north')">🏠 North Residential<small>Housing • 3 neighborhoods</small></div>
+<button type="button" class="map-title res" style="left:82px;top:48px" data-place="north">🏠 North Residential<small>Housing • 3 neighborhoods</small></button>
 
-<div class="map-title gov" style="left:350px;top:92px" onclick="openPlace('downtown')">🏙️ Downtown<small>Government • Finance • Offices</small></div>
+<button type="button" class="map-title gov" style="left:350px;top:92px" data-place="downtown">🏙️ Downtown<small>Government • Finance • Offices</small></button>
 
-<div class="map-title biz" style="left:785px;top:50px" onclick="openPlace('industrial')">🏭 North Industrial<small>Factories • Warehouses</small></div>
+<button type="button" class="map-title biz" style="left:785px;top:50px" data-place="industrial">🏭 North Industrial<small>Factories • Warehouses</small></button>
 
-<div class="map-title res" style="left:78px;top:298px" onclick="openPlace('west')">🏠 West Residential<small>Homes • Apartments</small></div>
+<button type="button" class="map-title res" style="left:78px;top:298px" data-place="west">🏠 West Residential<small>Homes • Apartments</small></button>
 
-<div class="map-title biz" style="left:815px;top:310px" onclick="openPlace('retail')">🛍️ Retail District<small>Stores • Food • Services</small></div>
+<button type="button" class="map-title biz" style="left:815px;top:310px" data-place="retail">🛍️ Retail District<small>Stores • Food • Services</small></button>
 
-<div class="map-title sport" style="left:378px;top:665px" onclick="openPlace('lions')">🦁 Lions Arena<small>Tap to enter team</small></div>
+<button type="button" class="map-title sport" style="left:378px;top:665px" data-place="lions">🦁 Lions Arena<small>Tap to enter team</small></button>
 
-<div class="map-title sport" style="left:565px;top:425px" onclick="openPlace('rims')">⭕ Rims Arena<small>Tap to enter team</small></div>
+<button type="button" class="map-title sport" style="left:565px;top:425px" data-place="rims">⭕ Rims Arena<small>Tap to enter team</small></button>
 
-<div class="map-title sport" style="left:805px;top:665px" onclick="openPlace('dunks')">🏀 Dunks Arena<small>Tap to enter team</small></div>
+<button type="button" class="map-title sport" style="left:805px;top:665px" data-place="dunks">🏀 Dunks Arena<small>Tap to enter team</small></button>
 
-<div class="map-title biz" style="left:345px;top:700px" onclick="openPlace('commercial')">🛍️ South Commercial<small>Shopping • Restaurants</small></div>
+<button type="button" class="map-title biz" style="left:345px;top:700px" data-place="commercial">🛍️ South Commercial<small>Shopping • Restaurants</small></button>
 
-<div class="map-title res" style="left:700px;top:675px" onclick="openPlace('south')">🏠 South Residential<small>Housing • New development</small></div>
+<button type="button" class="map-title res" style="left:700px;top:675px" data-place="south">🏠 South Residential<small>Housing • New development</small></button>
 
-<div class="map-title biz" style="left:1030px;top:680px" onclick="openPlace('port')">⚓ Port & Logistics<small>Shipping • Distribution</small></div>
+<button type="button" class="map-title biz" style="left:1030px;top:680px" data-place="port">⚓ Port & Logistics<small>Shipping • Distribution</small></button>
 
-<div class="map-title biz" style="left:90px;top:550px" onclick="openPlace('university')">🎓 University & Research<small>Education • R&D</small></div>
+<button type="button" class="map-title biz" style="left:90px;top:550px" data-place="university">🎓 University & Research<small>Education • R&D</small></button>
 
-<div class="map-title biz" style="left:1030px;top:385px" onclick="openPlace('hospital')">🏥 Hospital<small>Healthcare</small></div>
+<button type="button" class="map-title biz" style="left:1030px;top:385px" data-place="hospital">🏥 Hospital<small>Healthcare</small></button>
 
  
 
@@ -786,19 +802,49 @@ render();
 
  
 
-document.getElementById('cityMap').addEventListener('click', function(e){
+ 
 
-const title=e.target.closest('.map-title');
+ 
 
-if(title){
+ 
 
-  const m=title.getAttribute('onclick')||'';
+const cityMapEl=document.getElementById('cityMap');
 
-  const match=m.match(/openPlace\('([^']+)'\)/);
+if(cityMapEl){
 
-  if(match) openPlace(match[1]);
+cityMapEl.addEventListener('click',function(e){
+
+  const place=e.target.closest('[data-place]');
+
+  if(place){ e.preventDefault(); e.stopPropagation(); openPlace(place.dataset.place); return; }
+
+  const road=e.target.closest('[data-road]');
+
+  if(road){ e.preventDefault(); e.stopPropagation(); inspectRoad(road.dataset.road); return; }
+
+});
+
+cityMapEl.addEventListener('touchend',function(e){
+
+  const target=e.target.closest('[data-place],[data-road]');
+
+  if(target){
+
+    e.preventDefault();
+
+    if(target.dataset.place) openPlace(target.dataset.place);
+
+    else if(target.dataset.road) inspectRoad(target.dataset.road);
+
+  }
+
+},{passive:false});
 
 }
+
+document.querySelectorAll('.nav button').forEach(function(btn){
+
+btn.addEventListener('click',function(){ show(btn.dataset.screen); });
 
 });
 
