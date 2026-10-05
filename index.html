@@ -1,444 +1,137 @@
-Calvin's City — V14 Code
-V14: basketball engine foundation. Preserves V13 city concept and adds player dice, games, regular season, shoe revenue, and prize rules.
+Calvin's City V15 — Code
+
+Complete pasteable index.html for GitHub Pages. Version V15.
 
 <!DOCTYPE html>
-
-<!-- CALVIN'S CITY — VERSION V14 -->
-
+<!-- CALVIN'S CITY — VERSION V15 -->
 <!-- Personal Paper City -> Digital City -->
-
-<!-- V14: BASKETBALL ENGINE FOUNDATION -->
-
- 
-
+<!-- V15: BASKETBALL SEASON + OFFSEASON MANAGEMENT -->
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-<title>Calvin's City V14</title>
-
+<title>Calvin's City V15</title>
 <style>
-
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
-
 header{padding:16px;background:#182230;border-bottom:1px solid #334155;position:sticky;top:0;z-index:20}
-
 header h1{margin:0 0 4px;font-size:22px}header p{margin:0;color:#aeb9c7;font-size:13px}
-
 .status{margin-top:10px;padding:9px;border-radius:10px;background:#12351f;color:#9ff0b5;font-weight:800;text-align:center;font-size:13px}
-
-main{padding:14px;padding-bottom:94px}.screen{display:none}.screen.active{display:block}
-
+main{padding:14px;padding-bottom:100px}.screen{display:none}.screen.active{display:block}
 .card{background:#1b2635;border:1px solid #344255;border-radius:14px;padding:14px;margin-bottom:12px}
-
-.card h2{margin:0 0 9px;font-size:18px}.card p{color:#b7c2cf;font-size:13px}
-
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-
-.metric{background:#121b27;border:1px solid #2d3a4d;border-radius:12px;padding:12px}
-
-.metric small{color:#9eabba;display:block;margin-bottom:5px}.metric strong{font-size:18px}
-
+.card h2{margin:0 0 9px;font-size:18px}.card h3{margin:12px 0 7px;font-size:15px}.card p{color:#b7c2cf;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.metric{background:#121b27;border:1px solid #2d3a4d;border-radius:12px;padding:12px}.metric small{color:#9eabba;display:block;margin-bottom:5px}.metric strong{font-size:18px}
 button{width:100%;border:0;border-radius:12px;padding:13px 12px;background:#2f6fed;color:white;font-size:15px;font-weight:800;margin-top:8px;cursor:pointer;touch-action:manipulation;position:relative;z-index:20}
-
-button:active{transform:scale(.98)}button.secondary{background:#344255}
-
+button:active{transform:scale(.98)}button.secondary{background:#344255}button.danger{background:#8b3341}button.goodbtn{background:#246b46}
+input,select{width:100%;background:#121b27;color:#f5f7fa;border:1px solid #46556b;border-radius:10px;padding:11px;font-size:14px;margin-top:6px}
+label{display:block;color:#aeb9c7;font-size:12px;margin-top:9px;font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}th{color:#9eabba}
-
 .score{font-size:30px;font-weight:900}.team{background:#121b27;border:1px solid #2d3a4d;border-radius:12px;padding:12px;margin-top:10px}
-
-.badge{display:inline-block;padding:4px 8px;border-radius:8px;background:#344255;font-size:11px;font-weight:800;margin-right:5px}
-
-.good{color:#9ff0b5}.gold{color:#f1d37a}.muted{color:#9eabba}
-
-.log{font-size:12px;color:#b9c5d2;line-height:1.5;max-height:300px;overflow:auto}
-
+.badge{display:inline-block;padding:4px 8px;border-radius:8px;background:#344255;font-size:11px;font-weight:800;margin-right:5px}.good{color:#9ff0b5}.gold{color:#f1d37a}.muted{color:#9eabba}
+.log{font-size:12px;color:#b9c5d2;line-height:1.5;max-height:360px;overflow:auto}.tiny{font-size:11px;color:#9eabba}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
-
 .nav button{margin:0;padding:11px 4px;font-size:12px;background:#273446}.nav button.active{background:#2f6fed}
-
-.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center}
-
-.modal.show{display:flex}.modalbox{width:min(100%,440px);max-height:85vh;overflow:auto;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px}
-
-.modalbox h2{margin-top:0}
-
+.divider{height:1px;background:#334155;margin:12px 0}.pill{padding:6px 8px;border-radius:8px;background:#273446;display:inline-block;font-size:12px;margin:2px}
 </style>
-
 </head>
-
 <body>
-
 <header>
-
-<h1>🏙️ Calvin's City — V14</h1>
-
+<h1>🏙️ Calvin's City — V15</h1>
 <p>Personal Paper City → Digital City</p>
-
-<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V14</div>
-
+<div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — V15</div>
 </header>
-
- 
-
 <main>
-
 <section id="home" class="screen active">
-
 <div class="card"><h2>City Overview</h2><div class="grid">
-
-<div class="metric"><small>Year</small><strong>1</strong></div>
-
-<div class="metric"><small>Population</small><strong>10,000</strong></div>
-
-<div class="metric"><small>Economy</small><strong>Normal</strong></div>
-
-<div class="metric"><small>MWTP</small><strong>$20</strong></div>
-
+<div class="metric"><small>Year</small><strong id="homeYear">1</strong></div><div class="metric"><small>Population</small><strong>10,000</strong></div>
+<div class="metric"><small>Economy</small><strong>Normal</strong></div><div class="metric"><small>MWTP</small><strong>$20</strong></div>
 </div></div>
-
-<div class="card"><h2>🏀 Basketball</h2>
-
-<p>V14 adds the basketball engine foundation while preserving the working V13 city.</p>
-
-<div class="grid">
-
-<div class="metric"><small>Teams</small><strong>3</strong></div>
-
-<div class="metric"><small>Players / Team</small><strong>3</strong></div>
-
-<div class="metric"><small>Regular Games</small><strong>3</strong></div>
-
-<div class="metric"><small>Championship</small><strong>$100M</strong></div>
-
-</div>
-
-<button data-navjump="basketball">Open Basketball</button>
-
-</div>
-
+<div class="card"><h2>🏀 Basketball</h2><p>V15 completes the season game flow and adds the offseason management layer.</p>
+<div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div>
+<button data-navjump="basketball">Open Basketball</button></div>
 </section>
-
- 
-
-<section id="city" class="screen">
-
-<div class="card"><h2>🗺️ Calvin's City</h2><p>V13 map foundation remains here. Three separate stadiums remain part of the city.</p>
-
-<button data-navjump="basketball">🏀 Basketball System</button></div>
-
-</section>
-
- 
-
+<section id="city" class="screen"><div class="card"><h2>🗺️ Calvin's City</h2><p>V13 compact living-city map foundation remains preserved.</p><button data-navjump="basketball">🏀 Basketball System</button></div></section>
 <section id="property" class="screen"><div class="card"><h2>🏠 Property</h2><p>Property management continues to grow from the paper city rules.</p></div></section>
-
- 
-
-<section id="markets" class="screen"><div class="card"><h2>📈 Markets</h2><div class="grid">
-
-<div class="metric"><small>Grain</small><strong>$2.00</strong></div><div class="metric"><small>Meat</small><strong>$2.20</strong></div>
-
-<div class="metric"><small>Produce</small><strong>$1.80</strong></div><div class="metric"><small>Food Demand</small><strong>30,000 meals</strong></div>
-
-</div></div></section>
-
- 
-
+<section id="markets" class="screen"><div class="card"><h2>📈 Markets</h2><div class="grid"><div class="metric"><small>Grain</small><strong>$2.00</strong></div><div class="metric"><small>Meat</small><strong>$2.20</strong></div><div class="metric"><small>Produce</small><strong>$1.80</strong></div><div class="metric"><small>Food Demand</small><strong>30,000 meals</strong></div></div></div></section>
 <section id="finance" class="screen"><div class="card"><h2>🏦 Finance</h2><p>City cash, Treasury, banks, stocks and financing.</p></div></section>
-
  
-
 <section id="basketball" class="screen">
-
-<div class="card">
-
-<h2>🏀 Calvin's City Basketball</h2>
-
-<p><span class="badge">3 Teams</span><span class="badge">3 Players Each</span><span class="badge">4 Quarters</span></p>
-
-<p>Each team has a <b>C</b>, <b>SG</b>, and <b>PG</b>. Every player gets two point rolls and two rebound rolls each quarter.</p>
-
-</div>
-
+<div class="card"><h2>🏀 Calvin's City Basketball</h2><p><span class="badge">3 Teams</span><span class="badge">3 Players Each</span><span class="badge">4 Quarters</span><span class="badge">1–3 Year Contracts</span></p>
+<p>Each player gets two point dice and two rebound dice per quarter. Overtime uses one point die and one rebound die per player until the tie is broken.</p></div>
  
-
-<div class="card">
-
-<h2>Season Format</h2>
-
-<ol class="log">
-
-<li>Each team plays every other team once.</li>
-
-<li>Best record normally receives the championship bye.</li>
-
-<li>If teams tie for the best record, the defending champion gets the bye when involved.</li>
-
-<li>If all three teams tie, the previous champion gets the bye.</li>
-
-<li>The other two teams play the semifinal.</li>
-
-<li>Semifinal winner plays the bye team for the championship.</li>
-
-</ol>
-
-</div>
-
+<div class="card"><h2>👥 League Roster Setup</h2><p>V15 uses position slots so no player names are invented or overwritten. Enter your real player names when ready.</p>
+<div id="rosterInputs"></div><button class="goodbtn" id="saveRoster">Save Roster Names</button><p id="rosterSaved" class="tiny"></p></div>
  
-
-<div class="card">
-
-<h2>💰 Prize Money</h2>
-
-<div class="grid">
-
-<div class="metric"><small>Champion</small><strong>$100M</strong></div>
-
-<div class="metric"><small>Runner-up</small><strong>$50M</strong></div>
-
-</div>
-
-</div>
-
+<div class="card"><h2>Season Rules</h2><ol class="log"><li>Each team plays every other team once.</li><li>Best record normally receives the championship bye.</li><li>If tied for best record, the defending champion gets the bye when involved.</li><li>If all three tie, the previous champion gets the bye.</li><li>The other two teams play the semifinal.</li><li>Semifinal winner plays the bye team for the championship.</li><li>Champion receives $100M; runner-up receives $50M.</li></ol></div>
  
-
-<div class="card">
-
-<h2>🎲 Player Dice System</h2>
-
-<table>
-
-<tr><th>Player</th><th>Points</th><th>Rebounds</th></tr>
-
-<tr><td>C</td><td>2 dice / quarter</td><td>2 dice / quarter</td></tr>
-
-<tr><td>SG</td><td>2 dice / quarter</td><td>2 dice / quarter</td></tr>
-
-<tr><td>PG</td><td>2 dice / quarter</td><td>2 dice / quarter</td></tr>
-
-</table>
-
-<p>Each player can reach <b>48 points</b> and <b>48 rebounds</b> in regulation. Team score is the sum of the three players' points. Rebounds are tracked separately.</p>
-
-</div>
-
+<div class="card"><h2>🎟️ Ticket Revenue</h2><p>Every game gets two dice rolls. Each die is worth $10M.</p><div class="grid"><div class="metric"><small>Minimum</small><strong>$20M</strong></div><div class="metric"><small>Maximum</small><strong>$120M</strong></div></div><p>Ticket revenue is split 70% to the winner and 30% to the loser.</p></div>
  
-
-<div class="card">
-
-<h2>👟 Shoe Revenue</h2>
-
-<p>Each shoe business gets two dice rolls per game. The dice total × $10M is that game's shoe revenue.</p>
-
-<table>
-
-<tr><th>Rolls</th><th>Revenue</th></tr>
-
-<tr><td>1 + 3</td><td>$40M</td></tr><tr><td>5 + 3</td><td>$80M</td></tr><tr><td>6 + 6</td><td>$120M</td></tr>
-
-</table>
-
-</div>
-
+<div class="card"><h2>👟 Shoe Revenue</h2><p>Each shoe company gets two dice rolls per game. Dice total × $10M = shoe revenue. Range: $20M–$120M per game.</p></div>
  
-
-<div class="card">
-
-<h2>🏀 Run a Game</h2>
-
-<p>V14 can now run the player dice engine. Player names will be connected to your saved league names next; positions remain C, SG and PG.</p>
-
-<button id="runGame">🎲 Run Test Game</button>
-
-<button class="secondary" id="runSeason">🏆 Run 3-Game Regular Season</button>
-
-<div id="gameOutput" class="log" style="margin-top:12px"></div>
-
-</div>
-
+<div class="card"><h2>▶️ Run Full Season</h2><p>This runs the 3 regular-season games, applies the defending-champion bye rule, plays the semifinal and championship, calculates ticket revenue, and calculates shoe revenue.</p>
+<button id="runSeason">🏆 Run Complete Season</button><div id="seasonOutput" class="log" style="margin-top:12px"></div></div>
+ 
+<div class="card"><h2>🧾 Current Season</h2><div id="standingsOutput"><p class="muted">Run a season to populate standings and results.</p></div></div>
+ 
+<div class="card"><h2>📋 Offseason Management</h2><p><b>The year does not advance here automatically.</b> Finish contracts, trades, releases and roster decisions first.</p><div class="grid"><div class="metric"><small>Season Status</small><strong id="seasonStatus">Not Played</strong></div><div class="metric"><small>Offseason</small><strong id="offseasonStatus">Locked</strong></div></div>
+<button id="openOffseason">Open Offseason</button></div>
+ 
+<div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority. GMs can recommend deals, but you approve the final outcome.</p>
+<div id="contractBoard"></div>
+<div class="divider"></div>
+<h3>Former-Player GM System</h3><p>GMs come from prior players. Their permanent GM record tracks PPG, games managed, seasons and championships.</p><div id="gmBoard"></div>
+<button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button>
+<p id="offseasonMessage" class="tiny"></p></div>
+ 
+<div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 </section>
-
 </main>
-
- 
-
-<nav class="nav">
-
-<button data-nav="home" class="active">🏠<br>Home</button>
-
-<button data-nav="city">🗺️<br>City</button>
-
-<button data-nav="property">🏠<br>Property</button>
-
-<button data-nav="markets">📈<br>Markets</button>
-
-<button data-nav="finance">🏦<br>Finance</button>
-
-</nav>
-
- 
-
+<nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="property">🏠<br>Property</button><button data-nav="markets">📈<br>Markets</button><button data-nav="finance">🏦<br>Finance</button></nav>
 <script>
-
 (function(){
-
 "use strict";
-
-const teams=["Lions","Rims","Dunks"];
-
-const positions=["C","SG","PG"];
-
-let lastGame=null;
-
- 
-
+const TEAMS=["Lions","Rims","Dunks"];
+const POSITIONS=["C","SG","PG"];
+const SHOES=["Nike","Reebok","Puma","Adidas","New Balance"];
+const FORMER_PLAYERS=["S. Oliver","E. Ali","R. Boxi","Benmack II","Nail","Jacks","Corva","Reese","Lui","Joel","Hendi"];
+let state={year:1,defendingChampion:"Lions",seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},gms:{},lastSeason:null};
+try{const saved=localStorage.getItem("calvins_city_v15_basketball");if(saved)state={...state,...JSON.parse(saved)};}catch(e){}
+function save(){localStorage.setItem("calvins_city_v15_basketball",JSON.stringify(state));}
 function die(){return Math.floor(Math.random()*6)+1}
-
-function rollPlayer(){
-
- let pts=0,rebs=0,detail=[];
-
- for(let q=1;q<=4;q++){
-
-   const p1=die(),p2=die(),r1=die(),r2=die();
-
-   pts+=p1+p2; rebs+=r1+r2;
-
-   detail.push({q,pts:p1+p2,rebs:r1+r2,raw:`P ${p1}+${p2} / R ${r1}+${r2}`});
-
- }
-
- return {pts,rebs,detail};
-
-}
-
-function playTeam(team){
-
- const players=positions.map(pos=>({team,pos,...rollPlayer()}));
-
- return {team,players,score:players.reduce((a,p)=>a+p.pts,0),rebs:players.reduce((a,p)=>a+p.rebs,0)};
-
-}
-
+function money(n){return "$"+n.toFixed(0)+"M"}
+function ticketRevenue(){return (die()+die())*10}
 function shoeRevenue(){return (die()+die())*10}
-
- 
-
-function playGame(a,b){
-
- let A=playTeam(a),B=playTeam(b),ot=0;
-
- while(A.score===B.score){
-
-   ot++;
-
-   positions.forEach((pos,i)=>{
-
-     const ap=die(),ar=die(),bp=die(),br=die();
-
-     A.players[i].pts+=ap; A.players[i].rebs+=ar;
-
-     B.players[i].pts+=bp; B.players[i].rebs+=br;
-
-   });
-
-   A.score=A.players.reduce((x,p)=>x+p.pts,0); A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);
-
-   B.score=B.players.reduce((x,p)=>x+p.pts,0); B.rebs=B.players.reduce((x,p)=>x+p.rebs,0);
-
- }
-
- const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;
-
- return {A,B,winner,loser,ot,shoe:shoeRevenue()};
-
-}
-
-function gameHTML(g){
-
- let h=`<p class="gold"><b>${g.winner.team} wins ${g.winner.score}-${g.loser.score}</b>${g.ot?` after ${g.ot} OT`:``}</p>`;
-
- h+=`<p>Shoe revenue: <b>$${g.shoe}M</b></p>`;
-
- h+=`<table><tr><th>Team / Player</th><th>PTS</th><th>REB</th></tr>`;
-
- [g.A,g.B].forEach(t=>t.players.forEach(p=>h+=`<tr><td>${t.team} ${p.pos}</td><td>${p.pts}</td><td>${p.rebs}</td></tr>`));
-
- h+=`</table>`;
-
- return h;
-
-}
-
-function playSeason(){
-
- const games=[[teams[0],teams[1]],[teams[0],teams[2]],[teams[1],teams[2]]];
-
- const standings=Object.fromEntries(teams.map(t=>[t,{w:0,l:0,pts:0}]));
-
- let html="<p><b>Regular Season</b></p>";
-
- games.forEach(pair=>{
-
-   const g=playGame(pair[0],pair[1]);
-
-   standings[g.winner.team].w++;standings[g.loser.team].l++;
-
-   standings[g.winner.team].pts+=g.winner.score;standings[g.loser.team].pts+=g.loser.score;
-
-   html+=`<p>${g.winner.team} defeated ${g.loser.team}, ${g.winner.score}-${g.loser.score}. Shoe revenue: $${g.shoe}M.</p>`;
-
- });
-
- const order=teams.slice().sort((x,y)=>standings[y].w-standings[x].w);
-
- html+="<p><b>Standings</b></p><table><tr><th>Team</th><th>W</th><th>L</th><th>PTS</th></tr>";
-
- order.forEach(t=>html+=`<tr><td>${t}</td><td>${standings[t].w}</td><td>${standings[t].l}</td><td>${standings[t].pts}</td></tr>`);
-
- html+="</table><p class='muted'>V14 regular-season engine complete. Playoff tie-break logic is documented above; defending-champion identity will be connected to the saved historical league data.</p>";
-
- document.getElementById("gameOutput").innerHTML=html;
-
-}
-
-function showScreen(id){
-
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-
-const s=document.getElementById(id);if(s)s.classList.add("active");
-
-document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));
-
-window.scrollTo(0,0);
-
-}
-
+function playerName(team,pos){return state.roster[team+"_"+pos]||pos}
+function rollPlayer(){let pts=0,rebs=0,detail=[];for(let q=1;q<=4;q++){const p1=die(),p2=die(),r1=die(),r2=die();pts+=p1+p2;rebs+=r1+r2;detail.push({q,pts:p1+p2,rebs:r1+r2});}return{pts,rebs,detail}}
+function playTeam(team){const players=POSITIONS.map(pos=>({team,pos,name:playerName(team,pos),...rollPlayer()}));return{team,players,score:players.reduce((a,p)=>a+p.pts,0),rebs:players.reduce((a,p)=>a+p.rebs,0)}}
+function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((pos,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;const ticket=ticketRevenue();return{A,B,winner,loser,ot,ticket,shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeRevenue()]))}}
+function gameText(g){let h=`<p class="gold"><b>${g.winner.team} wins ${g.winner.score}-${g.loser.score}</b>${g.ot?` after ${g.ot} OT`:``}</p>`;h+=`<p>🎟️ Ticket revenue: <b>${money(g.ticket)}</b> — ${g.winner.team} ${money(g.ticket*.7)} / ${g.loser.team} ${money(g.ticket*.3)}</p>`;h+=`<p>👟 Shoe revenue: `+SHOES.map(s=>`${s} ${money(g.shoeByCompany[s])}`).join(" • ")+`</p>`;h+="<table><tr><th>Team / Player</th><th>PTS</th><th>REB</th></tr>";[g.A,g.B].forEach(t=>t.players.forEach(p=>h+=`<tr><td>${t.team} ${p.name}</td><td>${p.pts}</td><td>${p.rebs}</td></tr>`));return h+="</table>"}
+function seasonGames(){return[[TEAMS[0],TEAMS[1]],[TEAMS[0],TEAMS[2]],[TEAMS[1],TEAMS[2]]]}
+function chooseBye(standings){const max=Math.max(...TEAMS.map(t=>standings[t].w));const leaders=TEAMS.filter(t=>standings[t].w===max);if(leaders.length===1)return leaders[0];if(leaders.includes(state.defendingChampion))return state.defendingChampion;return state.defendingChampion}
+function runSeason(){if(state.seasonPlayed&&!state.offseasonFinalized){alert("Finish the current offseason before starting another season.");return}const standings=Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));let html="<p><b>Regular Season</b></p>";seasonGames().forEach(pair=>{const g=playGame(pair[0],pair[1]);standings[g.winner.team].w++;standings[g.loser.team].l++;standings[pair[0]].ptsFor+=g.A.score;standings[pair[0]].ptsAgainst+=g.B.score;standings[pair[1]].ptsFor+=g.B.score;standings[pair[1]].ptsAgainst+=g.A.score;standings[g.winner.team].ticket+=g.ticket*.7;standings[g.loser.team].ticket+=g.ticket*.3;SHOES.forEach(s=>{standings[g.A.team].shoe[s]=(standings[g.A.team].shoe[s]||0)+g.shoeByCompany[s];standings[g.B.team].shoe[s]=(standings[g.B.team].shoe[s]||0)+g.shoeByCompany[s]});html+=`<p>${g.winner.team} defeated ${g.loser.team}, <b>${g.winner.score}-${g.loser.score}</b>. Tickets ${money(g.ticket)}.</p>`});
+const bye=chooseBye(standings);const other=TEAMS.filter(t=>t!==bye);const semi=playGame(other[0],other[1]);const champ=playGame(bye,semi.winner.team);standings[semi.winner.team].w++;standings[semi.loser.team].l++;standings[champ.winner.team].w++;standings[champ.loser.team].l++;standings[semi.winner.team].ticket+=semi.ticket*.7;standings[semi.loser.team].ticket+=semi.ticket*.3;standings[champ.winner.team].ticket+=champ.ticket*.7;standings[champ.loser.team].ticket+=champ.ticket*.3;
+html+=`<p><b>Bye:</b> ${bye}</p><p><b>Semifinal:</b> ${semi.winner.team} defeated ${semi.loser.team}, ${semi.winner.score}-${semi.loser.score}.</p><p class="gold"><b>CHAMPIONSHIP: ${champ.winner.team} defeated ${champ.loser.team}, ${champ.winner.score}-${champ.loser.score}.</b></p><p>Champion prize: ${money(100)} • Runner-up prize: ${money(50)}</p><p>Championship ticket revenue: ${money(champ.ticket)}.</p>`;
+const order=TEAMS.slice().sort((x,y)=>standings[y].w-standings[x].w||(standings[y].ptsFor-standings[y].ptsAgainst)-(standings[x].ptsFor-standings[x].ptsAgainst));html+="<p><b>Final Record</b></p><table><tr><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr>";order.forEach(t=>html+=`<tr><td>${t}</td><td>${standings[t].w}</td><td>${standings[t].l}</td><td>${standings[t].ptsFor}</td><td>${standings[t].ptsAgainst}</td></tr>`);html+="</table>";
+state.lastSeason={champion:champ.winner.team,runnerUp:champ.loser.team,bye,standings,semifinal:{winner:semi.winner.team,loser:semi.loser.team},championship:{winner:champ.winner.team,loser:champ.loser.team,mvp:champ.winner.players.slice().sort((a,b)=>b.pts-a.pts)[0].name},seasonGames:3};state.defendingChampion=champ.winner.team;state.seasonPlayed=true;state.offseasonOpen=false;state.offseasonFinalized=false;save();renderSeason(html);}
+function renderSeason(html){document.getElementById("seasonOutput").innerHTML=html;document.getElementById("seasonStatus").textContent="Season Complete";document.getElementById("offseasonStatus").textContent="Ready";renderStandings();}
+function renderStandings(){const out=document.getElementById("standingsOutput");if(!state.lastSeason){out.innerHTML='<p class="muted">Run a season to populate standings and results.</p>';return}let h=`<p><b>Champion:</b> ${state.lastSeason.champion} <span class="badge">$100M</span><br><b>Runner-up:</b> ${state.lastSeason.runnerUp} <span class="badge">$50M</span><br><b>Championship MVP:</b> ${state.lastSeason.championship.mvp}</p>`;h+=`<p><b>Defending Champion:</b> ${state.defendingChampion}</p>`;out.innerHTML=h;}
+function buildRosterInputs(){const box=document.getElementById("rosterInputs");let h="<table><tr><th>Team</th><th>C</th><th>SG</th><th>PG</th></tr>";TEAMS.forEach(t=>{h+=`<tr><td>${t}</td>`;POSITIONS.forEach(p=>{const key=t+"_"+p;h+=`<td><input id="r_${key}" placeholder="${p}" value="${state.roster[key]||""}"></td>`});h+="</tr>"});box.innerHTML=h+"</table>"}
+function saveRoster(){TEAMS.forEach(t=>POSITIONS.forEach(p=>{const key=t+"_"+p;const el=document.getElementById("r_"+key);if(el&&el.value.trim())state.roster[key]=el.value.trim()}));save();document.getElementById("rosterSaved").textContent="Roster names saved on this device."}
+function buildContractBoard(){const box=document.getElementById("contractBoard");let h="<p class='tiny'>Current team gets the first bid. Players may renegotiate in the final year. Maximum term is 3 years. Contract values are entered as total contract value.</p>";TEAMS.forEach(t=>{h+=`<div class='team'><h3>${t}</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>`;POSITIONS.forEach(p=>{const key=t+"_"+p;const c=state.contracts[key]||{value:0,years:0,status:"Unsigned"};h+=`<tr><td>${playerName(t,p)} (${p})</td><td>${money(Number(c.value)||0)}</td><td>${c.years||0}</td><td><select id="c_${key}"><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>`});h+="</table></div>"});box.innerHTML=h}
+function buildGMBoard(){const box=document.getElementById("gmBoard");let h="<table><tr><th>Former Player</th><th>GM PPG</th><th>Games</th><th>Titles</th><th>Team</th></tr>";FORMER_PLAYERS.forEach(n=>{const g=state.gms[n]||{ppg:0,games:0,titles:0,team:"Free Agent"};h+=`<tr><td>${n}</td><td>${Number(g.ppg||0).toFixed(1)}</td><td>${g.games||0}</td><td>${g.titles||0}</td><td>${g.team||"Free Agent"}</td></tr>`});box.innerHTML=h+"</table><p class='tiny'>GM records are permanent career records. V15 displays the structure; GM assignments and live GM production will be connected to future roster simulation.</p>"}
+function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard();}
+function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen){return}state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;save();document.getElementById("offseasonCard").style.display="none";document.getElementById("homeYear").textContent=state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";document.getElementById("offseasonMessage").textContent="Offseason finalized. New year advanced only after offseason completion.";alert("Offseason finalized. Calvin's City is now ready for the new year.");}
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0)}
 document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));
-
 document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
-
-document.getElementById("runGame").addEventListener("click",()=>{
-
-lastGame=playGame("Lions","Rims");
-
-document.getElementById("gameOutput").innerHTML=gameHTML(lastGame);
-
-});
-
-document.getElementById("runSeason").addEventListener("click",playSeason);
-
+document.getElementById("runGame").addEventListener("click",()=>{const g=playGame("Lions","Rims");document.getElementById("gameOutput").innerHTML=gameText(g)});
+document.getElementById("runSeason").addEventListener("click",runSeason);
+document.getElementById("saveRoster").addEventListener("click",saveRoster);
+document.getElementById("openOffseason").addEventListener("click",openOffseason);
+document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
+buildRosterInputs();renderStandings();document.getElementById("homeYear").textContent=state.year;if(state.seasonPlayed){document.getElementById("seasonStatus").textContent="Season Complete";document.getElementById("offseasonStatus").textContent="Ready"}else if(state.offseasonFinalized){document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete"}
 })();
-
 </script>
-
 </body>
-
 </html>
