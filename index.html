@@ -14,7 +14,15 @@
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
-:root{--bg:#09101d;--panel:#121b2c;--panel2:#172237;--line:#2d3d58;--text:#f4f7fb;--muted:#9eabc0;--road:#394960;--land:#243c32;--owned:#2e4d42;--blue:#5579b8;--gold:#d6ad52}
+:root{
+
+--bg:#07101c;--panel:#111c2d;--line:#2d405d;--text:#f5f7fb;--muted:#9eabc0;
+
+--grass:#9eb58a;--grass2:#91aa7e;--road:#37465b;--road2:#46566d;
+
+--water:#5e94ad;--water2:#6da5b8;--building:#d9d8ce;--roof:#778294;
+
+}
 
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 
@@ -22,9 +30,9 @@ button{font:inherit;color:inherit}
 
 .app{min-height:100vh;padding-bottom:88px}
 
-header{padding:28px 22px 18px;border-bottom:1px solid var(--line)}
+header{padding:27px 22px 17px;border-bottom:1px solid var(--line)}
 
-h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:800;letter-spacing:-1.5px}
+h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:850;letter-spacing:-1.6px}
 
 .sub{font-size:16px;color:var(--muted);font-weight:700}
 
@@ -36,87 +44,125 @@ h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:800;letter-spacing:-1
 
 .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-.stat{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:13px}
+.stat{background:#172338;border:1px solid var(--line);border-radius:16px;padding:13px}
 
 .stat b{display:block;font-size:21px;margin-top:4px}
 
-.city-wrap{overflow:auto;border-radius:18px;border:1px solid var(--line);background:#101a29}
+.city-shell{overflow:auto;border-radius:20px;border:1px solid #30415a;background:#6f806b;box-shadow:0 8px 30px rgba(0,0,0,.28)}
 
-.city{position:relative;width:940px;height:760px;background:#b8a77e;overflow:hidden}
+.city{position:relative;width:1220px;height:860px;overflow:hidden;background:var(--grass)}
 
-.road{position:absolute;background:var(--road);z-index:2;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05)}
+.city:before{content:"";position:absolute;inset:0;background:
 
-.road.h{height:38px;left:0;right:0}.road.v{width:38px;top:0;bottom:0}
+radial-gradient(circle at 12% 18%,rgba(255,255,255,.18) 0 2px,transparent 3px),
 
-.road:after{content:"";position:absolute;opacity:.38}
+radial-gradient(circle at 70% 65%,rgba(255,255,255,.12) 0 2px,transparent 3px);
 
-.road.h:after{left:0;right:0;top:18px;border-top:2px dashed #e0d6b7}
+background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
-.road.v:after{top:0;bottom:0;left:18px;border-left:2px dashed #e0d6b7}
+.water{position:absolute;background:linear-gradient(120deg,var(--water),var(--water2));z-index:1;box-shadow:inset 0 0 18px rgba(0,0,0,.12)}
 
-.district{position:absolute;border:2px solid rgba(20,30,35,.2);border-radius:16px;padding:8px 10px;font-weight:800;color:#243027;z-index:1}
+.river{left:500px;top:-80px;width:135px;height:1030px;transform:rotate(6deg);border-radius:45%}
 
-.district small{display:block;font-weight:600;opacity:.7}
+.lake{left:-70px;top:650px;width:540px;height:250px;border-radius:50% 55% 0 0}
 
-.downtown{left:25px;top:25px;width:300px;height:250px;background:#b8a77e}
+.bay{right:-70px;top:530px;width:390px;height:350px;border-radius:55% 0 0 0}
 
-.north{left:355px;top:25px;width:560px;height:160px;background:#a9b68a}
+.road{position:absolute;background:var(--road);z-index:3;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05)}
 
-.west{left:25px;top:310px;width:300px;height:420px;background:#9eaf8a}
+.road.h{height:44px;left:0;right:0}.road.v{width:44px;top:0;bottom:0}
 
-.east{left:355px;top:220px;width:560px;height:220px;background:#b9aa83}
+.road.smallh{height:24px}.road.smallv{width:24px}
 
-.south{left:355px;top:475px;width:250px;height:255px;background:#a9b28a}
+.road:after{content:"";position:absolute;opacity:.55}
 
-.sports{left:635px;top:475px;width:280px;height:255px;background:#9faa7d}
+.road.h:after,.road.smallh:after{left:0;right:0;top:50%;border-top:2px dashed #ded8bf}
 
-.parcel{position:absolute;z-index:3;border:2px solid rgba(22,33,36,.45);border-radius:7px;background:var(--land);display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.16)}
+.road.v:after,.road.smallv:after{top:0;bottom:0;left:50%;border-left:2px dashed #ded8bf}
 
-.parcel.owned{background:var(--owned);border-color:#7ea99a}
+.bridge{position:absolute;z-index:4;background:#606f80;border:3px solid #8a8f91}
 
-.parcel.empty{background:#53614b}
+.district{position:absolute;z-index:2;color:#203027;font-weight:900;letter-spacing:.5px;font-size:12px;text-shadow:0 1px rgba(255,255,255,.35)}
 
-.building{position:absolute;left:8px;right:8px;top:8px;bottom:22px;border-radius:4px;background:#dfe7ee;color:#162033;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 3px 6px rgba(0,0,0,.28)}
+.district span{display:block;font-size:9px;font-weight:700;opacity:.7;margin-top:2px}
 
-.parcel.empty .building{display:none}
+.downtown{left:310px;top:92px}.north{left:80px;top:50px}.industrial{left:785px;top:58px}
 
-.parcel .label{position:absolute;bottom:3px;left:3px;right:3px;font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.west{left:65px;top:300px}.east{left:790px;top:315px}.sports{left:440px;top:560px}
 
-.parcel .id{position:absolute;top:2px;left:4px;font-size:8px;font-weight:800;opacity:.85}
+.south{left:700px;top:680px}.university{left:90px;top:560px}.retail{left:320px;top:700px}.port{left:1040px;top:690px}
 
-.p1{left:48px;top:75px;width:120px;height:72px}.p2{left:183px;top:75px;width:105px;height:72px}
+.block{position:absolute;z-index:2;background:rgba(153,174,132,.6);border:1px solid rgba(45,65,47,.22);border-radius:10px}
 
-.p3{left:48px;top:165px;width:120px;height:65px}.p4{left:183px;top:165px;width:105px;height:65px}
+.b1{left:55px;top:80px;width:240px;height:170px}.b2{left:650px;top:75px;width:500px;height:170px}
 
-.p5{left:385px;top:62px;width:125px;height:85px}.p6{left:525px;top:62px;width:125px;height:85px}.p7{left:665px;top:62px;width:125px;height:85px}
+.b3{left:60px;top:330px;width:250px;height:190px}.b4{left:750px;top:350px;width:390px;height:190px}
 
-.p8{left:48px;top:365px;width:120px;height:75px}.p9{left:183px;top:365px;width:105px;height:75px}
+.b5{left:75px;top:590px;width:250px;height:90px}.b6{left:670px;top:705px;width:300px;height:105px}
 
-.p10{left:48px;top:455px;width:120px;height:75px}.p11{left:183px;top:455px;width:105px;height:75px}
+.building{position:absolute;z-index:5;border:1px solid rgba(25,31,39,.35);border-radius:4px;background:var(--building);box-shadow:0 3px 7px rgba(0,0,0,.28);cursor:pointer}
 
-.p12{left:48px;top:545px;width:120px;height:75px}.p13{left:183px;top:545px;width:105px;height:75px}
+.building:after{content:"";position:absolute;inset:5px;background:repeating-linear-gradient(90deg,rgba(55,66,80,.22) 0 5px,transparent 5px 10px);opacity:.7}
 
-.p14{left:385px;top:270px;width:125px;height:75px}.p15{left:525px;top:270px;width:125px;height:75px}.p16{left:665px;top:270px;width:125px;height:75px}
+.low{height:30px}.med{height:42px}.high{height:58px}.tower{height:80px}
 
-.p17{left:385px;top:365px;width:125px;height:55px}.p18{left:525px;top:365px;width:125px;height:55px}
+.bldg-label{position:absolute;z-index:7;left:2px;right:2px;bottom:-13px;text-align:center;font-size:7px;font-weight:900;color:#18222f;white-space:nowrap}
 
-.p19{left:385px;top:525px;width:90px;height:80px}.p20{left:485px;top:525px;width:90px;height:80px}
+.home{background:#c8c4a9}.factory{background:#8f999a}.retailb{background:#d2c5aa}.office{background:#bfcbd2}.hotel{background:#cdb7a6}.arena{background:#727d91;border-radius:18px}.arena:after{border-radius:50%;background:radial-gradient(circle,#d7dce3 0 30%,#8994a5 31% 52%,#4d596b 53% 100%)}
 
-.p21{left:665px;top:535px;width:100px;height:100px}.p22{left:780px;top:535px;width:100px;height:100px}
+.bldg1{left:90px;top:115px;width:48px}.bldg2{left:155px;top:105px;width:58px}.bldg3{left:220px;top:135px;width:44px}
 
-.p23{left:665px;top:650px;width:100px;height:60px}.p24{left:780px;top:650px;width:100px;height:60px}
+.bldg4{left:365px;top:120px;width:55px}.bldg5{left:435px;top:112px;width:48px}.bldg6{left:365px;top:185px;width:70px}
 
-.park{position:absolute;background:#6d9362;border-radius:12px;border:2px solid rgba(30,55,32,.25);z-index:1;display:flex;align-items:center;justify-content:center;font-size:25px}
+.bldg7{left:690px;top:110px;width:65px}.bldg8{left:775px;top:105px;width:52px}.bldg9{left:845px;top:120px;width:72px}.bldg10{left:935px;top:100px;width:56px}.bldg11{left:1010px;top:130px;width:75px}
 
-.park.a{left:700px;top:205px;width:175px;height:45px}.park.b{left:70px;top:285px;width:190px;height:35px}
+.bldg12{left:105px;top:375px;width:58px}.bldg13{left:180px;top:365px;width:70px}.bldg14{left:95px;top:445px;width:55px}.bldg15{left:190px;top:445px;width:65px}
+
+.bldg16{left:790px;top:390px;width:65px}.bldg17{left:875px;top:380px;width:52px}.bldg18{left:950px;top:400px;width:75px}.bldg19{left:1030px;top:380px;width:58px}
+
+.bldg20{left:350px;top:735px;width:55px}.bldg21{left:425px;top:720px;width:65px}.bldg22{left:515px;top:740px;width:52px}
+
+.bldg23{left:720px;top:735px;width:75px}.bldg24{left:815px;top:725px;width:60px}.bldg25{left:895px;top:750px;width:70px}
+
+.home1{left:105px;top:620px;width:38px}.home2{left:160px;top:605px;width:42px}.home3{left:220px;top:625px;width:38px}.home4{left:280px;top:605px;width:42px}
+
+.home5{left:680px;top:740px;width:42px}.home6{left:735px;top:720px;width:38px}.home7{left:790px;top:750px;width:42px}.home8{left:850px;top:725px;width:38px}
+
+.arena1{left:385px;top:590px;width:145px;height:105px}.arena2{left:555px;top:570px;width:155px;height:115px}.arena3{left:740px;top:570px;width:145px;height:105px}
+
+.arena-title{position:absolute;z-index:8;bottom:7px;left:0;right:0;text-align:center;font-size:10px;font-weight:900;color:white;text-shadow:0 1px 2px #000}
+
+.tree{position:absolute;z-index:4;width:20px;height:20px;border-radius:50%;background:#46724b;border:2px solid #315936;box-shadow:0 2px 3px rgba(0,0,0,.2)}
+
+.tree:after{content:"";position:absolute;width:7px;height:9px;background:#765b42;left:5px;top:14px;z-index:-1}
+
+.park{position:absolute;z-index:2;background:#78976b;border:1px solid #567451;border-radius:15px}
+
+.p1{left:250px;top:60px;width:45px;height:80px}.p2{left:1040px;top:270px;width:90px;height:55px}.p3{left:320px;top:545px;width:80px;height:55px}
+
+.car{position:absolute;z-index:8;width:12px;height:7px;border-radius:3px;background:#d9d7ca;box-shadow:0 0 0 1px rgba(0,0,0,.35);animation:drive 9s linear infinite}
+
+.car.c2{animation-duration:12s;animation-delay:-5s}.car.c3{animation-duration:15s;animation-delay:-9s}
+
+@keyframes drive{from{transform:translateX(-80px)}to{transform:translateX(1300px)}}
+
+.lamp{position:absolute;z-index:6;width:5px;height:5px;border-radius:50%;background:#f5d889;box-shadow:0 0 8px #f5d889}
+
+.sign{position:absolute;z-index:10;background:rgba(10,18,28,.78);color:#fff;border:1px solid rgba(255,255,255,.35);padding:5px 8px;border-radius:5px;font-size:10px;font-weight:900;white-space:nowrap}
+
+.city-title{left:465px;top:20px}.city-title small{font-weight:600;color:#c2ccda}
+
+.marker{position:absolute;z-index:12;width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+
+.m1{left:397px;top:645px}.m2{left:567px;top:625px}.m3{left:752px;top:625px}
 
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
 
-.legend span{display:flex;align-items:center;gap:5px}.dot{width:12px;height:12px;border-radius:3px;background:#53614b}.dot.b{background:#dfe7ee}.dot.r{background:var(--road)}
+.legend span{display:flex;align-items:center;gap:5px}.dot{width:12px;height:12px;border-radius:3px;background:#d9d8ce}.dot.g{background:#78976b}.dot.r{background:var(--road)}
 
-.action{width:100%;padding:13px;border:0;border-radius:14px;background:#315c96;font-weight:800;margin-top:10px}
+.notice{padding:12px 14px;border-radius:14px;background:#1b2a40;color:#c7d3e5;font-size:13px;margin-bottom:14px}
 
-.action.alt{background:#29374e}.action.danger{background:#713b45}
+.action{width:100%;padding:13px;border:0;border-radius:14px;background:#315c96;font-weight:800;margin-top:10px}.action.danger{background:#713b45}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:flex-end;z-index:50}.modal.show{display:flex}
 
@@ -128,8 +174,6 @@ h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:800;letter-spacing:-1
 
 .nav button{flex:1;border:0;background:none;color:#8995aa;font-weight:800;font-size:12px}.nav button.active{color:#fff}.nav span{display:block;font-size:22px;margin-bottom:3px}
 
-.notice{padding:12px 14px;border-radius:14px;background:#1c2a40;color:#c7d3e5;font-size:13px;margin-bottom:14px}
-
 </style>
 
 </head>
@@ -138,41 +182,23 @@ h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:800;letter-spacing:-1
 
 <div class="app">
 
-<header>
-
- <h1>Calvin's City</h1>
-
- <div class="sub" id="yearLine">Year 1 • Normal Economy</div>
-
-</header>
+<header><h1>Calvin's City</h1><div class="sub" id="yearLine"></div></header>
 
  
 
 <section id="home" class="screen active">
 
- <div class="card">
+<div class="card"><h2>🏙️ Your City</h2><p class="muted">A living city. Roads, neighborhoods, businesses, sports and the economy will grow together.</p>
 
-   <h2>🏙️ Your City</h2>
+<div class="statgrid">
 
-   <p class="muted">You are the Overseer. The city runs itself; you make the important decisions.</p>
+<div class="stat">💰 City Cash<b id="cash"></b></div><div class="stat">👥 Population<b id="pop"></b></div>
 
-   <div class="statgrid">
+<div class="stat">🏢 Property Value<b id="propVal"></b></div><div class="stat">📈 Economy<b id="econ"></b></div>
 
-     <div class="stat">💰 City Cash<b id="cash">$500M</b></div>
+</div><button class="action" onclick="show('city')">Enter City</button></div>
 
-     <div class="stat">👥 Population<b id="pop">10,000</b></div>
-
-     <div class="stat">🏢 Property Value<b id="propVal">$0M</b></div>
-
-     <div class="stat">📈 Economy<b id="econ">Normal</b></div>
-
-   </div>
-
-   <button class="action" onclick="show('city')">Open City Map</button>
-
- </div>
-
- <div class="card"><h2>🎯 Current Phase</h2><p class="muted">Build the physical city first. Businesses, jobs, housing, basketball and the wider economy will connect to these locations.</p></div>
+<div class="card"><h2>🎯 Overseer</h2><p class="muted">You decide what gets built, who owns it and where the city expands. The simulation will eventually handle everyday business activity automatically.</p></div>
 
 </section>
 
@@ -180,143 +206,151 @@ h1{font-size:36px;line-height:1;margin:0 0 8px;font-weight:800;letter-spacing:-1
 
 <section id="city" class="screen">
 
- <div class="card">
+<div class="card"><h2>🗺️ City</h2><p class="muted">This is the physical city. Scroll around, watch traffic move and tap buildings or stadiums.</p>
 
-   <h2>🗺️ City Map</h2>
+<div class="city-shell"><div class="city" id="cityMap">
 
-   <p class="muted">Scroll around the city. Roads divide the districts. Tap land or a building to inspect it.</p>
+<div class="water river"></div><div class="water lake"></div><div class="water bay"></div>
 
-   <div class="city-wrap">
+<div class="block b1"></div><div class="block b2"></div><div class="block b3"></div><div class="block b4"></div><div class="block b5"></div><div class="block b6"></div>
 
-     <div class="city" id="cityMap">
+<div class="park p1"></div><div class="park p2"></div><div class="park p3"></div>
 
-       <div class="district downtown">DOWNTOWN<small>Finance • Offices • HQ</small></div>
+<div class="road h" style="top:275px"></div><div class="road h" style="top:520px"></div><div class="road h" style="top:675px"></div>
 
-       <div class="district north">NORTH DISTRICT<small>Residential • Neighborhoods</small></div>
+<div class="road v" style="left:300px"></div><div class="road v" style="left:520px"></div><div class="road v" style="left:725px"></div><div class="road v" style="left:990px"></div>
 
-       <div class="district west">WEST INDUSTRIAL<small>Factories • Warehouses • Logistics</small></div>
+<div class="road smallh" style="top:160px"></div><div class="road smallh" style="top:400px"></div>
 
-       <div class="district east">EAST RETAIL<small>Stores • Food • Services</small></div>
+<div class="road smallv" style="left:165px"></div><div class="road smallv" style="left:875px"></div>
 
-       <div class="district south">SOUTH DISTRICT<small>Hotels • Residential</small></div>
+<div class="bridge" style="left:505px;top:265px;width:160px;height:64px"></div>
 
-       <div class="district sports">SPORTS DISTRICT<small>Stadiums • Entertainment</small></div>
+<div class="bridge" style="left:475px;top:500px;width:190px;height:64px"></div>
 
-       <div class="park a">🌳 PARK</div><div class="park b">🌲 GREEN SPACE</div>
+<div class="district north">NORTH RESIDENTIAL<span>Homes • Apartments • Neighborhoods</span></div>
 
-       <div class="road h" style="top:285px"></div><div class="road h" style="top:445px"></div>
+<div class="district downtown">DOWNTOWN / GOVERNMENT<span>Finance • Offices • Government</span></div>
 
-       <div class="road h" style="top:635px"></div><div class="road v" style="left:325px"></div>
+<div class="district industrial">INDUSTRIAL DISTRICT<span>Factories • Warehouses • Logistics</span></div>
 
-       <div class="road v" style="left:615px"></div>
+<div class="district west">WEST RESIDENTIAL<span>Homes • Apartments</span></div>
 
-       <div id="parcels"></div>
+<div class="district east">EAST RESIDENTIAL<span>Homes • Services</span></div>
 
-     </div>
+<div class="district sports">ENTERTAINMENT & SPORTS<span>Stadiums • Media • Events</span></div>
 
-   </div>
+<div class="district south">SOUTH RESIDENTIAL<span>Homes • New development</span></div>
 
-   <div class="legend">
+<div class="district university">UNIVERSITY & RESEARCH<span>Education • Healthcare • R&D</span></div>
 
-     <span><i class="dot"></i>Land</span><span><i class="dot b"></i>Building</span><span><i class="dot r"></i>Road</span>
+<div class="district retail">RETAIL & SHOPPING<span>Stores • Food • Consumer goods</span></div>
 
-   </div>
+<div class="district port">PORT & LOGISTICS<span>Shipping • Distribution</span></div>
 
- </div>
+<div class="sign city-title">CALVIN'S CITY <small>• YEAR 11 • 10,000 PEOPLE</small></div>
+
+ 
+
+<div class="building office high bldg4" onclick="inspect('DT-01')"><div class="bldg-label">CITY HALL</div></div>
+
+<div class="building office tower bldg5" onclick="inspect('DT-02')"><div class="bldg-label">BANK</div></div>
+
+<div class="building office med bldg6" onclick="inspect('DT-03')"><div class="bldg-label">OFFICE</div></div>
+
+<div class="building home low bldg1" onclick="inspect('N-01')"></div><div class="building home low bldg2" onclick="inspect('N-02')"></div><div class="building home low bldg3" onclick="inspect('N-03')"></div>
+
+<div class="building factory high bldg7" onclick="inspect('W-01')"><div class="bldg-label">FACTORY</div></div>
+
+<div class="building factory med bldg8" onclick="inspect('W-02')"><div class="bldg-label">WAREHOUSE</div></div>
+
+<div class="building factory high bldg9" onclick="inspect('W-03')"><div class="bldg-label">FACTORY</div></div>
+
+<div class="building factory med bldg10" onclick="inspect('W-04')"><div class="bldg-label">WAREHOUSE</div></div>
+
+<div class="building factory high bldg11" onclick="inspect('W-05')"><div class="bldg-label">MANUFACTURING</div></div>
+
+<div class="building home low bldg12" onclick="inspect('N-04')"></div><div class="building home low bldg13" onclick="inspect('N-05')"></div><div class="building home low bldg14" onclick="inspect('N-06')"></div><div class="building home low bldg15" onclick="inspect('N-07')"></div>
+
+<div class="building retailb med bldg16" onclick="inspect('E-01')"><div class="bldg-label">RETAIL</div></div><div class="building retailb med bldg17" onclick="inspect('E-02')"><div class="bldg-label">FOOD</div></div><div class="building retailb med bldg18" onclick="inspect('E-03')"><div class="bldg-label">SHOPPING</div></div><div class="building retailb med bldg19" onclick="inspect('E-04')"><div class="bldg-label">RETAIL</div></div>
+
+<div class="building retailb low bldg20" onclick="inspect('R-01')"></div><div class="building retailb low bldg21" onclick="inspect('R-02')"></div><div class="building retailb low bldg22" onclick="inspect('R-03')"></div>
+
+<div class="building hotel tower bldg23" onclick="inspect('S-01')"><div class="bldg-label">HOTEL</div></div><div class="building home low bldg24" onclick="inspect('S-02')"></div><div class="building home low bldg25" onclick="inspect('S-03')"></div>
+
+<div class="building home low home1"></div><div class="building home low home2"></div><div class="building home low home3"></div><div class="building home low home4"></div>
+
+<div class="building home low home5"></div><div class="building home low home6"></div><div class="building home low home7"></div><div class="building home low home8"></div>
+
+<div class="building arena arena1" onclick="inspect('SP-01')"><div class="arena-title">ARENA 1</div></div>
+
+<div class="building arena arena2" onclick="inspect('SP-02')"><div class="arena-title">ARENA 2</div></div>
+
+<div class="building arena arena3" onclick="inspect('SP-03')"><div class="arena-title">ARENA 3</div></div>
+
+<div class="marker m1">1</div><div class="marker m2">2</div><div class="marker m3">3</div>
+
+<div class="tree" style="left:75px;top:105px"></div><div class="tree" style="left:245px;top:115px"></div><div class="tree" style="left:70px;top:245px"></div><div class="tree" style="left:280px;top:245px"></div>
+
+<div class="tree" style="left:720px;top:270px"></div><div class="tree" style="left:1080px;top:300px"></div><div class="tree" style="left:730px;top:530px"></div><div class="tree" style="left:940px;top:560px"></div>
+
+<div class="tree" style="left:340px;top:620px"></div><div class="tree" style="left:970px;top:730px"></div><div class="tree" style="left:1100px;top:760px"></div>
+
+<div class="lamp" style="left:305px;top:295px"></div><div class="lamp" style="left:525px;top:295px"></div><div class="lamp" style="left:745px;top:295px"></div><div class="lamp" style="left:1005px;top:295px"></div>
+
+<div class="lamp" style="left:305px;top:540px"></div><div class="lamp" style="left:745px;top:540px"></div><div class="lamp" style="left:995px;top:540px"></div>
+
+<div class="car" style="top:293px;left:10px"></div><div class="car c2" style="top:538px;left:100px"></div><div class="car c3" style="top:693px;left:400px"></div>
+
+</div></div>
+
+<div class="legend"><span><i class="dot"></i>Buildings</span><span><i class="dot g"></i>Parks/land</span><span><i class="dot r"></i>Roads</span><span>🏟️ Stadiums</span><span>🌊 Water</span></div>
+
+</div>
 
 </section>
 
  
 
-<section id="property" class="screen">
+<section id="property" class="screen"><div class="card"><h2>🏗️ Property</h2><p class="muted">Land and buildings are the foundation of the city's economy.</p><div id="propertyList"></div></div></section>
 
- <div class="card"><h2>🏗️ Property</h2><p class="muted">Property management will become the physical foundation of businesses and housing.</p><div id="propertyList"></div></div>
+<section id="markets" class="screen"><div class="card"><h2>📊 Markets</h2><p class="muted">The market clearinghouse will connect businesses, consumers and commodities.</p></div></section>
 
-</section>
-
- 
-
-<section id="markets" class="screen">
-
- <div class="card"><h2>📊 Markets</h2><p class="muted">Future market clearinghouse: food, commodities, housing, transportation, entertainment and more.</p></div>
-
-</section>
-
- 
-
-<section id="finance" class="screen">
-
- <div class="card"><h2>💰 Finance</h2><p class="muted">Treasury, Federal Reserve, taxes, loans and company finance will connect here.</p></div>
-
-</section>
+<section id="finance" class="screen"><div class="card"><h2>💰 Finance</h2><p class="muted">Treasury, Federal Reserve, taxes, loans and company finance will connect here.</p></div></section>
 
 </div>
 
  
 
-<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="sheet"><button class="close" onclick="closeModal()">✕</button><div id="sheetContent"></div></div></div>
 
-<div class="sheet">
-
-  <button class="close" onclick="closeModal()">✕</button>
-
-  <div id="sheetContent"></div>
-
-</div>
-
-</div>
-
- 
-
-<nav class="nav">
-
-<button data-screen="home" onclick="show('home')"><span>⌂</span>Home</button>
-
-<button data-screen="city" onclick="show('city')"><span>🏙️</span>City</button>
-
-<button data-screen="property" onclick="show('property')"><span>🏗️</span>Property</button>
-
-<button data-screen="markets" onclick="show('markets')"><span>📊</span>Markets</button>
-
-<button data-screen="finance" onclick="show('finance')"><span>💰</span>Finance</button>
-
-</nav>
+<nav class="nav"><button data-screen="home" onclick="show('home')"><span>⌂</span>Home</button><button data-screen="city" onclick="show('city')"><span>🏙️</span>City</button><button data-screen="property" onclick="show('property')"><span>🏗️</span>Property</button><button data-screen="markets" onclick="show('markets')"><span>📊</span>Markets</button><button data-screen="finance" onclick="show('finance')"><span>💰</span>Finance</button></nav>
 
  
 
 <script>
 
-const KEY='calvins_city_v3';
+const KEY='calvins_city_v4';
 
-const fresh={
-
-year:11,population:10000,economy:'Normal',cityCash:500,propertyValue:0,
+const fresh={year:11,population:10000,economy:'Normal',cityCash:500,propertyValue:0,
 
 parcels:[
 
- ['DT-01','Downtown','Office','Medium',50,'🏢','p1'],['DT-02','Downtown','Bank','Medium',40,'🏦','p2'],
+['DT-01','Downtown','City Hall','Large',50,'🏛️'],['DT-02','Downtown','Bank','Medium',40,'🏦'],['DT-03','Downtown','Office','Medium',35,'🏢'],
 
- ['DT-03','Downtown','Office','Small',35,'🏢','p3'],['DT-04','Downtown','HQ','Medium',45,'🏢','p4'],
+['N-01','North Residential','Apartment','Medium',35,'🏬'],['N-02','North Residential','Homes','Small',20,'🏠'],['N-03','North Residential','Apartment','Large',55,'🏬'],
 
- ['N-01','North District','Apartment','Medium',35,'🏬','p5'],['N-02','North District','Homes','Small',20,'🏠','p6'],['N-03','North District','Apartment','Large',55,'🏬','p7'],
+['W-01','Industrial','Factory','Large',60,'🏭'],['W-02','Industrial','Warehouse','Medium',30,'📦'],['W-03','Industrial','Factory','Large',65,'🏭'],['W-04','Industrial','Warehouse','Medium',32,'📦'],['W-05','Industrial','Manufacturing','Large',52,'🏭'],
 
- ['W-01','West Industrial','Factory','Large',60,'🏭','p8'],['W-02','West Industrial','Warehouse','Medium',30,'📦','p9'],['W-03','West Industrial','Factory','Large',65,'🏭','p10'],
+['E-01','East Residential','Retail','Large',55,'🛍️'],['E-02','East Residential','Food','Medium',30,'🍽️'],['E-03','East Residential','Shopping','Medium',38,'🛍️'],['E-04','East Residential','Retail','Medium',32,'🛍️'],
 
- ['W-04','West Industrial','Warehouse','Medium',32,'📦','p11'],['W-05','West Industrial','Factory','Medium',48,'🏭','p12'],['W-06','West Industrial','Logistics','Large',52,'🚚','p13'],
+['R-01','Retail & Shopping','Retail','Small',28,'🛍️'],['R-02','Retail & Shopping','Restaurant','Medium',34,'🍽️'],['R-03','Retail & Shopping','Retail','Medium',38,'🛍️'],
 
- ['E-01','East Retail','Retail','Large',55,'🛍️','p14'],['E-02','East Retail','Restaurant','Medium',30,'🍽️','p15'],['E-03','East Retail','Retail','Medium',38,'🛍️','p16'],
+['S-01','South Residential','Hotel','Large',70,'🏨'],['S-02','South Residential','Homes','Medium',30,'🏠'],['S-03','South Residential','Homes','Medium',30,'🏠'],
 
- ['E-04','East Retail','Office','Medium',32,'🏢','p17'],['E-05','East Retail','Restaurant','Medium',34,'🍽️','p18'],
+['SP-01','Sports District','Stadium','Landmark',100,'🏟️'],['SP-02','Sports District','Stadium','Landmark',100,'🏟️'],['SP-03','Sports District','Stadium','Landmark',100,'🏟️']
 
- ['S-01','South District','Hotel','Large',70,'🏨','p19'],['S-02','South District','Homes','Medium',30,'🏠','p20'],
-
- ['SP-01','Sports District','Stadium','Landmark',100,'🏟️','p21'],['SP-02','Sports District','Stadium','Landmark',100,'🏟️','p22'],
-
- ['SP-03','Sports District','Stadium','Landmark',100,'🏟️','p23'],['SP-04','Sports District','Entertainment','Large',60,'🎟️','p24']
-
-].map(x=>({id:x[0],district:x[1],type:x[2],size:x[3],price:x[4],icon:x[5],css:x[6],owned:false,built:false}))
-
-};
+].map(x=>({id:x[0],district:x[1],type:x[2],size:x[3],price:x[4],icon:x[5],owned:false,built:false}))};
 
 let state=JSON.parse(localStorage.getItem(KEY)||'null')||fresh;
 
@@ -324,107 +358,23 @@ function money(n){return '$'+Number(n).toFixed(0)+'M'}
 
 function save(){state.propertyValue=state.parcels.filter(p=>p.owned).reduce((a,p)=>a+p.price,0);localStorage.setItem(KEY,JSON.stringify(state));render()}
 
-function show(id){
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));if(id==='property')renderProperties();window.scrollTo(0,0)}
 
-document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+function render(){document.getElementById('yearLine').textContent=`Year ${state.year} • ${state.economy} Economy`;document.getElementById('cash').textContent=money(state.cityCash);document.getElementById('pop').textContent=state.population.toLocaleString();document.getElementById('propVal').textContent=money(state.propertyValue);document.getElementById('econ').textContent=state.economy;renderProperties()}
 
-document.getElementById(id).classList.add('active');
-
-document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
-
-if(id==='city')renderMap(); if(id==='property')renderProperties();
-
-window.scrollTo(0,0);
-
-}
-
-function render(){
-
-document.getElementById('yearLine').textContent=`Year ${state.year} • ${state.economy} Economy`;
-
-document.getElementById('cash').textContent=money(state.cityCash);
-
-document.getElementById('pop').textContent=state.population.toLocaleString();
-
-document.getElementById('propVal').textContent=money(state.propertyValue);
-
-document.getElementById('econ').textContent=state.economy;
-
-renderMap();renderProperties();
-
-}
-
-function renderMap(){
-
-const host=document.getElementById('parcels'); if(!host)return; host.innerHTML='';
-
-state.parcels.forEach(p=>{
-
- const el=document.createElement('div');el.className=`parcel ${p.owned?'owned':'empty'}`;el.classList.add(p.css);
-
- el.innerHTML=`<div class="id">${p.id}</div><div class="building">${p.built?p.icon:''}</div><div class="label">${p.built?p.type:'LAND'}</div>`;
-
- el.onclick=()=>inspect(p.id);host.appendChild(el);
-
-});
-
-}
-
-function inspect(id){
-
-const p=state.parcels.find(x=>x.id===id);
-
-let action=p.owned&&!p.built?`<button class="action" onclick="build('${p.id}')">Build ${p.type} • ${money(p.price*.35)}</button>`:
-
-p.owned&&p.built?`<button class="action danger" onclick="sell('${p.id}')">Sell Property • ${money(p.price*1.15)}</button>`:
-
-`<button class="action" onclick="buy('${p.id}')">Buy Land • ${money(p.price)}</button>`;
-
-document.getElementById('sheetContent').innerHTML=`<h2>${p.icon} ${p.id}</h2><p class="muted">${p.district} • ${p.size} • ${p.type}</p><div class="notice">${p.owned?(p.built?'Owned • Built':'Owned • Empty lot'):'Available land'}<br>Land value: ${money(p.price)}</div>${action}`;
-
-document.getElementById('modal').classList.add('show');
-
-}
+function inspect(id){const p=state.parcels.find(x=>x.id===id);if(!p)return;let action=p.owned&&!p.built?`<button class="action" onclick="build('${p.id}')">Build ${p.type} • ${money(p.price*.35)}</button>`:p.owned&&p.built?`<button class="action danger" onclick="sell('${p.id}')">Sell Property • ${money(p.price*1.15)}</button>`:`<button class="action" onclick="buy('${p.id}')">Buy Land • ${money(p.price)}</button>`;document.getElementById('sheetContent').innerHTML=`<h2>${p.icon} ${p.id}</h2><p class="muted">${p.district} • ${p.size} • ${p.type}</p><div class="notice">${p.owned?(p.built?'Owned • Built':'Owned • Empty lot'):'Available land'}<br>Land value: ${money(p.price)}</div>${action}`;document.getElementById('modal').classList.add('show')}
 
 function closeModal(){document.getElementById('modal').classList.remove('show')}
 
-function buy(id){
+function buy(id){const p=state.parcels.find(x=>x.id===id);if(p.owned||state.cityCash<p.price)return;state.cityCash-=p.price;p.owned=true;save();closeModal()}
 
-const p=state.parcels.find(x=>x.id===id);if(p.owned||state.cityCash<p.price)return;
+function build(id){const p=state.parcels.find(x=>x.id===id),cost=p.price*.35;if(!p.owned||p.built||state.cityCash<cost)return;state.cityCash-=cost;p.built=true;save();closeModal()}
 
-state.cityCash-=p.price;p.owned=true;save();closeModal();
+function sell(id){const p=state.parcels.find(x=>x.id===id);if(!p.owned)return;state.cityCash+=p.built?p.price*1.15:p.price;p.owned=false;p.built=false;save();closeModal()}
 
-}
-
-function build(id){
-
-const p=state.parcels.find(x=>x.id===id);const cost=p.price*.35;if(!p.owned||p.built||state.cityCash<cost)return;
-
-state.cityCash-=cost;p.built=true;save();closeModal();
-
-}
-
-function sell(id){
-
-const p=state.parcels.find(x=>x.id===id);if(!p.owned)return;
-
-state.cityCash+=p.built?p.price*1.15:p.price;p.owned=false;p.built=false;save();closeModal();
-
-}
-
-function renderProperties(){
-
-const box=document.getElementById('propertyList');if(!box)return;
-
-const owned=state.parcels.filter(p=>p.owned);
-
-box.innerHTML=owned.length?owned.map(p=>`<div class="stat" style="margin-top:8px"><b>${p.icon} ${p.id}</b><span class="muted">${p.type} • ${p.size} • ${p.built?'Built':'Empty lot'}</span></div>`).join(''):'<p class="muted">You do not own any property yet.</p>';
-
-}
+function renderProperties(){const box=document.getElementById('propertyList');if(!box)return;const owned=state.parcels.filter(p=>p.owned);box.innerHTML=owned.length?owned.map(p=>`<div class="stat" style="margin-top:8px"><b>${p.icon} ${p.id}</b><span class="muted">${p.type} • ${p.size} • ${p.built?'Built':'Empty lot'}</span></div>`).join(''):'<p class="muted">You do not own any property yet.</p>'}
 
 render();
-
-show('home');
 
 </script>
 
