@@ -182,9 +182,37 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 .roadstat b{display:block;color:#fff;font-size:16px;margin-top:3px}
 
-.road-hit{position:absolute;z-index:9;background:transparent;cursor:pointer}
+.road-hit{position:absolute;z-index:6;background:transparent;cursor:pointer}
 
 .traffic-dot{position:absolute;z-index:10;width:8px;height:5px;border-radius:3px;background:#f4f1dc;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+
+ 
+
+.highway-ring{position:absolute;z-index:2;left:24px;top:24px;width:1172px;height:812px;border:18px solid #263448;border-radius:78px;box-shadow:0 0 0 3px rgba(220,213,186,.25),inset 0 0 0 2px rgba(255,255,255,.06)}
+
+.highway-ring:before{content:"";position:absolute;inset:-5px;border:2px dashed #d8d1b5;border-radius:64px;opacity:.8}
+
+.exit{position:absolute;z-index:4;background:#536174;border:3px solid #29374b;border-radius:5px}
+
+.exit.e1{left:274px;top:18px;width:52px;height:54px}.exit.e2{left:705px;top:18px;width:52px;height:54px}
+
+.exit.e3{left:1144px;top:382px;width:54px;height:52px}.exit.e4{left:274px;top:788px;width:52px;height:54px}
+
+.exit.e5{left:705px;top:788px;width:52px;height:54px}.exit.e6{left:22px;top:382px;width:54px;height:52px}
+
+.highway-label{position:absolute;z-index:6;background:#253247;color:#fff;border:1px solid #718096;border-radius:6px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.5px}
+
+.highway-label.top{left:505px;top:31px}.highway-label.bottom{left:505px;top:812px}
+
+.traffic-car{position:absolute;z-index:8;width:15px;height:7px;border-radius:3px;background:#e5e0c8;box-shadow:0 0 0 1px rgba(0,0,0,.45)}
+
+.hcar1{top:38px;left:90px;animation:highwayEast 10s linear infinite}.hcar2{top:38px;left:800px;animation:highwayEast 13s linear infinite -5s}
+
+.hcar3{top:817px;left:900px;animation:highwayWest 11s linear infinite}.hcar4{top:817px;left:250px;animation:highwayWest 14s linear infinite -7s}
+
+@keyframes highwayEast{from{transform:translateX(0)}to{transform:translateX(1030px)}}
+
+@keyframes highwayWest{from{transform:translateX(0)}to{transform:translateX(-1030px)}}
 
 </style>
 
@@ -212,7 +240,7 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 <div class="card"><h2>🛣️ Road Infrastructure</h2>
 
-<p class="muted">Cars now represent movement through the economy. As population and business activity grow, traffic rises and road capacity becomes valuable.</p>
+<p class="muted">Cars represent movement through the economy. The highway loop carries through-traffic while city roads distribute people and goods to homes, businesses and stadiums.</p>
 
 <div class="statgrid">
 
@@ -234,7 +262,7 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 <section id="city" class="screen">
 
-<div class="card"><h2>🗺️ City</h2><p class="muted">This is the physical city. Scroll around, watch traffic move and tap buildings or stadiums.</p>
+<div class="card"><h2>🗺️ City</h2><p class="muted">This is the physical city. The highway carries through-traffic around the city, while major roads bring cars into the districts where economic activity happens.</p>
 
 <div class="city-shell"><div class="city" id="cityMap">
 
@@ -244,31 +272,29 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 <div class="park p1"></div><div class="park p2"></div><div class="park p3"></div>
 
+<div class="highway-ring"></div>
+
+<div class="highway-label top">CALVIN LOOP • HIGHWAY</div>
+
+<div class="highway-label bottom">CALVIN LOOP • HIGHWAY</div>
+
+<div class="exit e1"></div><div class="exit e2"></div><div class="exit e3"></div><div class="exit e4"></div><div class="exit e5"></div><div class="exit e6"></div>
+
+<div class="traffic-car hcar1"></div><div class="traffic-car hcar2"></div><div class="traffic-car hcar3"></div><div class="traffic-car hcar4"></div>
+
 <div class="road h" style="top:275px"></div>
 
 <div class="road h" style="top:520px"></div>
-
-<div class="road h" style="top:675px"></div>
-
-<div class="road v" style="left:300px"></div>
 
 <div class="road v" style="left:520px"></div>
 
 <div class="road v" style="left:725px"></div>
 
-<div class="road v" style="left:990px"></div>
-
-<div class="road smallh" style="top:160px"></div>
-
 <div class="road smallh" style="top:400px"></div>
 
-<div class="road smallh" style="top:770px"></div>
+<div class="road smallv" style="left:300px"></div>
 
-<div class="road smallv" style="left:165px"></div>
-
-<div class="road smallv" style="left:875px"></div>
-
-<div class="road smallv" style="left:1090px"></div>
+<div class="road smallv" style="left:990px"></div>
 
  
 
@@ -286,15 +312,29 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 <div class="road-hit" style="left:0;top:520px;width:1220px;height:44px" onclick="inspectRoad('MAIN-2')"></div>
 
-<div class="road-hit" style="left:0;top:675px;width:1220px;height:44px" onclick="inspectRoad('MAIN-3')"></div>
-
-<div class="road-hit" style="left:300px;top:0;width:44px;height:860px" onclick="inspectRoad('AVENUE-W')"></div>
-
 <div class="road-hit" style="left:520px;top:0;width:44px;height:860px" onclick="inspectRoad('AVENUE-C')"></div>
 
 <div class="road-hit" style="left:725px;top:0;width:44px;height:860px" onclick="inspectRoad('AVENUE-E')"></div>
 
-<div class="road-hit" style="left:990px;top:0;width:44px;height:860px" onclick="inspectRoad('HIGHWAY-E')"></div>
+<div class="road-hit" style="left:300px;top:400px;width:24px;height:460px" onclick="inspectRoad('CONNECTOR-W')"></div>
+
+<div class="road-hit" style="left:990px;top:0;width:24px;height:860px" onclick="inspectRoad('CONNECTOR-E')"></div>
+
+<div class="road-hit" style="left:95px;top:24px;width:180px;height:28px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+
+<div class="road-hit" style="left:760px;top:24px;width:300px;height:28px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+
+<div class="road-hit" style="left:24px;top:100px;width:28px;height:260px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+
+<div class="road-hit" style="left:1168px;top:100px;width:28px;height:260px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+
+<div class="road-hit" style="left:24px;top:500px;width:28px;height:250px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+
+<div class="road-hit" style="left:1168px;top:500px;width:28px;height:250px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+
+<div class="road-hit" style="left:95px;top:808px;width:180px;height:28px" onclick="inspectRoad('CALVIN-LOOP')"></div>
+
+<div class="road-hit" style="left:760px;top:808px;width:300px;height:28px" onclick="inspectRoad('CALVIN-LOOP')"></div>
 
 <div class="district north">NORTH RESIDENTIAL<span>Homes • Apartments • Neighborhoods</span></div>
 
@@ -436,23 +476,25 @@ parcels:[
 
 const roads=[
 
-{id:'MAIN-1',name:'Central Boulevard',type:'Main Road',cost:3,maint:.12,capacity:1000},
+{id:'CALVIN-LOOP',name:'Calvin Loop',type:'Highway',cost:18,maint:.75,capacity:9000},
 
-{id:'MAIN-2',name:'Sports Connector',type:'Main Road',cost:3.5,maint:.14,capacity:1100},
+{id:'MAIN-1',name:'Central Boulevard',type:'Main Road',cost:3,maint:.12,capacity:1200},
 
-{id:'MAIN-3',name:'South Boulevard',type:'Main Road',cost:3,maint:.12,capacity:1000},
+{id:'MAIN-2',name:'Sports Connector',type:'Main Road',cost:4,maint:.15,capacity:1500},
 
-{id:'AVENUE-W',name:'West Avenue',type:'Main Road',cost:3,maint:.12,capacity:950},
+{id:'AVENUE-C',name:'Central Avenue',type:'Main Road',cost:3.5,maint:.14,capacity:1300},
 
-{id:'AVENUE-C',name:'Central Avenue',type:'Main Road',cost:3.5,maint:.14,capacity:1100},
+{id:'AVENUE-E',name:'East Avenue',type:'Main Road',cost:3,maint:.12,capacity:1100},
 
-{id:'AVENUE-E',name:'East Avenue',type:'Main Road',cost:3,maint:.12,capacity:950},
+{id:'CONNECTOR-W',name:'West Connector',type:'Local Connector',cost:1.5,maint:.06,capacity:600},
 
-{id:'HIGHWAY-E',name:'East Connector',type:'Highway',cost:8,maint:.30,capacity:2500}
+{id:'CONNECTOR-E',name:'East Connector',type:'Local Connector',cost:1.5,maint:.06,capacity:600}
 
 ];
 
 let roadState=JSON.parse(localStorage.getItem(ROAD_KEY)||'null')||{built:roads.map(r=>r.id)};
+
+roadState.built=roads.map(r=>r.id);localStorage.setItem(ROAD_KEY,JSON.stringify(roadState));
 
 function roadTotals(){
 
