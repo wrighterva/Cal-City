@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#101827">
+<meta name="theme-color" content="#0b1220">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Calvin's City">
 <title>Calvin's City</title>
@@ -16,7 +16,7 @@ body{
  background:#0b1220;
  color:#f5f7fb;
  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;
- padding-bottom:82px
+ padding-bottom:84px
 }
 
 header{
@@ -34,7 +34,7 @@ h1{font-size:24px;margin:0 0 4px}
 
 .screen{
  padding:16px;
- max-width:760px;
+ max-width:800px;
  margin:auto
 }
 
@@ -82,7 +82,6 @@ button{
 
 button.secondary{background:#263247}
 button.good{background:#15803d}
-button.warn{background:#b45309}
 
 .row{
  display:flex;
@@ -104,24 +103,124 @@ button.warn{background:#b45309}
 
 .map{
  display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:7px
+ grid-template-columns:repeat(2,1fr);
+ gap:10px
 }
 
 .district{
- min-height:105px;
- border-radius:13px;
- padding:10px;
- background:#18253a;
+ min-height:190px;
+ border-radius:15px;
+ padding:12px;
+ background:#111c2e;
  border:1px solid #30415c
 }
 
-.district b{font-size:12px}
+.district-head{
+ display:flex;
+ gap:9px;
+ align-items:flex-start
+}
 
-.building{
- margin-top:8px;
- font-size:11px;
- color:#aebbd0
+.district-icon{font-size:27px}
+
+.district-desc{
+ font-size:10px;
+ color:#94a3b8;
+ line-height:1.35;
+ margin-top:3px
+}
+
+.parcel{
+ margin-top:10px;
+ padding:10px;
+ border-radius:11px;
+ background:#18253a;
+ border:1px solid #2b3b55
+}
+
+.parcel-top{
+ display:flex;
+ justify-content:space-between;
+ gap:8px
+}
+
+.parcel-name{
+ font-weight:700;
+ font-size:12px
+}
+
+.parcel-meta{
+ font-size:10px;
+ color:#94a3b8;
+ margin-top:4px
+}
+
+.badge{
+ font-size:9px;
+ font-weight:800;
+ padding:4px 6px;
+ border-radius:999px;
+ background:#263247;
+ color:#cbd5e1;
+ white-space:nowrap
+}
+
+.badge.available{
+ background:#14532d;
+ color:#86efac
+}
+
+.badge.owned{
+ background:#1e3a8a;
+ color:#bfdbfe
+}
+
+.badge.built{
+ background:#78350f;
+ color:#fde68a
+}
+
+.property-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:9px
+}
+
+.property-card{
+ background:#101a2b;
+ border:1px solid #2b3b55;
+ border-radius:14px;
+ padding:12px
+}
+
+.property-title{
+ font-weight:700;
+ font-size:13px
+}
+
+.property-desc{
+ font-size:10px;
+ color:#94a3b8;
+ margin:4px 0 9px;
+ line-height:1.35
+}
+
+.cost{
+ font-size:13px;
+ font-weight:800;
+ margin-bottom:8px
+}
+
+.small{
+ font-size:10px;
+ color:#94a3b8
+}
+
+.log{
+ max-height:220px;
+ overflow:auto;
+ font-size:12px;
+ color:#b8c3d5
 }
 
 .nav{
@@ -148,13 +247,11 @@ button.warn{background:#b45309}
 
 .nav button.active{color:white}
 
-.log{
- max-height:230px;
- overflow:auto;
- font-size:12px;
- color:#b8c3d5
+@media(max-width:390px){
+ .map,.property-grid{
+  grid-template-columns:1fr
+ }
 }
-
 </style>
 </head>
 
@@ -171,15 +268,25 @@ button.warn{background:#b45309}
 
 <script>
 
-const KEY="calvins_city_v1";
+const KEY="calvins_city_property_v1";
 
 const fresh={
+
  year:1,
+
  pop:10000,
+
  mwtp:20,
+
  econ:"Normal",
+
  fedRate:4.0,
+
  treasury:0,
+
+ cityCash:500,
+
+ propertyValue:0,
 
  commodities:{
   Grain:2.00,
@@ -188,6 +295,7 @@ const fresh={
  },
 
  food:[
+
   {
    name:"Prosper Foods",
    cash:180,
@@ -196,6 +304,7 @@ const fresh={
    inventory:0,
    price:20
   },
+
   {
    name:"Whitmore Foods",
    cash:180,
@@ -204,95 +313,1269 @@ const fresh={
    inventory:0,
    price:20
   }
+
  ],
 
  banks:[
+
   {
    name:"First City Bank",
    cash:500,
    loans:0
   }
+
  ],
 
  stocks:[
+
   {
    name:"Prosper Foods",
    price:50,
    shares:1000000
   },
+
   {
    name:"Whitmore Foods",
    price:50,
    shares:1000000
   }
+
+ ],
+
+ properties:[
+
+  {
+   id:"DT-01",
+   district:"Downtown",
+   type:"Office",
+   size:"Medium",
+   price:50,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"DT-02",
+   district:"Downtown",
+   type:"Bank",
+   size:"Medium",
+   price:40,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"N-01",
+   district:"North District",
+   type:"Apartment",
+   size:"Medium",
+   price:35,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"N-02",
+   district:"North District",
+   type:"Homes",
+   size:"Small",
+   price:20,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"W-01",
+   district:"West Industrial",
+   type:"Factory",
+   size:"Large",
+   price:60,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"W-02",
+   district:"West Industrial",
+   type:"Warehouse",
+   size:"Medium",
+   price:30,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"E-01",
+   district:"East Retail",
+   type:"Retail",
+   size:"Large",
+   price:55,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"E-02",
+   district:"East Retail",
+   type:"Restaurant",
+   size:"Medium",
+   price:30,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"S-01",
+   district:"South District",
+   type:"Hotel",
+   size:"Large",
+   price:70,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"S-02",
+   district:"South District",
+   type:"Homes",
+   size:"Medium",
+   price:30,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"SP-01",
+   district:"Sports District",
+   type:"Stadium",
+   size:"Landmark",
+   price:100,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"SP-02",
+   district:"Sports District",
+   type:"Stadium",
+   size:"Landmark",
+   price:100,
+   status:"available",
+   building:null
+  },
+
+  {
+   id:"SP-03",
+   district:"Sports District",
+   type:"Stadium",
+   size:"Landmark",
+   price:100,
+   status:"available",
+   building:null
+  }
+
  ],
 
  log:[
-  "Calvin's City founded. The economy is ready."
+  "Calvin's City founded. Property is now the foundation of the economy."
  ]
+
 };
 
-let s=JSON.parse(localStorage.getItem(KEY)||"null")||fresh;
+let s=JSON.parse(
+ localStorage.getItem(KEY)||"null"
+)||fresh;
 
 let tab="home";
 
+
+const districtInfo={
+
+ "Downtown":[
+  "🏙️",
+  "Finance, offices and headquarters"
+ ],
+
+ "North District":[
+  "🏘️",
+  "Permanent housing and apartments"
+ ],
+
+ "West Industrial":[
+  "🏭",
+  "Factories, warehouses and logistics"
+ ],
+
+ "East Retail":[
+  "🛍️",
+  "Stores, restaurants and consumer businesses"
+ ],
+
+ "South District":[
+  "🏨",
+  "Hotels and residential development"
+ ],
+
+ "Sports District":[
+  "🏀",
+  "Three stadiums and the sports economy"
+ ]
+
+};
+
+
+const buildingInfo={
+
+ Office:[
+  "Office Building",
+  "Business headquarters and services"
+ ],
+
+ Bank:[
+  "Bank Branch",
+  "Banking and lending"
+ ],
+
+ Apartment:[
+  "Apartment Building",
+  "Permanent residential capacity"
+ ],
+
+ Homes:[
+  "Housing",
+  "Permanent residential capacity"
+ ],
+
+ Factory:[
+  "Factory",
+  "Industrial production"
+ ],
+
+ Warehouse:[
+  "Warehouse",
+  "Storage and distribution"
+ ],
+
+ Retail:[
+  "Retail Center",
+  "Consumer retail"
+ ],
+
+ Restaurant:[
+  "Restaurant",
+  "Food and hospitality"
+ ],
+
+ Hotel:[
+  "Hotel",
+  "Temporary visitors and game traffic"
+ ],
+
+ Stadium:[
+  "Stadium",
+  "Basketball and event venue"
+ ]
+
+};
+
+
 function save(){
- localStorage.setItem(KEY,JSON.stringify(s));
+
+ localStorage.setItem(
+  KEY,
+  JSON.stringify(s)
+ );
+
 }
+
 
 function money(x){
- return "$"+Number(x).toFixed(2)+"M";
+
+ return "$"+
+ Number(x).toFixed(2)+
+ "M";
+
 }
+
 
 function log(x){
- s.log.unshift("Y"+s.year+": "+x);
- s.log=s.log.slice(0,60);
+
+ s.log.unshift(
+  "Y"+s.year+": "+x
+ );
+
+ s.log=s.log.slice(0,70);
+
  save();
+
 }
 
+
 function roll(){
+
  return Math.floor(Math.random()*6)+1+
         Math.floor(Math.random()*6)+1;
+
 }
+
+
+function card(title,body){
+
+ return `
+ <div class="card">
+
+  <div
+   class="section"
+   style="margin-top:0"
+  >
+   ${title}
+  </div>
+
+  ${body}
+
+ </div>
+ `;
+
+}
+
+
+function buyProperty(id){
+
+ const p=s.properties.find(
+  x=>x.id===id
+ );
+
+ if(!p ||
+    p.status!=="available")
+  return;
+
+ if(s.cityCash<p.price){
+
+  alert(
+   "Not enough city capital to buy this property."
+  );
+
+  return;
+
+ }
+
+ s.cityCash-=p.price;
+
+ s.propertyValue+=p.price;
+
+ p.status="owned";
+
+ log(
+  "City acquired "+
+  p.id+
+  " in "+
+  p.district+
+  " for "+
+  money(p.price)+"."
+ );
+
+ save();
+
+ render();
+
+}
+
+
+function buildProperty(id){
+
+ const p=s.properties.find(
+  x=>x.id===id
+ );
+
+ if(!p ||
+    p.status!=="owned")
+  return;
+
+ const cost=
+  Math.round(
+   p.price*.35*100
+  )/100;
+
+ if(s.cityCash<cost){
+
+  alert(
+   "Not enough development capital to build here."
+  );
+
+  return;
+
+ }
+
+ s.cityCash-=cost;
+
+ p.status="built";
+
+ p.building=
+  buildingInfo[p.type][0];
+
+ log(
+  "Built "+
+  p.building+
+  " on "+
+  p.id+
+  " for "+
+  money(cost)+"."
+ );
+
+ save();
+
+ render();
+
+}
+
+
+function sellProperty(id){
+
+ const p=s.properties.find(
+  x=>x.id===id
+ );
+
+ if(!p ||
+    p.status==="available")
+  return;
+
+ const value=
+  p.price*
+  (p.status==="built"?1.15:1);
+
+ s.cityCash+=value;
+
+ s.propertyValue-=p.price;
+
+ log(
+  "Sold "+
+  p.id+
+  " for "+
+  money(value)+"."
+ );
+
+ p.status="available";
+
+ p.building=null;
+
+ save();
+
+ render();
+
+}
+
+
+function propertyMarket(){
+
+ const owned=
+  s.properties.filter(
+   p=>p.status!=="available"
+  ).length;
+
+ const built=
+  s.properties.filter(
+   p=>p.status==="built"
+  ).length;
+
+ return `
+
+ <div class="screen">
+
+ ${card(
+ "🏗️ Property Market",
+
+ `
+
+ <div class="grid">
+
+ <div>
+  <div class="label">
+   City capital
+  </div>
+
+  <div class="metric">
+   ${money(s.cityCash)}
+  </div>
+ </div>
+
+
+ <div>
+  <div class="label">
+   Property value
+  </div>
+
+  <div class="metric">
+   ${money(s.propertyValue)}
+  </div>
+ </div>
+
+
+ <div>
+  <div class="label">
+   Properties owned
+  </div>
+
+  <div class="metric">
+   ${owned}
+  </div>
+ </div>
+
+
+ <div>
+  <div class="label">
+   Buildings built
+  </div>
+
+  <div class="metric">
+   ${built}
+  </div>
+ </div>
+
+ </div>
+
+
+ <p class="muted">
+
+ Land is bought first.
+
+ Then the city pays a development cost
+ to turn the parcel into a usable building.
+
+ Businesses will later occupy these buildings.
+
+ </p>
+
+ `
+ )}
+
+ ${card(
+ "Available Land",
+
+ `
+
+ <div class="property-grid">
+
+ ${s.properties
+  .filter(
+   p=>p.status==="available"
+  )
+  .map(
+   p=>`
+
+ <div class="property-card">
+
+  <div class="property-title">
+   ${p.id} • ${p.district}
+  </div>
+
+  <div class="property-desc">
+   ${p.size} ${p.type} parcel
+  </div>
+
+  <div class="cost">
+   ${money(p.price)}
+  </div>
+
+  <button
+   onclick="buyProperty('${p.id}')"
+  >
+   Buy Property
+  </button>
+
+ </div>
+
+ `
+  ).join("")}
+
+ </div>
+
+ `
+ )}
+
+ ${card(
+ "Your Properties",
+
+ owned===0
+
+ ? `<div class="muted">
+    You do not own any property yet.
+   </div>`
+
+ : `
+
+ <div class="property-grid">
+
+ ${s.properties
+  .filter(
+   p=>p.status!=="available"
+  )
+  .map(
+   p=>`
+
+ <div class="property-card">
+
+  <div class="property-title">
+   ${p.id} • ${p.district}
+  </div>
+
+  <div class="property-desc">
+   ${p.size} ${p.type}
+  </div>
+
+  <div class="badge ${p.status}">
+   ${p.status.toUpperCase()}
+  </div>
+
+  ${
+   p.building
+
+   ? `<div class="building">
+       🏢 ${p.building}
+      </div>`
+
+   : `<div
+       class="small"
+       style="margin-top:8px"
+      >
+       Raw land
+      </div>`
+  }
+
+  <div
+   class="row"
+   style="margin-top:10px"
+  >
+
+   ${
+    p.status==="owned"
+
+    ? `<button
+        onclick="buildProperty('${p.id}')"
+       >
+        Build
+        ${money(
+         Math.round(
+          p.price*.35*100
+         )/100
+        )}
+       </button>`
+
+    : ""
+   }
+
+   <button
+    class="secondary"
+    onclick="sellProperty('${p.id}')"
+   >
+    Sell
+   </button>
+
+  </div>
+
+ </div>
+
+ `
+  ).join("")}
+
+ </div>
+
+ `
+ )}
+
+ ${card(
+ "Property Rules",
+
+ `
+
+ <div class="item">
+  <span>Land</span>
+  <b>Purchased by the city</b>
+ </div>
+
+ <div class="item">
+  <span>Construction</span>
+  <b>35% of land price</b>
+ </div>
+
+ <div class="item">
+  <span>Built property sale value</span>
+  <b>+15% development value</b>
+ </div>
+
+ <div class="item">
+  <span>Business placement</span>
+  <b>Next system</b>
+ </div>
+
+ `
+ )}
+
+ </div>
+
+ `;
+
+}
+
+
+function city(){
+
+ const districts=
+  Object.keys(districtInfo);
+
+ return `
+
+ <div class="screen">
+
+ ${card(
+ "🏙️ City Map",
+
+ `
+
+ <div class="map">
+
+ ${districts.map(
+  d=>{
+
+   const props=
+    s.properties.filter(
+     p=>p.district===d
+    );
+
+   const built=
+    props.filter(
+     p=>p.status==="built"
+    ).length;
+
+   return `
+
+   <div class="district">
+
+    <div class="district-head">
+
+     <span class="district-icon">
+      ${districtInfo[d][0]}
+     </span>
+
+     <div>
+
+      <b>${d}</b>
+
+      <div class="district-desc">
+       ${districtInfo[d][1]}
+      </div>
+
+     </div>
+
+    </div>
+
+
+    <div
+     class="small"
+     style="margin-top:10px"
+    >
+     ${built}/${props.length}
+     parcels developed
+    </div>
+
+
+    ${props.slice(0,3).map(
+     p=>`
+
+     <div class="parcel">
+
+      <div class="parcel-top">
+
+       <span class="parcel-name">
+        ${p.id} • ${p.type}
+       </span>
+
+       <span class="badge ${p.status}">
+        ${p.status}
+       </span>
+
+      </div>
+
+      <div class="parcel-meta">
+       ${p.size} •
+       ${p.building||"undeveloped land"}
+      </div>
+
+     </div>
+
+     `
+    ).join("")}
+
+   </div>
+
+   `;
+
+  }
+
+ ).join("")}
+
+ </div>
+
+ `
+ )}
+
+ ${card(
+ "🏗️ Build the City",
+
+ `
+
+ <p class="muted">
+
+ Every business will eventually need
+ a physical address.
+
+ Property is now connected to the city
+ map instead of being a separate spreadsheet.
+
+ </p>
+
+ <button
+  onclick="tab='property';render()"
+ >
+  Open Property Market
+ </button>
+
+ `
+ )}
+
+ </div>
+
+ `;
+
+}
+
+
+function home(){
+
+ return `
+
+ <div class="screen">
+
+ ${card(
+ "City Overview",
+
+ `
+
+ <div class="grid">
+
+ <div>
+  <div class="label">
+   Population
+  </div>
+
+  <div class="metric">
+   ${s.pop.toLocaleString()}
+  </div>
+ </div>
+
+
+ <div>
+  <div class="label">
+   Economy
+  </div>
+
+  <div class="metric">
+   ${s.econ}
+  </div>
+ </div>
+
+
+ <div>
+  <div class="label">
+   City Capital
+  </div>
+
+  <div class="metric">
+   ${money(s.cityCash)}
+  </div>
+ </div>
+
+
+ <div>
+  <div class="label">
+   Property Value
+  </div>
+
+  <div class="metric">
+   ${money(s.propertyValue)}
+  </div>
+ </div>
+
+ </div>
+
+ `
+ )}
+
+
+ ${card(
+ "City Development",
+
+ `
+
+ <p class="muted">
+
+ The city now has real parcels,
+ ownership, construction and
+ development value.
+
+ </p>
+
+ <div class="row">
+
+ <button
+  onclick="tab='city';render()"
+ >
+  🏙️ View City
+ </button>
+
+ <button
+  onclick="tab='property';render()"
+ >
+  🏗️ Buy Property
+ </button>
+
+ </div>
+
+ `
+ )}
+
+
+ ${card(
+ "Yearly Controls",
+
+ `
+
+ <div class="row">
+
+ <button
+  onclick="popRoll();render()"
+ >
+  🎲 Population
+ </button>
+
+ <button
+  onclick="econRoll();render()"
+ >
+  🎲 Economy
+ </button>
+
+ <button
+  onclick="mwtpReset();render()"
+ >
+  💵 MWTP
+ </button>
+
+ <button
+  onclick="commodityRoll();render()"
+ >
+  🌾 Commodities
+ </button>
+
+ <button
+  class="good"
+  onclick="newYear()"
+ >
+  ▶ Start New Year
+ </button>
+
+ </div>
+
+ `
+ )}
+
+
+ ${card(
+ "Recent Activity",
+
+ `
+
+ <div class="log">
+
+ ${s.log.map(
+  x=>
+  "<div style='padding:5px 0'>"+
+  x+
+  "</div>"
+ ).join("")}
+
+ </div>
+
+ `
+ )}
+
+ </div>
+
+ `;
+
+}
+
+
+function markets(){
+
+ return `
+
+ <div class="screen">
+
+ ${card(
+ "Commodity Market",
+
+ Object.entries(
+  s.commodities
+ ).map(
+  ([k,v])=>`
+
+  <div class="item">
+
+   <span>${k}</span>
+
+   <b>
+    ${money(v)}
+   </b>
+
+  </div>
+
+ `
+ ).join("")
+
+ )}
+
+
+ ${card(
+ "Food Competition",
+
+ s.food.map(
+  f=>`
+
+  <div
+   class="card"
+   style="background:#101827"
+  >
+
+   <b>${f.name}</b>
+
+   <div class="item">
+    <span>Price</span>
+    <b>${money(f.price)}</b>
+   </div>
+
+   <div class="item">
+    <span>Quality / Brand</span>
+    <span>
+     ${f.quality}/10 •
+     ${f.brand}/10
+    </span>
+   </div>
+
+   <div class="item">
+    <span>Cash</span>
+    <b>${money(f.cash)}</b>
+   </div>
+
+  </div>
+
+ `
+ ).join("")
+
+ )}
+
+ </div>
+
+ `;
+
+}
+
+
+function finance(){
+
+ return `
+
+ <div class="screen">
+
+ ${card(
+ "Federal Treasury",
+
+ `
+
+ <div class="metric">
+  ${money(s.treasury)}
+ </div>
+
+ <div class="muted">
+  Collected from modeled transaction taxes.
+ </div>
+
+ `
+ )}
+
+
+ ${card(
+ "Federal Reserve",
+
+ `
+
+ <div class="item">
+
+  <span>
+   Policy rate
+  </span>
+
+  <b>
+   ${s.fedRate.toFixed(2)}%
+  </b>
+
+ </div>
+
+
+ <div class="row">
+
+ <button
+  class="secondary"
+  onclick="
+   s.fedRate=Math.max(
+    0,
+    s.fedRate-.25
+   );
+   log('Fed cut rates 0.25%.');
+   render()
+  "
+ >
+  −0.25%
+ </button>
+
+
+ <button
+  class="secondary"
+  onclick="
+   s.fedRate+=.25;
+   log('Fed raised rates 0.25%.');
+   render()
+  "
+ >
+  +0.25%
+ </button>
+
+ </div>
+
+ `
+ )}
+
+
+ ${card(
+ "Banks",
+
+ s.banks.map(
+  b=>`
+
+  <div class="item">
+
+   <span>
+    ${b.name}
+   </span>
+
+   <b>
+    ${money(b.cash)}
+   </b>
+
+  </div>
+
+ `
+ ).join("")
+
+ )}
+
+
+ ${card(
+ "Stock Market",
+
+ s.stocks.map(
+  x=>`
+
+  <div class="item">
+
+   <span>
+    ${x.name}
+   </span>
+
+   <b>
+    $${x.price.toFixed(2)}
+   </b>
+
+  </div>
+
+ `
+ ).join("")
+
+ )}
+
+ </div>
+
+ `;
+
+}
+
 
 function econRoll(){
 
  const r=roll();
 
  s.econ=
-   r<=4 ? "Recession":
-   r<=9 ? "Normal":
-   "Boom";
+  r<=4
+  ?"Recession"
+  :r<=9
+  ?"Normal"
+  :"Boom";
 
- log("Economic roll: "+r+" → "+s.econ);
+ log(
+  "Economic roll: "+
+  r+
+  " → "+
+  s.econ
+ );
 
  return r;
+
 }
+
 
 function popRoll(){
 
  const r=roll();
 
  const pct=
-   r<=4 ? -1:
-   r<=6 ? 0:
-   r<=8 ? 1:
-   r<=10 ? 2:
-   3;
+  r<=4
+  ?-1
+  :r<=6
+  ?0
+  :r<=8
+  ?1
+  :r<=10
+  ?2
+  :3;
 
  s.pop=Math.max(
-   1000,
-   Math.round(s.pop*(1+pct/100))
+  1000,
+  Math.round(
+   s.pop*(1+pct/100)
+  )
  );
 
  log(
-   "Population roll "+r+
-   " → "+(pct>=0?"+":"")+pct+
-   "% population."
+  "Population roll "+
+  r+
+  " → "+
+  (pct>=0?"+":"")+
+  pct+
+  "% population."
  );
 
  return {r,pct};
+
 }
+
 
 function mwtpReset(){
 
@@ -301,13 +1584,25 @@ function mwtpReset(){
  const base=s.mwtp;
 
  let pct=
-   (s.econ==="Boom"?2:
-    s.econ==="Recession"?-2:0)
-   +(r>=10?2:r<=4?-2:0);
+  (s.econ==="Boom"
+   ?2
+   :s.econ==="Recession"
+   ?-2
+   :0)
+  +
+  (r>=10
+   ?2
+   :r<=4
+   ?-2
+   :0);
 
  s.mwtp=Math.max(
-   5,
-   Math.round(base*(1+pct/100)*100)/100
+  5,
+  Math.round(
+   base*
+   (1+pct/100)*
+   100
+  )/100
  );
 
  log(
@@ -319,7 +1614,9 @@ function mwtpReset(){
  );
 
  return {r,pct};
+
 }
+
 
 function commodityRoll(){
 
@@ -339,104 +1636,139 @@ function commodityRoll(){
 
  const r=roll();
 
- for(const k in s.commodities){
+ for(
+  const k in s.commodities
+ ){
 
-  s.commodities[k]=Math.round(
-   s.commodities[k]*
-   (1+moves[r]/100)*100
-  )/100;
+  s.commodities[k]=
+   Math.round(
+    s.commodities[k]*
+    (1+moves[r]/100)*
+    100
+   )/100;
 
  }
 
  log(
-  "Commodity roll "+r+
+  "Commodity roll "+
+  r+
   " → prices move "+
   (moves[r]>=0?"+":"")+
-  moves[r]+"%."
+  moves[r]+
+  "%."
  );
 
  return {
   r,
   move:moves[r]
  };
+
 }
+
 
 function season(){
 
- const demand=Math.round(s.pop*3);
+ const demand=
+  Math.round(s.pop*3);
 
  const avg=
-  (s.food[0].price+
-   s.food[1].price)/2;
+  (
+   s.food[0].price+
+   s.food[1].price
+  )/2;
 
- const sensitivity=Math.max(
-  .2,
-  1-Math.max(0,avg-s.mwtp)*.12
- );
-
- let total=Math.round(
-  demand*sensitivity
- );
-
- let weights=s.food.map(
-  f=>Math.max(
-   .1,
-   (100-f.price*2)+
-   (f.quality*4)+
-   (f.brand*3)
-  )
- );
-
- let sum=weights.reduce(
-  (a,b)=>a+b,
-  0
- );
-
- s.food.forEach((f,i)=>{
-
-  const sales=Math.round(
-   total*weights[i]/sum
+ const sensitivity=
+  Math.max(
+   .2,
+   1-
+   Math.max(
+    0,
+    avg-s.mwtp
+   )*.12
   );
 
-  const costPer=
-   s.commodities.Grain*.3+
-   s.commodities.Meat*.35+
-   s.commodities.Produce*.25;
-
-  const revenue=sales*f.price;
-
-  const costs=sales*costPer;
-
-  const profit=
-   (revenue-costs)/1000000;
-
-  f.cash+=profit;
-
-  f.inventory=
-   Math.max(0,30000-sales);
-
-  s.treasury+=
-   revenue*.05/1000000;
-
-  const stock=s.stocks[i];
-
-  stock.price=Math.max(
-   1,
-   stock.price*
-   (1+
-   profit/
-   Math.max(1,f.cash)*.25)
+ const total=
+  Math.round(
+   demand*sensitivity
   );
 
-  log(
-   f.name+
-   " sold "+
-   sales.toLocaleString()+
-   " meals, profit "+
-   money(profit)+"."
+ let weights=
+  s.food.map(
+   f=>
+   Math.max(
+    .1,
+    (100-f.price*2)+
+    (f.quality*4)+
+    (f.brand*3)
+   )
   );
 
- });
+ let sum=
+  weights.reduce(
+   (a,b)=>a+b,
+   0
+  );
+
+ s.food.forEach(
+  (f,i)=>{
+
+   const sales=
+    Math.round(
+     total*
+     weights[i]/
+     sum
+    );
+
+   const costPer=
+    s.commodities.Grain*.3+
+    s.commodities.Meat*.35+
+    s.commodities.Produce*.25;
+
+   const revenue=
+    sales*f.price;
+
+   const costs=
+    sales*costPer;
+
+   const profit=
+    (revenue-costs)/1000000;
+
+   f.cash+=profit;
+
+   f.inventory=
+    Math.max(
+     0,
+     30000-sales
+    );
+
+   s.treasury+=
+    revenue*
+    .05/
+    1000000;
+
+   s.stocks[i].price=
+    Math.max(
+     1,
+     s.stocks[i].price*
+     (
+      1+
+      profit/
+      Math.max(1,f.cash)*
+      .25
+     )
+    );
+
+   log(
+    f.name+
+    " sold "+
+    sales.toLocaleString()+
+    " meals, profit "+
+    money(profit)+
+    "."
+   );
+
+  }
+ );
 
  log(
   "Federal Market cleared "+
@@ -445,7 +1777,9 @@ function season(){
   demand.toLocaleString()+
   " potential demand."
  );
+
 }
+
 
 function newYear(){
 
@@ -462,356 +1796,64 @@ function newYear(){
  save();
 
  render();
+
 }
 
-function card(title,body){
-
- return `
- <div class="card">
-  <div class="section" style="margin-top:0">
-   ${title}
-  </div>
-  ${body}
- </div>
- `;
-}
-
-function home(){
-
- return `
- <div class="screen">
-
- ${card("City Overview",`
-
- <div class="grid">
-
- <div>
-  <div class="label">Population</div>
-  <div class="metric">
-   ${s.pop.toLocaleString()}
-  </div>
- </div>
-
- <div>
-  <div class="label">Economy</div>
-  <div class="metric">
-   ${s.econ}
-  </div>
- </div>
-
- <div>
-  <div class="label">MWTP / meal</div>
-  <div class="metric">
-   ${money(s.mwtp)}
-  </div>
- </div>
-
- <div>
-  <div class="label">Fed rate</div>
-  <div class="metric">
-   ${s.fedRate.toFixed(2)}%
-  </div>
- </div>
-
- </div>
-
- `)}
-
- ${card("Yearly Controls",`
-
- <div class="row">
-
- <button onclick="popRoll();render()">
- 🎲 Population
- </button>
-
- <button onclick="econRoll();render()">
- 🎲 Economy
- </button>
-
- <button onclick="mwtpReset();render()">
- 💵 MWTP
- </button>
-
- <button onclick="commodityRoll();render()">
- 🌾 Commodities
- </button>
-
- <button class="good" onclick="newYear()">
- ▶ Start New Year
- </button>
-
- </div>
-
- `)}
-
- ${card("Basketball Season",`
-
- <p class="muted">
- Three teams • best record gets a bye •
- championship can create up to five game dates.
- </p>
-
- <button onclick="season();render()">
- 🏀 Run Season Market
- </button>
-
- `)}
-
- ${card("Recent Activity",`
-
- <div class="log">
-
- ${s.log.map(
-  x=>"<div style='padding:5px 0'>"+x+"</div>"
- ).join("")}
-
- </div>
-
- `)}
-
- </div>
- `;
-}
-
-function city(){
-
- return `
- <div class="screen">
-
- ${card("City Map",`
-
- <div class="map">
-
- ${[
-  ["Downtown","Banks • Offices"],
-  ["North District","Apartments • Homes"],
-  ["West Industrial","Factories • Warehouses"],
-  ["East Retail","Retail • Food"],
-  ["South District","Housing • Hotels"],
-  ["Sports District","3 Stadiums • Vendors"]
- ].map(x=>`
-
- <div class="district">
-  <b>${x[0]}</b>
-  <div class="building">
-   ${x[1]}
-  </div>
- </div>
-
- `).join("")}
-
- </div>
-
- `)}
-
- ${card("Housing & Population",`
-
- <div class="item">
-  <span>Permanent residents</span>
-  <b>${s.pop.toLocaleString()}</b>
- </div>
-
- <div class="item">
-  <span>Annual food demand</span>
-  <b>${(s.pop*3).toLocaleString()} meals</b>
- </div>
-
- `)}
-
- </div>
- `;
-}
-
-function markets(){
-
- return `
- <div class="screen">
-
- ${card("Commodity Market",
-
- Object.entries(s.commodities).map(
- ([k,v])=>`
-
- <div class="item">
-  <span>${k}</span>
-  <b>${money(v)}</b>
- </div>
-
- `).join("")
-
- )}
-
- ${card("Food Competition",
-
- s.food.map((f,i)=>`
-
- <div class="card" style="background:#101827">
-
- <b>${f.name}</b>
-
- <div class="item">
-  <span>Price</span>
-  <b>${money(f.price)}</b>
- </div>
-
- <div class="item">
-  <span>Quality / Brand</span>
-  <span>${f.quality}/10 • ${f.brand}/10</span>
- </div>
-
- <div class="item">
-  <span>Cash</span>
-  <b>${money(f.cash)}</b>
- </div>
-
- </div>
-
- `).join("")
-
- )}
-
- </div>
- `;
-}
-
-function finance(){
-
- return `
- <div class="screen">
-
- ${card("Federal Treasury",`
-
- <div class="metric">
-  ${money(s.treasury)}
- </div>
-
- <div class="muted">
-  Collected from modeled transaction taxes.
- </div>
-
- `)}
-
- ${card("Federal Reserve",`
-
- <div class="item">
-  <span>Policy rate</span>
-  <b>${s.fedRate.toFixed(2)}%</b>
- </div>
-
- <div class="row">
-
- <button class="secondary"
- onclick="
- s.fedRate=Math.max(0,s.fedRate-.25);
- log('Fed cut rates 0.25%.');
- render()
- ">
- −0.25%
- </button>
-
- <button class="secondary"
- onclick="
- s.fedRate+=.25;
- log('Fed raised rates 0.25%.');
- render()
- ">
- +0.25%
- </button>
-
- </div>
-
- `)}
-
- ${card("Banks",
-
- s.banks.map(
- b=>`
-
- <div class="item">
-  <span>${b.name}</span>
-  <b>${money(b.cash)}</b>
- </div>
-
- `).join("")
-
- )}
-
- ${card("Stock Market",
-
- s.stocks.map(
- x=>`
-
- <div class="item">
-  <span>${x.name}</span>
-  <b>$${x.price.toFixed(2)}</b>
- </div>
-
- `).join("")
-
- )}
-
- </div>
- `;
-}
 
 function render(){
 
- document.getElementById("headerSub").textContent=
+ document.getElementById(
+  "headerSub"
+ ).textContent=
   `Year ${s.year} • ${s.econ} Economy`;
 
  const pages={
   home,
   city,
+  property:propertyMarket,
   markets,
   finance
  };
 
- document.getElementById("app").innerHTML=
+ document.getElementById(
+  "app"
+ ).innerHTML=
   pages[tab]();
 
+
  const labels=[
+
   ["home","⌂","Home"],
+
   ["city","🏙","City"],
+
+  ["property","🏗","Property"],
+
   ["markets","📊","Markets"],
-  ["finance","💰","Finance"],
-  ["reset","↻","Reset"]
+
+  ["finance","💰","Finance"]
+
  ];
 
- document.getElementById("nav").innerHTML=
+
+ document.getElementById(
+  "nav"
+ ).innerHTML=
+
  labels.map(
- ([id,ic,name])=>`
+  ([id,ic,name])=>
 
- <button
- class="${tab===id?'active':''}"
- onclick="${
-  id==='reset'
-  ?'resetGame()'
-  :`tab='${id}';render()`
- }">
+  `<button
+   class="${tab===id?'active':''}"
+   onclick="tab='${id}';render()"
+  >
+   ${ic}<br>${name}
+  </button>`
 
- ${ic}<br>${name}
+ ).join("");
 
- </button>
-
- `).join("");
 }
 
-function resetGame(){
-
- if(confirm("Reset the entire city?")){
-
-  s=JSON.parse(
-   JSON.stringify(fresh)
-  );
-
-  save();
-
-  tab="home";
-
-  render();
- }
-}
 
 render();
 
