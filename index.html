@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.16.3 -->
+<!-- CALVIN'S CITY — VERSION 4.16.4 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.16.3</title>
+<title>Calvin's City 4.16.4</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -42,7 +42,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .s1{left:74%;top:40%;width:17%;height:92px}.s2{left:9%;top:71%;width:17%;height:92px}.s3{left:42%;top:72%;width:17%;height:92px}.stadium span{font-size:6.5px}.s3 .image-building-label{position:absolute;left:0;right:0;bottom:5px}
 .city-label{position:absolute;z-index:7;font-size:7.5px;font-weight:900;color:rgba(255,255,255,.82);letter-spacing:.4px;pointer-events:none;text-transform:uppercase}
 .l1{left:7%;top:10%;width:24%;text-align:center}.l2{left:38%;top:10%;width:24%;text-align:center}.l3{left:69%;top:10%;width:24%;text-align:center}.l4{left:7%;top:39%;width:24%;text-align:center}.l5{left:38%;top:39%;width:24%;text-align:center}.l6{left:69%;top:39%;width:24%;text-align:center}.l7{left:7%;top:70%;width:24%;text-align:center}.l8{left:38%;top:69.5%;width:24%;text-align:center}.l9{left:69%;top:70%;width:24%;text-align:center}
-.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:none}.modal.show{display:flex}.modalbox{width:min(100%,420px);max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px}.modalbox h2{margin-top:0}
+.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:auto}.modal.show{display:flex}.modalbox{width:min(100%,420px);max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px}.modalbox h2{margin-top:0}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
 .nav button{margin:0;padding:11px 4px;font-size:12px;background:#273446}.nav button.active{background:#2f6fed}
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
@@ -68,7 +68,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.16</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.3</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.4</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.4</div></header>
 <main>
 <section id="home" class="screen active"><div class="card"><h2>City Overview</h2><div class="grid"><div class="metric"><small>Year</small><strong id="homeYear">1</strong></div><div class="metric"><small>Population</small><strong>10,000</strong></div><div class="metric"><small>Economy</small><strong>Normal</strong></div><div class="metric"><small>CSP</small><strong>$20</strong><span style="display:block;font-size:9px;color:#7f8b99;margin-top:3px">Consumer Spending Power</span></div></div></div>
 <div class="card"><h2>🏀 Basketball</h2><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -373,13 +373,13 @@ document.getElementById("runGame").addEventListener("click",()=>{const g=playGam
 document.addEventListener("click",function(e){
 if(e.target && e.target.id==="recordsClose"){
 const modal=document.getElementById("recordsModal");
-if(modal){modal.classList.remove("show");unlockRecordsScroll();}
+if(modal){modal.classList.remove("show");unlockRecordsScroll();document.body.style.overflow="auto";document.documentElement.style.overflow="auto";}
 }
 });
  
 document.addEventListener("click",function(e){
 const modal=document.getElementById("recordsModal");
-if(modal && e.target===modal){modal.classList.remove("show");unlockRecordsScroll();}
+if(modal && e.target===modal){modal.classList.remove("show");unlockRecordsScroll();document.body.style.overflow="auto";document.documentElement.style.overflow="auto";}
 });
  
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("saveRoster").addEventListener("click",saveRoster);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
@@ -402,6 +402,13 @@ buildRosterInputs();renderProgress();save();document.getElementById("homeYear").
 <div id="mallModal" class="modal"><div class="modalbox"><h2>🏬 Calvin's Mall</h2><p>The mall is a shared retail location for five independent shoe companies.</p><div class="mall-grid"><div class="mall-brand"><strong>👟 Nike</strong><small>Cash: $5,040M</small></div><div class="mall-brand"><strong>👟 Reebok</strong><small>Cash: $4,150M</small></div><div class="mall-brand"><strong>👟 Puma</strong><small>Cash: $2,930M</small></div><div class="mall-brand"><strong>👟 Adidas</strong><small>Cash: $5,080M</small></div><div class="mall-brand"><strong>👟 New Balance</strong><small>Cash: $3,300M</small></div></div><p class="team-note">The mall itself has no separate cash, value, profit or debt system yet.</p><button id="mallClose" class="secondary">Close</button></div></div>
 <script>
 document.addEventListener("DOMContentLoaded",function(){
+ document.body.style.position="";
+ document.body.style.top="";
+ document.body.style.left="";
+ document.body.style.right="";
+ document.body.style.width="";
+ document.body.style.overflow="auto";
+ document.documentElement.style.overflow="auto";
  renderRecords();
  const citizenOpen=document.getElementById("openCitizenLedgerHome");
  const citizenModal=document.getElementById("citizenLedgerModal");
