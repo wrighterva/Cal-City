@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.10 -->
+<!-- CALVIN'S CITY — VERSION 4.11 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.10</title>
+<title>Calvin's City 4.11</title>
 
 <style>
 
@@ -106,7 +106,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.06</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.10</div></header>
+<header><h1>🏙️ Calvin's City — 4.11</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.11</div></header>
 
 <main>
 
@@ -164,7 +164,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div id="contractBoard"></div><div class="divider"></div><h3>Former-Player GM System</h3><div id="gmBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
 
-<div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
+<div class="card"><h2>📚 Record & History</h2><p>Permanent player and game history. Existing retired-player records are preserved here.</p><div class="grid"><div class="metric"><small>Retired Players</small><strong id="retiredCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button></div><div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 
 </section></main>
 
@@ -288,13 +288,27 @@ if(basketball)basketball.onclick=()=>{teamModal.classList.remove("show");const b
 
 "use strict";
 
-const TEAMS=["Lions","Rims","Dunks"],POSITIONS=["C","SG","PG"],SHOES=["Nike","Reebok","Puma","Adidas","New Balance"],FORMER_PLAYERS=["S. Oliver","E. Ali","R. Boxi","Benmack II","Nail","Jacks","Corva","Reese","Lui","Joel","Hendi"],REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
+const TEAMS=["Lions","Rims","Dunks"],POSITIONS=["C","SG","PG"],SHOES=["Nike","Reebok","Puma","Adidas","New Balance"],
+
+RETIREMENT_CASH={"S. Oliver":600,"E. Ali":353,"R. Boxi":500,"Benmack II":520,"Nail":370,"Jacks":353,"Corva":387,"Reese":160,"Lui":467,"Joel":215,"Hendi":219},
+
+HISTORICAL_RETIRED=[["Coffvee",525,518,2,3],["Poley",513,488,1,3],["Kasey",526,507,1,2],["Loon",594,554,0,1],["Fall",738,736,0,2],["Kobal",695,670,0,4],["Benmack",839,825,1,6],["Jones",700,710,1,1],["White",716,727,0,0],["Fox",652,641,1,3],["Mason",616,599,2,4],["Folcook",649,659,0,0],["Bole",540,504,0,1],["Hall",628,633,1,3],["Mak",562,636,0,2],["Wallace",527,529,0,0],["House",715,725,1,3],["June",753,628,0,2],["Coast",721,731,1,2],["West",650,651,1,2],["S. Oliver",568,552,1,3],["Carter",707,713,2,3],["E.Ali",644,679,2,3],["R. Boxi",580,614,0,0],["Benmack II",629,663,0,2],["Nail",589,614,0,2],["Jacks",643,596,1,2],["Corva",707,708,1,4],["Reese",574,562,3,4],["Peb",601,618,0,2],["Sam",625,617,1,1],["Joel",508,520,0,4],["Hendi",580,580,0,2],["Lui",629,594,1,3]],
+
+FORMER_PLAYERS=["S. Oliver","E. Ali","R. Boxi","Benmack II","Nail","Jacks","Corva","Reese","Lui","Joel","Hendi"],REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
 
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
 
-let state={year:1,defendingChampion:"Lions",seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},gms:{},lastSeason:null,lastGame:null};
+let state={year:1,defendingChampion:"Lions",seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},gms:{},lastSeason:null,lastGame:null,records:{retiredPlayers:[],gameRecords:[]}};
 
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
+
+state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+
+function seedRecords(){const map={};state.records.retiredPlayers.forEach(p=>map[p.name]=p);HISTORICAL_RETIRED.forEach(x=>{const [name,pts,reb,mvp,titles]=x;if(!map[name])state.records.retiredPlayers.push({name,careerPts:pts,careerRebs:reb,mvps:mvp,championships:titles,status:"Retired",retirementCash:RETIREMENT_CASH[name]??null});else{map[name].careerPts=pts;map[name].careerRebs=reb;map[name].mvps=mvp;map[name].championships=titles;if(map[name].retirementCash==null&&RETIREMENT_CASH[name]!=null)map[name].retirementCash=RETIREMENT_CASH[name]}})}
+
+function recordHistoryGame(g,stage){state.records.gameRecords.push({year:state.year,stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,spread:null,spreadWinner:null,moneylineA:null,moneylineB:null,winningMoneyline:null,bettingResult:null})}
+
+seedRecords();
 
 function save(){localStorage.setItem("calvins_city_v24",JSON.stringify(state))}
 
@@ -308,7 +322,7 @@ function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.sc
 
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 
-function recordGame(g,stage){if(stage==="Regular Season"){state.standings[g.winner.team].w++;state.standings[g.loser.team].l++;state.standings[g.A.team].ptsFor+=g.A.score;state.standings[g.A.team].ptsAgainst+=g.B.score;state.standings[g.B.team].ptsFor+=g.B.score;state.standings[g.B.team].ptsAgainst+=g.A.score;state.standings[g.winner.team].ticket+=g.ticket*.7;state.standings[g.loser.team].ticket+=g.ticket*.3}state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});state.lastGame={stage,game:g}}
+function recordGame(g,stage){if(stage==="Regular Season"){state.standings[g.winner.team].w++;state.standings[g.loser.team].l++;state.standings[g.A.team].ptsFor+=g.A.score;state.standings[g.A.team].ptsAgainst+=g.B.score;state.standings[g.B.team].ptsFor+=g.B.score;state.standings[g.B.team].ptsAgainst+=g.A.score;state.standings[g.winner.team].ticket+=g.ticket*.7;state.standings[g.loser.team].ticket+=g.ticket*.3}state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});recordHistoryGame(g,stage);state.lastGame={stage,game:g}}
 
 function chooseBye(){const max=Math.max(...TEAMS.map(t=>state.standings[t].w)),leaders=TEAMS.filter(t=>state.standings[t].w===max);if(leaders.length===1)return leaders[0];if(leaders.includes(state.defendingChampion))return state.defendingChampion;return state.defendingChampion}
 
@@ -338,13 +352,17 @@ function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season fi
 
 function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";document.getElementById("homeYear").textContent=state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";alert("Offseason finalized. Calvin's City is ready for the new year.")}
 
+function renderRecords(){const r=state.records.retiredPlayers||[],g=state.records.gameRecords||[];const a=document.getElementById("retiredCount"),b=document.getElementById("recordGameCount");if(a)a.textContent=r.length;if(b)b.textContent=g.length;let h='<h3>Retired Player Career Records</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th><th>MVP</th><th>Titles</th><th>Cash</th></tr>';r.slice().sort((x,y)=>(y.careerPts||0)-(x.careerPts||0)).forEach(p=>h+='<tr><td>'+p.name+'</td><td>'+p.careerPts+'</td><td>'+p.careerRebs+'</td><td>'+p.mvps+'</td><td>'+p.championships+'</td><td>'+(p.retirementCash==null?"—":money(p.retirementCash))+'</td></tr>');h+='</table><h3>Game History</h3>';if(!g.length)h+='<p class="muted">No completed games recorded yet.</p>';else{h+='<table><tr><th>Year</th><th>Stage</th><th>Matchup</th><th>Winner</th><th>Score</th><th>Spread</th><th>Cover</th></tr>';g.slice().reverse().forEach(x=>h+='<tr><td>'+x.year+'</td><td>'+x.stage+'</td><td>'+x.a+' vs '+x.b+'</td><td>'+x.winner+'</td><td>'+x.scoreA+'-'+x.scoreB+'</td><td>'+(x.spread==null?"—":x.spread)+'</td><td>'+(x.spreadWinner||"—")+'</td></tr>');h+='</table>'}h+='<p class="tiny">Spread and moneyline fields are reserved for the future betting system. No odds are invented in 4.11.</p>';document.getElementById("recordsBody").innerHTML=h}
+
+function openRecords(){renderRecords();document.getElementById("recordsModal").classList.add("show")}
+
 function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0)}
 
 document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
 
-document.getElementById("runGame").addEventListener("click",()=>{const g=playGame("Lions","Rims");document.getElementById("gameOutput").innerHTML=gameText(g)});document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("saveRoster").addEventListener("click",saveRoster);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
+document.getElementById("runGame").addEventListener("click",()=>{const g=playGame("Lions","Rims");document.getElementById("gameOutput").innerHTML=gameText(g)});document.getElementById("openRecords").addEventListener("click",openRecords);document.getElementById("recordsClose").addEventListener("click",()=>document.getElementById("recordsModal").classList.remove("show"));document.getElementById("recordsModal").addEventListener("click",e=>{if(e.target===document.getElementById("recordsModal"))document.getElementById("recordsModal").classList.remove("show")});document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("saveRoster").addEventListener("click",saveRoster);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
 
-buildRosterInputs();renderProgress();document.getElementById("homeYear").textContent=state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
+buildRosterInputs();renderProgress();renderRecords();save();document.getElementById("homeYear").textContent=state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
 
 })();
 
@@ -352,7 +370,7 @@ buildRosterInputs();renderProgress();document.getElementById("homeYear").textCon
 
  
 
-<div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
+<div id="recordsModal" class="modal"><div class="modalbox"><h2>📚 Calvin's City Records</h2><div id="recordsBody" class="log"></div><button id="recordsClose" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
 
 <div id="mallModal" class="modal"><div class="modalbox"><h2>🏬 Calvin's Mall</h2><p>The mall is a shared retail location for five independent shoe companies.</p><div class="mall-grid"><div class="mall-brand"><strong>👟 Nike</strong><small>Cash: $5,040M</small></div><div class="mall-brand"><strong>👟 Reebok</strong><small>Cash: $4,150M</small></div><div class="mall-brand"><strong>👟 Puma</strong><small>Cash: $2,930M</small></div><div class="mall-brand"><strong>👟 Adidas</strong><small>Cash: $5,080M</small></div><div class="mall-brand"><strong>👟 New Balance</strong><small>Cash: $3,300M</small></div></div><p class="team-note">The mall itself has no separate cash, value, profit or debt system yet.</p><button id="mallClose" class="secondary">Close</button></div></div>
 
