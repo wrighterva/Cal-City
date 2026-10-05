@@ -174,6 +174,18 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 .nav button{flex:1;border:0;background:none;color:#8995aa;font-weight:800;font-size:12px}.nav button.active{color:#fff}.nav span{display:block;font-size:22px;margin-bottom:3px}
 
+ 
+
+.roadinfo{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.roadstat{background:#172338;border:1px solid var(--line);border-radius:13px;padding:10px;font-size:12px;color:var(--muted)}
+
+.roadstat b{display:block;color:#fff;font-size:16px;margin-top:3px}
+
+.road-hit{position:absolute;z-index:9;background:transparent;cursor:pointer}
+
+.traffic-dot{position:absolute;z-index:10;width:8px;height:5px;border-radius:3px;background:#f4f1dc;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+
 </style>
 
 </head>
@@ -198,6 +210,22 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 </div><button class="action" onclick="show('city')">Enter City</button></div>
 
+<div class="card"><h2>🛣️ Road Infrastructure</h2>
+
+<p class="muted">Cars now represent movement through the economy. As population and business activity grow, traffic rises and road capacity becomes valuable.</p>
+
+<div class="statgrid">
+
+<div class="stat">🚗 Traffic<b id="trafficLevel">Light</b></div>
+
+<div class="stat">🛣️ Road Value<b id="roadValue">$0M</b></div>
+
+<div class="stat">🔧 Annual Maintenance<b id="roadMaint">$0M</b></div>
+
+<div class="stat">📦 Network Capacity<b id="roadCap">0</b></div>
+
+</div></div>
+
 <div class="card"><h2>🎯 Overseer</h2><p class="muted">You decide what gets built, who owns it and where the city expands. The simulation will eventually handle everyday business activity automatically.</p></div>
 
 </section>
@@ -216,17 +244,57 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 <div class="park p1"></div><div class="park p2"></div><div class="park p3"></div>
 
-<div class="road h" style="top:275px"></div><div class="road h" style="top:520px"></div><div class="road h" style="top:675px"></div>
+<div class="road h" style="top:275px"></div>
 
-<div class="road v" style="left:300px"></div><div class="road v" style="left:520px"></div><div class="road v" style="left:725px"></div><div class="road v" style="left:990px"></div>
+<div class="road h" style="top:520px"></div>
 
-<div class="road smallh" style="top:160px"></div><div class="road smallh" style="top:400px"></div>
+<div class="road h" style="top:675px"></div>
 
-<div class="road smallv" style="left:165px"></div><div class="road smallv" style="left:875px"></div>
+<div class="road v" style="left:300px"></div>
 
-<div class="bridge" style="left:505px;top:265px;width:160px;height:64px"></div>
+<div class="road v" style="left:520px"></div>
 
-<div class="bridge" style="left:475px;top:500px;width:190px;height:64px"></div>
+<div class="road v" style="left:725px"></div>
+
+<div class="road v" style="left:990px"></div>
+
+<div class="road smallh" style="top:160px"></div>
+
+<div class="road smallh" style="top:400px"></div>
+
+<div class="road smallh" style="top:770px"></div>
+
+<div class="road smallv" style="left:165px"></div>
+
+<div class="road smallv" style="left:875px"></div>
+
+<div class="road smallv" style="left:1090px"></div>
+
+ 
+
+<!-- logical bridges over the river -->
+
+<div class="bridge" style="left:505px;top:255px;width:150px;height:84px"></div>
+
+<div class="bridge" style="left:475px;top:500px;width:195px;height:84px"></div>
+
+ 
+
+<!-- tappable road sections -->
+
+<div class="road-hit" style="left:0;top:275px;width:1220px;height:44px" onclick="inspectRoad('MAIN-1')"></div>
+
+<div class="road-hit" style="left:0;top:520px;width:1220px;height:44px" onclick="inspectRoad('MAIN-2')"></div>
+
+<div class="road-hit" style="left:0;top:675px;width:1220px;height:44px" onclick="inspectRoad('MAIN-3')"></div>
+
+<div class="road-hit" style="left:300px;top:0;width:44px;height:860px" onclick="inspectRoad('AVENUE-W')"></div>
+
+<div class="road-hit" style="left:520px;top:0;width:44px;height:860px" onclick="inspectRoad('AVENUE-C')"></div>
+
+<div class="road-hit" style="left:725px;top:0;width:44px;height:860px" onclick="inspectRoad('AVENUE-E')"></div>
+
+<div class="road-hit" style="left:990px;top:0;width:44px;height:860px" onclick="inspectRoad('HIGHWAY-E')"></div>
 
 <div class="district north">NORTH RESIDENTIAL<span>Homes • Apartments • Neighborhoods</span></div>
 
@@ -300,11 +368,21 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 <div class="lamp" style="left:305px;top:540px"></div><div class="lamp" style="left:745px;top:540px"></div><div class="lamp" style="left:995px;top:540px"></div>
 
-<div class="car" style="top:293px;left:10px"></div><div class="car c2" style="top:538px;left:100px"></div><div class="car c3" style="top:693px;left:400px"></div>
+<div class="car" style="top:293px;left:10px"></div>
+
+<div class="car c2" style="top:293px;left:420px"></div>
+
+<div class="car c3" style="top:538px;left:120px"></div>
+
+<div class="car c2" style="top:538px;left:620px"></div>
+
+<div class="car c3" style="top:693px;left:300px"></div>
+
+<div class="car" style="top:693px;left:800px"></div>
 
 </div></div>
 
-<div class="legend"><span><i class="dot"></i>Buildings</span><span><i class="dot g"></i>Parks/land</span><span><i class="dot r"></i>Roads</span><span>🏟️ Stadiums</span><span>🌊 Water</span></div>
+<div class="notice">🛣️ <b>Roads are infrastructure.</b> Tap a road to see its construction cost, maintenance cost and capacity. Traffic will grow as the city grows.</div><div class="legend"><span><i class="dot"></i>Buildings</span><span><i class="dot g"></i>Parks/land</span><span><i class="dot r"></i>Roads</span><span>🏟️ Stadiums</span><span>🌊 Water</span></div>
 
 </div>
 
@@ -332,6 +410,8 @@ background-size:90px 80px,130px 110px;opacity:.45;z-index:0}
 
 const KEY='calvins_city_v4';
 
+const ROAD_KEY='calvins_city_roads_v1';
+
 const fresh={year:11,population:10000,economy:'Normal',cityCash:500,propertyValue:0,
 
 parcels:[
@@ -352,6 +432,56 @@ parcels:[
 
 ].map(x=>({id:x[0],district:x[1],type:x[2],size:x[3],price:x[4],icon:x[5],owned:false,built:false}))};
 
+ 
+
+const roads=[
+
+{id:'MAIN-1',name:'Central Boulevard',type:'Main Road',cost:3,maint:.12,capacity:1000},
+
+{id:'MAIN-2',name:'Sports Connector',type:'Main Road',cost:3.5,maint:.14,capacity:1100},
+
+{id:'MAIN-3',name:'South Boulevard',type:'Main Road',cost:3,maint:.12,capacity:1000},
+
+{id:'AVENUE-W',name:'West Avenue',type:'Main Road',cost:3,maint:.12,capacity:950},
+
+{id:'AVENUE-C',name:'Central Avenue',type:'Main Road',cost:3.5,maint:.14,capacity:1100},
+
+{id:'AVENUE-E',name:'East Avenue',type:'Main Road',cost:3,maint:.12,capacity:950},
+
+{id:'HIGHWAY-E',name:'East Connector',type:'Highway',cost:8,maint:.30,capacity:2500}
+
+];
+
+let roadState=JSON.parse(localStorage.getItem(ROAD_KEY)||'null')||{built:roads.map(r=>r.id)};
+
+function roadTotals(){
+
+let built=roads.filter(r=>roadState.built.includes(r.id));
+
+let value=built.reduce((a,r)=>a+r.cost,0), maint=built.reduce((a,r)=>a+r.maint,0);
+
+let capacity=built.reduce((a,r)=>a+r.capacity,0);
+
+let activity=state.population/10000 + state.parcels.filter(p=>p.built).length*.12;
+
+let traffic=Math.round(500*activity);
+
+return {built,value,maint,capacity,traffic,ratio:capacity?traffic/capacity:0};
+
+}
+
+function trafficText(){
+
+let x=roadTotals().ratio;
+
+return x>.9?'Heavy':x>.65?'Busy':x>.4?'Moderate':'Light';
+
+}
+
+function saveRoads(){localStorage.setItem(ROAD_KEY,JSON.stringify(roadState));render();}
+
+ 
+
 let state=JSON.parse(localStorage.getItem(KEY)||'null')||fresh;
 
 function money(n){return '$'+Number(n).toFixed(0)+'M'}
@@ -360,9 +490,69 @@ function save(){state.propertyValue=state.parcels.filter(p=>p.owned).reduce((a,p
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));if(id==='property')renderProperties();window.scrollTo(0,0)}
 
-function render(){document.getElementById('yearLine').textContent=`Year ${state.year} • ${state.economy} Economy`;document.getElementById('cash').textContent=money(state.cityCash);document.getElementById('pop').textContent=state.population.toLocaleString();document.getElementById('propVal').textContent=money(state.propertyValue);document.getElementById('econ').textContent=state.economy;renderProperties()}
+function render(){
+
+document.getElementById('yearLine').textContent=`Year ${state.year} • ${state.economy} Economy`;
+
+document.getElementById('cash').textContent=money(state.cityCash);
+
+document.getElementById('pop').textContent=state.population.toLocaleString();
+
+document.getElementById('propVal').textContent=money(state.propertyValue);
+
+document.getElementById('econ').textContent=state.economy;
+
+const rt=roadTotals();
+
+document.getElementById('trafficLevel').textContent=trafficText();
+
+document.getElementById('roadValue').textContent=money(rt.value);
+
+document.getElementById('roadMaint').textContent=money(rt.maint);
+
+document.getElementById('roadCap').textContent=rt.capacity.toLocaleString();
+
+renderProperties()
+
+}
 
 function inspect(id){const p=state.parcels.find(x=>x.id===id);if(!p)return;let action=p.owned&&!p.built?`<button class="action" onclick="build('${p.id}')">Build ${p.type} • ${money(p.price*.35)}</button>`:p.owned&&p.built?`<button class="action danger" onclick="sell('${p.id}')">Sell Property • ${money(p.price*1.15)}</button>`:`<button class="action" onclick="buy('${p.id}')">Buy Land • ${money(p.price)}</button>`;document.getElementById('sheetContent').innerHTML=`<h2>${p.icon} ${p.id}</h2><p class="muted">${p.district} • ${p.size} • ${p.type}</p><div class="notice">${p.owned?(p.built?'Owned • Built':'Owned • Empty lot'):'Available land'}<br>Land value: ${money(p.price)}</div>${action}`;document.getElementById('modal').classList.add('show')}
+
+ 
+
+function inspectRoad(id){
+
+const r=roads.find(x=>x.id===id); if(!r)return;
+
+const rt=roadTotals();
+
+const traffic=Math.round((rt.traffic/Math.max(1,rt.capacity))*100);
+
+document.getElementById('sheetContent').innerHTML=
+
+`<h2>🛣️ ${r.name}</h2>
+
+<p class="muted">${r.type} • ${r.capacity.toLocaleString()} vehicle capacity</p>
+
+<div class="notice">This road connects parts of the city and carries economic activity.<br>Current network traffic: ${traffic}% of capacity.</div>
+
+<div class="roadinfo">
+
+<div class="roadstat">Construction<b>${money(r.cost)}</b></div>
+
+<div class="roadstat">Maintenance<b>${money(r.maint)}/yr</b></div>
+
+<div class="roadstat">Capacity<b>${r.capacity.toLocaleString()}</b></div>
+
+<div class="roadstat">Status<b>${roadState.built.includes(r.id)?'Built':'Planned'}</b></div>
+
+</div>`;
+
+document.getElementById('modal').classList.add('show')
+
+}
+
+ 
 
 function closeModal(){document.getElementById('modal').classList.remove('show')}
 
