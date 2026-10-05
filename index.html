@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 3.8 -->
+<!-- CALVIN'S CITY — VERSION 3.9 -->
 
 <html lang="en">
 
@@ -10,7 +10,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 3.8</title>
+<title>Calvin's City 3.6</title>
 
 <style>
 
@@ -80,6 +80,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 .mall-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center 46%;border:2px solid #26313b;border-radius:8px;box-shadow:0 3px 5px rgba(0,0,0,.28)}
 
+.image-building-label{position:absolute;left:0;right:0;bottom:5px;text-align:center;font-size:8px;font-weight:900;color:#17202b;background:rgba(255,255,255,.82);padding:4px 2px;line-height:1.05;pointer-events:none}
+
  
 
 /* 3.3 — DUNKS ARENA USES A PRE-EXISTING CC0 BASKETBALL ARENA PHOTO */
@@ -90,7 +92,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 .s1,.s2{padding:4px 3px}.s3{padding:0;background:transparent;border:0;box-shadow:none;overflow:hidden;min-height:0}
 
-.s1{left:70%;top:40%;width:17%}.s2{left:9%;top:71%;width:17%}.s3{left:38%;top:72%;width:17%;height:92px}.stadium span{font-size:6.5px}
+.s1{left:70%;top:40%;width:17%}.s2{left:9%;top:71%;width:17%}.s3{left:38%;top:72%;width:17%;height:92px}.stadium span{font-size:6.5px}.s3 .image-building-label{position:absolute;left:0;right:0;bottom:5px}
 
 .park{position:absolute;z-index:5;background:#86a477;border:1px solid #60775a;border-radius:8px;pointer-events:none}.pk1{left:23%;top:10%;width:7%;height:9%}.pk2{left:58%;top:39%;width:7%;height:12%}.pk3{left:27%;top:74%;width:7%;height:11%}
 
@@ -116,7 +118,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 3.8</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 3.8</div></header>
+<header><h1>🏙️ Calvin's City — 3.3</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 3.9</div></header>
 
 <main>
 
@@ -138,7 +140,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <div class="park pk1"></div><div class="park pk2"></div><div class="park pk3"></div>
 
-<div class="city-label l1">DOWNTOWN</div><div class="city-label l2">FINANCE</div><div class="city-label l3">UNIVERSITY</div><div class="city-label l5">CENTRAL</div><div class="city-label l6">SPORTS</div><div class="city-label l7">INDUSTRIAL</div><div class="city-label l9">RESIDENTIAL</div>
+ 
 
  
 
@@ -148,21 +150,21 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <!-- Source: Wikimedia Commons / University Mall exterior — CC0. Attribution not required. -->
 
-<img class="mall-image" src="https://upload.wikimedia.org/wikipedia/commons/c/c3/University_Mall_exterior.jpg" alt="Shopping mall exterior">
+<img class="mall-image" src="https://upload.wikimedia.org/wikipedia/commons/c/c3/University_Mall_exterior.jpg" alt="Shopping mall exterior"><span class="image-building-label">🏬 Mall</span>
 
 </button>
 
  
 
-<button class="building stadium s1" data-place="lions" aria-label="Lions Arena"></button>
+<button class="building stadium s1" data-place="lions">🏀 Lions Arena<span>Basketball</span></button>
 
-<button class="building stadium s2" data-place="rims" aria-label="Rims Arena"></button>
+<button class="building stadium s2" data-place="rims">🏀 Rims Arena<span>Basketball</span></button>
 
 <button class="building stadium s3" data-place="dunks" aria-label="Dunks Arena">
 
 <!-- Source: Wikimedia Commons / Rector Basketball Arena — CC0. Attribution not required. -->
 
-<img class="stadium-image" src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Rector%2C_AR_003.jpg" alt="Basketball arena exterior">
+<img class="stadium-image" src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Rector%2C_AR_003.jpg" alt="Basketball arena exterior"><span class="image-building-label">🏀 Dunks Arena</span>
 
 </button>
 
