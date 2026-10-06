@@ -160,6 +160,26 @@ document.body.style.overflow="";
 window.scrollTo(0,teamPageScrollY);
 }
 
+let teamPageScrollY=0;
+function lockTeamPageScroll(){
+teamPageScrollY=window.scrollY||window.pageYOffset||0;
+document.body.style.position="fixed";
+document.body.style.top="-"+teamPageScrollY+"px";
+document.body.style.left="0";
+document.body.style.right="0";
+document.body.style.width="100%";
+document.body.style.overflow="hidden";
+}
+function unlockTeamPageScroll(){
+document.body.style.position="";
+document.body.style.top="";
+document.body.style.left="";
+document.body.style.right="";
+document.body.style.width="";
+document.body.style.overflow="";
+window.scrollTo(0,teamPageScrollY);
+}
+
 function openTeamPage(k){
 const t=TEAM_PAGE[k]; if(!t)return;
 let s={}; try{s=JSON.parse(localStorage.getItem("calvins_city_v24")||"{}")}catch(e){}
@@ -178,6 +198,7 @@ document.getElementById("teamPageBody").innerHTML=
 '<div class="team-switch"><button id="teamRosterSwitch" class="active">Roster</button></div>'+
 '<div id="teamRosterView">'+rosterTable+'</div>';
 
+lockTeamPageScroll();
 document.getElementById("teamPageModal").classList.add("show");
 lockTeamPageScroll();
 const saveTeamRoster=document.getElementById("saveTeamRoster");
@@ -328,6 +349,7 @@ document.addEventListener("DOMContentLoaded",function(){
 
  function closeModal(modal){
    if(modal)modal.classList.remove("show");
+   if(modal && modal.id==="teamPageModal")unlockTeamPageScroll();
  }
 
  if(teamClose){
