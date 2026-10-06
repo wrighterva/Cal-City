@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.16.30 -->
+<!-- CALVIN'S CITY — VERSION 4.16.31 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.16.30</title>
+<title>Calvin's City 4.16.31</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -76,7 +76,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.16.30</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.30</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.31</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.31</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -103,7 +103,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <div class="card"><h2>🏀 Next Game</h2><p>Play the season one game at a time. Every completed game saves immediately.</p><div id="nextGameBox"></div><button id="playNextGame" class="goodbtn">▶️ PLAY GAME</button><div id="seasonOutput" class="log" style="margin-top:12px"></div></div>
 <div class="card"><h2>🧾 Current Season</h2><div id="standingsOutput"><p class="muted">No games played yet.</p></div></div>
 <div class="card"><h2>📋 Offseason Management</h2><p><b>The year does not advance automatically.</b> Finish contracts, trades, releases and roster decisions first.</p><div class="grid"><div class="metric"><small>Season Status</small><strong id="seasonStatus">Not Played</strong></div><div class="metric"><small>Offseason</small><strong id="offseasonStatus">Locked</strong></div></div><button id="openOffseason">Open Offseason</button></div>
-<div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div id="contractBoard"></div><div class="divider"></div><h3>Former-Player GM System</h3><div id="gmBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
+<div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div id="contractBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
 <div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 </section></main>
  
@@ -196,7 +196,7 @@ buildContractBoard();
 }
 window.openTeamPage=openTeamPage;
  
-/* 4.16.30: direct City-map business navigation.
+/* 4.16.31: direct City-map business navigation.
   Stadium buttons call this directly, so they do not depend on delegated
   document click handling. The Basketball screen is shown first, then the
   selected team's business page is opened. */
@@ -211,7 +211,7 @@ window.openCityBusiness=function(teamKey){
  window.openTeamPage(teamKey);
 };
  
-/* 4.16.30: robust City-map touch handling.
+/* 4.16.31: robust City-map touch handling.
   In addition to normal button clicks, use pointer coordinates as a fallback.
   This bypasses accidental image/overlay hit-testing problems on iPhone Safari. */
 function activateCityBuilding(p){
@@ -318,7 +318,7 @@ citizenLedgerModalEl.onclick=function(e){
 };
 }
  
-/* 4.16.30: Team/business and Mall modal close controls.
+/* 4.16.31: Team/business and Mall modal close controls.
   These are bound here because the modal elements are below the script,
   so they are looked up after the DOM has been parsed via DOMContentLoaded. */
 document.addEventListener("DOMContentLoaded",function(){
@@ -396,9 +396,9 @@ HISTORICAL_CHAMPIONSHIPS=[
 [28,"Dunks","Vico",43,25]
 ],
 CHAMP_STREAKS={"Benmack":4,"Fox":3,"Mason":3,"Hall":2,"House":2,"June":2,"West":2,"Carter":2,"Corva":4,"Reese":4},
-FORMER_PLAYERS=["S. Oliver","E. Ali","R. Boxi","Benmack II","Nail","Jacks","Corva","Reese","Lui","Joel","Hendi"],REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
+REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
-let state={year:1,defendingChampion:"Lions",seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},gms:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
+let state={year:1,defendingChampion:"Lions",seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
 state.citizens=Array.isArray(state.citizens)?state.citizens:[];
@@ -491,8 +491,7 @@ if(new Set(names).size!==names.length){alert("Each citizen name must be unique."
 state.roster=proposed;syncCitizenLedger();save();document.getElementById("rosterSaved").textContent="Roster names and citizen identities saved on this device."
 }
 function buildContractBoard(){let h='<p class="tiny">Current team gets the first bid. Maximum term is 3 years. Player names can be edited here.</p>';TEAMS.forEach(t=>{h+='<div class="team"><h3>'+t+'</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>';POSITIONS.forEach(p=>{const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};h+='<tr><td><input class="contract-player-name" data-team="'+t+'" data-pos="'+p+'" value="'+String(playerName(t,p)).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:12px"><div class="tiny">'+p+'</div></td><td>'+money(Number(c.value)||0)+'</td><td>'+c.years+'</td><td><select><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>'});h+='</table></div>'});h+='<button id="saveContractPlayerNames" class="goodbtn">Save Player Names</button><p id="contractNamesSaved" class="tiny"></p>';document.getElementById("contractBoard").innerHTML=h;const saveNames=document.getElementById("saveContractPlayerNames");if(saveNames)saveNames.onclick=()=>{document.querySelectorAll(".contract-player-name").forEach(input=>{const team=input.dataset.team,pos=input.dataset.pos,value=input.value.trim();if(value)state.roster[team+"_"+pos]=value});save();document.getElementById("contractNamesSaved").textContent="Player names saved on this device.";buildRosterInputs();}}
-function buildGMBoard(){let h='<table><tr><th>Former Player</th><th>GM PPG</th><th>Games</th><th>Titles</th><th>Team</th></tr>';FORMER_PLAYERS.forEach(n=>{const g=state.gms[n]||{};h+='<tr><td>'+n+'</td><td>'+Number(g.ppg||0).toFixed(1)+'</td><td>'+(g.games||0)+'</td><td>'+(g.titles||0)+'</td><td>'+(g.team||"Free Agent")+'</td></tr>'});document.getElementById("gmBoard").innerHTML=h+'</table>'}
-function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
+function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";alert("Offseason finalized. Calvin's City is ready for the new year.")}
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
@@ -640,7 +639,7 @@ if(modal && e.target===modal){modal.classList.remove("show");unlockRecordsScroll
 });
  
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("saveRoster").addEventListener("click",saveRoster);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
-buildRosterInputs();renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard();buildGMBoard()}
+buildRosterInputs();renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 document.addEventListener("DOMContentLoaded",function(){
 const citizenLedgerHomeBtn=document.getElementById("openCitizenLedgerHome");
 const citizenLedgerModalEl=document.getElementById("citizenLedgerModal");
