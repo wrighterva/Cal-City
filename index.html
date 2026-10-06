@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.16.37 -->
+<!-- CALVIN'S CITY — VERSION 4.16.38 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.16.37</title>
+<title>Calvin's City 4.16.38</title>
 
 <style>
 
@@ -156,7 +156,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.16.37</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.37</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.38</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.38</div></header>
 
 <main>
 
@@ -962,7 +962,7 @@ function renderGameResult(g,stage){document.getElementById("seasonOutput").inner
 
 function nextGameDescription(){if(state.seasonPhase==="regular"){const p=REGULAR_SCHEDULE[state.regularGameIndex];return p?'Game '+(state.regularGameIndex+1)+' of 3: <b>'+p[0]+' vs '+p[1]+'</b>':'Regular season complete.'}if(state.seasonPhase==="semifinal"){const o=TEAMS.filter(t=>t!==state.playoff.bye);return '<b>Semifinal:</b> '+o[0]+' vs '+o[1]+' <span class="badge">'+state.playoff.bye+' has the bye</span>'}if(state.seasonPhase==="championship")return '<b>Championship:</b> '+state.playoff.bye+' vs '+state.playoff.semifinal.winner;if(state.seasonPhase==="offseason")return '<b>Season complete.</b> Open Offseason to manage contracts, trades and roster decisions.';return '<b>New season ready.</b>'}
 
-function renderProgress(){const b=document.getElementById("nextGameBox"),btn=document.getElementById("playNextGame");b.innerHTML='<div class="metric"><small>Next</small><strong>'+nextGameDescription()+'</strong></div>';btn.style.display=state.seasonPhase==="offseason"?"none":"block";if(state.seasonPhase==="championship")btn.textContent="🏆 PLAY CHAMPIONSHIP";const s=document.getElementById("seasonStatus"),o=document.getElementById("offseasonStatus");if(state.seasonPhase==="regular"){s.textContent='Game '+state.regularGameIndex+' of 3 played';o.textContent="Locked"}else if(state.seasonPhase==="semifinal"){s.textContent="Regular Season Complete";o.textContent="Locked"}else if(state.seasonPhase==="championship"){s.textContent="Semifinal Complete";o.textContent="Locked"}else{s.textContent="Season Complete";o.textContent="Ready"}renderStandings()}
+function renderProgress(){const b=document.getElementById("nextGameBox"),btn=document.getElementById("playNextGame");b.innerHTML='<div class="metric"><small>Next</small><strong>'+nextGameDescription()+'</strong></div>';btn.style.display=state.seasonPhase==="offseason"?"none":"block";btn.textContent=state.seasonPhase==="championship"?"🏆 PLAY CHAMPIONSHIP":"▶️ PLAY GAME";const s=document.getElementById("seasonStatus"),o=document.getElementById("offseasonStatus");if(state.seasonPhase==="regular"){s.textContent='Game '+state.regularGameIndex+' of 3 played';o.textContent="Locked"}else if(state.seasonPhase==="semifinal"){s.textContent="Regular Season Complete";o.textContent="Locked"}else if(state.seasonPhase==="championship"){s.textContent="Semifinal Complete";o.textContent="Locked"}else{s.textContent="Season Complete";o.textContent="Ready"}renderStandings()}
 
 function renderStandings(){const out=document.getElementById("standingsOutput");if(!state.gamesPlayed.length){out.innerHTML='<p class="muted">Game 1 is ready. Nothing has been played yet.</p>';return}let h='<p><b>Games Played:</b> '+state.gamesPlayed.length+'</p><table><tr><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr>';TEAMS.slice().sort((a,b)=>state.standings[b].w-state.standings[a].w).forEach(t=>h+='<tr><td>'+t+'</td><td>'+state.standings[t].w+'</td><td>'+state.standings[t].l+'</td><td>'+state.standings[t].ptsFor+'</td><td>'+state.standings[t].ptsAgainst+'</td></tr>');h+='</table>';if(state.playoff.bye)h+='<p><b>Playoff Bye:</b> '+state.playoff.bye+'</p>';if(state.lastSeason)h+='<p class="gold"><b>Champion:</b> '+state.lastSeason.champion+' • <b>MVP:</b> '+state.lastSeason.championship.mvp+'</p>';out.innerHTML=h}
 
