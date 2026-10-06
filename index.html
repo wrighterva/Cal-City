@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.16.24 -->
+<!-- CALVIN'S CITY — VERSION 4.16.25 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.16.24</title>
+<title>Calvin's City 4.16.25</title>
 
 <style>
 
@@ -152,7 +152,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.16.24</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.24</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.25</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.25</div></header>
 
 <main>
 
@@ -518,7 +518,7 @@ const citizenLedgerCloseBtn=document.getElementById("citizenLedgerClose");
 
 function openCitizenLedger(){
 
-if(citizenLedgerModalEl)citizenLedgerModalEl.classList.add("show");
+if(citizenLedgerModalEl){citizenLedgerModalEl.classList.add("show");lockCitizenLedgerScroll();}
 
 const out=document.getElementById("citizenLedgerBody");
 
@@ -542,7 +542,7 @@ try{
 
 function closeCitizenLedger(){
 
-if(citizenLedgerModalEl)citizenLedgerModalEl.classList.remove("show");
+if(citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show");unlockCitizenLedgerScroll();}
 
 }
 
@@ -588,7 +588,7 @@ citizenLedgerModalEl.onclick=function(e){
 
  
 
-/* 4.16.24: Team/business and Mall modal close controls.
+/* 4.16.25: Team/business and Mall modal close controls.
 
   These are bound here because the modal elements are below the script,
 
@@ -1098,6 +1098,44 @@ document.getElementById("recordTabPoints").classList.add("active");
 
 let recordsScrollY=0;
 
+let citizenLedgerScrollY=0;
+
+function lockCitizenLedgerScroll(){
+
+citizenLedgerScrollY=window.scrollY||window.pageYOffset||0;
+
+document.body.style.position="fixed";
+
+document.body.style.top="-"+citizenLedgerScrollY+"px";
+
+document.body.style.left="0";
+
+document.body.style.right="0";
+
+document.body.style.width="100%";
+
+document.body.style.overflow="hidden";
+
+}
+
+function unlockCitizenLedgerScroll(){
+
+document.body.style.position="";
+
+document.body.style.top="";
+
+document.body.style.left="";
+
+document.body.style.right="";
+
+document.body.style.width="";
+
+document.body.style.overflow="";
+
+window.scrollTo(0,citizenLedgerScrollY);
+
+}
+
 function lockRecordsScroll(){
 
 recordsScrollY=window.scrollY||window.pageYOffset||0;
@@ -1234,7 +1272,7 @@ if(citizenLedgerModalEl){
 
  citizenLedgerModalEl.onclick=function(e){
 
-   if(e.target===citizenLedgerModalEl)citizenLedgerModalEl.classList.remove("show");
+   if(e.target===citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show");unlockCitizenLedgerScroll();}
 
  };
 
