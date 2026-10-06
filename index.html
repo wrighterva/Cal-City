@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.16.39 -->
+<!-- CALVIN'S CITY — VERSION 4.16.41 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.16.39</title>
+<title>Calvin's City 4.16.41</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -77,7 +77,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.16.38</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.39</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.41</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.41</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -474,7 +474,23 @@ function playTeam(team){const players=POSITIONS.map(pos=>({team,pos,name:playerN
 function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((p,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;return{A,B,winner,loser,ot,ticket:ticketRevenue(),shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeRevenue()]))}}
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 function recordGame(g,stage){if(stage==="Regular Season"){state.standings[g.winner.team].w++;state.standings[g.loser.team].l++;state.standings[g.A.team].ptsFor+=g.A.score;state.standings[g.A.team].ptsAgainst+=g.B.score;state.standings[g.B.team].ptsFor+=g.B.score;state.standings[g.B.team].ptsAgainst+=g.A.score;state.standings[g.winner.team].ticket+=g.ticket*.7;state.standings[g.loser.team].ticket+=g.ticket*.3}state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});recordHistoryGame(g,stage);state.lastGame={stage,game:g}}
-function chooseBye(){const max=Math.max(...TEAMS.map(t=>state.standings[t].w)),leaders=TEAMS.filter(t=>state.standings[t].w===max);if(leaders.length===1)return leaders[0];if(leaders.includes(state.defendingChampion))return state.defendingChampion;return state.defendingChampion}
+function chooseBye(){
+const max=Math.max(...TEAMS.map(t=>state.standings[t].w));
+const leaders=TEAMS.filter(t=>state.standings[t].w===max);
+ 
+/* 4.16.41: Tie-break rule.
+  - One clear leader gets the bye.
+  - If two or three teams tie, the defending champion gets the bye when
+    the defending champion is among the tied leaders.
+  - With a three-way tie, this explicitly guarantees the previous
+    championship winner receives the bye. */
+if(leaders.length===1)return leaders[0];
+if(leaders.includes(state.defendingChampion))return state.defendingChampion;
+ 
+/* Defensive fallback: if the defending champion is not in a tied group,
+  use the first tied leader rather than awarding a bye to a non-leader. */
+return leaders[0];
+}
 function finishRegularSeason(){state.playoff.bye=chooseBye();state.seasonPhase="semifinal";save()}
 function finishSeason(champ,runnerUp){const champion=state.lastGame.game.winner,mvp=champ.players.slice().sort((a,b)=>b.pts-a.pts)[0].name;state.lastSeason={champion,runnerUp,bye:state.playoff.bye,standings:state.standings,semifinal:state.playoff.semifinal,championship:{winner:champion,loser:runnerUp,mvp},seasonGames:state.gamesPlayed.length};state.defendingChampion=champion;state.seasonPlayed=true;state.seasonPhase="offseason";state.offseasonOpen=false;state.offseasonFinalized=false;save()}
 function playNextGame(){if(state.seasonPhase==="regular"){const p=REGULAR_SCHEDULE[state.regularGameIndex];if(!p)return;const g=playGame(p[0],p[1]);recordGame(g,"Regular Season");state.regularGameIndex++;if(state.regularGameIndex>=3)finishRegularSeason();save();renderGameResult(g,"Regular Season");renderProgress();return}if(state.seasonPhase==="semifinal"){const bye=state.playoff.bye,other=TEAMS.filter(t=>t!==bye),g=playGame(other[0],other[1]);recordGame(g,"Semifinal");state.playoff.semifinal={winner:g.winner.team,loser:g.loser.team};state.seasonPhase="championship";save();renderGameResult(g,"Semifinal");renderProgress();return}if(state.seasonPhase==="championship"){const g=playGame(state.playoff.bye,state.playoff.semifinal.winner);recordGame(g,"Championship");state.playoff.championship={winner:g.winner.team,loser:g.loser.team};finishSeason(g.winner,g.loser);renderGameResult(g,"Championship");renderProgress();return}if(state.seasonPhase==="offseason")alert("Season complete. Finish the offseason before the next year begins.")}
@@ -623,19 +639,46 @@ document.getElementById("basketballInfoModal").classList.remove("show");
 document.getElementById("basketballInfoModal").addEventListener("click",function(e){
 if(e.target===this)this.classList.remove("show");
 });
-document.getElementById("openRecords").addEventListener("click",openRecords);
+/* 4.16.41: Make the Records button use the same reliable direct binding
+  pattern as the working Citizen Ledger button. */
+document.addEventListener("DOMContentLoaded",function(){
+const recordsHomeBtn=document.getElementById("openRecords");
+const recordsModalEl=document.getElementById("recordsModal");
+const recordsCloseBtn=document.getElementById("recordsClose");
  
- 
-document.addEventListener("click",function(e){
-if(e.target && e.target.id==="recordsClose"){
-const modal=document.getElementById("recordsModal");
-if(modal){modal.classList.remove("show");unlockRecordsScroll();document.body.style.overflow="auto";document.documentElement.style.overflow="auto";}
+if(recordsHomeBtn){
+ recordsHomeBtn.onclick=function(e){
+   e.preventDefault();
+   e.stopPropagation();
+   try{
+     renderRecords();
+     if(recordsModalEl)recordsModalEl.classList.add("show");
+     lockRecordsScroll();
+   }catch(err){
+     console.error("Records render error:",err);
+   }
+ };
 }
-});
  
-document.addEventListener("click",function(e){
-const modal=document.getElementById("recordsModal");
-if(modal && e.target===modal){modal.classList.remove("show");unlockRecordsScroll();document.body.style.overflow="auto";document.documentElement.style.overflow="auto";}
+if(recordsCloseBtn){
+ recordsCloseBtn.onclick=function(e){
+   e.preventDefault();
+   e.stopPropagation();
+   if(recordsModalEl){
+     recordsModalEl.classList.remove("show");
+     unlockRecordsScroll();
+   }
+ };
+}
+ 
+if(recordsModalEl){
+ recordsModalEl.onclick=function(e){
+   if(e.target===recordsModalEl){
+     recordsModalEl.classList.remove("show");
+     unlockRecordsScroll();
+   }
+ };
+}
 });
  
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
