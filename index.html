@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.16.19 -->
+<!-- CALVIN'S CITY — VERSION 4.16.20 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.16.19</title>
+<title>Calvin's City 4.16.20</title>
 
 <style>
 
@@ -140,7 +140,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.16.19</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.19</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.20</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.20</div></header>
 
 <main>
 
@@ -571,6 +571,104 @@ citizenLedgerModalEl.onclick=function(e){
 };
 
 }
+
+ 
+
+/* 4.16.20: Team/business and Mall modal close controls.
+
+  These are bound here because the modal elements are below the script,
+
+  so they are looked up after the DOM has been parsed via DOMContentLoaded. */
+
+document.addEventListener("DOMContentLoaded",function(){
+
+ const teamModal=document.getElementById("teamPageModal");
+
+ const teamClose=document.getElementById("teamPageClose");
+
+ const teamBasketball=document.getElementById("teamPageBasketball");
+
+ const mallModal=document.getElementById("mallModal");
+
+ const mallClose=document.getElementById("mallClose");
+
+ 
+
+ function closeModal(modal){
+
+   if(modal)modal.classList.remove("show");
+
+ }
+
+ 
+
+ if(teamClose){
+
+   teamClose.addEventListener("click",function(e){
+
+     e.preventDefault();
+
+     e.stopPropagation();
+
+     closeModal(teamModal);
+
+   });
+
+ }
+
+ if(teamBasketball){
+
+   teamBasketball.addEventListener("click",function(e){
+
+     e.preventDefault();
+
+     e.stopPropagation();
+
+     closeModal(teamModal);
+
+     showScreen("basketball");
+
+   });
+
+ }
+
+ if(teamModal){
+
+   teamModal.addEventListener("click",function(e){
+
+     if(e.target===teamModal)closeModal(teamModal);
+
+   });
+
+ }
+
+ 
+
+ if(mallClose){
+
+   mallClose.addEventListener("click",function(e){
+
+     e.preventDefault();
+
+     e.stopPropagation();
+
+     closeModal(mallModal);
+
+   });
+
+ }
+
+ if(mallModal){
+
+   mallModal.addEventListener("click",function(e){
+
+     if(e.target===mallModal)closeModal(mallModal);
+
+   });
+
+ }
+
+});
 
 })();
 
