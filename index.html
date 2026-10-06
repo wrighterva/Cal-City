@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.16.13 -->
+<!-- CALVIN'S CITY — VERSION 4.16.14 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.16.13</title>
+<title>Calvin's City 4.16.14</title>
 
 <style>
 
@@ -138,7 +138,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.16.10</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.13</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.10</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.14</div></header>
 
 <main>
 
@@ -201,6 +201,56 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button><button data-nav="finance">🏦<br>Finance</button></nav>
 
  
+
+<div id="basketballInfoModal" class="modal"><div class="modalbox">
+
+<h2>ℹ️ Basketball Information</h2>
+
+<h3>Season Rules</h3>
+
+<ol class="log">
+
+<li>Each team plays every other team once.</li>
+
+<li>Best record normally receives the championship bye.</li>
+
+<li>If tied for best record, the defending champion gets the bye when involved.</li>
+
+<li>If all three tie, the previous champion gets the bye.</li>
+
+<li>The other two teams play the semifinal.</li>
+
+<li>Semifinal winner plays the bye team for the championship.</li>
+
+<li>Champion receives $100M; runner-up receives $50M.</li>
+
+</ol>
+
+<h3>Game Rules</h3>
+
+<ul class="log">
+
+<li>Each player gets two point dice and two rebound dice per quarter.</li>
+
+<li>There are four quarters.</li>
+
+<li>Overtime uses one point die and one rebound die per player until the tie is broken.</li>
+
+</ul>
+
+<h3>Ticket Revenue</h3>
+
+<p>Every game gets two dice. Each die is worth $10M. Total range: $20M–$120M.</p>
+
+<p>Ticket revenue is split 70% to the winner and 30% to the loser.</p>
+
+<h3>Shoe Revenue</h3>
+
+<p>Each shoe company gets two dice rolls per game. Dice total × $10M = shoe revenue. Range: $20M–$120M per game.</p>
+
+<button id="basketballInfoClose" class="secondary" type="button">Close</button>
+
+</div></div>
 
 <script>
 
@@ -916,55 +966,7 @@ if(citizenLedgerModalEl){
 
  
 
-<div id="basketballInfoModal" class="modal"><div class="modalbox">
-
-<h2>ℹ️ Basketball Information</h2>
-
-<h3>Season Rules</h3>
-
-<ol class="log">
-
-<li>Each team plays every other team once.</li>
-
-<li>Best record normally receives the championship bye.</li>
-
-<li>If tied for best record, the defending champion gets the bye when involved.</li>
-
-<li>If all three tie, the previous champion gets the bye.</li>
-
-<li>The other two teams play the semifinal.</li>
-
-<li>Semifinal winner plays the bye team for the championship.</li>
-
-<li>Champion receives $100M; runner-up receives $50M.</li>
-
-</ol>
-
-<h3>Game Rules</h3>
-
-<ul class="log">
-
-<li>Each player gets two point dice and two rebound dice per quarter.</li>
-
-<li>There are four quarters.</li>
-
-<li>Overtime uses one point die and one rebound die per player until the tie is broken.</li>
-
-</ul>
-
-<h3>Ticket Revenue</h3>
-
-<p>Every game gets two dice. Each die is worth $10M. Total range: $20M–$120M.</p>
-
-<p>Ticket revenue is split 70% to the winner and 30% to the loser.</p>
-
-<h3>Shoe Revenue</h3>
-
-<p>Each shoe company gets two dice rolls per game. Dice total × $10M = shoe revenue. Range: $20M–$120M per game.</p>
-
-<button id="basketballInfoClose" class="secondary" type="button">Close</button>
-
-</div></div><div id="recordsModal" class="modal"><div class="modalbox"><h2>📚 Calvin's City Records</h2>
+<div id="recordsModal" class="modal"><div class="modalbox"><h2>📚 Calvin's City Records</h2>
 
 <div class="record-tabs">
 
