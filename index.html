@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.16.41 -->
+<!-- CALVIN'S CITY — VERSION 4.16.42 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.16.41</title>
+<title>Calvin's City 4.16.42</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -639,47 +639,41 @@ document.getElementById("basketballInfoModal").classList.remove("show");
 document.getElementById("basketballInfoModal").addEventListener("click",function(e){
 if(e.target===this)this.classList.remove("show");
 });
-/* 4.16.41: Make the Records button use the same reliable direct binding
-  pattern as the working Citizen Ledger button. */
-document.addEventListener("DOMContentLoaded",function(){
-const recordsHomeBtn=document.getElementById("openRecords");
-const recordsModalEl=document.getElementById("recordsModal");
-const recordsCloseBtn=document.getElementById("recordsClose");
- 
-if(recordsHomeBtn){
- recordsHomeBtn.onclick=function(e){
-   e.preventDefault();
-   e.stopPropagation();
-   try{
-     renderRecords();
-     if(recordsModalEl)recordsModalEl.classList.add("show");
-     lockRecordsScroll();
-   }catch(err){
-     console.error("Records render error:",err);
-   }
- };
+/* 4.16.42: Records uses one isolated, defensive click handler.
+  It does not depend on startup ordering or duplicate listeners. */
+(function(){
+function openRecordsSafely(e){
+ if(e){e.preventDefault();e.stopPropagation();}
+ const modal=document.getElementById("recordsModal");
+ if(!modal)return;
+ try{
+   if(typeof renderRecords==="function")renderRecords();
+   modal.classList.add("show");
+   if(typeof lockRecordsScroll==="function")lockRecordsScroll();
+ }catch(err){
+   console.error("Records failed to render:",err);
+   const body=document.getElementById("recordsBody");
+   if(body)body.innerHTML='<p class="muted">Records are temporarily unavailable.</p><p class="tiny">The saved game history was not changed.</p>';
+   modal.classList.add("show");
+   if(typeof lockRecordsScroll==="function")lockRecordsScroll();
+ }
 }
- 
-if(recordsCloseBtn){
- recordsCloseBtn.onclick=function(e){
-   e.preventDefault();
-   e.stopPropagation();
-   if(recordsModalEl){
-     recordsModalEl.classList.remove("show");
-     unlockRecordsScroll();
-   }
- };
+function closeRecordsSafely(e){
+ if(e){e.preventDefault();e.stopPropagation();}
+ const modal=document.getElementById("recordsModal");
+ if(!modal)return;
+ modal.classList.remove("show");
+ if(typeof unlockRecordsScroll==="function")unlockRecordsScroll();
 }
- 
-if(recordsModalEl){
- recordsModalEl.onclick=function(e){
-   if(e.target===recordsModalEl){
-     recordsModalEl.classList.remove("show");
-     unlockRecordsScroll();
-   }
- };
-}
-});
+document.addEventListener("click",function(e){
+ const open=e.target.closest && e.target.closest("#openRecords");
+ if(open){openRecordsSafely(e);return;}
+ const close=e.target.closest && e.target.closest("#recordsClose");
+ if(close){closeRecordsSafely(e);return;}
+ const modal=document.getElementById("recordsModal");
+ if(modal && e.target===modal)closeRecordsSafely(e);
+},true);
+})();
  
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
 renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
