@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.16.11 -->
+<!-- CALVIN'S CITY — VERSION 4.16.12 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.16.11</title>
+<title>Calvin's City 4.16.12</title>
 
 <style>
 
@@ -138,7 +138,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.16.10</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.11</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.10</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.12</div></header>
 
 <main>
 
@@ -213,30 +213,6 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 const TEAM_PAGE={lions:{name:"Lions",arena:"Lions Arena",key:"Lions"},rims:{name:"Rimmers",arena:"Rims Arena",key:"Rims"},dunks:{name:"Dunkers",arena:"Dunks Arena",key:"Dunks"}};
 
 const TEAM_CASH={Lions:4430,Rims:4470,Dunks:4450};
-
-const BUSINESS_OWNERSHIP={
-
-Nike:[["Coffvee",100]],
-
-Reebok:[["Kobal",50],["Benmack",50]],
-
-Puma:[["House",50],["West",50]],
-
-Adidas:[["Wallace",50],["Poley",50]],
-
-"New Balance":[["Folcook",33.3333333333],["Bole",33.3333333333],["Hall",33.3333333333]],
-
-"TV Company":[["Coffvee",100]],
-
-"Sports Bets Company":[["June",35],["Coast",35],["Peb",15],["Sam",15]]
-
-};
-
-const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
-
-const CITIZEN_NAMES=()=>Array.from(new Set([...(state.records&&state.records.retiredPlayers||[]).map(x=>x.name),...Object.values(state.roster||{}).filter(Boolean)]));
-
- 
 
 function openTeamPage(k){
 
@@ -451,6 +427,32 @@ try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JS
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
 
 state.citizens=Array.isArray(state.citizens)?state.citizens:[];
+
+const BUSINESS_OWNERSHIP={
+
+Nike:[["Coffvee",100]],
+
+Reebok:[["Kobal",50],["Benmack",50]],
+
+Puma:[["House",50],["West",50]],
+
+Adidas:[["Wallace",50],["Poley",50]],
+
+"New Balance":[["Folcook",33.3333333333],["Bole",33.3333333333],["Hall",33.3333333333]],
+
+"TV Company":[["Coffvee",100]],
+
+"Sports Bets Company":[["June",35],["Coast",35],["Peb",15],["Sam",15]]
+
+};
+
+const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+
+const CITIZEN_NAMES=()=>Array.from(new Set([...(state.records&&state.records.retiredPlayers||[]).map(x=>x.name),...Object.values(state.roster||{}).filter(Boolean)]));
+
+ 
+
+ 
 
 function citizenByName(name){return state.citizens.find(c=>c.name===name)}
 
