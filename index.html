@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.16.16 -->
+<!-- CALVIN'S CITY — VERSION 4.16.17 -->
 
  
 
@@ -140,7 +140,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.16.10</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.15</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.17</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.17</div></header>
 
 <main>
 
@@ -162,11 +162,11 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <button class="building mall-building" data-place="mall" aria-label="Calvin's Mall"><img class="mall-image" src="https://upload.wikimedia.org/wikipedia/commons/c/c3/University_Mall_exterior.jpg" alt="Shopping mall exterior"><span class="image-building-label">🏬 Mall</span></button>
 
-<button class="building stadium s1" data-place="lions" aria-label="Lions Arena"><img class="stadium-image" src="https://commons.wikimedia.org/wiki/Special:Redirect/file/New%20Orleans%20Arena%2C%20exterior%20view%2C%2010%20January%202022.jpg" alt="Lions arena exterior"><span class="image-building-label">🏀 Lions Arena</span></button>
+<button type="button" class="building stadium s1" data-place="lions" aria-label="Lions Arena" onclick="window.openCityBusiness('lions');return false;"><img class="stadium-image" src="https://commons.wikimedia.org/wiki/Special:Redirect/file/New%20Orleans%20Arena%2C%20exterior%20view%2C%2010%20January%202022.jpg" alt="Lions arena exterior"><span class="image-building-label">🏀 Lions Arena</span></button>
 
-<button class="building stadium s2" data-place="rims" aria-label="Rims Arena"><img class="stadium-image" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Matt_Knight_Arena_%28Eugene%2C_Oregon%29.jpg" alt="Rims basketball arena exterior"><span class="image-building-label">🏀 Rims Arena</span></button>
+<button type="button" class="building stadium s2" data-place="rims" aria-label="Rims Arena" onclick="window.openCityBusiness('rims');return false;"><img class="stadium-image" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Matt_Knight_Arena_%28Eugene%2C_Oregon%29.jpg" alt="Rims basketball arena exterior"><span class="image-building-label">🏀 Rims Arena</span></button>
 
-<button class="building stadium s3" data-place="dunks" aria-label="Dunks Arena"><img class="stadium-image" src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Rector%2C_AR_003.jpg" alt="Basketball arena exterior"><span class="image-building-label">🏀 Dunks Arena</span></button>
+<button type="button" class="building stadium s3" data-place="dunks" aria-label="Dunks Arena" onclick="window.openCityBusiness('dunks');return false;"><img class="stadium-image" src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Rector%2C_AR_003.jpg" alt="Basketball arena exterior"><span class="image-building-label">🏀 Dunks Arena</span></button>
 
 </div></div></section>
 
@@ -328,7 +328,37 @@ window.openTeamPage=openTeamPage;
 
  
 
-/* 4.16.16: robust City-map touch handling.
+/* 4.16.17: direct City-map business navigation.
+
+  Stadium buttons call this directly, so they do not depend on delegated
+
+  document click handling. The Basketball screen is shown first, then the
+
+  selected team's business page is opened. */
+
+window.openCityBusiness=function(teamKey){
+
+ const screen=document.getElementById("basketball");
+
+ document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});
+
+ if(screen)screen.classList.add("active");
+
+ document.querySelectorAll(".nav button").forEach(function(b){
+
+   b.classList.toggle("active",b.dataset.nav==="basketball");
+
+ });
+
+ window.scrollTo(0,0);
+
+ window.openTeamPage(teamKey);
+
+};
+
+ 
+
+/* 4.16.17: robust City-map touch handling.
 
   In addition to normal button clicks, use pointer coordinates as a fallback.
 
@@ -1116,4 +1146,4 @@ if(citizenLedgerModalEl){
 
  
 
-</body></html> 
+</body></html>
