@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.16.31 -->
+<!-- CALVIN'S CITY — VERSION 4.16.32 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.16.31</title>
+<title>Calvin's City 4.16.32</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -47,7 +47,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
 .nav button{margin:0;padding:9px 3px 10px;font-size:12px;background:#273446;min-width:0;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap}.nav button.active{background:#2f6fed}
 .basketball-card-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.basketball-season-chip{flex:0 0 auto;min-width:104px;text-align:center;background:#121b27;border:1px solid #3a4960;border-radius:12px;padding:8px 10px;box-sizing:border-box}.basketball-season-chip small{display:block;color:#9eabba;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}.basketball-season-chip strong{display:block;color:#fff;font-size:17px;margin-top:2px;line-height:1.1}display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px}
+.basketball-season-chip{flex:0 0 auto;min-width:104px;text-align:center;background:#121b27;border:1px solid #3a4960;border-radius:12px;padding:8px 10px;box-sizing:border-box}.basketball-season-chip small{display:block;color:#9eabba;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}.basketball-season-chip strong{display:block;color:#fff;font-size:17px;margin-top:2px;line-height:1.1}
+.basketball-current-season-top{display:flex;justify-content:center;align-items:center;margin:2px 0 14px}.basketball-current-season-top .basketball-season-chip{min-width:168px;padding:10px 14px}display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px}
 .basketball-card-head h2{margin:0;flex:1;min-width:0}
 .basketball-info-btn{width:auto;flex:0 0 auto;margin:0;padding:10px 12px;font-size:12px;white-space:nowrap}
 .basketball-badges{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 12px}
@@ -76,7 +77,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.16.31</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.31</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.32</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.32</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -98,6 +99,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <section id="basketball" class="screen">
 <div class="card basketball-overview">
 <div class="basketball-card-head"><h2>🏀 Calvin's City Basketball</h2><button id="openBasketballInfo" class="secondary basketball-info-btn" type="button" aria-label="Basketball Information">ℹ️ Information</button></div>
+<div class="basketball-current-season-top"><div class="basketball-season-chip"><small>Current Season</small><strong id="basketballSeasonTop">Season —</strong></div></div>
 <div class="basketball-badges"><span class="badge">3 Teams</span><span class="badge">3 Players Each</span><span class="badge">4 Quarters</span><span class="badge">1–3 Year Contracts</span></div><p>Each player gets two point dice and two rebound dice per quarter. Overtime uses one point die and one rebound die per player until the tie is broken.</p></div>
 <div class="card"><h2>👥 League Roster Setup</h2><div id="rosterInputs"></div><button class="goodbtn" id="saveRoster">Save Roster Names</button><p id="rosterSaved" class="tiny"></p></div>
 <div class="card"><h2>🏀 Next Game</h2><p>Play the season one game at a time. Every completed game saves immediately.</p><div id="nextGameBox"></div><button id="playNextGame" class="goodbtn">▶️ PLAY GAME</button><div id="seasonOutput" class="log" style="margin-top:12px"></div></div>
@@ -492,7 +494,7 @@ state.roster=proposed;syncCitizenLedger();save();document.getElementById("roster
 }
 function buildContractBoard(){let h='<p class="tiny">Current team gets the first bid. Maximum term is 3 years. Player names can be edited here.</p>';TEAMS.forEach(t=>{h+='<div class="team"><h3>'+t+'</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>';POSITIONS.forEach(p=>{const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};h+='<tr><td><input class="contract-player-name" data-team="'+t+'" data-pos="'+p+'" value="'+String(playerName(t,p)).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:12px"><div class="tiny">'+p+'</div></td><td>'+money(Number(c.value)||0)+'</td><td>'+c.years+'</td><td><select><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>'});h+='</table></div>'});h+='<button id="saveContractPlayerNames" class="goodbtn">Save Player Names</button><p id="contractNamesSaved" class="tiny"></p>';document.getElementById("contractBoard").innerHTML=h;const saveNames=document.getElementById("saveContractPlayerNames");if(saveNames)saveNames.onclick=()=>{document.querySelectorAll(".contract-player-name").forEach(input=>{const team=input.dataset.team,pos=input.dataset.pos,value=input.value.trim();if(value)state.roster[team+"_"+pos]=value});save();document.getElementById("contractNamesSaved").textContent="Player names saved on this device.";buildRosterInputs();}}
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
-function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";alert("Offseason finalized. Calvin's City is ready for the new year.")}
+function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";alert("Offseason finalized. Calvin's City is ready for the new year.")}
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
 try{syncCitizenLedger();}catch(err){
@@ -639,7 +641,7 @@ if(modal && e.target===modal){modal.classList.remove("show");unlockRecordsScroll
 });
  
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("saveRoster").addEventListener("click",saveRoster);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
-buildRosterInputs();renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
+buildRosterInputs();renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 document.addEventListener("DOMContentLoaded",function(){
 const citizenLedgerHomeBtn=document.getElementById("openCitizenLedgerHome");
 const citizenLedgerModalEl=document.getElementById("citizenLedgerModal");
