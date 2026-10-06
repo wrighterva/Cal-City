@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.16.15 -->
+<!-- CALVIN'S CITY — VERSION 4.16.16 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.16.15</title>
+<title>Calvin's City 4.16.16</title>
 
 <style>
 
@@ -78,7 +78,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 .stadium{position:absolute;z-index:9!important;pointer-events:auto!important;touch-action:manipulation;min-height:54px;font-size:9px;border-radius:9px;background:#e6d1a2;box-shadow:0 4px 7px rgba(0,0,0,.28)}
 
-.stadium-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center;border:2px solid #26313b;border-radius:9px;box-shadow:0 4px 7px rgba(0,0,0,.28)}
+.building,.building img{pointer-events:auto}.building .image-building-label{pointer-events:none}.stadium-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center;border:2px solid #26313b;border-radius:9px;box-shadow:0 4px 7px rgba(0,0,0,.28)}
 
 .s1,.s2,.s3{padding:0;background:transparent;border:0;box-shadow:none;overflow:hidden;min-height:0}
 
@@ -328,9 +328,39 @@ window.openTeamPage=openTeamPage;
 
  
 
-/* Direct map-building controls: keep City buildings clickable independently
+/* 4.16.16: robust City-map touch handling.
 
-  of document-level click handling. */
+  In addition to normal button clicks, use pointer coordinates as a fallback.
+
+  This bypasses accidental image/overlay hit-testing problems on iPhone Safari. */
+
+function activateCityBuilding(p){
+
+ p=(p||"").toLowerCase();
+
+ if(p==="mall"){
+
+   const m=document.getElementById("mallModal");
+
+   if(m)m.classList.add("show");
+
+   return true;
+
+ }
+
+ if(p==="lions"||p==="rims"||p==="dunks"){
+
+   openTeamPage(p);
+
+   return true;
+
+ }
+
+ return false;
+
+}
+
+ 
 
 document.querySelectorAll(".building[data-place]").forEach(function(building){
 
@@ -340,21 +370,19 @@ document.querySelectorAll(".building[data-place]").forEach(function(building){
 
    e.stopPropagation();
 
-   const p=(building.dataset.place||"").toLowerCase();
-
-   if(p==="mall"){
-
-     const m=document.getElementById("mallModal");
-
-     if(m)m.classList.add("show");
-
-   }else if(p==="lions"||p==="rims"||p==="dunks"){
-
-     openTeamPage(p);
-
-   }
+   activateCityBuilding(building.dataset.place);
 
  });
+
+ building.addEventListener("pointerup",function(e){
+
+   e.preventDefault();
+
+   e.stopPropagation();
+
+   activateCityBuilding(building.dataset.place);
+
+ },{passive:false});
 
  building.addEventListener("touchend",function(e){
 
@@ -362,23 +390,61 @@ document.querySelectorAll(".building[data-place]").forEach(function(building){
 
    e.stopPropagation();
 
-   const p=(building.dataset.place||"").toLowerCase();
-
-   if(p==="mall"){
-
-     const m=document.getElementById("mallModal");
-
-     if(m)m.classList.add("show");
-
-   }else if(p==="lions"||p==="rims"||p==="dunks"){
-
-     openTeamPage(p);
-
-   }
+   activateCityBuilding(building.dataset.place);
 
  },{passive:false});
 
 });
+
+ 
+
+/* Coordinate fallback: if iOS reports the image/another layer as the touch
+
+  target, check whether the finger ended inside a City building rectangle. */
+
+let cityPointerStart=null;
+
+window.addEventListener("pointerdown",function(e){
+
+ cityPointerStart={x:e.clientX,y:e.clientY};
+
+},true);
+
+window.addEventListener("pointerup",function(e){
+
+ const start=cityPointerStart;
+
+ cityPointerStart=null;
+
+ if(!start)return;
+
+ if(Math.abs(e.clientX-start.x)>18 || Math.abs(e.clientY-start.y)>18)return;
+
+ const map=document.querySelector("#city .map");
+
+ if(!map || !map.closest(".screen.active"))return;
+
+ const buildings=document.querySelectorAll("#city .building[data-place]");
+
+ for(const b of buildings){
+
+   const r=b.getBoundingClientRect();
+
+   if(e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom){
+
+     e.preventDefault();
+
+     e.stopImmediatePropagation();
+
+     activateCityBuilding(b.dataset.place);
+
+     return;
+
+   }
+
+ }
+
+},true);
 
  
 
