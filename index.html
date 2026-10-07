@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.17.32 -->
+<!-- CALVIN'S CITY — VERSION 4.17.33 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.17.32</title>
+<title>Calvin's City 4.17.33</title>
 
 <style>
 
@@ -150,7 +150,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.17.32</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.32</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.33</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.33</div></header>
 
 <main>
 
@@ -958,15 +958,19 @@ function seedInitialLionsRoster(){
 
    }
 
-   /* Preserve any live cash already accumulated. Only fill missing cash
+   /* 4.17.33: Initialize Season 29 opening cash exactly once.
 
-      from the authoritative Season 29 opening amounts. */
+     Existing cash is preserved after initialization. */
 
-   if(Number(state.year)===29 && c.cash==null){
+  if(Number(state.year)===29 && c.season29OpeningCashInitialized!==true){
 
-     c.cash=Number(SEASON_29_OPENING_CASH[name])||0;
+    c.cash=Number(SEASON_29_OPENING_CASH[name])||0;
 
-   }
+    c.season29OpeningCashInitialized=true;
+
+    c.season29OpeningCash=Number(SEASON_29_OPENING_CASH[name])||0;
+
+  }
 
    c.status="Active Player";
 
@@ -1021,6 +1025,8 @@ function seedInitialLionsRoster(){
        openingRec.action=openingRec.action||"Original Season 29 Contract";
 
        openingRec.current=true;
+
+       openingRec.season29OpeningCash=Number(SEASON_29_OPENING_CASH[name])||0;
 
      }
 
@@ -1088,7 +1094,9 @@ if(seed.position)c.position=seed.position;
 
 if(seed.currentTeam)c.currentTeam=seed.currentTeam;
 
-if(seed.cash!=null)c.cash=Number(seed.cash);
+/* 4.17.33: Ledger sync never overwrites existing cash. */
+
+if(c.cash==null && seed.cash!=null)c.cash=Number(seed.cash);
 
 return c;
 
@@ -1191,6 +1199,24 @@ if(!rec){
  rec={year,team,value:Number(contract.value)||0,years:Number(contract.years)||0,rookie:!!contract.rookie,totalPackage:Number(contract.totalPackage)||Number(contract.value)||0,teamValue:Number(contract.teamValue)||Number(contract.value)||0,current:true};
 
  citizen.contracts.push(rec);
+
+}
+
+/* 4.17.33: Original Season 29 contract is starting data,
+
+   not a new payment. */
+
+if(rec.originalSeason29===true || (year===29 && rec.season29OpeningCash!=null)){
+
+ rec.cashPaid=true;
+
+ rec.cashAdded=0;
+
+ rec.action=rec.action||"Original Season 29 Contract";
+
+ rec.current=true;
+
+ return false;
 
 }
 
@@ -2829,6 +2855,14 @@ if(citizenLedgerModalEl){
 window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger:syncCitizenLedger,save:save};
 
 })();
+
+ 
+
+/* 4.17.33: Citizen cash/contract synchronization fix.
+
+  Season 29 opening cash is initialized once; Ledger sync never overwrites
+
+  cash; original Season 29 contracts never trigger a new cash payment. */
 
  
 
