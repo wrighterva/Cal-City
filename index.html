@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.16.44 -->
+<!-- CALVIN'S CITY — VERSION 4.16.45 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.16.44</title>
+<title>Calvin's City 4.16.45</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -43,7 +43,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .s1{left:74%;top:40%;width:17%;height:92px}.s2{left:9%;top:71%;width:17%;height:92px}.s3{left:42%;top:72%;width:17%;height:92px}.stadium span{font-size:6.5px}.s3 .image-building-label{position:absolute;left:0;right:0;bottom:5px}
 .city-label{position:absolute;z-index:7;font-size:7.5px;font-weight:900;color:rgba(255,255,255,.82);letter-spacing:.4px;pointer-events:none;text-transform:uppercase}
 .l1{left:7%;top:10%;width:24%;text-align:center}.l2{left:38%;top:10%;width:24%;text-align:center}.l3{left:69%;top:10%;width:24%;text-align:center}.l4{left:7%;top:39%;width:24%;text-align:center}.l5{left:38%;top:39%;width:24%;text-align:center}.l6{left:69%;top:39%;width:24%;text-align:center}.l7{left:7%;top:70%;width:24%;text-align:center}.l8{left:38%;top:69.5%;width:24%;text-align:center}.l9{left:69%;top:70%;width:24%;text-align:center}
-.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:auto}.modal.show{display:flex}.modalbox{width:min(100%,420px);max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px}.modalbox h2{margin-top:0}
+.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:auto;pointer-events:none}.modal.show{display:flex;pointer-events:auto}.modalbox{position:relative;z-index:101;width:min(100%,420px);max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px;pointer-events:auto}.modalbox h2{margin-top:0}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
 .nav button{margin:0;padding:9px 3px 10px;font-size:12px;background:#273446;min-width:0;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap}.nav button.active{background:#2f6fed}
 .basketball-card-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -77,7 +77,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.16.44</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.44</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.45</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.45</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -196,7 +196,7 @@ buildContractBoard();
 }
 window.openTeamPage=openTeamPage;
  
-/* 4.16.44: direct City-map business navigation.
+/* 4.16.45: direct City-map business navigation.
   Stadium buttons call this directly, so they do not depend on delegated
   document click handling. The Basketball screen is shown first, then the
   selected team's business page is opened. */
@@ -211,7 +211,7 @@ window.openCityBusiness=function(teamKey){
  window.openTeamPage(teamKey);
 };
  
-/* 4.16.44: robust City-map touch handling.
+/* 4.16.45: robust City-map touch handling.
   In addition to normal button clicks, use pointer coordinates as a fallback.
   This bypasses accidental image/overlay hit-testing problems on iPhone Safari. */
 function activateCityBuilding(p){
@@ -318,7 +318,7 @@ citizenLedgerModalEl.onclick=function(e){
 };
 }
  
-/* 4.16.44: Team/business and Mall modal close controls.
+/* 4.16.45: Team/business and Mall modal close controls.
   These are bound here because the modal elements are below the script,
   so they are looked up after the DOM has been parsed via DOMContentLoaded. */
 document.addEventListener("DOMContentLoaded",function(){
@@ -463,7 +463,7 @@ state.citizens.forEach(c=>{c.businesses=citizenBusinessSummary(c.name)});
 function citizenCount(){return state.citizens.length}
  
 function seedRecords(){
-/* 4.16.44: Historical paper records are the authoritative baseline for
+/* 4.16.45: Historical paper records are the authoritative baseline for
   Years 1–28. Existing saved records are preserved, but malformed entries
   are ignored and historical championship rows are repaired by year. */
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
@@ -543,7 +543,7 @@ function chooseBye(){
 const max=Math.max(...TEAMS.map(t=>state.standings[t].w));
 const leaders=TEAMS.filter(t=>state.standings[t].w===max);
  
-/* 4.16.44: Tie-break rule.
+/* 4.16.45: Tie-break rule.
   - One clear leader gets the bye.
   - If two or three teams tie, the defending champion gets the bye when
     the defending champion is among the tied leaders.
@@ -592,7 +592,7 @@ h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span c
 out.innerHTML=h;
 }
 function renderRecords(){
-/* 4.16.44: Always verify/seed the permanent historical record data
+/* 4.16.45: Always verify/seed the permanent historical record data
   immediately before rendering. This prevents an incomplete saved
   Records array from producing an empty Records screen. */
 try{
@@ -687,21 +687,13 @@ window.scrollTo(0,citizenLedgerScrollY);
 }
 function lockRecordsScroll(){
 recordsScrollY=window.scrollY||window.pageYOffset||0;
-document.body.style.position="fixed";
-document.body.style.top="-"+recordsScrollY+"px";
-document.body.style.left="0";
-document.body.style.right="0";
-document.body.style.width="100%";
+document.documentElement.style.overflow="hidden";
 document.body.style.overflow="hidden";
 }
 function unlockRecordsScroll(){
-document.body.style.position="";
-document.body.style.top="";
-document.body.style.left="";
-document.body.style.right="";
-document.body.style.width="";
+document.documentElement.style.overflow="";
 document.body.style.overflow="";
-window.scrollTo(0,recordsScrollY);
+requestAnimationFrame(function(){window.scrollTo(0,recordsScrollY);});
 }
 function openRecords(){renderRecords();document.getElementById("recordsModal").classList.add("show");lockRecordsScroll()}
 function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0)}
@@ -715,8 +707,9 @@ document.getElementById("basketballInfoModal").classList.remove("show");
 document.getElementById("basketballInfoModal").addEventListener("click",function(e){
 if(e.target===this)this.classList.remove("show");
 });
-/* 4.16.44: Records uses one isolated, defensive click handler.
-  It does not depend on startup ordering or duplicate listeners. */
+/* 4.16.45: Records modal interaction fix.
+  The modal owns the touch/pointer interaction so the page behind it
+  cannot intercept the Close button on iPhone. */
 (function(){
 function openRecordsSafely(e){
  if(e){e.preventDefault();e.stopPropagation();}
@@ -741,14 +734,33 @@ function closeRecordsSafely(e){
  modal.classList.remove("show");
  if(typeof unlockRecordsScroll==="function")unlockRecordsScroll();
 }
+function bindRecordsModal(){
+ const modal=document.getElementById("recordsModal");
+ const close=document.getElementById("recordsClose");
+ const box=modal?modal.querySelector(".modalbox"):null;
+ if(close){
+   close.onclick=closeRecordsSafely;
+   close.ontouchend=closeRecordsSafely;
+ }
+ if(modal){
+   modal.onclick=function(e){
+     if(e.target===modal)closeRecordsSafely(e);
+   };
+   modal.ontouchstart=function(e){
+     if(e.target===modal)e.stopPropagation();
+   };
+ }
+ if(box){
+   box.onclick=function(e){e.stopPropagation();};
+   box.ontouchstart=function(e){e.stopPropagation();};
+ }
+}
 document.addEventListener("click",function(e){
  const open=e.target.closest && e.target.closest("#openRecords");
  if(open){openRecordsSafely(e);return;}
- const close=e.target.closest && e.target.closest("#recordsClose");
- if(close){closeRecordsSafely(e);return;}
- const modal=document.getElementById("recordsModal");
- if(modal && e.target===modal)closeRecordsSafely(e);
 },true);
+document.addEventListener("DOMContentLoaded",bindRecordsModal);
+if(document.readyState!=="loading")bindRecordsModal();
 })();
  
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
