@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 4.17.18 -->
+<!-- CALVIN'S CITY — VERSION 4.17.19 -->
 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.18</title>
+<title>Calvin's City 4.17.19</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -50,7 +50,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .basketball-badges .badge{margin:0}
 
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
-.team-table-wrap{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}.team-table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;table-layout:auto}.team-table th,.team-table td{padding:8px 6px;border-bottom:1px solid #334155;text-align:left;white-space:nowrap}.team-table th:nth-child(1),.team-table td:nth-child(1){width:42px}.team-table th:nth-child(2),.team-table td:nth-child(2){width:150px;min-width:150px}.team-table .team-player-name{display:block;min-width:140px;width:140px;max-width:180px;box-sizing:border-box}.team-note{color:#9eabba;font-size:11px;margin-top:10px}
+.team-table{width:100%;border-collapse:collapse;font-size:12px}.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}.team-note{color:#9eabba;font-size:11px;margin-top:10px}.offseason-decision{min-width:130px}.resign-fields{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.resign-fields input,.resign-fields select{width:88px;min-width:0;box-sizing:border-box;padding:6px;font-size:11px}.decision-note{font-size:10px;color:#9eabba;margin-top:4px}
 .team-switch{margin:10px 0 12px}.team-switch button{margin:0;padding:10px 8px;background:#2f6fed;font-size:13px}
 .record-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 12px}
 .record-tabs button{margin:0;padding:9px 4px;background:#344255;font-size:11px}
@@ -72,7 +72,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.17</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.18</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.17</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.19</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -219,7 +219,7 @@ return {
 });
 
 document.getElementById("teamPageTitle").textContent=t.name;
-const rosterTable='<h3>Roster &amp; Contracts</h3><div class="team-table-wrap"><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" aria-label="'+p.pos+' player name"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td></tr>').join('')+'</table></div><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the basketball database.</p>';
+const rosterTable='<h3>Roster &amp; Contracts</h3><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:12px;width:100%;box-sizing:border-box"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td></tr>').join('')+'</table><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the basketball database.</p>';
 
 document.getElementById("teamPageBody").innerHTML=
 '<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+TEAM_CASH[t.key]+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div></div>'+rosterTable;
@@ -737,45 +737,179 @@ function getActivePlayerOptions(currentKey){
  return h;
 }
 function buildContractBoard(){
- let h='<p class="tiny">Select an active player or rookie from the dropdown. Retired players are not shown.</p>';
+ let h='<p class="tiny">Choose a player from the active-player dropdown, then select the offseason decision. Retired players are never shown in the player selector.</p>';
  TEAMS.forEach(t=>{
    h+='<div class="team"><h3>'+t+'</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>';
    POSITIONS.forEach(p=>{
      const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};
      const current=playerName(t,p);
-     h+='<tr><td><select class="contract-player-select" data-team="'+t+'" data-pos="'+p+'">'+getActivePlayerOptions(k)+'</select><div class="tiny">'+p+'</div></td><td>'+money(Number(c.value)||0)+'</td><td>'+Number(c.years||0)+'</td><td><select><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>';
+     const decision=(state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].decision)||"Keep";
+     h+='<tr><td><select class="contract-player-select" data-team="'+t+'" data-pos="'+p+'">'+getActivePlayerOptions(k)+'</select><div class="tiny">'+p+'</div></td>'+
+       '<td>'+money(Number(c.value)||0)+'</td><td>'+Number(c.years||0)+'</td>'+
+       '<td><select class="offseason-decision" data-team="'+t+'" data-pos="'+p+'">'+
+       '<option value="Keep"'+(decision==="Keep"?" selected":"")+'>Keep</option>'+
+       '<option value="Resign"'+(decision==="Resign"?" selected":"")+'>Resign</option>'+
+       '<option value="Release"'+(decision==="Release"?" selected":"")+'>Release</option>'+
+       '<option value="Retire"'+(decision==="Retire"?" selected":"")+'>Retire</option>'+
+       '</select><div class="resign-fields" data-fields="'+k+'" style="display:'+(decision==="Resign"?"flex":"none")+'">'+
+       '<input type="number" min="1" max="3" step="1" class="resign-years" data-team="'+t+'" data-pos="'+p+'" placeholder="Years" value="'+((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].years)||"")+'">'+
+       '<input type="number" min="0" step="1" class="resign-salary" data-team="'+t+'" data-pos="'+p+'" placeholder="$M" value="'+((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].salary)||"")+'"></div>'+
+       '<div class="decision-note">'+(decision==="Keep"?"Existing contract continues.":decision==="Resign"?"Enter the new contract.":decision==="Release"?"Player becomes a free agent.":"Player retires permanently.")+'</div></td></tr>';
    });
    h+='</table></div>';
  });
- h+='<button id="saveContractPlayerNames" class="goodbtn">Save Roster Assignments</button><p id="contractNamesSaved" class="tiny"></p>';
+ h+='<button id="saveContractPlayerNames" class="goodbtn">Save Roster &amp; Decisions</button><p id="contractNamesSaved" class="tiny"></p>';
  document.getElementById("contractBoard").innerHTML=h;
+
  document.querySelectorAll(".contract-player-select").forEach(sel=>{
    const k=sel.dataset.team+"_"+sel.dataset.pos;
    sel.value=state.roster[k]||"";
  });
+
+ document.querySelectorAll(".offseason-decision").forEach(sel=>{
+   sel.onchange=function(){
+     const k=this.dataset.team+"_"+this.dataset.pos;
+     state.offseasonDecisions=state.offseasonDecisions||{};
+     state.offseasonDecisions[k]=state.offseasonDecisions[k]||{};
+     state.offseasonDecisions[k].decision=this.value;
+     const fields=document.querySelector('[data-fields="'+k+'"]');
+     if(fields)fields.style.display=this.value==="Resign"?"flex":"none";
+     const note=this.parentElement.querySelector(".decision-note");
+     if(note)note.textContent=this.value==="Keep"?"Existing contract continues.":this.value==="Resign"?"Enter the new contract.":this.value==="Release"?"Player becomes a free agent.":"Player retires permanently.";
+   };
+ });
+
  const saveNames=document.getElementById("saveContractPlayerNames");
  if(saveNames)saveNames.onclick=()=>{
    const proposed={...state.roster};
    const selected={};
+   state.offseasonDecisions=state.offseasonDecisions||{};
+
    document.querySelectorAll(".contract-player-select").forEach(sel=>{
      const k=sel.dataset.team+"_"+sel.dataset.pos;
      const value=sel.value.trim();
      if(value)selected[k]=value; else delete proposed[k];
    });
+
    Object.entries(selected).forEach(([k,name])=>{
      Object.keys(proposed).forEach(oldKey=>{if(oldKey!==k&&proposed[oldKey]===name)delete proposed[oldKey];});
      proposed[k]=name;
    });
+
+   document.querySelectorAll(".offseason-decision").forEach(sel=>{
+     const k=sel.dataset.team+"_"+sel.dataset.pos;
+     const entry=state.offseasonDecisions[k]||{};
+     entry.decision=sel.value;
+     const y=document.querySelector('.resign-years[data-team="'+sel.dataset.team+'"][data-pos="'+sel.dataset.pos+'"]');
+     const sal=document.querySelector('.resign-salary[data-team="'+sel.dataset.team+'"][data-pos="'+sel.dataset.pos+'"]');
+     entry.years=y&&y.value?Number(y.value):0;
+     entry.salary=sal&&sal.value?Number(sal.value):0;
+     state.offseasonDecisions[k]=entry;
+   });
+
    state.roster=proposed;
    syncCitizenLedger();
    save();
-   document.getElementById("contractNamesSaved").textContent="Roster assignments and citizen identities saved on this device.";
+   document.getElementById("contractNamesSaved").textContent="Roster assignments and offseason decisions saved on this device.";
    buildRosterInputs();
    buildContractBoard();
  };
 }
+
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
-function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";renderProgress();renderStandings();alert("Offseason finalized. Calvin's City is ready for the new year.")}
+function finalizeOffseason(){
+ if(!state.seasonPlayed||!state.offseasonOpen)return;
+
+ state.offseasonDecisions=state.offseasonDecisions||{};
+ const errors=[];
+
+ TEAMS.forEach(t=>{
+   POSITIONS.forEach(p=>{
+     const k=t+"_"+p;
+     const name=state.roster[k];
+     if(!name)return;
+     const d=state.offseasonDecisions[k]||{decision:"Keep"};
+     const c=state.contracts[k]||{value:0,years:0};
+
+     if(d.decision==="Resign"){
+       const years=Math.max(1,Math.min(3,Number(d.years)||0));
+       const salary=Math.max(0,Number(d.salary)||0);
+       if(!years||d.salary===""||d.salary==null||!Number.isFinite(salary)){
+         errors.push(name+" needs a valid re-sign contract.");
+         return;
+       }
+       state.contracts[k]={value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary};
+       const citizen=ensureCitizen(name);
+       if(citizen){
+         citizen.contracts=Array.isArray(citizen.contracts)?citizen.contracts:[];
+         citizen.contracts.push({year:Number(state.year),team:t,value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary});
+       }
+     }else if(d.decision==="Release"){
+       delete state.roster[k];
+       delete state.contracts[k];
+     }else if(d.decision==="Retire"){
+       const citizen=ensureCitizen(name);
+       const retired={
+         name,
+         careerPts:Number(citizen&&citizen.careerPts||0),
+         careerRebs:Number(citizen&&citizen.careerRebs||0),
+         mvps:Number(citizen&&citizen.mvps||0),
+         championships:Number(citizen&&citizen.championships||0),
+         retirementCash:citizen&&citizen.cash!=null?Number(citizen.cash):null,
+         champStreak:Number(citizen&&citizen.champStreak||0),
+         currentChampStreak:Number(citizen&&citizen.currentChampStreak||0)
+       };
+       state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+       state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
+       const idx=state.records.retiredPlayers.findIndex(x=>x&&x.name===name);
+       if(idx>=0)state.records.retiredPlayers[idx]={...state.records.retiredPlayers[idx],...retired};
+       else state.records.retiredPlayers.push(retired);
+       delete state.roster[k];
+       delete state.contracts[k];
+       if(citizen)citizen.status="Retired";
+     }else{
+       // KEEP: player remains on the team and the existing contract advances one year.
+       const years=Math.max(0,Number(c.years)||0);
+       if(years>1){
+         c.years=years-1;
+         state.contracts[k]=c;
+       }else if(years===1){
+         errors.push(name+" has 1 year left. Use Re-sign, Release, or Retire.");
+       }
+     }
+   });
+ });
+
+ if(errors.length){
+   alert(errors.join("\n"));
+   save();
+   syncCitizenLedger();
+   buildContractBoard();
+   return;
+ }
+
+ syncCitizenLedger();
+ state.offseasonFinalized=true;
+ state.seasonPlayed=false;
+ state.offseasonOpen=false;
+ state.offseasonDecisions={};
+ state.year++;
+ state.seasonPhase="regular";
+ state.regularGameIndex=0;
+ state.standings=freshStandings();
+ state.gamesPlayed=[];
+ state.playoff={bye:null,semifinal:null,championship:null};
+ save();
+ document.getElementById("offseasonCard").style.display="none";
+ const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;
+ const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;
+ document.getElementById("seasonStatus").textContent="Ready for New Season";
+ document.getElementById("offseasonStatus").textContent="Complete";
+ renderProgress();
+ renderStandings();
+ alert("Offseason finalized. Calvin's City is ready for the new year.");
+}
+
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
 try{syncCitizenLedger();}catch(err){
