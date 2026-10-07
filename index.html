@@ -946,7 +946,7 @@ if(!rows.length)h+='<p class="muted">No citizens recorded yet.</p>';
 rows.forEach(c=>{
 const biz=(c.businesses||[]).map(x=>x.business+' '+Number(x.ownership).toFixed(Number(x.ownership%1?1:0))+'%').join(' • ')||'None';
 const cash=c.cash==null?'—':'$'+Number(c.cash).toFixed(0)+'M';
-h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+(c.status||"Active")+(c.currentTeam?' • '+c.currentTeam:'')+(c.position?' • '+c.position:'')+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>Titles <b>'+(c.championships||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div></div>';
+h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+(c.status||"Active")+(c.currentTeam?' • '+c.currentTeam:'')+(c.position?' • '+c.position:'')+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(c.mvps||0)+'</b></span><span>Ships <b>'+(c.championships||0)+'</b></span><span>Ships in a Row <b>'+(c.champStreak||c.currentChampStreak||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div></div>';
 });
 out.innerHTML=h;
 }
