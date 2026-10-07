@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.16.49 -->
+<!-- CALVIN'S CITY — VERSION 4.16.50 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.16.49</title>
+<title>Calvin's City 4.16.50</title>
 
 <style>
 
@@ -78,7 +78,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 .stadium{position:absolute;z-index:50!important;pointer-events:auto!important;touch-action:manipulation;min-height:54px;font-size:9px;border-radius:9px;background:#e6d1a2;box-shadow:0 4px 7px rgba(0,0,0,.28)}
 
-.building,.building img{pointer-events:auto}.building .image-building-label{pointer-events:none}.stadium-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center;border:2px solid #26313b;border-radius:9px;box-shadow:0 4px 7px rgba(0,0,0,.28)}
+.building,.building img{pointer-events:auto}.building .image-building-label{pointer-events:none}.stadium-image{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;object-position:center;border:2px solid #26313b;border-radius:9px;box-shadow:0 4px 7px rgba(0,0,0,.28)}
 
 .s1,.s2,.s3{padding:0;background:transparent;border:0;box-shadow:none;overflow:hidden;min-height:0}
 
@@ -156,7 +156,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.16.49</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.49</div></header>
+<header><h1>🏙️ Calvin's City — 4.16.50</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.16.50</div></header>
 
 <main>
 
@@ -378,13 +378,13 @@ window.openTeamPage=openTeamPage;
 
  
 
-/* 4.16.49: Clean City stadium interaction.
+/* 4.16.50: Touch-safe City stadium interaction.
 
-  Each stadium uses one direct click/touch path to the team page.
+  The stadium button is the only interactive target. Stadium images have
 
-  No screen switching, delegated City click handling, or duplicate
+  pointer-events disabled so iPhone Safari cannot target the image layer.
 
-  pointer/click handlers are used. */
+  Touchend and click share one guarded opener to prevent duplicate opens. */
 
 function openCityStadium(teamKey,e){
 
@@ -412,9 +412,25 @@ document.querySelectorAll("#city .stadium[data-place]").forEach(function(stadium
 
  const place=stadium.getAttribute("data-place");
 
+ let lastTouch=0;
+
+ 
+
  stadium.onclick=function(e){
 
-  openCityStadium(place,e);
+  if(Date.now()-lastTouch<700)return false;
+
+  return openCityStadium(place,e);
+
+ };
+
+ 
+
+ stadium.ontouchend=function(e){
+
+  lastTouch=Date.now();
+
+  return openCityStadium(place,e);
 
  };
 
@@ -508,7 +524,7 @@ citizenLedgerModalEl.onclick=function(e){
 
  
 
-/* 4.16.49: Team stadium modal interaction fix.
+/* 4.16.50: Team stadium modal interaction fix.
 
   The stadium/team page gets the same protected modal behavior as Records.
 
@@ -800,7 +816,7 @@ function citizenCount(){return state.citizens.length}
 
 function seedRecords(){
 
-/* 4.16.49: Historical paper records are the authoritative baseline for
+/* 4.16.50: Historical paper records are the authoritative baseline for
 
   Years 1–28. Existing saved records are preserved, but malformed entries
 
@@ -960,7 +976,7 @@ const leaders=TEAMS.filter(t=>state.standings[t].w===max);
 
  
 
-/* 4.16.49: Tie-break rule.
+/* 4.16.50: Tie-break rule.
 
   - One clear leader gets the bye.
 
@@ -1058,7 +1074,7 @@ out.innerHTML=h;
 
 function renderRecords(){
 
-/* 4.16.49: Always verify/seed the permanent historical record data
+/* 4.16.50: Always verify/seed the permanent historical record data
 
   immediately before rendering. This prevents an incomplete saved
 
@@ -1288,7 +1304,7 @@ if(e.target===this)this.classList.remove("show");
 
 });
 
-/* 4.16.49: Records modal interaction fix.
+/* 4.16.50: Records modal interaction fix.
 
   The modal owns the touch/pointer interaction so the page behind it
 
