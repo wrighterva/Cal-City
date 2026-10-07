@@ -116,7 +116,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <p class="tiny">Businesses operating in Calvin's City.</p>
 <div class="city-business-grid">
 <div class="city-business-card"><strong>👟 Nike</strong><span>Shoe Company</span></div>
-<div class="city-business-card"><strong>👟 Reebok</strong><span>Shoe Company</span></div>
+<div class="city-business-card" role="button" tabindex="0" onclick="openReebokSection()" onkeydown="if(event.key==='Enter'||event.key===' ')openReebokSection()"><strong>👟 Reebok</strong><span>Shoe Company • 50% Kobal / 50% Benmack</span></div>
 <div class="city-business-card"><strong>👟 Puma</strong><span>Shoe Company</span></div>
 <div class="city-business-card"><strong>👟 Adidas</strong><span>Shoe Company</span></div>
 <div class="city-business-card"><strong>👟 New Balance</strong><span>Shoe Company</span></div>
@@ -145,6 +145,29 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button><button data-nav="finance">🏦<br>Finance</button></nav>
 
 
+<div id="reebokModal" class="modal">
+<div class="modalbox">
+<h2>👟 Reebok</h2>
+<p class="tiny">Shoe Company • 50% Kobal / 50% Benmack</p>
+<div class="grid">
+<div class="metric"><small>Cash</small><strong>$4,150M</strong></div>
+<div class="metric"><small>Owners</small><strong>2</strong></div>
+</div>
+<h3>Ownership</h3>
+<table>
+<tr><th>Owner</th><th>Ownership</th></tr>
+<tr><td>Kobal</td><td>50%</td></tr>
+<tr><td>Benmack</td><td>50%</td></tr>
+</table>
+<h3>Current Shoe Deal</h3>
+<div class="card">
+<p><b>Wall — Lions C</b></p>
+<p>Reebok shoe deal: <b>2 years</b> • <b>$290M</b></p>
+<p class="tiny">This shoe deal is included in Wall's Lions contract package.</p>
+</div>
+<button id="reebokClose" class="secondary" type="button">Close</button>
+</div>
+</div>
 <div id="basketballInfoModal" class="modal"><div class="modalbox">
 <h2>ℹ️ Basketball Information</h2>
 <h3>Season Rules</h3>
@@ -1176,6 +1199,44 @@ document.querySelectorAll(".city-tab").forEach(function(tab){
    setCityTab(tab);
  });
 });
+})();
+</script>
+<script>
+/* 4.17.20: Reebok business section. */
+function openReebokSection(){
+ const modal=document.getElementById("reebokModal");
+ if(modal)modal.classList.add("show");
+}
+(function(){
+ function closeReebok(e){
+   if(e){e.preventDefault();e.stopPropagation();}
+   const modal=document.getElementById("reebokModal");
+   if(modal)modal.classList.remove("show");
+ }
+ function bindReebokModal(){
+   const modal=document.getElementById("reebokModal");
+   const close=document.getElementById("reebokClose");
+   const box=modal?modal.querySelector(".modalbox"):null;
+   if(close){
+     close.type="button";
+     close.onclick=closeReebok;
+     close.ontouchend=closeReebok;
+   }
+   if(modal){
+     modal.onclick=function(e){
+       if(e.target===modal)closeReebok(e);
+     };
+   }
+   if(box){
+     box.onclick=function(e){e.stopPropagation();};
+   }
+ }
+ document.addEventListener("click",function(e){
+   const close=e.target.closest && e.target.closest("#reebokClose");
+   if(close){closeReebok(e);return;}
+ },true);
+ document.addEventListener("DOMContentLoaded",bindReebokModal);
+ if(document.readyState!=="loading")bindReebokModal();
 })();
 </script>
 </body></html>
