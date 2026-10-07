@@ -35,7 +35,6 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .city-place-copy span{display:block;font-size:11px;color:#9eabba;margin-top:4px}
 .city-place-arrow{font-size:27px;color:#9eabba;line-height:1}
 .city-business-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
-.city-business-button{cursor:pointer;touch-action:manipulation;user-select:none;} .city-business-button:focus{outline:2px solid #888;outline-offset:2px;}
 .city-business-card{background:#121b27;border:1px solid #2d3a4d;border-radius:12px;padding:12px;min-height:68px}
 .city-business-card strong{display:block;font-size:14px}
 .city-business-card span{display:block;color:#9eabba;font-size:10px;margin-top:5px}
@@ -51,7 +50,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .basketball-badges .badge{margin:0}
 
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
-.team-table{width:100%;border-collapse:collapse;font-size:12px}.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}.team-note{color:#9eabba;font-size:11px;margin-top:10px}
+.team-table-wrap{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}.team-table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;table-layout:auto}.team-table th,.team-table td{padding:8px 6px;border-bottom:1px solid #334155;text-align:left;white-space:nowrap}.team-table th:nth-child(1),.team-table td:nth-child(1){width:42px}.team-table th:nth-child(2),.team-table td:nth-child(2){width:150px;min-width:150px}.team-table .team-player-name{display:block;min-width:140px;width:140px;max-width:180px;box-sizing:border-box}.team-note{color:#9eabba;font-size:11px;margin-top:10px}
 .team-switch{margin:10px 0 12px}.team-switch button{margin:0;padding:10px 8px;background:#2f6fed;font-size:13px}
 .record-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 12px}
 .record-tabs button{margin:0;padding:9px 4px;background:#344255;font-size:11px}
@@ -73,7 +72,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.18</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.17</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.17</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.18</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -117,7 +116,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <p class="tiny">Businesses operating in Calvin's City.</p>
 <div class="city-business-grid">
 <div class="city-business-card"><strong>👟 Nike</strong><span>Shoe Company</span></div>
-<div class="city-business-card city-business-button" role="button" tabindex="0" onclick="openReebokBusiness()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReebokBusiness();}"><strong>👟 Reebok</strong><span>Shoe Company · 1/2 player slots</span></div>
+<div class="city-business-card"><strong>👟 Reebok</strong><span>Shoe Company</span></div>
 <div class="city-business-card"><strong>👟 Puma</strong><span>Shoe Company</span></div>
 <div class="city-business-card"><strong>👟 Adidas</strong><span>Shoe Company</span></div>
 <div class="city-business-card"><strong>👟 New Balance</strong><span>Shoe Company</span></div>
@@ -220,7 +219,7 @@ return {
 });
 
 document.getElementById("teamPageTitle").textContent=t.name;
-const rosterTable='<h3>Roster &amp; Contracts</h3><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:12px;width:100%;box-sizing:border-box"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td></tr>').join('')+'</table><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the basketball database.</p>';
+const rosterTable='<h3>Roster &amp; Contracts</h3><div class="team-table-wrap"><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" aria-label="'+p.pos+' player name"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td></tr>').join('')+'</table></div><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the basketball database.</p>';
 
 document.getElementById("teamPageBody").innerHTML=
 '<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+TEAM_CASH[t.key]+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div></div>'+rosterTable;
@@ -970,92 +969,6 @@ document.addEventListener("DOMContentLoaded",bindRecordsModal);
 if(document.readyState!=="loading")bindRecordsModal();
 })();
 
-
-/* 4.17.18: Reebok player-signing business section.
-  Reebok has 2 player-signing slots. Shoe contracts are linked to the
-  same signing year/contract history as the player's team contract.
-  The shoe amount is a portion of the player's total package, not an
-  additional contract on top of it.
-*/
-function getActiveReebokSignings(){
- const out=[];
- const citizens=Array.isArray(state.citizens)?state.citizens:[];
- citizens.forEach(c=>{
-   if(!c||String(c.status)!=="Active Player")return;
-   const deals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
-   deals.forEach(d=>{
-     if(!d||d.company!=="Reebok")return;
-     out.push({
-       name:c.name,
-       pts:Number(c.careerPts)||0,
-       reb:Number(c.careerRebs)||0,
-       team:c.currentTeam||"—",
-       signingYear:d.startYear==null?state.year:Number(d.startYear),
-       years:Number(d.years)||0,
-       shoeValue:Number(d.value)||0,
-       totalPackage:findCurrentContractTotal(c,d),
-       teamValue:findCurrentTeamValue(c,d)
-     });
-   });
- });
- return out;
-}
-function findCurrentContractTotal(c,deal){
- const contracts=Array.isArray(c&&c.contracts)?c.contracts:[];
- const hit=contracts.find(x=>x&&x.team===c.currentTeam&&Number(x.year)===Number(deal.startYear==null?state.year:deal.startYear));
- if(hit&&Number.isFinite(Number(hit.totalPackage)))return Number(hit.totalPackage);
- return Number(deal.value)||0;
-}
-function findCurrentTeamValue(c,deal){
- const contracts=Array.isArray(c&&c.contracts)?c.contracts:[];
- const hit=contracts.find(x=>x&&x.team===c.currentTeam&&Number(x.year)===Number(deal.startYear==null?state.year:deal.startYear));
- if(hit&&Number.isFinite(Number(hit.teamValue)))return Number(hit.teamValue);
- return Math.max(0,(Number(deal.value)||0));
-}
-function renderReebokBusiness(){
- const body=document.getElementById("reebokBusinessBody");
- if(!body)return;
- const signings=getActiveReebokSignings().slice(0,2);
- let html='<div class="metric"><small>Company Cash</small><strong>$'+Number(BUSINESS_CASH.Reebok||0).toLocaleString()+'M</strong></div>';
- html+='<div class="metric"><small>Player Signing Slots</small><strong>'+signings.length+' / 2</strong></div><hr>';
- for(let i=0;i<2;i++){
-   const p=signings[i];
-   if(!p){
-     html+='<div class="card"><h3>Player Slot '+(i+1)+'</h3><p class="muted">Available</p></div>';
-     continue;
-   }
-   html+='<div class="card"><h3>Player Slot '+(i+1)+': '+p.name+' — Active</h3>'+
-     '<p><strong>'+p.pts+' PTS | '+p.reb+' REB</strong></p>'+
-     '<p>Team: <strong>'+p.team+'</strong></p>'+
-     '<p>Signing Year: <strong>'+p.signingYear+'</strong></p>'+
-     '<p>Contract Length: <strong>'+p.years+' years</strong></p>'+
-     '<p>Reebok Shoe Portion: <strong>$'+p.shoeValue.toLocaleString()+'M</strong></p>'+
-     '<p>Team Portion: <strong>$'+p.teamValue.toLocaleString()+'M</strong></p>'+
-     '<p>Total Contract Package: <strong>$'+p.totalPackage.toLocaleString()+'M</strong></p></div>';
- }
- html+='<p class="tiny">The Reebok shoe deal uses the same signing year and contract term as the team signing. The shoe amount is included in the player&#39;s total contract package.</p>';
- body.innerHTML=html;
-}
-function openReebokBusiness(){
- const modal=document.getElementById("reebokModal");
- if(!modal)return;
- renderReebokBusiness();
- modal.classList.add("show");
- document.documentElement.style.overflow="hidden";
- document.body.style.overflow="hidden";
-}
-function closeReebokBusiness(){
- const modal=document.getElementById("reebokModal");
- if(modal)modal.classList.remove("show");
- document.documentElement.style.overflow="";
- document.body.style.overflow="";
-}
-window.openReebokBusiness=openReebokBusiness;
-document.addEventListener("DOMContentLoaded",function(){
- const close=document.getElementById("reebokClose"),modal=document.getElementById("reebokModal");
- if(close)close.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();closeReebokBusiness();});
- if(modal)modal.addEventListener("click",function(e){if(e.target===modal)closeReebokBusiness();});
-});
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
 renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 document.addEventListener("DOMContentLoaded",function(){
@@ -1091,11 +1004,6 @@ if(citizenLedgerModalEl){
 
 </script>
 
-<div id="reebokModal" class="modal"><div class="modalbox">
-<h2>👟 Reebok — Player Signings</h2>
-<div id="reebokBusinessBody" class="log"></div>
-<button id="reebokClose" class="secondary">Close</button>
-</div></div>
 <div id="recordsModal" class="modal"><div class="modalbox"><h2>📚 Calvin's City Records</h2>
 <div class="record-tabs">
 <button id="recordTabPoints" class="active" type="button">PTS</button>
