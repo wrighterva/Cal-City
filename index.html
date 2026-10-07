@@ -106,7 +106,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 .team-switch{margin:10px 0 12px}.team-switch button{margin:0;padding:10px 8px;background:#2f6fed;font-size:13px}
 
-.record-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 12px}
+.record-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 12px}
 
 .record-tabs button{margin:0;padding:9px 4px;background:#344255;font-size:11px}
 
@@ -1972,6 +1972,70 @@ return h+'</div>';
 
  
 
+function renderHallOfFamePanel(){
+
+const retiredAll=r.slice().filter(p=>p&&p.name);
+
+const hof=retiredAll.filter(p=>(Number(p.careerPts)||0)>=500||(Number(p.careerRebs)||0)>=500)
+
+  .sort((a,b)=>(Number(b.careerPts)||0)-(Number(a.careerPts)||0)||(Number(b.careerRebs)||0)-(Number(a.careerRebs)||0));
+
+const retiredNoHof=retiredAll.filter(p=>(Number(p.careerPts)||0)<500&&(Number(p.careerRebs)||0)<500)
+
+  .sort((a,b)=>(Number(b.careerPts)||0)-(Number(a.careerPts)||0)||(Number(b.careerRebs)||0)-(Number(a.careerRebs)||0));
+
+let h='<div id="recordHOF" class="record-panel">';
+
+h+='<h3>Hall of Fame</h3>';
+
+h+='<p class="tiny">Eligibility: <b>500 career PTS OR 500 career REB</b>. Hall of Fame membership is permanent once a player qualifies after retirement.</p>';
+
+if(!hof.length)h+='<p class="muted">No Hall of Fame players recorded yet.</p>';
+
+else{
+
+  h+='<table><tr><th>Player</th><th>Points</th><th>Rebounds</th><th>MVPs</th><th>Ships</th><th>SNR</th></tr>';
+
+  hof.forEach(p=>{
+
+    const snr=Number(p.champStreak??p.currentChampStreak??0)||0;
+
+    h+='<tr><td><b>'+p.name+'</b></td><td>'+Number(p.careerPts||0)+'</td><td>'+Number(p.careerRebs||0)+'</td><td>'+Number(p.mvps||0)+'</td><td>'+Number(p.championships||0)+'</td><td>'+snr+'</td></tr>';
+
+  });
+
+  h+='</table>';
+
+}
+
+h+='<h3>Retired Players</h3>';
+
+h+='<p class="tiny">Retired players who do not meet the Hall of Fame threshold are preserved here.</p>';
+
+if(!retiredNoHof.length)h+='<p class="muted">No retired players outside the Hall of Fame yet.</p>';
+
+else{
+
+  h+='<table><tr><th>Player</th><th>Points</th><th>Rebounds</th><th>MVPs</th><th>Ships</th><th>SNR</th></tr>';
+
+  retiredNoHof.forEach(p=>{
+
+    const snr=Number(p.champStreak??p.currentChampStreak??0)||0;
+
+    h+='<tr><td><b>'+p.name+'</b></td><td>'+Number(p.careerPts||0)+'</td><td>'+Number(p.careerRebs||0)+'</td><td>'+Number(p.mvps||0)+'</td><td>'+Number(p.championships||0)+'</td><td>'+snr+'</td></tr>';
+
+  });
+
+  h+='</table>';
+
+}
+
+return h+'</div>';
+
+}
+
+const hofHtml=renderHallOfFamePanel();
+
 let champHtml='<div id="recordChamps" class="record-panel"><h3>Championship History</h3>';
 
 if(!championships.length)champHtml+='<p class="muted">No championships recorded yet.</p>';
@@ -2008,6 +2072,8 @@ panel("recordTitles","Championship Leaders — Top 5",titles,"championships","Ti
 
 panel("recordMvp","MVP Leaders — Top 5",mvps,"mvps","MVPs")+
 
+hofHtml+
+
 champHtml;
 
  
@@ -2022,7 +2088,9 @@ const tabs=[
 
 ["recordTabMVP","recordMvp"],
 
-["recordTabChamps","recordChamps"]
+["recordTabChamps","recordChamps"],
+
+["recordTabHOF","recordHOF"]
 
 ];
 
@@ -2339,6 +2407,8 @@ if(citizenLedgerModalEl){
 <button id="recordTabMVP" type="button">MVP</button>
 
 <button id="recordTabChamps" type="button">CHAMPS</button>
+
+<button id="recordTabHOF" type="button">HOF</button>
 
 </div>
 
