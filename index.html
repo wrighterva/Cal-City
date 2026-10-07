@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.17.08 -->
+<!-- CALVIN'S CITY — VERSION 4.17.09 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.17.08</title>
+<title>Calvin's City 4.17.09</title>
 
 <style>
 
@@ -146,7 +146,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.17.08</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.08</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.09</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.09</div></header>
 
 <main>
 
@@ -552,11 +552,35 @@ citizenLedgerModalEl.onclick=function(e){
 
 };
 
+citizenLedgerModalEl.addEventListener("touchmove",function(e){
+
+  const box=citizenLedgerModalEl.querySelector(".modalbox");
+
+  if(!box || !box.contains(e.target)){
+
+    e.preventDefault();
+
+  }
+
+},{passive:false});
+
+const ledgerBox=citizenLedgerModalEl.querySelector(".modalbox");
+
+if(ledgerBox){
+
+  ledgerBox.addEventListener("touchmove",function(e){
+
+    e.stopPropagation();
+
+  },{passive:false});
+
+}
+
 }
 
  
 
-/* 4.17.07: Team stadium modal interaction fix.
+/* 4.17.09: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */\n/* 4.17.07: Team stadium modal interaction fix.
 
   The stadium/team page gets the same protected modal behavior as Records.
 
@@ -1262,6 +1286,8 @@ function lockCitizenLedgerScroll(){
 
 citizenLedgerScrollY=window.scrollY||window.pageYOffset||0;
 
+document.documentElement.style.overflow="hidden";
+
 document.body.style.position="fixed";
 
 document.body.style.top="-"+citizenLedgerScrollY+"px";
@@ -1272,11 +1298,15 @@ document.body.style.right="0";
 
 document.body.style.width="100%";
 
+document.body.style.height="100%";
+
 document.body.style.overflow="hidden";
 
 }
 
 function unlockCitizenLedgerScroll(){
+
+document.documentElement.style.overflow="";
 
 document.body.style.position="";
 
@@ -1288,9 +1318,11 @@ document.body.style.right="";
 
 document.body.style.width="";
 
+document.body.style.height="";
+
 document.body.style.overflow="";
 
-window.scrollTo(0,citizenLedgerScrollY);
+requestAnimationFrame(function(){window.scrollTo(0,citizenLedgerScrollY);});
 
 }
 
