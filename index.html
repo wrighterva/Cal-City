@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 4.17.22 -->
+<!-- CALVIN'S CITY — VERSION 4.17.23 -->
 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.22</title>
+<title>Calvin's City 4.17.23</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -74,7 +74,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.22</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.22</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.23</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.23</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -317,8 +317,8 @@ if(ledgerBox){
 }
 }
 
-/* 4.17.22: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */
-/* 4.17.22: Team stadium modal interaction fix.
+/* 4.17.23: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */
+/* 4.17.23: Team stadium modal interaction fix.
   The stadium/team page gets the same protected modal behavior as Records.
   The page behind the modal cannot intercept the Close button or touches
   inside the team window on iPhone Safari. */
@@ -401,13 +401,13 @@ CHAMP_STREAKS={"Benmack":4,"Fox":3,"Mason":3,"Hall":2,"House":2,"June":2,"West":
 
 
 REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
-// 4.17.22: Seasons 1–28 are permanent historical seasons. Season 28 was won by Dunks, so Dunks is the defending champion entering Season 29.
+// 4.17.23: Seasons 1–28 are permanent historical seasons. Season 28 was won by Dunks, so Dunks is the defending champion entering Season 29.
 const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS.length-1][1];
 
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
-// 4.17.22: Historical Seasons 1–28 remain permanent Records; live play begins at Season 29.
+// 4.17.23: Historical Seasons 1–28 remain permanent Records; live play begins at Season 29.
 if(Number(state.year)<29 && !state.gamesPlayed.length && !state.seasonPlayed && state.seasonPhase==="regular"){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
@@ -541,7 +541,7 @@ state.citizens.forEach(c=>{c.businesses=citizenBusinessSummary(c.name)});
 function citizenCount(){return state.citizens.length}
 
 function seedRecords(){
-/* 4.17.22: Historical paper records are the authoritative baseline for
+/* 4.17.23: Historical paper records are the authoritative baseline for
   Years 1–28. Existing saved records are preserved, but malformed entries
   are ignored and historical championship rows are repaired by year. */
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
@@ -575,7 +575,7 @@ HISTORICAL_RETIRED.forEach(x=>{
 });
 
 /*
- 4.17.22: Prevent duplicate championship seasons in Records.
+ 4.17.23: Prevent duplicate championship seasons in Records.
  Years 1–28 are permanent historical records and must have exactly one
  championship row per year. Older saved browser data can contain duplicate
  Championship rows from previous versions, so historical rows are rebuilt
@@ -653,7 +653,7 @@ function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.sc
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 function recordGame(g,stage){if(stage==="Regular Season"){state.standings[g.winner.team].w++;state.standings[g.loser.team].l++;state.standings[g.A.team].ptsFor+=g.A.score;state.standings[g.A.team].ptsAgainst+=g.B.score;state.standings[g.B.team].ptsFor+=g.B.score;state.standings[g.B.team].ptsAgainst+=g.A.score;state.standings[g.winner.team].ticket+=g.ticket*.7;state.standings[g.loser.team].ticket+=g.ticket*.3}state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});recordHistoryGame(g,stage);state.lastGame={stage,game:g}}
 /*
- 4.17.22: Bye logic searches the permanent Championship history for the
+ 4.17.23: Bye logic searches the permanent Championship history for the
  most recent completed championship BEFORE the current season.
 
  This is the authoritative source for the defending champion. We do not
@@ -797,6 +797,21 @@ document.getElementById("contractBoard").innerHTML=h;
 document.querySelectorAll(".contract-player-select").forEach(sel=>{
 const k=sel.dataset.team+"_"+sel.dataset.pos;
 sel.value=state.roster[k]||"";
+sel.onchange=function(){
+ const key=this.dataset.team+"_"+this.dataset.pos;
+ const value=this.value.trim();
+ state.roster=state.roster||{};
+ if(value){
+  Object.keys(state.roster).forEach(oldKey=>{
+   if(oldKey!==key&&state.roster[oldKey]===value)delete state.roster[oldKey];
+  });
+  state.roster[key]=value;
+ }else{
+  delete state.roster[key];
+ }
+ syncCitizenLedger();
+ save();
+};
 });
 document.querySelectorAll(".offseason-decision").forEach(sel=>{
 sel.onchange=function(){
@@ -848,8 +863,12 @@ buildContractBoard();
 function verifyOffseasonDecision(team,pos){
 if(!state.seasonPlayed||!state.offseasonOpen){alert("Open the offseason before verifying a decision.");return;}
 const k=team+"_"+pos;
-const name=state.roster[k];
+let name=state.roster&&state.roster[k];
+const playerSelect=document.querySelector('.contract-player-select[data-team="'+team+'"][data-pos="'+pos+'"]');
+if(playerSelect&&playerSelect.value.trim())name=playerSelect.value.trim();
 if(!name){alert("Select an active player for this roster spot before verifying.");return;}
+state.roster=state.roster||{};
+state.roster[k]=name;
 state.offseasonDecisions=state.offseasonDecisions||{};
 const entry=state.offseasonDecisions[k]||{decision:"Keep"};
 const decision=entry.decision||"Keep";
@@ -1023,7 +1042,7 @@ h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span c
 out.innerHTML=h;
 }
 function renderRecords(){
-/* 4.17.22: Always verify/seed the permanent historical record data
+/* 4.17.23: Always verify/seed the permanent historical record data
   immediately before rendering. This prevents an incomplete saved
   Records array from producing an empty Records screen. */
 try{
@@ -1176,7 +1195,7 @@ document.getElementById("basketballInfoModal").classList.remove("show");
 document.getElementById("basketballInfoModal").addEventListener("click",function(e){
 if(e.target===this)this.classList.remove("show");
 });
-/* 4.17.22: Records modal interaction fix.
+/* 4.17.23: Records modal interaction fix.
   The modal owns the touch/pointer interaction so the page behind it
   cannot intercept the Close button on iPhone. */
 (function(){
@@ -1261,7 +1280,7 @@ if(citizenLedgerModalEl){
 });
 })();
 
-/* 4.17.22: City uses direct HTML button actions.
+/* 4.17.23: City uses direct HTML button actions.
   There is no City/stadium event-binding layer. Each arena button
   calls the existing global openTeamPage() directly. */
 
@@ -1284,7 +1303,7 @@ if(citizenLedgerModalEl){
 
 
 <script>
-/* 4.17.22: Clean City controller.
+/* 4.17.23: Clean City controller.
   Arena buttons use ONLY their direct HTML onclick="openTeamPage(...)"
   action. No click/touchend handlers are attached to arena cards. */
 
@@ -1309,7 +1328,7 @@ document.querySelectorAll(".city-tab").forEach(function(tab){
 })();
 </script>
 <script>
-/* 4.17.22: Reebok business section. */
+/* 4.17.23: Reebok business section. */
 function openReebokSection(){
  const modal=document.getElementById("reebokModal");
  if(modal)modal.classList.add("show");
@@ -1348,4 +1367,3 @@ function openReebokSection(){
 </script>
 </body></html>
 
- 
