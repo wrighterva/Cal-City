@@ -2,7 +2,7 @@
 
  
 
-<!-- CALVIN'S CITY — VERSION 4.17.09 -->
+<!-- CALVIN'S CITY — VERSION 4.17.10 -->
 
  
 
@@ -14,7 +14,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 4.17.09</title>
+<title>Calvin's City 4.17.10</title>
 
 <style>
 
@@ -146,7 +146,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 4.17.09</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.09</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.10</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.10</div></header>
 
 <main>
 
@@ -1518,7 +1518,7 @@ if(citizenLedgerCloseBtn){
 
    e.stopPropagation();
 
-   if(citizenLedgerModalEl)citizenLedgerModalEl.classList.remove("show");
+   if(citizenLedgerModalEl)citizenLedgerModalEl.classList.remove("show");if(typeof unlockCitizenLedgerScroll==="function")unlockCitizenLedgerScroll();
 
  };
 
@@ -1584,6 +1584,8 @@ if(citizenLedgerModalEl){
 
 <script>
 
+/* 4.17.10: Arena regression fix — fully unlock the page before opening a team. */
+
 /* 4.17.07: City arena controller. The arena cards open the full existing Team Page. */
 
 (function(){
@@ -1604,7 +1606,7 @@ if(businesses)businesses.style.display=target==="businesses"?"block":"none";
 
 document.querySelectorAll(".city-tab").forEach(function(tab){tab.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();setCityTab(tab);});});
 
-function openArena(k,e){if(e){e.preventDefault();e.stopPropagation();} if(typeof window.openTeamPage==="function")window.openTeamPage(k);}
+function openArena(k,e){if(e){e.preventDefault();e.stopPropagation();} if(typeof unlockCitizenLedgerScroll==="function")unlockCitizenLedgerScroll(); if(typeof window.openTeamPage==="function")window.openTeamPage(k);}
 
 document.querySelectorAll(".city-place-card").forEach(function(card,i){
 
