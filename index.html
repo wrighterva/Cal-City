@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 4.17.34 -->
+<!-- CALVIN'S CITY — VERSION 4.17.35 -->
 
 <html lang="en">
 <head>
@@ -552,7 +552,7 @@ return c;
 }
 seedInitialLionsRoster();
 
-/* 4.17.34: Contract years are consumed by the completed season, not by the
+/* 4.17.35: Contract years are consumed by the completed season, not by the
   offseason Keep decision. This keeps Offseason and Arena on the same live
   contract record. The marker also safely migrates an already-completed
   Season 29 saved game from the old behavior exactly once. */
@@ -572,10 +572,20 @@ function advanceActivePlayerContractsAfterSeason(){
  state.contractYearsAdvancedForSeason=completedYear;
 }
 
-// One-time migration for a saved Season 29 game that was already completed
-// before 4.17.34. It changes the original 2-year contracts to 1 year left.
-if(Number(state.year)===29 && state.seasonPlayed===true && state.seasonPhase==="offseason")
- advanceActivePlayerContractsAfterSeason();
+// 4.17.35: Season 29 is the starting point. Original Season 29 contracts
+// remain at 2 years while the season is being played. The only event that
+// consumes a year is the completed championship game, handled by
+// advanceActivePlayerContractsAfterSeason(). If an older saved Season 29
+// state was left at 1 year before the championship, restore the original
+// 2-year starting term exactly once.
+if(Number(state.year)===29 && state.seasonPlayed!==true && state.seasonPhase!=="offseason"){
+ state.contractYearsAdvancedForSeason=null;
+ Object.entries(state.contracts||{}).forEach(([key,c])=>{
+   if(!c)return;
+   const original=key==="Lions_C"?2:key==="Lions_SG"?2:key==="Lions_PG"?2:null;
+   if(original!=null)c.years=original;
+ });
+}
 
 function setActivePlayerContract(key,team,name,contract,options={}){
 const c=state.contracts=state.contracts||{};
