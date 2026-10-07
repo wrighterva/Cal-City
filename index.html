@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 4.17.16 -->
+<!-- CALVIN'S CITY — VERSION 4.17.18 -->
 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.16</title>
+<title>Calvin's City 4.17.18</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -35,6 +35,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .city-place-copy span{display:block;font-size:11px;color:#9eabba;margin-top:4px}
 .city-place-arrow{font-size:27px;color:#9eabba;line-height:1}
 .city-business-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.city-business-button{cursor:pointer;touch-action:manipulation;user-select:none;} .city-business-button:focus{outline:2px solid #888;outline-offset:2px;}
 .city-business-card{background:#121b27;border:1px solid #2d3a4d;border-radius:12px;padding:12px;min-height:68px}
 .city-business-card strong{display:block;font-size:14px}
 .city-business-card span{display:block;color:#9eabba;font-size:10px;margin-top:5px}
@@ -72,7 +73,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.16</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.16</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.18</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.17</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -90,7 +91,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 
 <div id="cityTeamsPanel" class="city-panel">
 <h3>🏀 Teams</h3>
-<p class="tiny">Open a team to view its current roster, contracts and team information.</p>
+<p class="tiny">Open a team to view its current roster, contracts and team information. Lions roster is seeded into the permanent Citizen Ledger.</p>
 
 <button type="button" class="city-place-card" onclick="openTeamPage('lions')">
 <div class="city-place-icon">🦁</div>
@@ -116,7 +117,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 <p class="tiny">Businesses operating in Calvin's City.</p>
 <div class="city-business-grid">
 <div class="city-business-card"><strong>👟 Nike</strong><span>Shoe Company</span></div>
-<div class="city-business-card"><strong>👟 Reebok</strong><span>Shoe Company</span></div>
+<div class="city-business-card city-business-button" role="button" tabindex="0" onclick="openReebokBusiness()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReebokBusiness();}"><strong>👟 Reebok</strong><span>Shoe Company · 1/2 player slots</span></div>
 <div class="city-business-card"><strong>👟 Puma</strong><span>Shoe Company</span></div>
 <div class="city-business-card"><strong>👟 Adidas</strong><span>Shoe Company</span></div>
 <div class="city-business-card"><strong>👟 New Balance</strong><span>Shoe Company</span></div>
@@ -409,6 +410,60 @@ Adidas:[["Wallace",50],["Poley",50]],
 "Sports Bets Company":[["June",35],["Coast",35],["Peb",15],["Sam",15]]
 };
 const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+const INITIAL_LIONS_PLAYERS={
+ Lions_C:{name:"Wall",position:"C",careerPts:568,careerRebs:549,mvps:1,championships:2},
+ Lions_SG:{name:"Diggs",position:"SG",careerPts:83,careerRebs:80,mvps:0,championships:0},
+ Lions_PG:{name:"Kap",position:"PG",careerPts:278,careerRebs:243,mvps:0,championships:1}
+};
+function seedInitialLionsRoster(){
+ state.roster=state.roster||{};
+ state.contracts=state.contracts||{};
+ const players={
+   Lions_C:{name:"Wall",careerPts:568,careerRebs:549,mvps:1,championships:2,
+     contract:{value:787,years:2,rookie:false,totalPackage:787,teamValue:497},
+     shoeDeals:[{company:"Reebok",years:2,value:290,includedInContract:true}]},
+   Lions_SG:{name:"Diggs",careerPts:83,careerRebs:80,mvps:0,championships:0,
+     contract:{value:0,years:2,rookie:true,totalPackage:0,teamValue:0},shoeDeals:[]},
+   Lions_PG:{name:"Kap",careerPts:278,careerRebs:243,mvps:0,championships:1,
+     contract:{value:450,years:2,rookie:false,totalPackage:450,teamValue:450},shoeDeals:[]}
+ };
+ Object.entries(players).forEach(([key,p])=>{
+   if(!state.roster[key])state.roster[key]=p.name;
+   const existing=state.contracts[key]||{};
+   state.contracts[key]={...p.contract,...existing};
+   if(!Array.isArray(state.contracts[key].history)||!state.contracts[key].history.length){
+     state.contracts[key].history=[{year:state.year,team:"Lions",value:p.contract.value,years:p.contract.years,rookie:!!p.contract.rookie,totalPackage:p.contract.totalPackage,teamValue:p.contract.teamValue,shoeDeals:p.shoeDeals}];
+   }
+ });
+ const byName={Wall:players.Lions_C,Diggs:players.Lions_SG,Kap:players.Lions_PG};
+ Object.entries(byName).forEach(([name,p])=>{
+   let c=state.citizens.find(x=>x.name===name);
+   if(!c){
+     const id="C"+String(state.citizens.length+1).padStart(3,"0");
+     c={id,name,status:"Active Player",position:p.position||null,currentTeam:"Lions",cash:null,debt:0,
+       careerPts:p.careerPts,careerRebs:p.careerRebs,mvps:p.mvps,championships:p.championships,
+       champStreak:0,currentChampStreak:0,businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
+     state.citizens.push(c);
+   }
+   c.status="Active Player";
+   c.position=p.position||c.position;
+   c.currentTeam="Lions";
+   c.careerPts=Number(p.careerPts)||0;
+   c.careerRebs=Number(p.careerRebs)||0;
+   c.mvps=Number(p.mvps)||0;
+   c.championships=Number(p.championships)||0;
+   c.shoeDeals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
+   if(name==="Wall" && !c.shoeDeals.some(d=>d&&d.company==="Reebok"&&Number(d.years)===2&&Number(d.value)===290)){
+     c.shoeDeals.push({company:"Reebok",years:2,value:290,includedInContract:true,startYear:state.year});
+   }
+   c.contracts=Array.isArray(c.contracts)?c.contracts:[];
+   const desired=state.contracts[name==="Wall"?"Lions_C":name==="Diggs"?"Lions_SG":"Lions_PG"];
+   const teamContract=desired;
+   const already=c.contracts.some(x=>x&&x.team==="Lions"&&Number(x.year)===Number(state.year));
+   if(!already)c.contracts.push({year:state.year,team:"Lions",value:Number(teamContract.value)||0,years:Number(teamContract.years)||0,rookie:!!teamContract.rookie,totalPackage:Number(teamContract.totalPackage)||0,teamValue:Number(teamContract.teamValue)||0});
+ });
+}
+
 const CITIZEN_NAMES=()=>Array.from(new Set([...(state.records&&state.records.retiredPlayers||[]).map(x=>x.name),...Object.values(state.roster||{}).filter(Boolean)]));
 
 
@@ -440,6 +495,7 @@ if(seed.currentTeam)c.currentTeam=seed.currentTeam;
 if(seed.cash!=null)c.cash=Number(seed.cash);
 return c;
 }
+seedInitialLionsRoster();
 function syncCitizenLedger(){
 const retiredMap={};(state.records.retiredPlayers||[]).forEach(p=>retiredMap[p.name]=p);
 CITIZEN_NAMES().forEach(name=>{
@@ -572,7 +628,7 @@ function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.sc
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 function recordGame(g,stage){if(stage==="Regular Season"){state.standings[g.winner.team].w++;state.standings[g.loser.team].l++;state.standings[g.A.team].ptsFor+=g.A.score;state.standings[g.A.team].ptsAgainst+=g.B.score;state.standings[g.B.team].ptsFor+=g.B.score;state.standings[g.B.team].ptsAgainst+=g.A.score;state.standings[g.winner.team].ticket+=g.ticket*.7;state.standings[g.loser.team].ticket+=g.ticket*.3}state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});recordHistoryGame(g,stage);state.lastGame={stage,game:g}}
 /*
- 4.17.16: Bye logic searches the permanent Championship history for the
+ 4.17.17: Bye logic searches the permanent Championship history for the
  most recent completed championship BEFORE the current season.
 
  This is the authoritative source for the defending champion. We do not
@@ -666,7 +722,59 @@ const names=Object.values(proposed).filter(Boolean);
 if(new Set(names).size!==names.length){alert("Each citizen name must be unique.");return}
 state.roster=proposed;syncCitizenLedger();save();document.getElementById("rosterSaved").textContent="Roster names and citizen identities saved on this device."
 }
-function buildContractBoard(){let h='<p class="tiny">Current team gets the first bid. Maximum term is 3 years. Player names can be edited here.</p>';TEAMS.forEach(t=>{h+='<div class="team"><h3>'+t+'</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>';POSITIONS.forEach(p=>{const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};h+='<tr><td><input class="contract-player-name" data-team="'+t+'" data-pos="'+p+'" value="'+String(playerName(t,p)).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:12px"><div class="tiny">'+p+'</div></td><td>'+money(Number(c.value)||0)+'</td><td>'+c.years+'</td><td><select><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>'});h+='</table></div>'});h+='<button id="saveContractPlayerNames" class="goodbtn">Save Player Names</button><p id="contractNamesSaved" class="tiny"></p>';document.getElementById("contractBoard").innerHTML=h;const saveNames=document.getElementById("saveContractPlayerNames");if(saveNames)saveNames.onclick=()=>{document.querySelectorAll(".contract-player-name").forEach(input=>{const team=input.dataset.team,pos=input.dataset.pos,value=input.value.trim();if(value)state.roster[team+"_"+pos]=value});save();document.getElementById("contractNamesSaved").textContent="Player names saved on this device.";buildRosterInputs();}}
+function getActivePlayerOptions(currentKey){
+ const assigned={};
+ Object.entries(state.roster||{}).forEach(([k,name])=>{if(name)assigned[name]=k});
+ const players=(state.citizens||[]).filter(c=>c&&c.name&&c.status!=="Retired");
+ players.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+ let h='<option value="">— Select Active Player —</option>';
+ players.forEach(c=>{
+   const heldBy=assigned[c.name];
+   if(heldBy&&heldBy!==currentKey)return;
+   const rookie=(c.careerPts===0&&c.careerRebs===0&&c.championships===0&&c.mvps===0);
+   const label=c.name+' — '+(rookie?'Rookie':'Active')+' | '+(Number(c.careerPts)||0)+' PTS | '+(Number(c.careerRebs)||0)+' REB';
+   h+='<option value="'+String(c.name).replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+label+'</option>';
+ });
+ return h;
+}
+function buildContractBoard(){
+ let h='<p class="tiny">Select an active player or rookie from the dropdown. Retired players are not shown.</p>';
+ TEAMS.forEach(t=>{
+   h+='<div class="team"><h3>'+t+'</h3><table><tr><th>Player</th><th>Current</th><th>Years Left</th><th>Decision</th></tr>';
+   POSITIONS.forEach(p=>{
+     const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};
+     const current=playerName(t,p);
+     h+='<tr><td><select class="contract-player-select" data-team="'+t+'" data-pos="'+p+'">'+getActivePlayerOptions(k)+'</select><div class="tiny">'+p+'</div></td><td>'+money(Number(c.value)||0)+'</td><td>'+Number(c.years||0)+'</td><td><select><option>Keep</option><option>Renegotiate</option><option>Release</option><option>Trade</option></select></td></tr>';
+   });
+   h+='</table></div>';
+ });
+ h+='<button id="saveContractPlayerNames" class="goodbtn">Save Roster Assignments</button><p id="contractNamesSaved" class="tiny"></p>';
+ document.getElementById("contractBoard").innerHTML=h;
+ document.querySelectorAll(".contract-player-select").forEach(sel=>{
+   const k=sel.dataset.team+"_"+sel.dataset.pos;
+   sel.value=state.roster[k]||"";
+ });
+ const saveNames=document.getElementById("saveContractPlayerNames");
+ if(saveNames)saveNames.onclick=()=>{
+   const proposed={...state.roster};
+   const selected={};
+   document.querySelectorAll(".contract-player-select").forEach(sel=>{
+     const k=sel.dataset.team+"_"+sel.dataset.pos;
+     const value=sel.value.trim();
+     if(value)selected[k]=value; else delete proposed[k];
+   });
+   Object.entries(selected).forEach(([k,name])=>{
+     Object.keys(proposed).forEach(oldKey=>{if(oldKey!==k&&proposed[oldKey]===name)delete proposed[oldKey];});
+     proposed[k]=name;
+   });
+   state.roster=proposed;
+   syncCitizenLedger();
+   save();
+   document.getElementById("contractNamesSaved").textContent="Roster assignments and citizen identities saved on this device.";
+   buildRosterInputs();
+   buildContractBoard();
+ };
+}
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 function finalizeOffseason(){if(!state.seasonPlayed||!state.offseasonOpen)return;state.offseasonFinalized=true;state.seasonPlayed=false;state.offseasonOpen=false;state.year++;state.seasonPhase="regular";state.regularGameIndex=0;state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};save();document.getElementById("offseasonCard").style.display="none";const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;document.getElementById("seasonStatus").textContent="Ready for New Season";document.getElementById("offseasonStatus").textContent="Complete";renderProgress();renderStandings();alert("Offseason finalized. Calvin's City is ready for the new year.")}
 function renderCitizenLedger(){
@@ -862,6 +970,92 @@ document.addEventListener("DOMContentLoaded",bindRecordsModal);
 if(document.readyState!=="loading")bindRecordsModal();
 })();
 
+
+/* 4.17.18: Reebok player-signing business section.
+  Reebok has 2 player-signing slots. Shoe contracts are linked to the
+  same signing year/contract history as the player's team contract.
+  The shoe amount is a portion of the player's total package, not an
+  additional contract on top of it.
+*/
+function getActiveReebokSignings(){
+ const out=[];
+ const citizens=Array.isArray(state.citizens)?state.citizens:[];
+ citizens.forEach(c=>{
+   if(!c||String(c.status)!=="Active Player")return;
+   const deals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
+   deals.forEach(d=>{
+     if(!d||d.company!=="Reebok")return;
+     out.push({
+       name:c.name,
+       pts:Number(c.careerPts)||0,
+       reb:Number(c.careerRebs)||0,
+       team:c.currentTeam||"—",
+       signingYear:d.startYear==null?state.year:Number(d.startYear),
+       years:Number(d.years)||0,
+       shoeValue:Number(d.value)||0,
+       totalPackage:findCurrentContractTotal(c,d),
+       teamValue:findCurrentTeamValue(c,d)
+     });
+   });
+ });
+ return out;
+}
+function findCurrentContractTotal(c,deal){
+ const contracts=Array.isArray(c&&c.contracts)?c.contracts:[];
+ const hit=contracts.find(x=>x&&x.team===c.currentTeam&&Number(x.year)===Number(deal.startYear==null?state.year:deal.startYear));
+ if(hit&&Number.isFinite(Number(hit.totalPackage)))return Number(hit.totalPackage);
+ return Number(deal.value)||0;
+}
+function findCurrentTeamValue(c,deal){
+ const contracts=Array.isArray(c&&c.contracts)?c.contracts:[];
+ const hit=contracts.find(x=>x&&x.team===c.currentTeam&&Number(x.year)===Number(deal.startYear==null?state.year:deal.startYear));
+ if(hit&&Number.isFinite(Number(hit.teamValue)))return Number(hit.teamValue);
+ return Math.max(0,(Number(deal.value)||0));
+}
+function renderReebokBusiness(){
+ const body=document.getElementById("reebokBusinessBody");
+ if(!body)return;
+ const signings=getActiveReebokSignings().slice(0,2);
+ let html='<div class="metric"><small>Company Cash</small><strong>$'+Number(BUSINESS_CASH.Reebok||0).toLocaleString()+'M</strong></div>';
+ html+='<div class="metric"><small>Player Signing Slots</small><strong>'+signings.length+' / 2</strong></div><hr>';
+ for(let i=0;i<2;i++){
+   const p=signings[i];
+   if(!p){
+     html+='<div class="card"><h3>Player Slot '+(i+1)+'</h3><p class="muted">Available</p></div>';
+     continue;
+   }
+   html+='<div class="card"><h3>Player Slot '+(i+1)+': '+p.name+' — Active</h3>'+
+     '<p><strong>'+p.pts+' PTS | '+p.reb+' REB</strong></p>'+
+     '<p>Team: <strong>'+p.team+'</strong></p>'+
+     '<p>Signing Year: <strong>'+p.signingYear+'</strong></p>'+
+     '<p>Contract Length: <strong>'+p.years+' years</strong></p>'+
+     '<p>Reebok Shoe Portion: <strong>$'+p.shoeValue.toLocaleString()+'M</strong></p>'+
+     '<p>Team Portion: <strong>$'+p.teamValue.toLocaleString()+'M</strong></p>'+
+     '<p>Total Contract Package: <strong>$'+p.totalPackage.toLocaleString()+'M</strong></p></div>';
+ }
+ html+='<p class="tiny">The Reebok shoe deal uses the same signing year and contract term as the team signing. The shoe amount is included in the player&#39;s total contract package.</p>';
+ body.innerHTML=html;
+}
+function openReebokBusiness(){
+ const modal=document.getElementById("reebokModal");
+ if(!modal)return;
+ renderReebokBusiness();
+ modal.classList.add("show");
+ document.documentElement.style.overflow="hidden";
+ document.body.style.overflow="hidden";
+}
+function closeReebokBusiness(){
+ const modal=document.getElementById("reebokModal");
+ if(modal)modal.classList.remove("show");
+ document.documentElement.style.overflow="";
+ document.body.style.overflow="";
+}
+window.openReebokBusiness=openReebokBusiness;
+document.addEventListener("DOMContentLoaded",function(){
+ const close=document.getElementById("reebokClose"),modal=document.getElementById("reebokModal");
+ if(close)close.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();closeReebokBusiness();});
+ if(modal)modal.addEventListener("click",function(e){if(e.target===modal)closeReebokBusiness();});
+});
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
 renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 document.addEventListener("DOMContentLoaded",function(){
@@ -897,6 +1091,11 @@ if(citizenLedgerModalEl){
 
 </script>
 
+<div id="reebokModal" class="modal"><div class="modalbox">
+<h2>👟 Reebok — Player Signings</h2>
+<div id="reebokBusinessBody" class="log"></div>
+<button id="reebokClose" class="secondary">Close</button>
+</div></div>
 <div id="recordsModal" class="modal"><div class="modalbox"><h2>📚 Calvin's City Records</h2>
 <div class="record-tabs">
 <button id="recordTabPoints" class="active" type="button">PTS</button>
