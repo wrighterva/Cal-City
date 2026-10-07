@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 4.17.15 -->
+<!-- CALVIN'S CITY — VERSION 4.17.16 -->
 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.15</title>
+<title>Calvin's City 4.17.16</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -72,7 +72,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.15</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.15</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.16</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.16</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -571,31 +571,87 @@ function playTeam(team){const players=POSITIONS.map(pos=>({team,pos,name:playerN
 function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((p,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;return{A,B,winner,loser,ot,ticket:ticketRevenue(),shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeRevenue()]))}}
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 function recordGame(g,stage){if(stage==="Regular Season"){state.standings[g.winner.team].w++;state.standings[g.loser.team].l++;state.standings[g.A.team].ptsFor+=g.A.score;state.standings[g.A.team].ptsAgainst+=g.B.score;state.standings[g.B.team].ptsFor+=g.B.score;state.standings[g.B.team].ptsAgainst+=g.A.score;state.standings[g.winner.team].ticket+=g.ticket*.7;state.standings[g.loser.team].ticket+=g.ticket*.3}state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});recordHistoryGame(g,stage);state.lastGame={stage,game:g}}
+/*
+ 4.17.16: Bye logic searches the permanent Championship history for the
+ most recent completed championship BEFORE the current season.
+
+ This is the authoritative source for the defending champion. We do not
+ rely on a stale localStorage defendingChampion or lastSeason value when
+ deciding a tie-break bye.
+
+ Season 29 -> searches Season 28 -> Dunks.
+ Season 30 -> searches Season 29 champion.
+ Season 39 -> searches Season 38 champion.
+*/
+function getLastChampionshipWinner(){
+
+ const currentYear=Number(state.year)||29;
+ let latestYear=-1;
+ let latestWinner=null;
+
+ // Search the permanent/live game database first.
+ const records=state.records&&Array.isArray(state.records.gameRecords)
+   ? state.records.gameRecords
+   : [];
+
+ records.forEach(g=>{
+   if(!g||g.stage!=="Championship")return;
+
+   const y=Number(g.year)||0;
+   const winner=String(g.winner||"").trim();
+
+   if(y<currentYear && winner && y>latestYear){
+     latestYear=y;
+     latestWinner=winner;
+   }
+ });
+
+ // Years 1–28 are permanent historical records.
+ // Use them as the fallback if a live championship record is missing.
+ if(!latestWinner){
+   HISTORICAL_CHAMPIONSHIPS.forEach(x=>{
+     const y=Number(x[0])||0;
+     const winner=String(x[1]||"").trim();
+
+     if(y<currentYear && winner && y>latestYear){
+       latestYear=y;
+       latestWinner=winner;
+     }
+   });
+ }
+
+ return latestWinner||HISTORICAL_LAST_CHAMPION;
+}
+
 function chooseBye(){
 
-const max=Math.max(...TEAMS.map(t=>state.standings[t].w));
+ const max=Math.max(...TEAMS.map(t=>state.standings[t].w));
 
-const leaders=TEAMS.filter(t=>state.standings[t].w===max);
+ const leaders=TEAMS.filter(t=>state.standings[t].w===max);
 
-// Season 29 enters with the Season 28 champion as the defending champion.
-// Thereafter, the previous season's champion is carried forward automatically.
-// Season 29 is anchored directly to the permanent Season 28 championship record.
-// Do not trust an older saved defendingChampion value from localStorage for Season 29.
-const defending=Number(state.year)===29
- ? HISTORICAL_LAST_CHAMPION
- : (state.lastSeason&&state.lastSeason.champion)||state.defendingChampion||HISTORICAL_LAST_CHAMPION;
+ const defending=getLastChampionshipWinner();
 
-if(leaders.length===1)return leaders[0];
+ // Keep the saved defending-champion field synchronized with the
+ // championship record actually found in permanent history.
+ state.defendingChampion=defending;
 
-// Any tie for the best record goes to the defending champion when eligible.
-// This includes the three-way tie case: the previous champion gets the bye.
-if(leaders.includes(defending))return defending;
+ if(leaders.length===1)return leaders[0];
 
-// Safety fallback: never give the bye to a team outside the tied leaders.
-return leaders[0];
+ // Any tie, including a three-way tie, goes to the most recent champion
+ // when that champion is one of the tied leaders.
+ if(defending && leaders.includes(defending))return defending;
+
+ // Safety fallback: never give the bye to a team outside the tied leaders.
+ return leaders[0];
 
 }
-function finishRegularSeason(){state.playoff.bye=chooseBye();state.seasonPhase="semifinal";save()}
+
+function finishRegularSeason(){
+ state.defendingChampion=getLastChampionshipWinner();
+ state.playoff.bye=chooseBye();
+ state.seasonPhase="semifinal";
+ save();
+}
 function finishSeason(champ,runnerUp){const champion=state.lastGame.game.winner,mvp=champ.players.slice().sort((a,b)=>b.pts-a.pts)[0].name;state.lastSeason={champion,runnerUp,bye:state.playoff.bye,standings:state.standings,semifinal:state.playoff.semifinal,championship:{winner:champion,loser:runnerUp,mvp},seasonGames:state.gamesPlayed.length};state.defendingChampion=champion;state.seasonPlayed=true;state.seasonPhase="offseason";state.offseasonOpen=false;state.offseasonFinalized=false;save()}
 function playNextGame(){if(state.seasonPhase==="regular"){const p=REGULAR_SCHEDULE[state.regularGameIndex];if(!p)return;const g=playGame(p[0],p[1]);recordGame(g,"Regular Season");state.regularGameIndex++;if(state.regularGameIndex>=3)finishRegularSeason();save();renderGameResult(g,"Regular Season");renderProgress();return}if(state.seasonPhase==="semifinal"){const bye=state.playoff.bye,other=TEAMS.filter(t=>t!==bye),g=playGame(other[0],other[1]);recordGame(g,"Semifinal");state.playoff.semifinal={winner:g.winner.team,loser:g.loser.team};state.seasonPhase="championship";save();renderGameResult(g,"Semifinal");renderProgress();return}if(state.seasonPhase==="championship"){const g=playGame(state.playoff.bye,state.playoff.semifinal.winner);recordGame(g,"Championship");state.playoff.championship={winner:g.winner.team,loser:g.loser.team};finishSeason(g.winner,g.loser);renderGameResult(g,"Championship");renderProgress();return}if(state.seasonPhase==="offseason")alert("Season complete. Finish the offseason before the next year begins.")}
 function renderGameResult(g,stage){document.getElementById("seasonOutput").innerHTML='<p class="gold"><b>'+stage+' completed and saved.</b></p>'+gameText(g)}
