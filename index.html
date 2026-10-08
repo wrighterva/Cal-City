@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.38 -->
+<!-- CALVIN'S CITY — VERSION 4.17.39 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.38</title>
+<title>Calvin's City 4.17.39</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.38</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.38</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.39</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.39</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -321,8 +321,8 @@ if(ledgerBox){
 }
 }
  
-/* 4.17.38: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */
-/* 4.17.38: Team stadium modal interaction fix.
+/* 4.17.39: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */
+/* 4.17.39: Team stadium modal interaction fix.
   The stadium/team page gets the same protected modal behavior as Records.
   The page behind the modal cannot intercept the Close button or touches
   inside the team window on iPhone Safari. */
@@ -405,13 +405,13 @@ CHAMP_STREAKS={"Benmack":4,"Fox":3,"Mason":3,"Hall":2,"House":2,"June":2,"West":
  
  
 REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
-// 4.17.38: Seasons 1–28 are permanent historical seasons. Season 28 was won by Dunks, so Dunks is the defending champion entering Season 29.
+// 4.17.39: Seasons 1–28 are permanent historical seasons. Season 28 was won by Dunks, so Dunks is the defending champion entering Season 29.
 const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS.length-1][1];
  
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
-// 4.17.38: Historical Seasons 1–28 remain permanent Records; live play begins at Season 29.
+// 4.17.39: Historical Seasons 1–28 remain permanent Records; live play begins at Season 29.
 if(Number(state.year)<29 && !state.gamesPlayed.length && !state.seasonPlayed && state.seasonPhase==="regular"){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
@@ -459,12 +459,12 @@ function seedInitialLionsRoster(){
  Object.entries(players).forEach(([key,p])=>{
    if(!state.roster[key])state.roster[key]=p.name;
    const existing=state.contracts[key]||{};
-   state.contracts[key]={...p.contract,...existing};
+   state.contracts[key]=Number(state.year)===29?{...p.contract}:{...p.contract,...existing};
    if(!Array.isArray(state.contracts[key].history)||!state.contracts[key].history.length){
      state.contracts[key].history=[{year:state.year,team:"Lions",value:p.contract.value,years:p.contract.years,rookie:!!p.contract.rookie,totalPackage:p.contract.totalPackage,teamValue:p.contract.teamValue,shoeDeals:p.shoeDeals}];
    }
  });
- /* 4.17.38: Season 29 opening cash is the original paper-game
+ /* 4.17.39: Season 29 opening cash is the original paper-game
     contract cash already established for the Lions players.
     It is starting cash, not a new payment, so it must be marked
     as already recognized by the Ledger to prevent double-paying. */
@@ -479,7 +479,7 @@ function seedInitialLionsRoster(){
        champStreak:0,currentChampStreak:0,businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
      state.citizens.push(c);
    }
-   /* 4.17.38: Initialize Season 29 opening cash exactly once.
+   /* 4.17.39: Initialize Season 29 opening cash exactly once.
      Existing cash is preserved after initialization. */
   if(Number(state.year)===29 && c.season29OpeningCashInitialized!==true){
     c.cash=Number(SEASON_29_OPENING_CASH[name])||0;
@@ -551,13 +551,37 @@ state.citizens.push(c);
 if(seed.status)c.status=seed.status;
 if(seed.position)c.position=seed.position;
 if(seed.currentTeam)c.currentTeam=seed.currentTeam;
-/* 4.17.38: Ledger sync never overwrites existing cash. */
+/* 4.17.39: Ledger sync never overwrites existing cash. */
 if(c.cash==null && seed.cash!=null)c.cash=Number(seed.cash);
 return c;
 }
 seedInitialLionsRoster();
  
-/* 4.17.38: Season 29 is the permanent starting point for the active game.
+/* 4.17.39: Restore the permanent Season 29 starting point once. */
+if(Number(state.year)===29 && state.season29StartingPointVersion!=="4.17.39"){
+ state.year=29; state.defendingChampion=HISTORICAL_LAST_CHAMPION;
+ state.seasonPhase="regular"; state.regularGameIndex=0; state.standings=freshStandings();
+ state.gamesPlayed=[]; state.playoff={bye:null,semifinal:null,championship:null};
+ state.seasonPlayed=false; state.offseasonOpen=false; state.offseasonFinalized=false;
+ state.offseasonDecisions={}; state.verifiedOffseasonDecisions={};
+ state.lastSeason=null; state.lastGame=null; state.contractYearsAdvancedForSeason=null;
+ const originalLionsContracts={
+   Lions_C:{value:787,years:2,rookie:false,totalPackage:787,teamValue:497},
+   Lions_SG:{value:0,years:2,rookie:true,totalPackage:0,teamValue:0},
+   Lions_PG:{value:450,years:2,rookie:false,totalPackage:450,teamValue:450}
+ };
+ Object.entries(originalLionsContracts).forEach(([key,contract])=>{
+   state.contracts[key]={...contract,history:[{year:29,team:"Lions",value:contract.value,years:contract.years,rookie:contract.rookie,totalPackage:contract.totalPackage,teamValue:contract.teamValue}]};
+ });
+ const openingCash={Wall:787,Diggs:0,Kap:450};
+ Object.entries(openingCash).forEach(([name,cash])=>{
+   const citizen=state.citizens.find(x=>x&&x.name===name);
+   if(citizen){ citizen.cash=cash; citizen.contracts=[]; citizen.status="Active Player"; citizen.currentTeam="Lions"; }
+ });
+ state.season29StartingPointVersion="4.17.39"; save();
+}
+ 
+/* 4.17.39: Season 29 is the permanent starting point for the active game.
   This one-time migration clears any accidental/old Season 29 completion
   state from earlier builds, restores the opening contracts to 2 years, and
   leaves Season 29 ready to be played. The migration marker prevents it from
@@ -628,6 +652,8 @@ if(citizen){
   });
   citizen.contracts.push({...record,current:true,action:options.action||"Contract Update",cashAdded:Number(options.cashAdded)||0,cashPaid:true});
  }else{
+  /* Season 29 Lions contracts are starting-point data, not Ledger history. */
+  if(year===29 && team==="Lions" && ["Wall","Diggs","Kap"].includes(name))return c[key];
   let rec=citizen.contracts.find(x=>x&&x.team===team&&Number(x.year)===year&&x.current===true);
   if(!rec)rec=citizen.contracts.slice().reverse().find(x=>x&&x.team===team&&Number(x.year)===year);
   if(rec){Object.assign(rec,record);rec.current=true;}
@@ -646,13 +672,15 @@ if(!citizen)return false;
 citizen.cash=Number(citizen.cash)||0;
 citizen.contracts=Array.isArray(citizen.contracts)?citizen.contracts:[];
 const year=Number(state.year)||0;
+/* Season 29 Lions contract cash is starting-point data, not a Ledger record. */
+if(year===29 && team==="Lions" && ["Wall","Diggs","Kap"].includes(name))return false;
 let rec=citizen.contracts.slice().reverse().find(x=>x&&x.team===team&&Number(x.year)===year&&x.current===true);
 if(!rec)rec=citizen.contracts.slice().reverse().find(x=>x&&x.team===team&&Number(x.year)===year);
 if(!rec){
  rec={year,team,value:Number(contract.value)||0,years:Number(contract.years)||0,rookie:!!contract.rookie,totalPackage:Number(contract.totalPackage)||Number(contract.value)||0,teamValue:Number(contract.teamValue)||Number(contract.value)||0,current:true};
  citizen.contracts.push(rec);
 }
-/* 4.17.38: Original Season 29 contract is starting data,
+/* 4.17.39: Original Season 29 contract is starting data,
    not a new payment. */
 if(rec.originalSeason29===true || (year===29 && rec.season29OpeningCash!=null)){
  rec.cashPaid=true;
@@ -707,7 +735,7 @@ state.citizens.forEach(c=>{c.businesses=citizenBusinessSummary(c.name)});
 function citizenCount(){return state.citizens.length}
  
 function seedRecords(){
-/* 4.17.38: Historical paper records are the authoritative baseline for
+/* 4.17.39: Historical paper records are the authoritative baseline for
   Years 1–28. Existing saved records are preserved, but malformed entries
   are ignored and historical championship rows are repaired by year. */
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
@@ -741,7 +769,7 @@ HISTORICAL_RETIRED.forEach(x=>{
 });
  
 /*
- 4.17.38: Prevent duplicate championship seasons in Records.
+ 4.17.39: Prevent duplicate championship seasons in Records.
  Years 1–28 are permanent historical records and must have exactly one
  championship row per year. Older saved browser data can contain duplicate
  Championship rows from previous versions, so historical rows are rebuilt
@@ -819,7 +847,7 @@ function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.sc
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 function recordGame(g,stage){if(stage==="Regular Season"){state.standings[g.winner.team].w++;state.standings[g.loser.team].l++;state.standings[g.A.team].ptsFor+=g.A.score;state.standings[g.A.team].ptsAgainst+=g.B.score;state.standings[g.B.team].ptsFor+=g.B.score;state.standings[g.B.team].ptsAgainst+=g.A.score;state.standings[g.winner.team].ticket+=g.ticket*.7;state.standings[g.loser.team].ticket+=g.ticket*.3}state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});recordHistoryGame(g,stage);state.lastGame={stage,game:g}}
 /*
- 4.17.38: Bye logic searches the permanent Championship history for the
+ 4.17.39: Bye logic searches the permanent Championship history for the
  most recent completed championship BEFORE the current season.
  
  This is the authoritative source for the defending champion. We do not
@@ -1092,7 +1120,7 @@ const verifyButton=document.querySelector('.verify-decision[data-team="'+team+'"
 const card=verifyButton&&verifyButton.closest(".offseason-slot");
 const playerSelect=card&&card.querySelector(".contract-player-select");
 if(playerSelect&&playerSelect.value.trim())name=playerSelect.value.trim();
-// 4.17.38: Read the live controls from the exact roster card being verified.
+// 4.17.39: Read the live controls from the exact roster card being verified.
 // This prevents a re-sign Verify click from losing the current player/decision
 // or reading a stale offseasonDecisions record after the board is rebuilt.
 if(!card){alert("Unable to find this roster spot. Please reopen Offseason and try Verify again.");return;}
@@ -1279,16 +1307,17 @@ if(!rows.length)h+='<p class="muted">No citizens recorded yet.</p>';
 rows.forEach(c=>{
 const biz=(c.businesses||[]).map(x=>x.business+' '+Number(x.ownership).toFixed(Number(x.ownership%1?1:0))+'%').join(' • ')||'None';
 const cash=c.cash==null?'—':'$'+Number(c.cash).toFixed(0)+'M';
-const activeContract=Array.isArray(c.contracts)?c.contracts.slice().reverse().find(x=>x&&x.current===true)||c.contracts.slice().reverse().find(x=>x&&x.team===c.currentTeam):null;
+const ledgerContracts=Array.isArray(c.contracts)?c.contracts.filter(x=>!(x&&x.team==="Lions"&&Number(x.year)===29&&String(x.action||"")==="Original Season 29 Contract")):[];
+const activeContract=ledgerContracts.slice().reverse().find(x=>x&&x.current===true)||ledgerContracts.slice().reverse().find(x=>x&&x.team===c.currentTeam)||null;
 const contractText=activeContract?'$'+Number(activeContract.value||0).toFixed(0)+'M • '+Number(activeContract.years||0)+' yr'+(Number(activeContract.years||0)===1?'':'s'):'—';
-const contractHistory=Array.isArray(c.contracts)?c.contracts.slice().reverse().filter(x=>x&&x.action).slice(0,3):[];
+const contractHistory=ledgerContracts.slice().reverse().filter(x=>x&&x.action).slice(0,3);
 const historyText=contractHistory.map(x=>(x.action||"Contract")+' '+(x.team||'')+' $'+Number(x.value||0).toFixed(0)+'M / '+Number(x.years||0)+' yr'+(Number(x.years||0)===1?'':'s')).join(' • ');
 h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+(c.status||"Active")+(c.currentTeam?' • '+c.currentTeam:'')+(c.position?' • '+c.position:'')+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(c.mvps||0)+'</b></span><span>Ships <b>'+(c.championships||0)+'</b></span><span>Ships in a Row <b>'+(c.champStreak||c.currentChampStreak||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'</div>';
 });
 out.innerHTML=h;
 }
 function renderRecords(){
-/* 4.17.38: Always verify/seed the permanent historical record data
+/* 4.17.39: Always verify/seed the permanent historical record data
   immediately before rendering. This prevents an incomplete saved
   Records array from producing an empty Records screen. */
 try{
@@ -1441,7 +1470,7 @@ document.getElementById("basketballInfoModal").classList.remove("show");
 document.getElementById("basketballInfoModal").addEventListener("click",function(e){
 if(e.target===this)this.classList.remove("show");
 });
-/* 4.17.38: Records modal interaction fix.
+/* 4.17.39: Records modal interaction fix.
   The modal owns the touch/pointer interaction so the page behind it
   cannot intercept the Close button on iPhone. */
 (function(){
@@ -1527,13 +1556,13 @@ if(citizenLedgerModalEl){
 window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger:syncCitizenLedger,save:save};
 })();
  
-/* 4.17.38: Season 29 starting-point migration plus contract-year timing.
+/* 4.17.39: Season 29 starting-point migration plus contract-year timing.
  
-  4.17.38: Citizen cash/contract synchronization fix.
+  4.17.39: Citizen cash/contract synchronization fix.
   Season 29 opening cash is initialized once; Ledger sync never overwrites
   cash; original Season 29 contracts never trigger a new cash payment. */
  
-/* 4.17.38: City uses direct HTML button actions.
+/* 4.17.39: City uses direct HTML button actions.
   There is no City/stadium event-binding layer. Each arena button
   calls the existing global openTeamPage() directly. */
  
@@ -1557,7 +1586,7 @@ window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger
  
  
 <script>
-/* 4.17.38: Contract verification confirmation modal binding. */
+/* 4.17.39: Contract verification confirmation modal binding. */
 document.addEventListener("DOMContentLoaded",function(){
 const yes=document.getElementById("contractVerifyYes");
 const no=document.getElementById("contractVerifyNo");
@@ -1567,7 +1596,7 @@ if(no)no.onclick=function(e){e.preventDefault();e.stopPropagation();closeContrac
 if(modal)modal.onclick=function(e){if(e.target===modal)closeContractVerifyModal();};
 });
  
-/* 4.17.38: Clean City controller.
+/* 4.17.39: Clean City controller.
   Arena buttons use ONLY their direct HTML onclick="openTeamPage(...)"
   action. No click/touchend handlers are attached to arena cards. */
  
@@ -1592,7 +1621,7 @@ document.querySelectorAll(".city-tab").forEach(function(tab){
 })();
 </script>
 <script>
-/* 4.17.38: Reebok business section. */
+/* 4.17.39: Reebok business section. */
 function openReebokSection(){
  const modal=document.getElementById("reebokModal");
  if(modal)modal.classList.add("show");
