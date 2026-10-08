@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.66 -->
+<!-- CALVIN'S CITY — VERSION 4.17.67 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.66</title>
+<title>Calvin's City 4.17.67</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.66</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.66</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.66</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.67</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1326,9 +1326,72 @@ function finishRegularSeason(){
  state.seasonPhase="semifinal";
  save();
 }
+/* 4.17.67: Permanently award championship titles and Championship MVPs.
+  Every player on the championship-winning team receives one Ship. The
+  best player in the Championship game receives one MVP. These awards update
+  the live Citizen Ledger immediately, which also feeds Arena stats and the
+  All-Time Records leaderboards. A season marker prevents duplicate awards
+  if the completion flow is accidentally triggered more than once. */
+function recordChampionshipAwards(g){
+ if(!g||!g.winner||!Array.isArray(g.winner.players))return;
+ state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+ state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
+ state.records.gameRecords=Array.isArray(state.records.gameRecords)?state.records.gameRecords:[];
+ state.championshipAwards=Array.isArray(state.championshipAwards)?state.championshipAwards:[];
+ const season=Number(state.year)||0;
+ if(state.championshipAwards.some(x=>x&&Number(x.season)===season))return;
+ 
+ const winnerTeam=g.winner.team;
+ const winnerNames=(g.winner.players||[]).map(p=>p&&p.name).filter(Boolean);
+ const mvpPlayer=g.winner.players.slice().sort((a,b)=>(Number(b.pts)||0)-(Number(a.pts)||0)||(Number(b.rebs)||0)-(Number(a.rebs)||0))[0];
+ const mvpName=mvpPlayer&&mvpPlayer.name?mvpPlayer.name:null;
+ 
+ /* First reset the current championship streak for active players who did
+    not win this season. Their all-time streak remains preserved in
+    champStreak; only the active consecutive run resets. */
+ (state.citizens||[]).forEach(c=>{
+   if(c&&c.status!=="Retired"&&c.currentTeam&&c.currentTeam!==winnerTeam){
+     c.currentChampStreak=0;
+   }
+ });
+ 
+ winnerNames.forEach(name=>{
+   const citizen=ensureCitizen(name,{status:"Active Player",currentTeam:winnerTeam});
+   if(!citizen)return;
+   citizen.status="Active Player";
+   citizen.currentTeam=winnerTeam;
+   citizen.championships=(Number(citizen.championships)||0)+1;
+   citizen.currentChampStreak=(Number(citizen.currentChampStreak)||0)+1;
+   citizen.champStreak=Math.max(Number(citizen.champStreak)||0,Number(citizen.currentChampStreak)||0);
+ });
+ 
+ if(mvpName){
+   const mvpCitizen=ensureCitizen(mvpName,{status:"Active Player",currentTeam:winnerTeam});
+   if(mvpCitizen){
+     mvpCitizen.mvps=(Number(mvpCitizen.mvps)||0)+1;
+     mvpCitizen.lastChampionshipMvpSeason=season;
+     mvpCitizen.lastChampionshipMvpPts=Number(mvpPlayer.pts)||0;
+     mvpCitizen.lastChampionshipMvpRebs=Number(mvpPlayer.rebs)||0;
+   }
+ }
+ 
+ /* Keep a permanent award record separate from the player totals so the
+    exact season, champion, and Championship MVP can never be inferred away
+    or overwritten by later roster changes. */
+ state.championshipAwards.push({
+   season,
+   champion:winnerTeam,
+   players:winnerNames.slice(),
+   mvp:mvpName,
+   mvpPts:mvpPlayer?Number(mvpPlayer.pts)||0:0,
+   mvpRebs:mvpPlayer?Number(mvpPlayer.rebs)||0:0
+ });
+}
+ 
 function finishSeason(champ,runnerUp){
 const champion=state.lastGame.game.winner;
 const mvp=champ.players.slice().sort((a,b)=>b.pts-a.pts)[0].name;
+recordChampionshipAwards(champion);
 state.lastSeason={
   champion,runnerUp,bye:state.playoff.bye,standings:state.standings,
   semifinal:state.playoff.semifinal,
@@ -1346,7 +1409,8 @@ state.seasonPlayed=true;
 state.seasonPhase="offseason";
 state.offseasonOpen=false;
 state.offseasonFinalized=false;
-/* 4.17.66: Contract value was paid in full when the contract was verified.
+/* 4.17.67: Championship awards are now permanent before the season is saved.
+   4.17.66: Contract value was paid in full when the contract was verified.
    Finishing a season only reduces the years remaining. */
 paySeasonContractInstallments(state.year);
 advanceActivePlayerContractsAfterSeason();
@@ -2100,7 +2164,9 @@ if(citizenLedgerModalEl){
 window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger:syncCitizenLedger,save:save};
 })();
  
-/* 4.17.66: Season 29 starting-point migration plus contract-year timing.
+/* 4.17.67: Championship awards now update Citizen/Arena/Ledger/Records.
+ 
+ 4.17.66: Season 29 starting-point migration plus contract-year timing.
  
   4.17.66: Citizen cash/contract synchronization fix.
   Season 29 opening cash is initialized once; Ledger sync never overwrites
