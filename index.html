@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.48 -->
+<!-- CALVIN'S CITY — VERSION 4.17.49 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.48</title>
+<title>Calvin's City 4.17.49</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -51,7 +51,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
  
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
 .team-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #2d3a4d;border-radius:10px}.team-table{width:100%;min-width:620px;border-collapse:collapse;font-size:12px}.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left;white-space:nowrap}.team-table th:nth-child(2),.team-table td:nth-child(2){min-width:125px}.team-player-name{font-weight:900!important;font-size:14px!important;color:#fff!important;background:#182230!important;border:1px solid #526176!important;border-radius:8px!important;min-height:38px!important}.team-note{color:#9eabba;font-size:11px;margin-top:10px}.offseason-board{display:flex;flex-direction:column;gap:12px}.offseason-team{min-width:0}.offseason-roster-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.offseason-slot{min-width:0;background:#121b27;border:1px solid #2d3a4d;border-radius:9px;padding:9px}.offseason-slot-head{display:flex;justify-content:space-between;align-items:center;gap:7px;margin-bottom:7px}.offseason-position{font-weight:900;font-size:12px}.offseason-contract{font-size:10px;color:#9eabba;text-align:right}.offseason-field{display:flex;flex-direction:column;gap:4px;min-width:0}.offseason-field>span,.offseason-verify-wrap>span{font-size:9px;color:#9eabba;text-transform:uppercase;letter-spacing:.04em}.offseason-field select{width:100%;min-width:0;box-sizing:border-box}.offseason-action-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:end;margin-top:7px}.offseason-verify-wrap{display:flex;flex-direction:column;gap:4px;align-items:stretch}.offseason-verify-wrap .verify-decision{margin:0}.offseason-decision{min-width:0}.resign-fields{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.resign-fields input,.resign-fields select{width:88px;min-width:0;box-sizing:border-box;padding:6px;font-size:11px}.decision-note{font-size:10px;color:#9eabba;margin-top:5px;line-height:1.3}.verify-decision{padding:8px 12px;font-size:11px;background:#246b46!important;white-space:nowrap}.offseason-save{width:100%;margin-top:2px}.offseason-instructions{margin-bottom:9px}
-.offseason-slot.locked{border-color:#246b46;opacity:.92}.offseason-slot.locked .offseason-position::after{content:" • VERIFIED / LOCKED";color:#9ff0b5;font-size:9px}.offseason-slot.locked select:disabled,.offseason-slot.locked input:disabled{opacity:.65}.contract-verify-summary{background:#121b27;border:1px solid #3a4960;border-radius:10px;padding:11px;margin:10px 0;font-size:13px}.contract-verify-summary div{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #2d3a4d}.contract-verify-summary div:last-child{border-bottom:0}.contract-verify-summary b{color:#f1d37a}.contract-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.contract-confirm-actions button{margin:0}
+.offseason-slot.locked{border-color:#246b46;opacity:.92}.offseason-slot.replacement-needed{border-color:#d4a72c;background:#151d2a}.replacement-note{font-size:10px;color:#f1d37a;margin-top:7px;line-height:1.35}.replacement-new-name{width:100%;box-sizing:border-box;margin-top:6px}.offseason-slot.locked .offseason-position::after{content:" • VERIFIED / LOCKED";color:#9ff0b5;font-size:9px}.offseason-slot.locked select:disabled,.offseason-slot.locked input:disabled{opacity:.65}.contract-verify-summary{background:#121b27;border:1px solid #3a4960;border-radius:10px;padding:11px;margin:10px 0;font-size:13px}.contract-verify-summary div{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #2d3a4d}.contract-verify-summary div:last-child{border-bottom:0}.contract-verify-summary b{color:#f1d37a}.contract-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.contract-confirm-actions button{margin:0}
 .team-switch{margin:10px 0 12px}.team-switch button{margin:0;padding:10px 8px;background:#2f6fed;font-size:13px}
 .record-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 12px}
 .record-tabs button{margin:0;padding:9px 4px;background:#344255;font-size:11px}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.48</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.48</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.49</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.49</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -327,8 +327,8 @@ if(ledgerBox){
 }
 }
  
-/* 4.17.48: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */
-/* 4.17.48: Team stadium modal interaction fix.
+/* 4.17.49: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */
+/* 4.17.49: Team stadium modal interaction fix.
   The stadium/team page gets the same protected modal behavior as Records.
   The page behind the modal cannot intercept the Close button or touches
   inside the team window on iPhone Safari. */
@@ -411,13 +411,13 @@ CHAMP_STREAKS={"Benmack":4,"Fox":3,"Mason":3,"Hall":2,"House":2,"June":2,"West":
  
  
 REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
-// 4.17.48: Seasons 1–28 are permanent historical seasons. Season 28 was won by Dunks, so Dunks is the defending champion entering Season 29.
+// 4.17.49: Seasons 1–28 are permanent historical seasons. Season 28 was won by Dunks, so Dunks is the defending champion entering Season 29.
 const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS.length-1][1];
  
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
-let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
+let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},openRosterSpots:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
-// 4.17.48: Historical Seasons 1–28 remain permanent Records; live play begins at Season 29.
+// 4.17.49: Historical Seasons 1–28 remain permanent Records; live play begins at Season 29.
 if(Number(state.year)<29 && !state.gamesPlayed.length && !state.seasonPlayed && state.seasonPhase==="regular"){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
@@ -434,7 +434,7 @@ if(Number(state.year)===29 && !state.seasonPlayed && state.seasonPhase==="regula
 }
  
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
-state.citizens=Array.isArray(state.citizens)?state.citizens:[];state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
+state.citizens=Array.isArray(state.citizens)?state.citizens:[];state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};state.openRosterSpots=state.openRosterSpots||{};
 const BUSINESS_OWNERSHIP={
 Nike:[["Coffvee",100]],
 Reebok:[["Kobal",50],["Benmack",50]],
@@ -474,7 +474,7 @@ function seedInitialLionsRoster(){
      state.contracts[key].history=[{year:state.year,team:"Lions",value:p.contract.value,years:p.contract.years,rookie:!!p.contract.rookie,totalPackage:p.contract.totalPackage,teamValue:p.contract.teamValue,shoeDeals:p.shoeDeals}];
    }
  });
- /* 4.17.48: Season 29 opening cash is the original paper-game
+ /* 4.17.49: Season 29 opening cash is the original paper-game
     contract cash already established for the Lions players.
     It is starting cash, not a new payment, so it must be marked
     as already recognized by the Ledger to prevent double-paying. */
@@ -489,7 +489,7 @@ function seedInitialLionsRoster(){
        champStreak:0,currentChampStreak:0,businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
      state.citizens.push(c);
    }
-   /* 4.17.48: Initialize Season 29 opening cash exactly once.
+   /* 4.17.49: Initialize Season 29 opening cash exactly once.
      Existing cash is preserved after initialization. */
   if(Number(state.year)===29 && c.season29OpeningCashInitialized!==true){
     c.cash=Number(SEASON_29_OPENING_CASH[name])||0;
@@ -561,13 +561,13 @@ state.citizens.push(c);
 if(seed.status)c.status=seed.status;
 if(seed.position)c.position=seed.position;
 if(seed.currentTeam)c.currentTeam=seed.currentTeam;
-/* 4.17.48: Ledger sync never overwrites existing cash. */
+/* 4.17.49: Ledger sync never overwrites existing cash. */
 if(c.cash==null && seed.cash!=null)c.cash=Number(seed.cash);
 return c;
 }
 seedInitialLionsRoster();
  
-/* 4.17.48: Keep the Citizen Ledger synchronized to the exact Season 29
+/* 4.17.49: Keep the Citizen Ledger synchronized to the exact Season 29
   starting cash while Season 29 has not started. Starting contracts live in
   state.contracts and are displayed as the player's current contract, but
   are intentionally not added to Citizen Ledger contract history. */
@@ -595,11 +595,11 @@ function syncSeason29StartingLedger(){
  });
 }
  
-/* 4.17.48: Complete Season 29 live-state reset.
-  This runs once for the 4.17.48 build. It restores every live-game setting
+/* 4.17.49: Complete Season 29 live-state reset.
+  This runs once for the 4.17.49 build. It restores every live-game setting
   to the beginning of Season 29 while preserving permanent historical
   Records for Seasons 1–28. */
-if(state.season29StartingPointVersion!=="4.17.48"){
+if(state.season29StartingPointVersion!=="4.17.49"){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -666,11 +666,11 @@ if(state.season29StartingPointVersion!=="4.17.48"){
    citizen.season29OpeningCash=p.cash;
  });
  
- state.season29StartingPointVersion="4.17.48";
+ state.season29StartingPointVersion="4.17.49";
  save();
 }
  
-/* 4.17.48: Contract years are consumed exactly once when the
+/* 4.17.49: Contract years are consumed exactly once when the
   championship completes. The completed season, not the Offseason Keep
   decision, is what moves 2 years -> 1 year -> 0 years. */
  
@@ -744,7 +744,7 @@ if(!rec){
  rec={year,team,value:Number(contract.value)||0,years:Number(contract.years)||0,rookie:!!contract.rookie,totalPackage:Number(contract.totalPackage)||Number(contract.value)||0,teamValue:Number(contract.teamValue)||Number(contract.value)||0,current:true};
  citizen.contracts.push(rec);
 }
-/* 4.17.48: Original Season 29 contract is starting data,
+/* 4.17.49: Original Season 29 contract is starting data,
    not a new payment. */
 if(rec.originalSeason29===true || (year===29 && rec.season29OpeningCash!=null)){
  rec.cashPaid=true;
@@ -799,7 +799,7 @@ state.citizens.forEach(c=>{c.businesses=citizenBusinessSummary(c.name)});
 function citizenCount(){return state.citizens.length}
  
 function seedRecords(){
-/* 4.17.48: Historical paper records are the authoritative baseline for
+/* 4.17.49: Historical paper records are the authoritative baseline for
   Years 1–28. Existing saved records are preserved, but malformed entries
   are ignored and historical championship rows are repaired by year. */
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
@@ -833,7 +833,7 @@ HISTORICAL_RETIRED.forEach(x=>{
 });
  
 /*
- 4.17.48: Prevent duplicate championship seasons in Records.
+ 4.17.49: Prevent duplicate championship seasons in Records.
  Years 1–28 are permanent historical records and must have exactly one
  championship row per year. Older saved browser data can contain duplicate
  Championship rows from previous versions, so historical rows are rebuilt
@@ -922,7 +922,7 @@ function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.sc
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 function recordGame(g,stage){if(stage==="Regular Season"){state.standings[g.winner.team].w++;state.standings[g.loser.team].l++;state.standings[g.A.team].ptsFor+=g.A.score;state.standings[g.A.team].ptsAgainst+=g.B.score;state.standings[g.B.team].ptsFor+=g.B.score;state.standings[g.B.team].ptsAgainst+=g.A.score;state.standings[g.winner.team].ticket+=g.ticket*.7;state.standings[g.loser.team].ticket+=g.ticket*.3}state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});recordHistoryGame(g,stage);state.lastGame={stage,game:g}}
 /*
- 4.17.48: Bye logic searches the permanent Championship history for the
+ 4.17.49: Bye logic searches the permanent Championship history for the
  most recent completed championship BEFORE the current season.
  
  This is the authoritative source for the defending champion. We do not
@@ -1013,7 +1013,7 @@ state.lastSeason={
 };
 state.defendingChampion=champion;
  
-/* 4.17.48: A completed championship immediately consumes one year
+/* 4.17.49: A completed championship immediately consumes one year
    of every active player's contract. Mark the season complete before
    syncing the live contracts so Season 29 starting-point logic can
    never restore the original 2-year term. Offseason Keep does not
@@ -1062,27 +1062,33 @@ TEAMS.forEach(t=>{
 h+='<div class="team offseason-team"><h3>'+t+'</h3><div class="offseason-roster-grid">';
 POSITIONS.forEach(p=>{
 const k=t+"_"+p,c=state.contracts[k]||{value:0,years:0};
-const decision=(state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].decision)||"Keep";
-const locked=!!(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k]);
+const openSpot=!!(state.openRosterSpots&&state.openRosterSpots[k]&&!state.roster[k]);
+const verified=state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k];
+const locked=!!verified&&!openSpot;
+const decision=openSpot?"Replace":((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].decision)||"Keep");
 const disabled=locked?' disabled':'';
-h+='<div class="offseason-slot'+(locked?' locked':'')+'">'+
-'<div class="offseason-slot-head"><span class="offseason-position">'+p+'</span><span class="offseason-contract">Current: '+money(Number(c.value)||0)+' · '+Number(c.years||0)+' yr left</span></div>'+
-'<label class="offseason-field"><span>Player</span><select class="contract-player-select" data-team="'+t+'" data-pos="'+p+'"'+disabled+'>'+getActivePlayerOptions(k)+'</select></label>'+
+const openInfo=openSpot?state.openRosterSpots[k]:null;
+const replacementName=openSpot&&state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].replacementName?state.offseasonDecisions[k].replacementName:"";
+const newPlayerSelected=openSpot&&state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].replacementNewName?true:false;
+const selectValue=openSpot?(newPlayerSelected?"__NEW_PLAYER__":(replacementName||"")):(state.roster[k]||"");
+const statusHead=openSpot?'REPLACEMENT NEEDED':(locked?'VERIFIED / LOCKED':p);
+const contractText=openSpot?'Open roster spot':'Current: '+money(Number(c.value)||0)+' · '+Number(c.years||0)+' yr left';
+const oldText=openSpot&&openInfo?'<div class="replacement-note">'+(openInfo.reason==="Retire"?'Retired':'Released')+': <b>'+String(openInfo.previousPlayer||"")+'</b>. Select a replacement player to fill this slot.</div>':'';
+h+='<div class="offseason-slot'+(locked?' locked':'')+(openSpot?' replacement-needed':'')+'">'+
+'<div class="offseason-slot-head"><span class="offseason-position">'+statusHead+'</span><span class="offseason-contract">'+contractText+'</span></div>'+
+'<label class="offseason-field"><span>'+(openSpot?'Replacement Player':'Player')+'</span><select class="contract-player-select'+(openSpot?' replacement-player-select':'')+'" data-team="'+t+'" data-pos="'+p+'"'+disabled+'>'+
+(openSpot?getActivePlayerOptions(k)+'<option value="__NEW_PLAYER__">＋ Create New Player</option>':getActivePlayerOptions(k))+'</select></label>'+
+(openSpot?'<input type="text" class="replacement-new-name" data-team="'+t+'" data-pos="'+p+'" placeholder="New Player Name" value="'+String(openSpot&&newPlayerSelected?replacementName:"").replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" style="display:'+(newPlayerSelected?'block':'none')+'"'+disabled+'>':'')+
 '<div class="offseason-action-row">'+
-'<label class="offseason-field decision-field"><span>Decision</span><select class="offseason-decision" data-team="'+t+'" data-pos="'+p+'"'+disabled+'>'+
-'<option value="Keep"'+(decision==="Keep"?" selected":"")+'>Keep</option>'+
-'<option value="Resign"'+(decision==="Resign"?" selected":"")+'>Resign</option>'+
-'<option value="Release"'+(decision==="Release"?" selected":"")+'>Release</option>'+
-'<option value="Retire"'+(decision==="Retire"?" selected":"")+'>Retire</option>'+
+'<label class="offseason-field decision-field"><span>Decision</span><select class="offseason-decision" data-team="'+t+'" data-pos="'+p+'"'+(locked||openSpot?' disabled':'')+'>'+
+(openSpot?'<option value="Replace" selected>Replace</option>':'<option value="Keep"'+(decision==="Keep"?" selected":"")+'>Keep</option><option value="Resign"'+(decision==="Resign"?" selected":"")+'>Resign</option><option value="Release"'+(decision==="Release"?" selected":"")+'>Release</option><option value="Retire"'+(decision==="Retire"?" selected":"")+'>Retire</option>')+
 '</select></label>'+
-'<div class="offseason-verify-wrap"><span>Validate</span><button type="button" class="verify-decision goodbtn" data-team="'+t+'" data-pos="'+p+'"'+disabled+'>'+(locked?'Verified':'Verify')+'</button></div>'+
-'</div>'+
-'<div class="resign-fields" data-fields="'+k+'" style="display:'+(decision==="Resign"?"flex":"none")+'">'+
-'<input type="number" min="1" max="3" step="1" class="resign-years" data-team="'+t+'" data-pos="'+p+'" placeholder="Years" value="'+
-((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].years)||"")+'"'+disabled+'>'+
-'<input type="number" min="0" step="1" class="resign-salary" data-team="'+t+'" data-pos="'+p+'" placeholder="$M" value="'+
-((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].salary)||"")+'"'+disabled+'></div>'+
-'<div class="decision-note">'+(locked?"Verified. This player and contract are locked for this offseason.":(decision==="Keep"?"Existing contract continues.":decision==="Resign"?"Enter the new contract.":decision==="Release"?"Player becomes a free agent.":"Player retires permanently."))+'</div>'+
+'<div class="offseason-verify-wrap"><span>Validate</span><button type="button" class="verify-decision goodbtn" data-team="'+t+'" data-pos="'+p+'"'+disabled+'>'+ (locked?'Verified':(openSpot?'Verify Replacement':'Verify')) +'</button></div>'+
+'</div>'+oldText+
+'<div class="resign-fields" data-fields="'+k+'" style="display:'+(openSpot||decision==="Resign"?'flex':'none')+'">'+
+'<input type="number" min="1" max="3" step="1" class="resign-years" data-team="'+t+'" data-pos="'+p+'" placeholder="Years" value="'+((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].years)||"")+'"'+disabled+'>'+
+'<input type="number" min="0" step="1" class="resign-salary" data-team="'+t+'" data-pos="'+p+'" placeholder="$M" value="'+((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].salary)||"")+'"'+disabled+'></div>'+
+'<div class="decision-note">'+(locked?'Verified. This player and contract are locked for this offseason.':(openSpot?'Replacement required before the next season can begin.':(decision==="Keep"?'Existing contract continues.':decision==="Resign"?'Enter the new contract.':decision==="Release"?'Player becomes a free agent.':'Player retires permanently.')) )+'</div>'+
 '</div>';
 });
 h+='</div></div>';
@@ -1091,23 +1097,54 @@ h+='</div><button id="saveContractPlayerNames" class="goodbtn offseason-save">Sa
 document.getElementById("contractBoard").innerHTML=h;
 document.querySelectorAll(".contract-player-select").forEach(sel=>{
 const k=sel.dataset.team+"_"+sel.dataset.pos;
-sel.value=state.roster[k]||"";
+sel.value=state.roster[k]||((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].replacementNewName)?"__NEW_PLAYER__":(state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].replacementName)||"");
 sel.onchange=function(){
  const key=this.dataset.team+"_"+this.dataset.pos;
+ if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[key]&&!state.openRosterSpots[key])return;
+ state.roster=state.roster||{};
+ state.offseasonDecisions=state.offseasonDecisions||{};
+ state.offseasonDecisions[key]=state.offseasonDecisions[key]||{};
+ if(state.openRosterSpots&&state.openRosterSpots[key]){
+   if(this.value==="__NEW_PLAYER__"){
+     delete state.roster[key];
+     state.offseasonDecisions[key].decision="Replace";
+     state.offseasonDecisions[key].replacementName="";
+   }else if(this.value){
+     Object.keys(state.roster).forEach(oldKey=>{if(oldKey!==key&&state.roster[oldKey]===this.value)delete state.roster[oldKey];});
+     state.offseasonDecisions[key].decision="Replace";
+     state.offseasonDecisions[key].replacementName=this.value;
+     delete state.offseasonDecisions[key].replacementNewName;
+   }else{
+     delete state.roster[key];
+     delete state.offseasonDecisions[key].replacementName;
+     delete state.offseasonDecisions[key].replacementNewName;
+   }
+   const newInput=this.closest('.offseason-slot').querySelector('.replacement-new-name');
+   if(newInput)newInput.style.display=this.value==="__NEW_PLAYER__"?"block":"none";
+   syncCitizenLedger();save();
+   return;
+ }
  if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[key])return;
  const value=this.value.trim();
- state.roster=state.roster||{};
  if(value){
-  Object.keys(state.roster).forEach(oldKey=>{
-   if(oldKey!==key&&state.roster[oldKey]===value)delete state.roster[oldKey];
-  });
+  Object.keys(state.roster).forEach(oldKey=>{if(oldKey!==key&&state.roster[oldKey]===value)delete state.roster[oldKey];});
   state.roster[key]=value;
- }else{
-  delete state.roster[key];
- }
- syncCitizenLedger();
- save();
+ }else delete state.roster[key];
+ syncCitizenLedger();save();
 };
+});
+document.querySelectorAll(".replacement-new-name").forEach(input=>{
+ input.oninput=function(){
+  const k=this.dataset.team+"_"+this.dataset.pos;
+  if(!state.openRosterSpots||!state.openRosterSpots[k])return;
+  state.offseasonDecisions=state.offseasonDecisions||{};
+  state.offseasonDecisions[k]=state.offseasonDecisions[k]||{};
+  state.offseasonDecisions[k].decision="Replace";
+  state.offseasonDecisions[k].replacementNewName=this.value.trim();
+  state.offseasonDecisions[k].replacementName="";
+  delete state.roster[k];
+  save();
+ };
 });
 document.querySelectorAll(".offseason-decision").forEach(sel=>{
 sel.onchange=function(){
@@ -1130,7 +1167,7 @@ if(note)note.textContent=this.value==="Keep"?"Existing contract continues.":this
 document.querySelectorAll(".resign-years,.resign-salary").forEach(input=>{
 input.oninput=function(){
  const k=this.dataset.team+"_"+this.dataset.pos;
- if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k])return;
+ if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k]&&!state.openRosterSpots[k])return;
  state.offseasonDecisions=state.offseasonDecisions||{};
  state.offseasonDecisions[k]=state.offseasonDecisions[k]||{};
  if(this.classList.contains("resign-years"))state.offseasonDecisions[k].years=this.value?Number(this.value):0;
@@ -1138,203 +1175,154 @@ input.oninput=function(){
 };
 });
 document.querySelectorAll(".verify-decision").forEach(btn=>{
-btn.onclick=function(e){
- if(e){e.preventDefault();e.stopPropagation();}
- requestVerifyOffseasonDecision(this.dataset.team,this.dataset.pos);
- return false;
-};
+btn.onclick=function(e){if(e){e.preventDefault();e.stopPropagation();}requestVerifyOffseasonDecision(this.dataset.team,this.dataset.pos);return false;};
 });
 const saveNames=document.getElementById("saveContractPlayerNames");
 if(saveNames)saveNames.onclick=()=>{
-const proposed={...state.roster};
-const selected={};
-state.offseasonDecisions=state.offseasonDecisions||{};
-document.querySelectorAll(".contract-player-select").forEach(sel=>{
-const k=sel.dataset.team+"_"+sel.dataset.pos;
-const value=sel.value.trim();
-if(value)selected[k]=value; else delete proposed[k];
-});
-Object.entries(selected).forEach(([k,name])=>{
-Object.keys(proposed).forEach(oldKey=>{if(oldKey!==k&&proposed[oldKey]===name)delete proposed[oldKey];});
-proposed[k]=name;
-});
-document.querySelectorAll(".offseason-decision").forEach(sel=>{
-const k=sel.dataset.team+"_"+sel.dataset.pos;
-if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k])return;
-const entry=state.offseasonDecisions[k]||{};
-entry.decision=sel.value;
-const y=document.querySelector('.resign-years[data-team="'+sel.dataset.team+'"][data-pos="'+sel.dataset.pos+'"]');
-const sal=document.querySelector('.resign-salary[data-team="'+sel.dataset.team+'"][data-pos="'+sel.dataset.pos+'"]');
-entry.years=y&&y.value?Number(y.value):0;
-entry.salary=sal&&sal.value?Number(sal.value):0;
-state.offseasonDecisions[k]=entry;
-});
-state.roster=proposed;
-syncCitizenLedger();
-save();
-document.getElementById("contractNamesSaved").textContent="Roster assignments and offseason decisions saved on this device.";
-buildRosterInputs();
-buildContractBoard();
+ const proposed={...state.roster};
+ const selected={};
+ state.offseasonDecisions=state.offseasonDecisions||{};
+ document.querySelectorAll(".contract-player-select").forEach(sel=>{
+  const k=sel.dataset.team+"_"+sel.dataset.pos;
+  if(state.openRosterSpots&&state.openRosterSpots[k])return;
+  const value=sel.value.trim();
+  if(value)selected[k]=value; else delete proposed[k];
+ });
+ Object.entries(selected).forEach(([k,name])=>{Object.keys(proposed).forEach(oldKey=>{if(oldKey!==k&&proposed[oldKey]===name)delete proposed[oldKey];});proposed[k]=name;});
+ document.querySelectorAll(".offseason-decision").forEach(sel=>{
+  const k=sel.dataset.team+"_"+sel.dataset.pos;
+  if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k]&&!state.openRosterSpots[k])return;
+  const entry=state.offseasonDecisions[k]||{};
+  entry.decision=sel.value;
+  const y=document.querySelector('.resign-years[data-team="'+sel.dataset.team+'"][data-pos="'+sel.dataset.pos+'"]');
+  const sal=document.querySelector('.resign-salary[data-team="'+sel.dataset.team+'"][data-pos="'+sel.dataset.pos+'"]');
+  entry.years=y&&y.value?Number(y.value):0;entry.salary=sal&&sal.value?Number(sal.value):0;
+  state.offseasonDecisions[k]=entry;
+ });
+ state.roster=proposed;syncCitizenLedger();save();document.getElementById("contractNamesSaved").textContent="Roster assignments and offseason decisions saved on this device.";buildRosterInputs();buildContractBoard();
 };
 }
 let pendingContractVerification=null;
 function requestVerifyOffseasonDecision(team,pos){
 if(!state.seasonPlayed||!state.offseasonOpen){alert("Open the offseason before verifying a decision.");return;}
 const k=team+"_"+pos;
-if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k])return;
+const openSpot=!!(state.openRosterSpots&&state.openRosterSpots[k]&&!state.roster[k]);
+if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k]&&!openSpot)return;
 const btn=document.querySelector('.verify-decision[data-team="'+team+'"][data-pos="'+pos+'"]');
 const card=btn&&btn.closest(".offseason-slot");
 if(!card){alert("Unable to find this roster spot. Please reopen Offseason and try Verify again.");return;}
-const name=(card.querySelector(".contract-player-select")?.value||state.roster?.[k]||"").trim();
-const decision=card.querySelector(".offseason-decision")?.value||"Keep";
-if(!name){alert("Select an active player for this roster spot before verifying.");return;}
+let name="";
+let decision="Keep";
+if(openSpot){
+  const sel=card.querySelector('.replacement-player-select');
+  const newName=card.querySelector('.replacement-new-name');
+  decision="Replace";
+  name=sel&&sel.value==="__NEW_PLAYER__"?(newName&&newName.value||"").trim():(sel&&sel.value||"").trim();
+  if(!name){alert("Select an active player or enter a new player name for this replacement slot.");return;}
+  const old=String(state.openRosterSpots[k].previousPlayer||"").trim();
+  if(name===old){alert("The replacement player must be different from the player leaving this slot.");return;}
+}else{
+  name=(card.querySelector(".contract-player-select")?.value||state.roster?.[k]||"").trim();
+  decision=card.querySelector(".offseason-decision")?.value||"Keep";
+  if(!name){alert("Select an active player for this roster spot before verifying.");return;}
+}
 const years=Number(card.querySelector(".resign-years")?.value||0);
 const salary=Number(card.querySelector(".resign-salary")?.value||0);
-if(decision==="Resign" && (!years || years<1 || years>3 || !Number.isFinite(salary) || salary<0)){
-  alert(name+" needs a valid re-sign contract before it can be verified.");return;
+if((decision==="Resign"||decision==="Replace") && (!years || years<1 || years>3 || !Number.isFinite(salary) || salary<0)){
+  alert(name+" needs a valid "+(decision==="Replace"?"replacement":"re-sign")+" contract before it can be verified.");return;
 }
-pendingContractVerification={team,pos,k,name,decision,years,salary};
+pendingContractVerification={team,pos,k,name,decision,years,salary,openSpot};
 const summary=document.getElementById("contractVerifySummary");
 if(summary){
-  summary.innerHTML='<div><span>Player</span><b>'+name+'</b></div><div><span>Team / Position</span><b>'+team+' • '+pos+'</b></div><div><span>Decision</span><b>'+decision+'</b></div>'+(decision==="Resign"?'<div><span>New Contract</span><b>'+years+' year'+(years===1?'':'s')+' • $'+salary+'M</b></div>':'<div><span>Current Contract</span><b>'+money(Number(state.contracts[k]?.value)||0)+' • '+Number(state.contracts[k]?.years||0)+' year'+(Number(state.contracts[k]?.years||0)===1?'':'s')+' left</b></div>');
+  summary.innerHTML='<div><span>Player</span><b>'+name+'</b></div><div><span>Team / Position</span><b>'+team+' • '+pos+'</b></div><div><span>Decision</span><b>'+decision+'</b></div>'+(decision==="Resign"||decision==="Replace"?'<div><span>'+ (decision==="Replace"?'Replacement Contract':'New Contract') +'</span><b>'+years+' year'+(years===1?'':'s')+' • $'+salary+'M</b></div>':'<div><span>Current Contract</span><b>'+money(Number(state.contracts[k]?.value)||0)+' • '+Number(state.contracts[k]?.years||0)+' year'+(Number(state.contracts[k]?.years||0)===1?'':'s')+' left</b></div>');
 }
 const modal=document.getElementById("contractVerifyModal");
-if(modal){
- window.__contractVerifyScrollY=window.scrollY||window.pageYOffset||0;
- document.body.style.top=(-window.__contractVerifyScrollY)+"px";
- document.body.classList.add("verify-modal-open");
- modal.classList.add("show");
+if(modal){window.__contractVerifyScrollY=window.scrollY||window.pageYOffset||0;document.body.style.top=(-window.__contractVerifyScrollY)+"px";document.body.classList.add("verify-modal-open");modal.classList.add("show");}
 }
-}
-function closeContractVerifyModal(){
-pendingContractVerification=null;
-const modal=document.getElementById("contractVerifyModal");
-if(modal)modal.classList.remove("show");
-const scrollY=Number(window.__contractVerifyScrollY)||0;
-document.body.classList.remove("verify-modal-open");
-document.body.style.top="";
-window.scrollTo(0,scrollY);
-window.__contractVerifyScrollY=0;
-}
-function confirmContractVerification(){
-const pending=pendingContractVerification;
-if(!pending)return;
-window.closeContractVerifyModal();
-verifyOffseasonDecision(pending.team,pending.pos);
-}
- 
+function closeContractVerifyModal(){pendingContractVerification=null;const modal=document.getElementById("contractVerifyModal");if(modal)modal.classList.remove("show");const scrollY=Number(window.__contractVerifyScrollY)||0;document.body.classList.remove("verify-modal-open");document.body.style.top="";window.scrollTo(0,scrollY);window.__contractVerifyScrollY=0;}
+function confirmContractVerification(){const pending=pendingContractVerification;if(!pending)return;window.closeContractVerifyModal();verifyOffseasonDecision(pending.team,pending.pos);}
 function verifyOffseasonDecision(team,pos){
 if(!state.seasonPlayed||!state.offseasonOpen){alert("Open the offseason before verifying a decision.");return;}
 const k=team+"_"+pos;
 state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
-if(state.verifiedOffseasonDecisions[k])return;
-let name=state.roster&&state.roster[k];
+state.openRosterSpots=state.openRosterSpots||{};
+const openSpot=!!(state.openRosterSpots[k]&&!state.roster[k]);
+if(state.verifiedOffseasonDecisions[k]&&!openSpot)return;
 const verifyButton=document.querySelector('.verify-decision[data-team="'+team+'"][data-pos="'+pos+'"]');
 const card=verifyButton&&verifyButton.closest(".offseason-slot");
-const playerSelect=card&&card.querySelector(".contract-player-select");
-if(playerSelect&&playerSelect.value.trim())name=playerSelect.value.trim();
 if(!card){alert("Unable to find this roster spot. Please reopen Offseason and try Verify again.");return;}
-if(!name){alert("Select an active player for this roster spot before verifying.");return;}
 state.roster=state.roster||{};
-state.roster[k]=name;
 state.offseasonDecisions=state.offseasonDecisions||{};
-const entry=state.offseasonDecisions[k]||{decision:"Keep"};
-const decisionSelect=card.querySelector(".offseason-decision");
-const decision=(decisionSelect&&decisionSelect.value)||entry.decision||"Keep";
-entry.decision=decision;
+let name=state.roster[k]||"";
+let decision="Keep";
+if(openSpot){
+  const sel=card.querySelector('.replacement-player-select');
+  const newName=card.querySelector('.replacement-new-name');
+  decision="Replace";
+  name=sel&&sel.value==="__NEW_PLAYER__"?(newName&&newName.value||"").trim():(sel&&sel.value||"").trim();
+  const old=String(state.openRosterSpots[k].previousPlayer||"").trim();
+  if(!name){alert("Select an active player or enter a new player name for this replacement slot.");return;}
+  if(name===old){alert("The replacement player must be different from the player leaving this slot.");return;}
+  if(state.roster[k]){alert("This roster spot is already filled. Refresh the offseason board before continuing.");return;}
+}else{
+  const playerSelect=card.querySelector(".contract-player-select");
+  if(playerSelect&&playerSelect.value.trim())name=playerSelect.value.trim();
+  if(!name){alert("Select an active player for this roster spot before verifying.");return;}
+  const entry=state.offseasonDecisions[k]||{decision:"Keep"};
+  const decisionSelect=card.querySelector(".offseason-decision");
+  decision=(decisionSelect&&decisionSelect.value)||entry.decision||"Keep";
+}
 const y=card.querySelector(".resign-years");
 const sal=card.querySelector(".resign-salary");
-if(y&&y.value)entry.years=Number(y.value);
-if(sal&&sal.value!=="")entry.salary=Number(sal.value);
-state.offseasonDecisions[k]=entry;
+const years=Math.max(1,Math.min(3,Number(y&&y.value)||0));
+const salary=Math.max(0,Number(sal&&sal.value)||0);
+if((decision==="Resign"||decision==="Replace") && (!y||!y.value||!sal||sal.value===""||!Number.isFinite(salary))){alert(name+" needs a valid "+(decision==="Replace"?"replacement":"re-sign")+" contract before it can be verified.");return;}
+state.offseasonDecisions[k]=state.offseasonDecisions[k]||{};
+state.offseasonDecisions[k].decision=decision;
+if(y&&y.value)state.offseasonDecisions[k].years=years;
+if(sal&&sal.value!=="")state.offseasonDecisions[k].salary=salary;
 const citizen=ensureCitizen(name,{status:"Active Player",position:pos,currentTeam:team,cash:0});
 const contract=state.contracts[k]||{value:0,years:0};
 ensureTeamCash();
- 
-/* 4.17.48: Verify is the single commit point. The selected decision is
-   written to the live contract/roster, Citizen Ledger, Arena state and
-   cash ledger before the UI is rebuilt. */
-if(decision==="Resign"){
-  const years=Math.max(1,Math.min(3,Number(y&&y.value)||0));
-  const salary=Math.max(0,Number(sal&&sal.value)||0);
-  if(!y||!y.value||!sal||sal.value===""||!Number.isFinite(salary)){
-    alert(name+" needs a valid re-sign contract before it can be verified.");
-    return;
-  }
+if(openSpot&&citizen&&citizen.status==="Retired"){alert(name+" is retired and cannot be used as a replacement.");return;}
+if(openSpot&&Object.entries(state.roster||{}).some(([key,n])=>key!==k&&n===name)){alert(name+" is already assigned to another roster spot.");return;}
+if(decision==="Resign"||decision==="Replace"){
   const cashBefore=citizen&&citizen.cash!=null?Number(citizen.cash)||0:0;
-  setActivePlayerContract(k,team,name,{value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary},{
-    recordHistory:true,
-    action:"Re-sign",
-    cashAdded:salary
-  });
-  if(citizen){
-    citizen.cash=cashBefore+salary;
-    citizen.status="Active Player";
-    citizen.currentTeam=team;
-    citizen.position=pos;
-  }
+  const action=decision==="Replace"?"Replacement Signing":"Re-sign";
+  setActivePlayerContract(k,team,name,{value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary},{recordHistory:true,action,cashAdded:salary});
+  state.roster[k]=name;
+  if(citizen){citizen.cash=cashBefore+salary;citizen.status="Active Player";citizen.currentTeam=team;citizen.position=pos;}
   const paidRecord=citizen&&Array.isArray(citizen.contracts)?citizen.contracts.slice().reverse().find(x=>x&&x.team===team&&Number(x.year)===Number(state.year)&&x.current===true):null;
-  if(paidRecord){paidRecord.cashPaid=true;paidRecord.cashAdded=salary;paidRecord.action="Re-sign";paidRecord.current=true;}
-  /* Team cash is reduced by the verified salary payment. */
+  if(paidRecord){paidRecord.cashPaid=true;paidRecord.cashAdded=salary;paidRecord.action=action;paidRecord.current=true;}
   state.teamCash[team]=Math.max(0,(Number(state.teamCash[team])||0)-salary);
-}else if(decision==="Release"){
-  delete state.roster[k];
-  delete state.contracts[k];
-}else if(decision==="Retire"){
-  const retired={
-    name,
-    careerPts:Number(citizen&&citizen.careerPts||0),
-    careerRebs:Number(citizen&&citizen.careerRebs||0),
-    mvps:Number(citizen&&citizen.mvps||0),
-    championships:Number(citizen&&citizen.championships||0),
-    retirementCash:citizen&&citizen.cash!=null?Number(citizen.cash):null,
-    champStreak:Number(citizen&&citizen.champStreak||0),
-    currentChampStreak:Number(citizen&&citizen.currentChampStreak||0)
-  };
-  state.records=state.records||{retiredPlayers:[],gameRecords:[]};
-  state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
-  const idx=state.records.retiredPlayers.findIndex(x=>x&&x.name===name);
-  if(idx>=0)state.records.retiredPlayers[idx]={...state.records.retiredPlayers[idx],...retired};
-  else state.records.retiredPlayers.push(retired);
-  delete state.roster[k];
-  delete state.contracts[k];
-  if(citizen)citizen.status="Retired";
-}else{
-  const years=Math.max(0,Number(contract.years)||0);
-  if(years<=0){
-    alert(name+" has no contract years remaining. Use Re-sign, Release, or Retire, then Verify.");
-    return;
+  if(openSpot)delete state.openRosterSpots[k];
+}else if(decision==="Release"||decision==="Retire"){
+  const leavingName=name;
+  const leavingCitizen=ensureCitizen(leavingName,{status:"Active Player",position:pos,currentTeam:team,cash:0});
+  if(decision==="Release"&&leavingCitizen){leavingCitizen.status="Free Agent";leavingCitizen.currentTeam=null;leavingCitizen.position=null;}
+  if(decision==="Retire"&&leavingCitizen){leavingCitizen.status="Retired";leavingCitizen.currentTeam=null;leavingCitizen.position=null;}
+  const retired={name:leavingName,careerPts:Number(leavingCitizen&&leavingCitizen.careerPts||0),careerRebs:Number(leavingCitizen&&leavingCitizen.careerRebs||0),mvps:Number(leavingCitizen&&leavingCitizen.mvps||0),championships:Number(leavingCitizen&&leavingCitizen.championships||0),retirementCash:leavingCitizen&&leavingCitizen.cash!=null?Number(leavingCitizen.cash):null,champStreak:Number(leavingCitizen&&leavingCitizen.champStreak||0),currentChampStreak:Number(leavingCitizen&&leavingCitizen.currentChampStreak||0)};
+  if(decision==="Retire"){
+   state.records=state.records||{retiredPlayers:[],gameRecords:[]};state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
+   const idx=state.records.retiredPlayers.findIndex(x=>x&&x.name===leavingName);if(idx>=0)state.records.retiredPlayers[idx]={...state.records.retiredPlayers[idx],...retired};else state.records.retiredPlayers.push(retired);
   }
-  /* KEEP carries the already-reduced contract forward. */
+  delete state.roster[k];delete state.contracts[k];
+  state.openRosterSpots[k]={team,position:pos,previousPlayer:leavingName,reason:decision,verifiedAtSeason:Number(state.year)||0};
+  state.verifiedOffseasonDecisions[k]={player:leavingName,team,position:pos,decision,verifiedAtSeason:Number(state.year)||0,needsReplacement:true,replacementRequired:true,contract:null,cashAfter:leavingCitizen&&leavingCitizen.cash!=null?Number(leavingCitizen.cash):null};
+  delete state.offseasonDecisions[k];
+}else{
+  const yearsLeft=Math.max(0,Number(contract.years)||0);
+  if(yearsLeft<=0){alert(name+" has no contract years remaining. Use Re-sign, Release, or Retire, then Verify.");return;}
 }
- 
-/* Lock only after the decision has passed validation and has been committed. */
-state.verifiedOffseasonDecisions[k]={
-  player:name,
-  team,
-  position:pos,
-  decision,
-  verifiedAtSeason:Number(state.year)||0,
-  contract:{...(state.contracts[k]||{})},
-  cashAfter:citizen&&citizen.cash!=null?Number(citizen.cash):null
-};
-delete state.offseasonDecisions[k];
-syncActivePlayerContracts();
-syncCitizenLedger();
-/* Save the authoritative state before rebuilding any UI. */
-save();
-buildRosterInputs();
-buildContractBoard();
-/* Re-open the same Arena/team view from the committed live state if it is open. */
-const teamModal=document.getElementById("teamPageModal");
-if(teamModal&&teamModal.classList.contains("show")){
-  const teamKey=team.toLowerCase()==="lions"?"lions":team.toLowerCase()==="rims"?"rims":"dunks";
-  openTeamPage(teamKey);
+if(!openSpot&&decision!=="Release"&&decision!=="Retire"){
+  state.verifiedOffseasonDecisions[k]={player:name,team,position:pos,decision,verifiedAtSeason:Number(state.year)||0,contract:{...(state.contracts[k]||{})},cashAfter:citizen&&citizen.cash!=null?Number(citizen.cash):null};
+  delete state.offseasonDecisions[k];
 }
+syncActivePlayerContracts();syncCitizenLedger();save();buildRosterInputs();buildContractBoard();
 const notice=document.getElementById("contractNamesSaved");
-if(notice)notice.textContent=decision==="Retire"?name+" has been retired. The roster spot is now open.":decision==="Release"?name+" has been released. The roster spot is now open.":decision==="Resign"?name+" has been re-signed, added to the Citizen Ledger, updated in the Arena and paid $"+Number(state.contracts[k]&&state.contracts[k].value||0)+"M to the player.":name+"'s contract has been kept with "+Number(state.contracts[k]&&state.contracts[k].years||0)+" year(s) remaining and locked in the Ledger/Arena.";
+if(notice)notice.textContent=decision==="Retire"?name+" has been retired. The roster spot is open — add a replacement player before the next season.":decision==="Release"?name+" has been released. The roster spot is open — add a replacement player before the next season.":decision==="Replace"?name+" has been signed as the replacement, added to the Citizen Ledger, updated in the Arena and paid $"+Number(state.contracts[k]&&state.contracts[k].value||0)+"M.":decision==="Resign"?name+" has been re-signed, added to the Citizen Ledger, updated in the Arena and paid $"+Number(state.contracts[k]&&state.contracts[k].value||0)+"M to the player.":name+"'s contract has been kept with "+Number(state.contracts[k]&&state.contracts[k].years||0)+" year(s) remaining and locked in the Ledger/Arena.";
 }
-/* 4.17.48: Expose contract verification controls to the popup controller.
+/* 4.17.49: Expose contract verification controls to the popup controller.
   The main application runs inside a private IIFE, while the popup controls
   are bound by a later script. Export only these three required actions so
   the popup can reach the real contract workflow. */
@@ -1347,7 +1335,30 @@ function finalizeOffseason(){
  if(!state.seasonPlayed||!state.offseasonOpen)return;
  
  state.offseasonDecisions=state.offseasonDecisions||{};
+ state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
+ state.openRosterSpots=state.openRosterSpots||{};
  const errors=[];
+ 
+ /* 4.17.49: Every roster spot must be filled and every decision must be
+    verified before the offseason can advance the city into the next season. */
+ TEAMS.forEach(t=>POSITIONS.forEach(p=>{
+   const k=t+"_"+p;
+   if(!state.roster[k]){
+     errors.push(t+" "+p+" is empty. Add a replacement player before starting the next season.");
+     return;
+   }
+   const verified=state.verifiedOffseasonDecisions[k];
+   if(!verified||verified.needsReplacement){
+     errors.push(t+" "+p+" has not been fully verified.");
+   }
+ }));
+ if(errors.length){
+   alert(errors.join("\n"));
+   save();
+   syncCitizenLedger();
+   buildContractBoard();
+   return;
+ }
  
  TEAMS.forEach(t=>{
    POSITIONS.forEach(p=>{
@@ -1356,6 +1367,7 @@ function finalizeOffseason(){
      if(!name)return;
      const d=state.offseasonDecisions[k]||{decision:"Keep"};
      const c=state.contracts[k]||{value:0,years:0};
+     if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k])return;
  
      if(d.decision==="Resign"){
        const years=Math.max(1,Math.min(3,Number(d.years)||0));
@@ -1419,6 +1431,7 @@ function finalizeOffseason(){
  state.offseasonOpen=false;
  state.offseasonDecisions={};
  state.verifiedOffseasonDecisions={};
+ state.openRosterSpots={};
  state.year++;
  state.seasonPhase="regular";
  state.regularGameIndex=0;
@@ -1461,7 +1474,7 @@ h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span c
 out.innerHTML=h;
 }
 function renderRecords(){
-/* 4.17.48: Always verify/seed the permanent historical record data
+/* 4.17.49: Always verify/seed the permanent historical record data
   immediately before rendering. This prevents an incomplete saved
   Records array from producing an empty Records screen. */
 try{
@@ -1614,7 +1627,7 @@ document.getElementById("basketballInfoModal").classList.remove("show");
 document.getElementById("basketballInfoModal").addEventListener("click",function(e){
 if(e.target===this)this.classList.remove("show");
 });
-/* 4.17.48: Records modal interaction fix.
+/* 4.17.49: Records modal interaction fix.
   The modal owns the touch/pointer interaction so the page behind it
   cannot intercept the Close button on iPhone. */
 (function(){
@@ -1700,13 +1713,13 @@ if(citizenLedgerModalEl){
 window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger:syncCitizenLedger,save:save};
 })();
  
-/* 4.17.48: Season 29 starting-point migration plus contract-year timing.
+/* 4.17.49: Season 29 starting-point migration plus contract-year timing.
  
-  4.17.48: Citizen cash/contract synchronization fix.
+  4.17.49: Citizen cash/contract synchronization fix.
   Season 29 opening cash is initialized once; Ledger sync never overwrites
   cash; original Season 29 contracts never trigger a new cash payment. */
  
-/* 4.17.48: City uses direct HTML button actions.
+/* 4.17.49: City uses direct HTML button actions.
   There is no City/stadium event-binding layer. Each arena button
   calls the existing global openTeamPage() directly. */
  
@@ -1730,7 +1743,7 @@ window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger
  
  
 <script>
-/* 4.17.48: Reliable Contract Verify modal controls.
+/* 4.17.49: Reliable Contract Verify modal controls.
   One event path owns Yes/No. The buttons are explicit type=button controls,
   and the handlers stop the event before the modal/page can intercept it. */
 (function(){
@@ -1778,7 +1791,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 else bindContractVerifyModal();
 })();
  
-/* 4.17.48: Clean City controller.
+/* 4.17.49: Clean City controller.
   Arena buttons use ONLY their direct HTML onclick="openTeamPage(...)"
   action. No click/touchend handlers are attached to arena cards. */
  
@@ -1803,7 +1816,7 @@ document.querySelectorAll(".city-tab").forEach(function(tab){
 })();
 </script>
 <script>
-/* 4.17.48: Reebok business section. */
+/* 4.17.49: Reebok business section. */
 function openReebokSection(){
  const modal=document.getElementById("reebokModal");
  if(modal)modal.classList.add("show");
