@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.108 -->
+<!-- CALVIN'S CITY — VERSION 4.17.109 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.108</title>
+<title>Calvin's City 4.17.109</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -1565,6 +1565,78 @@ if(state.shoeDealDuplicateCleanupVersion!=="4.17.108"){
  (state.citizens||[]).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=dedupeShoeDealList(c.shoeDeals);});
  Object.values(state.contracts||{}).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=dedupeShoeDealList(c.shoeDeals);});
  state.shoeDealDuplicateCleanupVersion="4.17.108";
+ save();
+}
+ 
+/* 4.17.109: Restore the live basketball game to the opening of Season 29.
+  This is a one-time build migration. Permanent Seasons 1–28 records and
+  non-basketball business data remain untouched. Opening team contracts and
+  their paired shoe deals start with matching terms. */
+if(state.season29OpeningRestoreVersion!=="4.17.109"){
+ state.year=29;
+ state.defendingChampion=HISTORICAL_LAST_CHAMPION;
+ state.seasonPhase="regular";
+ state.regularGameIndex=0;
+ state.standings=freshStandings();
+ state.gamesPlayed=[];
+ state.playoff={bye:null,semifinal:null,championship:null};
+ state.seasonPlayed=false;
+ state.offseasonOpen=false;
+ state.offseasonFinalized=false;
+ state.offseasonDecisions={};
+ state.verifiedOffseasonDecisions={};
+ state.openRosterSpots={};
+ state.lastSeason=null;
+ state.lastGame=null;
+ state.contractYearsAdvancedForSeason=null;
+ state.roster={
+   Lions_C:"Wall",Lions_SG:"Diggs",Lions_PG:"Kap",
+   Rims_C:"Nadler",Rims_SG:"Holly",Rims_PG:"CJ",
+   Dunks_C:"Vico",Dunks_SG:"Pat",Dunks_PG:"Bic"
+ };
+ state.teamCash={Lions:4430,Rims:4470,Dunks:4450};
+ state.contracts={
+   Lions_C:{value:787,years:2,rookie:false,totalPackage:787,teamValue:497,paymentModel:"starting-balance",totalPaid:787,paymentsMade:2,contractYears:2,contractStartSeason:null,history:[]},
+   Lions_SG:{value:0,years:2,rookie:true,totalPackage:0,teamValue:0,paymentModel:"starting-balance",totalPaid:0,paymentsMade:2,contractYears:2,contractStartSeason:null,history:[]},
+   Lions_PG:{value:450,years:2,rookie:false,totalPackage:450,teamValue:450,paymentModel:"starting-balance",totalPaid:450,paymentsMade:2,contractYears:2,contractStartSeason:null,history:[]},
+   Rims_C:{value:0,years:2,rookie:true,totalPackage:0,teamValue:0,paymentModel:"starting-balance",totalPaid:0,paymentsMade:2,contractYears:2,contractStartSeason:null,history:[]},
+   Rims_SG:{value:350,years:2,rookie:false,totalPackage:350,teamValue:350,paymentModel:"starting-balance",totalPaid:350,paymentsMade:2,contractYears:2,contractStartSeason:null,history:[]},
+   Rims_PG:{value:0,years:2,rookie:true,totalPackage:0,teamValue:0,paymentModel:"starting-balance",totalPaid:0,paymentsMade:2,contractYears:2,contractStartSeason:null,history:[]},
+   Dunks_C:{value:660,years:3,rookie:false,totalPackage:660,teamValue:660,paymentModel:"starting-balance",totalPaid:660,paymentsMade:3,contractYears:3,contractStartSeason:null,history:[]},
+   Dunks_SG:{value:0,years:3,rookie:true,totalPackage:0,teamValue:0,paymentModel:"starting-balance",totalPaid:0,paymentsMade:3,contractYears:3,contractStartSeason:null,history:[]},
+   Dunks_PG:{value:533,years:2,rookie:false,totalPackage:533,teamValue:533,paymentModel:"starting-balance",totalPaid:533,paymentsMade:2,contractYears:2,contractStartSeason:null,history:[]}
+ };
+ const openingPlayers={
+   Wall:{team:"Lions",position:"C",careerPts:568,careerRebs:549,mvps:1,championships:2,cash:787,years:2,shoe:{company:"Reebok",years:2,value:290}},
+   Diggs:{team:"Lions",position:"SG",careerPts:83,careerRebs:80,mvps:0,championships:0,cash:0,years:2},
+   Kap:{team:"Lions",position:"PG",careerPts:278,careerRebs:243,mvps:0,championships:1,cash:450,years:2,shoe:{company:"Puma",years:2,value:190}},
+   Nadler:{team:"Rims",position:"C",careerPts:91,careerRebs:98,mvps:0,championships:0,cash:0,years:2},
+   Holly:{team:"Rims",position:"SG",careerPts:283,careerRebs:289,mvps:0,championships:0,cash:350,years:2,shoe:{company:"New Balance",years:2,value:150}},
+   CJ:{team:"Rims",position:"PG",careerPts:77,careerRebs:105,mvps:0,championships:0,cash:0,years:2},
+   Vico:{team:"Dunks",position:"C",careerPts:592,careerRebs:570,mvps:1,championships:3,cash:660,years:3,shoe:{company:"Adidas",years:3,value:300}},
+   Pat:{team:"Dunks",position:"SG",careerPts:0,careerRebs:0,mvps:0,championships:0,cash:0,years:3},
+   Bic:{team:"Dunks",position:"PG",careerPts:389,careerRebs:327,mvps:1,championships:2,cash:533,years:2,shoe:{company:"Nike",years:2,value:233}}
+ };
+ Object.entries(openingPlayers).forEach(([name,b])=>{
+   let c=(state.citizens||[]).find(x=>x&&x.name===name);
+   if(!c)c=ensureCitizen(name,{status:"Active Player",currentTeam:b.team,position:b.position,cash:b.cash});
+   if(!c)return;
+   c.status="Active Player";c.currentTeam=b.team;c.position=b.position;c.cash=b.cash;
+   c.careerPts=b.careerPts;c.careerRebs=b.careerRebs;c.mvps=b.mvps;c.championships=b.championships;
+   c.champStreak=(name==="Vico"||name==="Bic")?1:0;
+   c.currentChampStreak=(name==="Vico"||name==="Bic")?1:0;
+   c.contracts=[];c.startingContractAlreadyPaid=true;c.startingContractCash=b.cash;
+   c.shoeDeals=b.shoe?[{company:b.shoe.company,years:b.shoe.years,originalYears:b.shoe.years,yearsRemaining:b.shoe.years,value:b.shoe.value,startYear:29,includedInContract:true}]:[];
+   c.lastGamePts=0;c.lastGameRebs=0;c.lastGameSeason=null;c.lastGameStage=null;c.arenaRosterSeeded=true;
+ });
+ state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+ state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
+ state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
+ state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
+ state.season29StartingPointVersion="4.17.105";
+ state.season29FullBaselineRestoreVersion="4.17.109";
+ state.season29OpeningRestoreVersion="4.17.109";
+ syncCitizenLedger();
  save();
 }
  
