@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.118 -->
+<!-- CALVIN'S CITY — VERSION 4.17.119 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.118</title>
+<title>Calvin's City 4.17.119</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -849,6 +849,14 @@ if(Number(state.year)===29 && !state.seasonPlayed && state.seasonPhase==="regula
  
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
 state.citizens=Array.isArray(state.citizens)?state.citizens:[];state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};state.openRosterSpots=state.openRosterSpots||{};
+/* 4.17.119: Read-only snapshot immediately after saved localStorage is loaded,
+  before contract-payment migrations or Season 29 cash reconciliation. */
+window.__cashDiagnosticStartupSnapshot=(()=>{
+const focus=new Set(["holly","kap","bic"]),norm=n=>String(n||"").trim().toLowerCase();
+const citizens=(state.citizens||[]).filter(c=>c&&focus.has(norm(c.name))).map(c=>({id:c.id||null,name:c.name||null,cash:c.cash??null,status:c.status||null,currentTeam:c.currentTeam||null,position:c.position||null,startingContractAlreadyPaid:c.startingContractAlreadyPaid??null,startingContractCash:c.startingContractCash??null,season29OpeningCash:c.season29OpeningCash??null,season29OpeningCashInitialized:c.season29OpeningCashInitialized??null,contracts:Array.isArray(c.contracts)?c.contracts.map(r=>r?({...r}):r):[],shoeDeals:Array.isArray(c.shoeDeals)?c.shoeDeals.map(d=>({...d})):[]}));
+const liveContracts=Object.entries(state.roster||{}).filter(([k,n])=>focus.has(norm(n))).map(([key,name])=>({key,name,contract:state.contracts&&state.contracts[key]?JSON.parse(JSON.stringify(state.contracts[key])):null}));
+return {capturedAt:new Date().toISOString(),stage:"after localStorage load, before migrations/reconciliation",state:{year:state.year,seasonPhase:state.seasonPhase,seasonPlayed:state.seasonPlayed,gamesPlayedCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,season29CashBaselineRepairVersion:state.season29CashBaselineRepairVersion??null,season29OpeningCashCleanupVersion:state.season29OpeningCashCleanupVersion??null,season29OpeningCashReconciledVersion:state.season29OpeningCashReconciledVersion??null,season29OpeningRestoreVersion:state.season29OpeningRestoreVersion??null,season29FullBaselineRestoreVersion:state.season29FullBaselineRestoreVersion??null,contractPaymentModelVersion:state.contractPaymentModelVersion??null,startingContractModelVersion:state.startingContractModelVersion??null,season29OpeningContractRepairVersion:state.season29OpeningContractRepairVersion??null},citizens,liveContracts};
+})();
 migrateContractPaymentsToUpfront();
 const BUSINESS_OWNERSHIP={
 Nike:[["Coffvee",100]],
@@ -2853,6 +2861,24 @@ function finalizeOffseason(){
  
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
+/* 4.17.119: Capture the loaded state BEFORE the existing Ledger opening-cash
+  reconciliation changes anything. This is diagnostic only: it does not pay,
+  reset, delete, or otherwise mutate financial records. */
+const cashDiagnosticLedgerOpenSnapshot=(()=>{
+const focusNames=new Set(["holly","kap","bic"]);
+const norm=n=>String(n||"").trim().toLowerCase();
+const citizens=(Array.isArray(state.citizens)?state.citizens:[]).filter(c=>c&&focusNames.has(norm(c.name))).map(c=>({
+  id:c.id||null,name:c.name||null,cash:c.cash??null,status:c.status||null,currentTeam:c.currentTeam||null,position:c.position||null,
+  startingContractAlreadyPaid:c.startingContractAlreadyPaid??null,startingContractCash:c.startingContractCash??null,
+  season29OpeningCash:c.season29OpeningCash??null,season29OpeningCashInitialized:c.season29OpeningCashInitialized??null,
+  contracts:Array.isArray(c.contracts)?c.contracts.filter(r=>r&&(Number(r.year||0)>=29||r.action||r.cashAdded||r.cashPaid)).map(r=>({...r})):[],
+  shoeDeals:Array.isArray(c.shoeDeals)?c.shoeDeals.map(d=>({...d})):[]
+}));
+const roster=state.roster||{}, liveContracts=state.contracts||{};
+const live=Object.entries(roster).filter(([k,n])=>focusNames.has(norm(n))).map(([key,name])=>({key,name,contract:liveContracts[key]?JSON.parse(JSON.stringify(liveContracts[key])):null}));
+return {diagnosticVersion:"4.17.119",capturedAt:new Date().toISOString(),note:"Captured after app startup migrations but before the Citizen Ledger render-time cash reconciliation. This report does not change financial data.",state:{year:state.year,seasonPhase:state.seasonPhase,seasonPlayed:state.seasonPlayed,gamesPlayedCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,season29CashBaselineRepairVersion:state.season29CashBaselineRepairVersion??null,season29OpeningCashCleanupVersion:state.season29OpeningCashCleanupVersion??null,season29OpeningCashReconciledVersion:state.season29OpeningCashReconciledVersion??null,season29OpeningRestoreVersion:state.season29OpeningRestoreVersion??null,season29FullBaselineRestoreVersion:state.season29FullBaselineRestoreVersion??null,contractPaymentModelVersion:state.contractPaymentModelVersion??null,startingContractModelVersion:state.startingContractModelVersion??null,season29OpeningContractRepairVersion:state.season29OpeningContractRepairVersion??null},citizens,liveContracts:live};
+})();
+const cashDiagnosticSnapshot={diagnosticVersion:"4.17.119",note:"Read-only report. startupSnapshot is captured immediately after localStorage load and before payment migrations; ledgerOpenSnapshot is captured later before render-time cash reconciliation.",startupSnapshot:window.__cashDiagnosticStartupSnapshot||null,ledgerOpenSnapshot:cashDiagnosticLedgerOpenSnapshot};
 /* 4.17.118: Normalize and consolidate duplicate citizen identities before
   any ledger sync. Prior builds matched exact strings, so "Bic", "bic", and
   "Bic " could become separate records. Keep one canonical record per
@@ -2966,6 +2992,24 @@ const ledgerStatus=(c.status==="Retired")?"Retired":(c.currentTeam?((c.status||"
 h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Ships in a Row <b>'+(c.currentChampStreak||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'</div>';
 });
 out.innerHTML=h;
+/* Diagnostic controls let the user export the pre-reconciliation evidence
+  from the actual device. The report is local and contains only the three
+  affected players plus relevant contract/migration fields. */
+const diagnosticPanel=document.createElement("details");
+diagnosticPanel.className="citizen-card";
+diagnosticPanel.style.marginTop="12px";
+diagnosticPanel.innerHTML='<summary style="cursor:pointer;font-weight:700">Ledger Cash Diagnostic (4.17.119)</summary><p class="tiny">Captures Holly, Kap, and Bic cash and contract records from the loaded device state before this screen applies its opening-cash correction. Copy this report and send it back for analysis.</p><button type="button" id="copyLedgerCashDiagnostic" style="margin:8px 0;padding:8px 12px">Copy Diagnostic Report</button><textarea id="ledgerCashDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
+out.appendChild(diagnosticPanel);
+const diagnosticText=document.getElementById("ledgerCashDiagnosticText");
+if(diagnosticText)diagnosticText.value=JSON.stringify(cashDiagnosticSnapshot,null,2);
+const diagnosticButton=document.getElementById("copyLedgerCashDiagnostic");
+if(diagnosticButton)diagnosticButton.addEventListener("click",async()=>{
+const textToCopy=diagnosticText?diagnosticText.value:JSON.stringify(cashDiagnosticSnapshot,null,2);
+try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(textToCopy);diagnosticButton.textContent="Copied — paste report into ChatGPT";return;}}catch(e){}
+if(diagnosticText){diagnosticText.focus();diagnosticText.select();diagnosticText.setSelectionRange(0,diagnosticText.value.length);}
+let copied=false;try{copied=document.execCommand("copy");}catch(e){}
+diagnosticButton.textContent=copied?"Copied — paste report into ChatGPT":"Select the report text below and copy it";
+});
 }
 function renderRecords(){
 /* 4.17.105: Always verify/seed the permanent historical record data
