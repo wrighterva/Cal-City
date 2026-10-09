@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.116 -->
+<!-- CALVIN'S CITY — VERSION 4.17.117 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.116</title>
+<title>Calvin's City 4.17.117</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.108</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.116</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.117</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.117</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1351,7 +1351,7 @@ if(state.crazBoTestResetVersion!=="4.17.105"){
  save();
 }
  
-function citizenByName(name){return state.citizens.find(c=>c.name===name)}
+function citizenByName(name){const key=String(name||"").trim().toLowerCase();return state.citizens.find(c=>String(c&&c.name||"").trim().toLowerCase()===key)}
 function citizenBusinessSummary(name){
 const out=[];
 Object.entries(BUSINESS_OWNERSHIP).forEach(([business,owners])=>{
@@ -2854,7 +2854,48 @@ function finalizeOffseason(){
  
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
-/* 4.17.116: Authoritative Season 29 opening data is applied immediately
+/* 4.17.117: Normalize and consolidate duplicate citizen identities before
+  any ledger sync. Prior builds matched exact strings, so "Bic", "bic", and
+  "Bic " could become separate records. Keep one canonical record per
+  normalized name; merge historical/statistical fields without adding cash. */
+const canonicalOpeningNames={wall:"Wall",diggs:"Diggs",kap:"Kap",nadler:"Nadler",holly:"Holly",cj:"CJ",vico:"Vico",pat:"Pat",bic:"Bic"};
+const citizenByNormalizedName=new Map();
+const mergedCitizens=[];
+const mergeArray=(a,b)=>{
+const out=Array.isArray(a)?a.slice():[];
+(Array.isArray(b)?b:[]).forEach(item=>{
+  const signature=JSON.stringify(item);
+  if(!out.some(old=>JSON.stringify(old)===signature))out.push(item);
+});
+return out;
+};
+(state.citizens||[]).forEach(c=>{
+if(!c||!String(c.name||"").trim())return;
+const normalized=String(c.name).trim().toLowerCase();
+const canonicalName=canonicalOpeningNames[normalized]||String(c.name).trim();
+c.name=canonicalName;
+if(!citizenByNormalizedName.has(normalized)){
+  citizenByNormalizedName.set(normalized,c);
+  mergedCitizens.push(c);
+  return;
+}
+const kept=citizenByNormalizedName.get(normalized);
+["careerPts","careerRebs","mvps","championships","champStreak","currentChampStreak"].forEach(k=>{
+  kept[k]=Math.max(Number(kept[k])||0,Number(c[k])||0);
+});
+["contracts","shoeDeals","investments","bankAccounts","loans","betting","history","businesses"].forEach(k=>{
+  kept[k]=mergeArray(kept[k],c[k]);
+});
+["debt"].forEach(k=>{kept[k]=Math.max(Number(kept[k])||0,Number(c[k])||0);});
+if(!kept.id&&c.id)kept.id=c.id;
+if(!kept.currentTeam&&c.currentTeam)kept.currentTeam=c.currentTeam;
+if(!kept.position&&c.position)kept.position=c.position;
+if(!kept.status&&c.status)kept.status=c.status;
+/* Do not sum or copy duplicate cash here. The authoritative Season 29
+   baseline below sets opening roster cash explicitly. */
+});
+state.citizens=mergedCitizens;
+/* 4.17.117: Authoritative Season 29 opening data is applied immediately
   before every Ledger render, after saved-state loading and old migrations.
   These are starting balances, not new payments; never sum contract history. */
 if(Number(state.year)===29 && state.seasonPhase==="regular" &&
@@ -2888,7 +2929,7 @@ Object.entries(opening).forEach(([key,p])=>{
 });
 save();
 }
-try{syncCitizenLedger();}catch(err){
+try{syncCitizenLedger();save();}catch(err){
 console.error("Citizen Ledger sync error:",err);
 out.innerHTML='<p class="muted">Citizen Ledger data sync failed.</p><p class="tiny">'+String(err&&err.message||err)+'</p>';
 return;
