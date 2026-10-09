@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.107 -->
+<!-- CALVIN'S CITY — VERSION 4.17.108 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.107</title>
+<title>Calvin's City 4.17.108</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.107</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.107</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.108</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.108</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1515,9 +1515,9 @@ if(state.shoeDealSetupVersion!=="4.17.105"){
  save();
 }
  
-/* 4.17.107: Shoe deals are effective when the team re-signing is approved.
+/* 4.17.108: Shoe deals are effective when the team re-signing is approved.
   Remove future-start test records from the citizen ledger and mirrored contracts. */
-if(state.shoeDealFutureCleanupVersion!=="4.17.107"){
+if(state.shoeDealFutureCleanupVersion!=="4.17.108"){
  const currentShoeSeason=Number(state.year)||0;
  (state.citizens||[]).forEach(c=>{
    if(!c||!Array.isArray(c.shoeDeals))return;
@@ -1535,7 +1535,36 @@ if(state.shoeDealFutureCleanupVersion!=="4.17.107"){
      return !Number.isFinite(start)||start<=currentShoeSeason;
    });
  });
- state.shoeDealFutureCleanupVersion="4.17.107";
+ state.shoeDealFutureCleanupVersion="4.17.108";
+ save();
+}
+ 
+/* 4.17.108: Remove duplicate test shoe contracts that share the same player,
+  company, value, and start season. Keep the record with the longest original
+  term so Wall's established Reebok deal remains 2 years / $290M rather than
+  showing an extra 1-year / $290M test entry. Separate deals in different
+  seasons are preserved as legitimate history. */
+if(state.shoeDealDuplicateCleanupVersion!=="4.17.108"){
+ function dedupeShoeDealList(list){
+   if(!Array.isArray(list))return list;
+   const chosen=new Map();
+   list.forEach((deal,index)=>{
+     if(!deal||!deal.company){chosen.set("__keep__"+index,deal);return;}
+     const years=Number(deal.originalYears||deal.years||deal.yearsRemaining)||0;
+     const value=Number(deal.value)||0;
+     const start=deal.startYear==null?"unknown":String(deal.startYear);
+     const key=[String(deal.company),value,start].join("|");
+     const previous=chosen.get(key);
+     const previousYears=previous?(Number(previous.originalYears||previous.years||previous.yearsRemaining)||0):-1;
+     const previousRemaining=previous?(Number(previous.yearsRemaining!=null?previous.yearsRemaining:previous.years)||0):-1;
+     const remaining=Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)||0;
+     if(!previous||years>previousYears||(years===previousYears&&remaining>previousRemaining))chosen.set(key,deal);
+   });
+   return Array.from(chosen.values());
+ }
+ (state.citizens||[]).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=dedupeShoeDealList(c.shoeDeals);});
+ Object.values(state.contracts||{}).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=dedupeShoeDealList(c.shoeDeals);});
+ state.shoeDealDuplicateCleanupVersion="4.17.108";
  save();
 }
  
@@ -3034,7 +3063,7 @@ document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleStri
      dealOut.innerHTML=dealRows;
    }
  }
- /* 4.17.107: Past Contracts contains only deals that have actually ended.
+ /* 4.17.108: Past Contracts contains only deals that have actually ended.
     Future-season test contracts and currently active deals are not historical evidence. */
  const pastOut=document.getElementById("shoeCompanyPastContracts");
  if(pastOut){
