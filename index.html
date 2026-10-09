@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.119 -->
+<!-- CALVIN'S CITY — VERSION 4.17.121 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.119</title>
+<title>Calvin's City 4.17.121</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -462,6 +462,35 @@ const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},openRosterSpots:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
+/* 4.17.121: One-time Season 29 test-game reset.
+  The Rims–Lions game was intentionally played to test the ledger. Return the
+  live season to the Season 29 opening state so more features can be tested
+  from game zero. Preserve permanent Seasons 1–28 records and the separate
+  BETS database. The full Season 29 baseline migration below restores opening
+  player stats/contracts/cash after this reset. */
+if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length>0 && state.season29TestGameResetVersion!=="4.17.121"){
+ state.gamesPlayed=[];
+ state.regularGameIndex=0;
+ state.standings=freshStandings();
+ state.playoff={bye:null,semifinal:null,championship:null};
+ state.seasonPhase="regular";
+ state.seasonPlayed=false;
+ state.offseasonOpen=false;
+ state.offseasonFinalized=false;
+ state.offseasonDecisions={};
+ state.verifiedOffseasonDecisions={};
+ state.openRosterSpots={};
+ state.lastSeason=null;
+ state.lastGame=null;
+ state.contractYearsAdvancedForSeason=null;
+ state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+ state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
+ state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
+ // Re-run the established full Season 29 opening baseline migration below.
+ state.season29FullBaselineRestoreVersion="pending-4.17.121";
+ state.season29TestGameResetVersion="4.17.121";
+ try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}catch(e){console.error("Season 29 test reset save failed:",e);}
+}
 /* 4.17.105: BETS has its own persistent store, separate from the season state.
   Do not add year/season fields to BETS game records. Season resets only touch
   calvins_city_v24 and must never clear calvins_city_bets_v1. */
@@ -2859,6 +2888,33 @@ function finalizeOffseason(){
  alert("Offseason finalized. Calvin's City is ready for the new year.");
 }
  
+/* 4.17.121: One-time correction for the three confirmed Season 29 test-payment overages.
+  The diagnostic proved these exact balances existed before startup migrations:
+  Holly 450 (baseline 350), Kap 750 (baseline 450), Bic 633 (baseline 533).
+  Correct only a balance matching that exact signature and only when the citizen is
+  still marked as having the opening contract already paid. Do not reset gamesPlayed,
+  team standings, contract history, or Seasons 1-28. This is deliberately not a broad
+  opening-cash reset, because a Season 29 game has been played. */
+if(state.season29CashOverageCorrectionVersion!=="4.17.121" &&
+  Number(state.year)===29 && state.seasonPhase==="regular" && !state.seasonPlayed){
+ const knownOverages={Holly:{cash:450,baseline:350},Kap:{cash:750,baseline:450},Bic:{cash:633,baseline:533}};
+ let corrected=false;
+ Object.entries(knownOverages).forEach(([name,fix])=>{
+   const citizen=(state.citizens||[]).find(c=>c&&String(c.name||"").trim()===name);
+   if(!citizen || citizen.startingContractAlreadyPaid!==true) return;
+   if(Number(citizen.startingContractCash)!==fix.baseline) return;
+   if(Number(citizen.cash)!==fix.cash) return;
+   citizen.cash=fix.baseline;
+   citizen.season29OpeningCash=fix.baseline;
+   citizen.season29OpeningCashInitialized=true;
+   corrected=true;
+ });
+ if(corrected){
+   state.season29CashOverageCorrectionVersion="4.17.121";
+   save();
+ }
+}
+ 
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
 /* 4.17.119: Capture the loaded state BEFORE the existing Ledger opening-cash
@@ -2998,7 +3054,7 @@ out.innerHTML=h;
 const diagnosticPanel=document.createElement("details");
 diagnosticPanel.className="citizen-card";
 diagnosticPanel.style.marginTop="12px";
-diagnosticPanel.innerHTML='<summary style="cursor:pointer;font-weight:700">Ledger Cash Diagnostic (4.17.119)</summary><p class="tiny">Captures Holly, Kap, and Bic cash and contract records from the loaded device state before this screen applies its opening-cash correction. Copy this report and send it back for analysis.</p><button type="button" id="copyLedgerCashDiagnostic" style="margin:8px 0;padding:8px 12px">Copy Diagnostic Report</button><textarea id="ledgerCashDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
+diagnosticPanel.innerHTML='<summary style="cursor:pointer;font-weight:700">Ledger Cash Diagnostic (4.17.121)</summary><p class="tiny">Captures Holly, Kap, and Bic cash and contract records from the loaded device state before this screen applies its opening-cash correction. Copy this report and send it back for analysis.</p><button type="button" id="copyLedgerCashDiagnostic" style="margin:8px 0;padding:8px 12px">Copy Diagnostic Report</button><textarea id="ledgerCashDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
 out.appendChild(diagnosticPanel);
 const diagnosticText=document.getElementById("ledgerCashDiagnosticText");
 if(diagnosticText)diagnosticText.value=JSON.stringify(cashDiagnosticSnapshot,null,2);
