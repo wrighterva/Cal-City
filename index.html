@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.110 -->
+<!-- CALVIN'S CITY — VERSION 4.17.111 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.110</title>
+<title>Calvin's City 4.17.111</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.110</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.108</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.108</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.111</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1670,6 +1670,44 @@ if(state.season29UnrosteredRookieResetVersion!=="4.17.110" &&
    if(playerName&&!openingRosterNames.has(playerName))delete state.contracts[key];
  });
  state.season29UnrosteredRookieResetVersion="4.17.110";
+ syncCitizenLedger();
+ save();
+}
+ 
+/* 4.17.111: Repair the complete Season 29 opening contract baseline.
+  The prior reset could leave Rims/Dunks contract slots missing or with zero
+  years. Restore all nine opening contracts only while Season 29 is still at
+  game zero. This does not move cash and never runs after play begins. */
+if(state.season29OpeningContractRepairVersion!=="4.17.111" &&
+  Number(state.year)===29 && !state.seasonPlayed &&
+  (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
+ const openingContracts={
+   Lions_C:{name:"Wall",team:"Lions",position:"C",value:787,years:2,rookie:false,teamValue:497,shoe:{company:"Reebok",years:2,value:290}},
+   Lions_SG:{name:"Diggs",team:"Lions",position:"SG",value:0,years:2,rookie:true,teamValue:0},
+   Lions_PG:{name:"Kap",team:"Lions",position:"PG",value:450,years:2,rookie:false,teamValue:450,shoe:{company:"Puma",years:2,value:190}},
+   Rims_C:{name:"Nadler",team:"Rims",position:"C",value:0,years:2,rookie:true,teamValue:0},
+   Rims_SG:{name:"Holly",team:"Rims",position:"SG",value:350,years:2,rookie:false,teamValue:350,shoe:{company:"New Balance",years:2,value:150}},
+   Rims_PG:{name:"CJ",team:"Rims",position:"PG",value:0,years:2,rookie:true,teamValue:0},
+   Dunks_C:{name:"Vico",team:"Dunks",position:"C",value:660,years:3,rookie:false,teamValue:660,shoe:{company:"Adidas",years:3,value:300}},
+   Dunks_SG:{name:"Pat",team:"Dunks",position:"SG",value:0,years:3,rookie:true,teamValue:0},
+   Dunks_PG:{name:"Bic",team:"Dunks",position:"PG",value:533,years:2,rookie:false,teamValue:533,shoe:{company:"Nike",years:2,value:233}}
+ };
+ state.roster=state.roster||{};
+ state.contracts=state.contracts||{};
+ Object.entries(openingContracts).forEach(([key,p])=>{
+   state.roster[key]=p.name;
+   state.contracts[key]={value:p.value,years:p.years,rookie:p.rookie,totalPackage:p.value,teamValue:p.teamValue,
+     paymentModel:"starting-balance",totalPaid:p.value,paymentsMade:p.years,contractYears:p.years,
+     contractStartSeason:null,contractRecordYear:29,upfrontPaid:true,upfrontPaidSeason:29,
+     history:[{year:29,team:p.team,value:p.value,years:p.years,rookie:p.rookie,totalPackage:p.value,teamValue:p.teamValue}]};
+   let c=(state.citizens||[]).find(x=>x&&x.name===p.name);
+   if(c){
+     c.status="Active Player"; c.currentTeam=p.team; c.position=p.position;
+     c.contracts=Array.isArray(c.contracts)?c.contracts.filter(r=>!(r&&r.action==="Contract Payment"&&Number(r.year)===29)):[];
+     c.shoeDeals=p.shoe?[{...p.shoe,originalYears:p.shoe.years,yearsRemaining:p.shoe.years,startYear:29,includedInContract:true}]:[];
+   }
+ });
+ state.season29OpeningContractRepairVersion="4.17.111";
  syncCitizenLedger();
  save();
 }
