@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.117 -->
+<!-- CALVIN'S CITY — VERSION 4.17.118 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.117</title>
+<title>Calvin's City 4.17.118</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -1776,8 +1776,7 @@ if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && state.season
   test balances and live contract records after all older migrations have run.
   Starting contract amounts are already reflected in opening cash; do not pay
   them again or derive cash from contract history. */
-if(Number(state.year)===29 && state.seasonPhase==="regular" &&
-  (state.gamesPlayed||[]).length===0 && state.seasonPlayed!==true){
+if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0){
 const opening={
  Lions_C:{name:"Wall",team:"Lions",position:"C",cash:787,value:787,teamValue:497,years:2,rookie:false,shoe:{company:"Reebok",value:290,years:2}},
  Lions_SG:{name:"Diggs",team:"Lions",position:"SG",cash:0,value:0,teamValue:0,years:2,rookie:true},
@@ -2854,7 +2853,7 @@ function finalizeOffseason(){
  
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
-/* 4.17.117: Normalize and consolidate duplicate citizen identities before
+/* 4.17.118: Normalize and consolidate duplicate citizen identities before
   any ledger sync. Prior builds matched exact strings, so "Bic", "bic", and
   "Bic " could become separate records. Keep one canonical record per
   normalized name; merge historical/statistical fields without adding cash. */
@@ -2895,11 +2894,10 @@ if(!kept.status&&c.status)kept.status=c.status;
    baseline below sets opening roster cash explicitly. */
 });
 state.citizens=mergedCitizens;
-/* 4.17.117: Authoritative Season 29 opening data is applied immediately
+/* 4.17.118: Authoritative Season 29 opening data is applied immediately
   before every Ledger render, after saved-state loading and old migrations.
   These are starting balances, not new payments; never sum contract history. */
-if(Number(state.year)===29 && state.seasonPhase==="regular" &&
-  (state.gamesPlayed||[]).length===0 && state.seasonPlayed!==true){
+if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0){
 const opening={
  Lions_C:{name:"Wall",cash:787,value:787,years:2,teamValue:497,rookie:false},
  Lions_SG:{name:"Diggs",cash:0,value:0,years:2,teamValue:0,rookie:true},
