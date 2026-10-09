@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.111 -->
+<!-- CALVIN'S CITY — VERSION 4.17.112 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.111</title>
+<title>Calvin's City 4.17.112</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.108</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.111</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.108</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.112</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1709,6 +1709,43 @@ if(state.season29OpeningContractRepairVersion!=="4.17.111" &&
  });
  state.season29OpeningContractRepairVersion="4.17.111";
  syncCitizenLedger();
+ save();
+}
+ 
+/* 4.17.112: Reconcile Season 29 opening Citizen Ledger cash against the
+  authoritative paper-game baseline. Earlier test contract payments could
+  leave player cash above their opening contract amount. At game zero only,
+  restore the nine rostered players' exact opening cash and remove Season 29+
+  test-created contract ledger entries. Preserve completed Seasons 1–28
+  contract/history records and all later gameplay after a game begins. */
+if(state.season29OpeningCashCleanupVersion!=="4.17.112" &&
+  Number(state.year)===29 && !state.seasonPlayed &&
+  (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
+ const openingPlayers={
+   Wall:{team:"Lions",position:"C",cash:787},
+   Diggs:{team:"Lions",position:"SG",cash:0},
+   Kap:{team:"Lions",position:"PG",cash:450},
+   Nadler:{team:"Rims",position:"C",cash:0},
+   Holly:{team:"Rims",position:"SG",cash:350},
+   CJ:{team:"Rims",position:"PG",cash:0},
+   Vico:{team:"Dunks",position:"C",cash:660},
+   Pat:{team:"Dunks",position:"SG",cash:0},
+   Bic:{team:"Dunks",position:"PG",cash:533}
+ };
+ Object.entries(openingPlayers).forEach(([name,b])=>{
+   const c=(state.citizens||[]).find(x=>x&&String(x.name).trim()===name);
+   if(!c)return;
+   c.cash=b.cash;
+   c.status="Active Player";
+   c.currentTeam=b.team;
+   c.position=b.position;
+   c.startingContractAlreadyPaid=true;
+   c.startingContractCash=b.cash;
+   /* Remove only new/test contract records from Season 29 onward; keep the
+      permanent historical contract ledger for Seasons 1–28 intact. */
+   c.contracts=(Array.isArray(c.contracts)?c.contracts:[]).filter(r=>r&&Number(r.year||0)<29);
+ });
+ state.season29OpeningCashCleanupVersion="4.17.112";
  save();
 }
  
