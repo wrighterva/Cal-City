@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.124 -->
+<!-- CALVIN'S CITY — VERSION 4.17.125 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.121</title>
+<title>Calvin's City 4.17.125</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -39,6 +39,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .city-business-card strong{display:block;font-size:14px}
 .city-business-card span{display:block;color:#9eabba;font-size:10px;margin-top:5px}
 .modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:auto;pointer-events:none}.modal.show{display:flex;pointer-events:auto}.modalbox{position:relative;z-index:101;width:min(100%,420px);max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px;pointer-events:auto}.modalbox h2{margin-top:0}body.verify-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none} body.business-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none}
+body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!important;touch-action:none!important}#citizenLedgerModal.show{position:fixed;inset:0;overflow:hidden;overscroll-behavior:contain;touch-action:none}#citizenLedgerModal.show .modalbox{max-height:80dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
 .nav button{margin:0;padding:9px 3px 10px;font-size:12px;background:#273446;min-width:0;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap}.nav button.active{background:#2f6fed}
 .basketball-card-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -3276,9 +3277,17 @@ document.getElementById("recordTabPoints").classList.add("active");
 }
 let recordsScrollY=0;
 let citizenLedgerScrollY=0;
+let citizenLedgerScrollLocked=false;
+let citizenLedgerPreviousHtmlOverflow="";
+let citizenLedgerPreviousBodyStyles=null;
 function lockCitizenLedgerScroll(){
+if(citizenLedgerScrollLocked)return;
 citizenLedgerScrollY=window.scrollY||window.pageYOffset||0;
+citizenLedgerPreviousHtmlOverflow=document.documentElement.style.overflow;
+citizenLedgerPreviousBodyStyles={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,right:document.body.style.right,width:document.body.style.width,height:document.body.style.height,overflow:document.body.style.overflow,touchAction:document.body.style.touchAction};
+citizenLedgerScrollLocked=true;
 document.documentElement.style.overflow="hidden";
+document.body.classList.add("citizen-ledger-scroll-locked");
 document.body.style.position="fixed";
 document.body.style.top="-"+citizenLedgerScrollY+"px";
 document.body.style.left="0";
@@ -3286,18 +3295,40 @@ document.body.style.right="0";
 document.body.style.width="100%";
 document.body.style.height="100%";
 document.body.style.overflow="hidden";
+document.body.style.touchAction="none";
 }
 function unlockCitizenLedgerScroll(){
-document.documentElement.style.overflow="";
-document.body.style.position="";
-document.body.style.top="";
-document.body.style.left="";
-document.body.style.right="";
-document.body.style.width="";
-document.body.style.height="";
-document.body.style.overflow="";
+if(!citizenLedgerScrollLocked)return;
+citizenLedgerScrollLocked=false;
+document.documentElement.style.overflow=citizenLedgerPreviousHtmlOverflow;
+document.body.classList.remove("citizen-ledger-scroll-locked");
+const old=citizenLedgerPreviousBodyStyles||{};
+document.body.style.position=old.position||"";
+document.body.style.top=old.top||"";
+document.body.style.left=old.left||"";
+document.body.style.right=old.right||"";
+document.body.style.width=old.width||"";
+document.body.style.height=old.height||"";
+document.body.style.overflow=old.overflow||"";
+document.body.style.touchAction=old.touchAction||"";
+citizenLedgerPreviousBodyStyles=null;
 requestAnimationFrame(function(){window.scrollTo(0,citizenLedgerScrollY);});
 }
+/* iOS Safari can still scroll the document behind a fixed overlay from touch gestures.
+  Prevent background gestures in capture phase, while allowing vertical scrolling inside
+  the Citizen Ledger's own .modalbox. */
+document.addEventListener("touchmove",function(e){
+if(!citizenLedgerScrollLocked)return;
+const box=citizenLedgerModalEl&&citizenLedgerModalEl.querySelector(".modalbox");
+if(box&&box.contains(e.target))return;
+e.preventDefault();
+},{passive:false,capture:true});
+document.addEventListener("wheel",function(e){
+if(!citizenLedgerScrollLocked)return;
+const box=citizenLedgerModalEl&&citizenLedgerModalEl.querySelector(".modalbox");
+if(box&&box.contains(e.target))return;
+e.preventDefault();
+},{passive:false,capture:true});
 function lockRecordsScroll(){
 recordsScrollY=window.scrollY||window.pageYOffset||0;
 document.documentElement.style.overflow="hidden";
