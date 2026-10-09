@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.112 -->
+<!-- CALVIN'S CITY — VERSION 4.17.113 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.112</title>
+<title>Calvin's City 4.17.113</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.108</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.112</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.108</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.113</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1712,13 +1712,13 @@ if(state.season29OpeningContractRepairVersion!=="4.17.111" &&
  save();
 }
  
-/* 4.17.112: Reconcile Season 29 opening Citizen Ledger cash against the
+/* 4.17.113: Reconcile Season 29 opening Citizen Ledger cash against the
   authoritative paper-game baseline. Earlier test contract payments could
   leave player cash above their opening contract amount. At game zero only,
   restore the nine rostered players' exact opening cash and remove Season 29+
   test-created contract ledger entries. Preserve completed Seasons 1–28
   contract/history records and all later gameplay after a game begins. */
-if(state.season29OpeningCashCleanupVersion!=="4.17.112" &&
+if(state.season29OpeningCashCleanupVersion!=="4.17.113" &&
   Number(state.year)===29 && !state.seasonPlayed &&
   (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
  const openingPlayers={
@@ -1745,7 +1745,28 @@ if(state.season29OpeningCashCleanupVersion!=="4.17.112" &&
       permanent historical contract ledger for Seasons 1–28 intact. */
    c.contracts=(Array.isArray(c.contracts)?c.contracts:[]).filter(r=>r&&Number(r.year||0)<29);
  });
- state.season29OpeningCashCleanupVersion="4.17.112";
+ state.season29OpeningCashCleanupVersion="4.17.113";
+ save();
+}
+ 
+/* 4.17.113: Final authoritative cash reconciliation.
+  The previous cleanup could be bypassed by saved migration flags / stale
+  seasonPlayed state, leaving old test payments such as +$100M in the Ledger.
+  While Season 29 has no current-season games, force the nine opening players
+  back to the paper-game cash baseline on every load. This is intentionally
+  limited to the opening state; after the first game, earned cash is preserved. */
+if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
+ const season29CashBaseline={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
+ Object.entries(season29CashBaseline).forEach(([name,amount])=>{
+   const citizen=(state.citizens||[]).find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
+   if(!citizen)return;
+   citizen.cash=amount;
+   citizen.startingContractAlreadyPaid=true;
+   citizen.startingContractCash=amount;
+   citizen.season29OpeningCash=amount;
+   citizen.season29OpeningCashInitialized=true;
+ });
+ state.season29CashBaselineRepairVersion="4.17.113";
  save();
 }
  
