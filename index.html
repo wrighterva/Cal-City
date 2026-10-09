@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.113 -->
+<!-- CALVIN'S CITY — VERSION 4.17.114 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.113</title>
+<title>Calvin's City 4.17.114</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -1768,6 +1768,50 @@ if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && state.season
  });
  state.season29CashBaselineRepairVersion="4.17.113";
  save();
+}
+ 
+ 
+/* 4.17.114: Single authoritative Season 29 opening reconciliation.
+  Run only while Season 29 is at game zero. This deliberately overrides stale
+  test balances and live contract records after all older migrations have run.
+  Starting contract amounts are already reflected in opening cash; do not pay
+  them again or derive cash from contract history. */
+if(Number(state.year)===29 && state.seasonPhase==="regular" &&
+  (state.gamesPlayed||[]).length===0 && state.seasonPlayed!==true){
+const opening={
+ Lions_C:{name:"Wall",team:"Lions",position:"C",cash:787,value:787,teamValue:497,years:2,rookie:false,shoe:{company:"Reebok",value:290,years:2}},
+ Lions_SG:{name:"Diggs",team:"Lions",position:"SG",cash:0,value:0,teamValue:0,years:2,rookie:true},
+ Lions_PG:{name:"Kap",team:"Lions",position:"PG",cash:450,value:450,teamValue:450,years:2,rookie:false,shoe:{company:"Puma",value:190,years:2}},
+ Rims_C:{name:"Nadler",team:"Rims",position:"C",cash:0,value:0,teamValue:0,years:2,rookie:true},
+ Rims_SG:{name:"Holly",team:"Rims",position:"SG",cash:350,value:350,teamValue:350,years:2,rookie:false,shoe:{company:"New Balance",value:150,years:2}},
+ Rims_PG:{name:"CJ",team:"Rims",position:"PG",cash:0,value:0,teamValue:0,years:2,rookie:true},
+ Dunks_C:{name:"Vico",team:"Dunks",position:"C",cash:660,value:660,teamValue:660,years:3,rookie:false,shoe:{company:"Adidas",value:300,years:3}},
+ Dunks_SG:{name:"Pat",team:"Dunks",position:"SG",cash:0,value:0,teamValue:0,years:3,rookie:true},
+ Dunks_PG:{name:"Bic",team:"Dunks",position:"PG",cash:533,value:533,teamValue:533,years:2,rookie:false,shoe:{company:"Nike",value:233,years:2}}
+};
+state.roster=state.roster||{};
+state.contracts=state.contracts||{};
+Object.entries(opening).forEach(([key,p])=>{
+ state.roster[key]=p.name;
+ state.contracts[key]={
+  value:p.value,years:p.years,rookie:p.rookie,totalPackage:p.value,teamValue:p.teamValue,
+  paymentModel:"starting-balance",totalPaid:p.value,paymentsMade:p.years,contractYears:p.years,
+  contractStartSeason:null,contractRecordYear:29,upfrontPaid:true,upfrontPaidSeason:29,
+  history:[{year:29,team:p.team,value:p.value,years:p.years,rookie:p.rookie,totalPackage:p.value,teamValue:p.teamValue}]
+ };
+ let c=(state.citizens||[]).find(x=>x&&String(x.name||"").trim()===p.name);
+ if(!c)c=ensureCitizen(p.name,{status:"Active Player",currentTeam:p.team,position:p.position,cash:p.cash});
+ if(!c)return;
+ c.cash=p.cash;
+ c.status="Active Player";c.currentTeam=p.team;c.position=p.position;
+ c.startingContractAlreadyPaid=true;c.startingContractCash=p.cash;
+ c.season29OpeningCash=p.cash;c.season29OpeningCashInitialized=true;
+ /* Opening contracts are baseline data, not a new payment/history event. */
+ c.contracts=(Array.isArray(c.contracts)?c.contracts:[]).filter(r=>r&&Number(r.year||0)<29);
+ c.shoeDeals=p.shoe?[{company:p.shoe.company,value:p.shoe.value,years:p.shoe.years,originalYears:p.shoe.years,yearsRemaining:p.shoe.years,startYear:29,includedInContract:true}]:[];
+});
+state.season29AuthoritativeOpeningVersion="4.17.114";
+save();
 }
  
 /* 4.17.105: Season 28 champion streak carry-forward.
