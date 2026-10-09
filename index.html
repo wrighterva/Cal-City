@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.127 -->
+<!-- CALVIN'S CITY — VERSION 4.18.0 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.127</title>
+<title>Calvin's City 4.18.0</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -1431,6 +1431,35 @@ const citizen=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerC
 const entry={id:"PLT-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),at:new Date().toISOString(),season,gameCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0,player:name,amount:Number(amount)||0,type:String(type||"Adjustment"),reason:String(reason||"Unspecified"),payer,recipient:recipient||name,source,balanceBefore:before==null?null:Number(before),balanceAfter:after==null?(citizen&&citizen.cash!=null?Number(citizen.cash):null):Number(after)};
 state.playerLedgerTransactions.push(entry); save(); return entry;
 }
+/* 4.18.0: Read-only Season 29 cash boundary audit.
+  This records cash snapshots only. It never adjusts cash, contracts, rosters,
+  season state, or historical records. Snapshots are persisted with normal saves. */
+const SEASON29_CASH_AUDIT_PLAYERS={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
+function captureSeason29GameCashBoundary(stage,gameInfo={}){
+ if(Number(state.year)!==29)return null;
+ const audit=Array.isArray(state.season29GameCashAudit)?state.season29GameCashAudit:(state.season29GameCashAudit=[]);
+ const previous=audit.length?audit[audit.length-1]:null;
+ const cash={};
+ Object.keys(SEASON29_CASH_AUDIT_PLAYERS).forEach(name=>{
+   const matches=(state.citizens||[]).filter(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
+   cash[name]=matches.length?matches.map(c=>({id:c.id||null,cash:c.cash==null?null:Number(c.cash)})):[];
+ });
+ const changes=[];
+ if(previous&&previous.cash){
+   Object.keys(SEASON29_CASH_AUDIT_PLAYERS).forEach(name=>{
+     const before=previous.cash[name]||[],after=cash[name]||[];
+     const ids=new Set([...before,...after].map(x=>String(x.id||"(no-id)")));
+     ids.forEach(id=>{
+       const b=before.find(x=>String(x.id||"(no-id)")===id),a=after.find(x=>String(x.id||"(no-id)")===id);
+       const bv=b&&b.cash!=null?Number(b.cash):null,av=a&&a.cash!=null?Number(a.cash):null;
+       if(bv!==av)changes.push({player:name,citizenId:id,before:b?bv:null,after:a?av:null,delta:bv==null||av==null?null:Math.round((av-bv)*100)/100});
+     });
+   });
+ }
+ const entry={stage,at:new Date().toISOString(),season:Number(state.year)||null,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0,game:gameInfo,cash,changesFromPreviousStage:changes};
+ audit.push(entry);if(audit.length>60)audit.splice(0,audit.length-60);
+ return entry;
+}
 function buildLedgerDiagnostics(){
 const expected={wall:787,diggs:0,kap:450,nadler:0,holly:350,cj:0,vico:660,pat:0,bic:533};
 const norm=s=>String(s||"").trim().toLowerCase();
@@ -1440,7 +1469,7 @@ Object.entries(expected).forEach(([name,opening])=>{const matches=groups.get(nam
 Object.entries(state.contracts||{}).forEach(([key,c])=>{if(!c)return;const name=state.roster&&state.roster[key];if(!name)return;const total=Number(c.totalPackage!=null?c.totalPackage:c.value)||0;const paid=Number(c.totalPaid)||0;if(c.upfrontPaid===true&&paid<total)findings.push({severity:"ERROR",player:name,issue:"Contract marked upfront-paid but totalPaid is below package",contractKey:key,totalPackage:total,totalPaid:paid});if(c.paymentModel==="starting-balance"&&Number(c.value)!==Number(c.totalPaid))findings.push({severity:"WARNING",player:name,issue:"Starting contract value and paid amount differ",contractKey:key,value:Number(c.value)||0,totalPaid:paid});});
 const tx=state.playerLedgerTransactions||[];const byPlayer=new Map();tx.forEach(t=>{const k=norm(t.player);if(!byPlayer.has(k))byPlayer.set(k,[]);byPlayer.get(k).push(t);});
 Object.entries(expected).forEach(([name,opening])=>{const list=byPlayer.get(name)||[];if(list.length){const net=list.reduce((s,t)=>s+(Number(t.amount)||0)*(String(t.type).toLowerCase().includes("payment out")?-1:1),0);const c=(state.citizens||[]).find(x=>x&&norm(x.name)===name);if(c&&c.cash!=null&&Math.abs((opening+net)-Number(c.cash))>0.01)findings.push({severity:"WARNING",player:name,issue:"Opening balance plus recorded transactions does not reconcile to current cash",opening,recordedNet:net,currentCash:Number(c.cash)});}});
-return {diagnosticVersion:"4.17.127",createdAt:new Date().toISOString(),mode:"Read-only; no cash or contracts changed",season:Number(state.year)||null,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,transactionTracking:"Records only instrumented actions from this build onward; pre-existing cash history is not inferred.",citizenCount:(state.citizens||[]).length,transactionCount:tx.length,finalCashReconciliationVersion:state.season29FinalCashReconciliationVersion??null,findings};
+return {diagnosticVersion:"4.18.0",createdAt:new Date().toISOString(),mode:"Read-only; no cash or contracts changed",season:Number(state.year)||null,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,transactionTracking:"Records only instrumented actions from this build onward; pre-existing cash history is not inferred.",citizenCount:(state.citizens||[]).length,transactionCount:tx.length,finalCashReconciliationVersion:state.season29FinalCashReconciliationVersion??null,gameBoundaryAudit:Array.isArray(state.season29GameCashAudit)?state.season29GameCashAudit:[],findings};
 }
 seedInitialLionsRoster();
  
@@ -1634,7 +1663,7 @@ if(state.shoeDealDuplicateCleanupVersion!=="4.17.108"){
   This is a one-time build migration. Permanent Seasons 1–28 records and
   non-basketball business data remain untouched. Opening team contracts and
   their paired shoe deals start with matching terms. */
-if(state.season29OpeningRestoreVersion!=="4.17.127"){
+if(state.season29OpeningRestoreVersion!=="4.18.0"){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -1696,8 +1725,8 @@ if(state.season29OpeningRestoreVersion!=="4.17.127"){
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
  state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
  state.season29StartingPointVersion="4.17.105";
- state.season29FullBaselineRestoreVersion="4.17.127";
- state.season29OpeningRestoreVersion="4.17.127";
+ state.season29FullBaselineRestoreVersion="4.18.0";
+ state.season29OpeningRestoreVersion="4.18.0";
  delete state.season29GameCashAudit;
  syncCitizenLedger();
  save();
@@ -2137,10 +2166,10 @@ state.records.gameRecords.sort((a,b)=>{
 }
 function recordHistoryGame(g,stage){const mvp=g.winner.players.slice().sort((a,b)=>b.pts-a.pts)[0];state.records.gameRecords.push({year:state.year,stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,championMvp:stage==="Championship"?mvp.name:null,mvpPts:stage==="Championship"?mvp.pts:null,mvpRebs:stage==="Championship"?mvp.rebs:null,spread:null,spreadWinner:null,moneylineA:null,moneylineB:null,winningMoneyline:null,bettingResult:null})}
  
-/* 4.17.127: Final opening-state integrity pass. The season reset above is
+/* 4.18.0: Final opening-state integrity pass. The season reset above is
   one-time and preserves permanent Seasons 1-28. Normalize Wall's single
   Reebok deal even if an older test record used a different start-year field. */
-if(state.season29OpeningRestoreVersion==="4.17.127" && Number(state.year)===29 && !state.seasonPlayed && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
+if(state.season29OpeningRestoreVersion==="4.18.0" && Number(state.year)===29 && !state.seasonPlayed && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
  const wall=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()==="wall");
  if(wall){
    wall.shoeDeals=[{company:"Reebok",years:2,originalYears:2,yearsRemaining:2,value:290,startYear:29,includedInContract:true}];
@@ -2422,6 +2451,8 @@ save();
 }
 function playNextGame(){
 if(state.seasonPhase==="offseason"){alert("Season complete. Finish the offseason before the new year begins.");return;}
+const auditEnabled=Number(state.year)===29;
+if(auditEnabled)captureSeason29GameCashBoundary("before-playGame");
 let g=null,stage="";
 if(state.seasonPhase==="regular"){
   const p=REGULAR_SCHEDULE[state.regularGameIndex];if(!p)return;
@@ -2431,7 +2462,9 @@ if(state.seasonPhase==="regular"){
 }else if(state.seasonPhase==="championship"){
   g=playGame(state.playoff.bye,state.playoff.semifinal.winner);stage="Championship";
 }else{return;}
+if(auditEnabled)captureSeason29GameCashBoundary("after-playGame-before-recordGame",{stage,a:g.A.team,b:g.B.team});
 recordGame(g,stage);
+if(auditEnabled)captureSeason29GameCashBoundary("after-recordGame",{stage,a:g.A.team,b:g.B.team});
 if(stage==="Regular Season"){
   state.regularGameIndex++;
   if(state.regularGameIndex>=3)finishRegularSeason();
@@ -2440,7 +2473,9 @@ if(stage==="Regular Season"){
 }else if(stage==="Championship"){
   state.playoff.championship={winner:g.winner.team,loser:g.loser.team};finishSeason(g.winner,g.loser);
 }
+if(auditEnabled)captureSeason29GameCashBoundary("after-game-finalization-before-save",{stage,a:g.A.team,b:g.B.team});
 save();
+if(auditEnabled){captureSeason29GameCashBoundary("after-save-before-render",{stage,a:g.A.team,b:g.B.team});save();}
 renderGameResult(g,stage);renderProgress();renderBetsSection();
 }
 function renderGameResult(g,stage){document.getElementById("seasonOutput").innerHTML='<p class="gold"><b>'+stage+' completed and saved.</b></p>'+gameText(g)}
@@ -3179,7 +3214,7 @@ const events=tx.map(t=>'<div class="ledger-entry"><b>'+String(t.type||"Transacti
 panel.innerHTML='<h4 style="margin:0 0 8px">'+name+' — Financial Activity</h4><p><b>Current cash:</b> '+(c.cash==null?'Not recorded':'$'+Number(c.cash)+'M')+'</p><h4>Active Contract</h4>'+liveHtml+'<h4>Contract History</h4>'+contracts+'<h4>Shoe Deals</h4>'+shoes+'<h4>Recorded Transactions ('+tx.length+')</h4>'+events;
 }));
 const diagnosticPanel=document.createElement("details");diagnosticPanel.className="ledger-diagnostic-panel";
-diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.17.127)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
+diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.18.0)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
 out.appendChild(diagnosticPanel);
 let latestLedgerReport=null;
 const runBtn=document.getElementById("runLedgerDiagnostics"),copyBtn=document.getElementById("copyLedgerDiagnostics"),reportBox=document.getElementById("ledgerDiagnosticText"),summary=document.getElementById("ledgerDiagnosticSummary");
