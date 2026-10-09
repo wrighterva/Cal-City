@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.109 -->
+<!-- CALVIN'S CITY — VERSION 4.17.110 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.109</title>
+<title>Calvin's City 4.17.110</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -1636,6 +1636,40 @@ if(state.season29OpeningRestoreVersion!=="4.17.109"){
  state.season29StartingPointVersion="4.17.105";
  state.season29FullBaselineRestoreVersion="4.17.109";
  state.season29OpeningRestoreVersion="4.17.109";
+ syncCitizenLedger();
+ save();
+}
+ 
+/* 4.17.110: Reset unrostered, non-retired citizens to rookie/free-agent state
+  at the Season 29 opening. This removes test-created cash and contracts from
+  players such as Carson who are not on one of the nine opening roster slots.
+  Permanent Seasons 1–28 game and award records remain untouched. */
+if(state.season29UnrosteredRookieResetVersion!=="4.17.110" &&
+  Number(state.year)===29 && !state.seasonPlayed &&
+  (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
+ const openingRosterNames=new Set(Object.values(state.roster||{}).filter(Boolean).map(n=>String(n).trim().toLowerCase()));
+ const retiredNames=new Set(((state.records&&state.records.retiredPlayers)||[]).map(p=>String(p&&p.name||"").trim().toLowerCase()).filter(Boolean));
+ (state.citizens||[]).forEach(c=>{
+   if(!c||!c.name)return;
+   const normalizedName=String(c.name).trim().toLowerCase();
+   if(openingRosterNames.has(normalizedName)||retiredNames.has(normalizedName))return;
+   c.cash=0;
+   c.contracts=[];
+   c.shoeDeals=[];
+   c.status="Free Agent";
+   c.currentTeam=null;
+   c.position=null;
+   c.startingContractAlreadyPaid=false;
+   c.startingContractCash=0;
+   c.lastContract=null;
+   c.teamContract=null;
+ });
+ /* Remove orphaned live team-contract entries for anyone outside the opening roster. */
+ Object.keys(state.contracts||{}).forEach(key=>{
+   const playerName=String(key).split("_").slice(1).join("_").trim().toLowerCase();
+   if(playerName&&!openingRosterNames.has(playerName))delete state.contracts[key];
+ });
+ state.season29UnrosteredRookieResetVersion="4.17.110";
  syncCitizenLedger();
  save();
 }
