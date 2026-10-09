@@ -1,12 +1,12 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.17.105 -->
+<!-- CALVIN'S CITY — VERSION 4.17.107 -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.17.105</title>
+<title>Calvin's City 4.17.107</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -75,7 +75,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.17.105</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.105</div></header>
+<header><h1>🏙️ Calvin's City — 4.17.107</h1><p>Personal Paper City → Digital City</p><div class="status">SYSTEM WORKING — JAVASCRIPT ACTIVE — 4.17.107</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1515,6 +1515,30 @@ if(state.shoeDealSetupVersion!=="4.17.105"){
  save();
 }
  
+/* 4.17.107: Shoe deals are effective when the team re-signing is approved.
+  Remove future-start test records from the citizen ledger and mirrored contracts. */
+if(state.shoeDealFutureCleanupVersion!=="4.17.107"){
+ const currentShoeSeason=Number(state.year)||0;
+ (state.citizens||[]).forEach(c=>{
+   if(!c||!Array.isArray(c.shoeDeals))return;
+   c.shoeDeals=c.shoeDeals.filter(d=>{
+     if(!d||d.startYear==null)return true;
+     const start=Number(d.startYear);
+     return !Number.isFinite(start)||start<=currentShoeSeason;
+   });
+ });
+ Object.values(state.contracts||{}).forEach(c=>{
+   if(!c||!Array.isArray(c.shoeDeals))return;
+   c.shoeDeals=c.shoeDeals.filter(d=>{
+     if(!d||d.startYear==null)return true;
+     const start=Number(d.startYear);
+     return !Number.isFinite(start)||start<=currentShoeSeason;
+   });
+ });
+ state.shoeDealFutureCleanupVersion="4.17.107";
+ save();
+}
+ 
 /* 4.17.105: Season 28 champion streak carry-forward.
   Vico and Bic won the Season 28 championship, so they begin Season 29
   with one consecutive title. This updates only the two players' streak fields. */
@@ -2360,10 +2384,10 @@ if(decision==="Resign"||decision==="Replace"){
   if(citizen){
     citizen.shoeDeals=Array.isArray(citizen.shoeDeals)?citizen.shoeDeals:[];
     citizen.shoeDeals.forEach(deal=>{if(deal&&Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)>0){if(!deal.originalYears)deal.originalYears=Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)||0;deal.yearsRemaining=0;deal.years=0;deal.endYear=Number(state.year)||0;}});
-    if(shoeCompany)citizen.shoeDeals.push({company:shoeCompany,years:years,yearsRemaining:years,originalYears:years,value:shoeValue,startYear:Number(state.year)+1,includedInContract:true});
+    if(shoeCompany)citizen.shoeDeals.push({company:shoeCompany,years:years,yearsRemaining:years,originalYears:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true});
   }
-  setActivePlayerContract(k,team,name,{value:totalPackage,years:years,rookie:isRookieReplacement,totalPackage:totalPackage,teamValue:salary,annualValue,totalPaid:totalPackage,paymentsMade:years,contractYears:years,contractStartSeason:Number(state.year)+1,contractRecordYear:Number(state.year),paymentModel:"upfront-total",upfrontPaid:true,upfrontPaidSeason:Number(state.year),shoeDeals:shoeCompany?[{company:shoeCompany,years:years,yearsRemaining:years,value:shoeValue,startYear:Number(state.year)+1,includedInContract:true}]:[]},{recordHistory:true,action,cashAdded:totalPackage});
-  state.contracts[k].shoeDeals=shoeCompany?[{company:shoeCompany,years:years,yearsRemaining:years,value:shoeValue,startYear:Number(state.year)+1,includedInContract:true}]:[];
+  setActivePlayerContract(k,team,name,{value:totalPackage,years:years,rookie:isRookieReplacement,totalPackage:totalPackage,teamValue:salary,annualValue,totalPaid:totalPackage,paymentsMade:years,contractYears:years,contractStartSeason:Number(state.year)||0,contractRecordYear:Number(state.year),paymentModel:"upfront-total",upfrontPaid:true,upfrontPaidSeason:Number(state.year),shoeDeals:shoeCompany?[{company:shoeCompany,years:years,yearsRemaining:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true}]:[]},{recordHistory:true,action,cashAdded:totalPackage});
+  state.contracts[k].shoeDeals=shoeCompany?[{company:shoeCompany,years:years,yearsRemaining:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true}]:[];
   state.roster[k]=name;
   if(citizen){citizen.status="Active Player";citizen.currentTeam=team;citizen.position=pos;}
   const paidRecord=citizen&&Array.isArray(citizen.contracts)?citizen.contracts.slice().reverse().find(x=>x&&x.team===team&&Number(x.year)===Number(state.year)&&x.current===true):null;
@@ -2989,10 +3013,17 @@ document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleStri
  });
  rows+='</table></div>';
  document.getElementById("shoeCompanyOwnership").innerHTML=rows;
+ const currentSeason=Math.max(0,Number(liveState&&liveState.year)||0);
  const dealOut=document.getElementById("shoeCompanyDeals");
  let deals=Array.isArray(details.deals)?details.deals:[];
  if(liveState&&Array.isArray(liveState.citizens)){
-   deals=liveState.citizens.flatMap(c=>(Array.isArray(c.shoeDeals)?c.shoeDeals:[]).filter(d=>d&&d.company===company&&Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)>0).map(d=>({player:c.name,years:Number(d.yearsRemaining!=null?d.yearsRemaining:d.years),value:Number(d.value)||0})));
+   deals=liveState.citizens.flatMap(c=>(Array.isArray(c.shoeDeals)?c.shoeDeals:[]).filter(d=>{
+     if(!d||d.company!==company)return false;
+     const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
+     const startYear=d.startYear==null?null:Number(d.startYear);
+     // Deals are effective when signed; future-start records are removed by migration.
+     return remaining>0&&(startYear==null||!Number.isFinite(startYear)||startYear<=currentSeason);
+   }).map(d=>({player:c.name,years:Number(d.yearsRemaining!=null?d.yearsRemaining:d.years),value:Number(d.value)||0})));
  }
  if(dealOut){
    if(!deals.length)dealOut.innerHTML='<p class="muted">No shoe deals recorded.</p>';
@@ -3003,7 +3034,8 @@ document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleStri
      dealOut.innerHTML=dealRows;
    }
  }
- /* Past Contracts is a read-only ledger of every deal ever recorded for this company. */
+ /* 4.17.107: Past Contracts contains only deals that have actually ended.
+    Future-season test contracts and currently active deals are not historical evidence. */
  const pastOut=document.getElementById("shoeCompanyPastContracts");
  if(pastOut){
    let history=[];
@@ -3011,20 +3043,25 @@ document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleStri
      liveState.citizens.forEach(c=>{
        (Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{
          if(!d||d.company!==company)return;
-         history.push({player:c.name,years:Number(d.originalYears||d.years||d.yearsRemaining)||0,value:Number(d.value)||0,startYear:Number(d.startYear)||null,endYear:Number(d.endYear)||null,remaining:Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0});
+         const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
+         const startYear=d.startYear==null?null:Number(d.startYear);
+         const endYear=d.endYear==null?null:Number(d.endYear);
+         // Ignore deals that have not started yet, even if a test/replacement marked them ended.
+         if(startYear!=null&&Number.isFinite(startYear)&&startYear>currentSeason)return;
+         // Past means ended only; active deals belong in Current Shoe Deals.
+         if(remaining>0)return;
+         if(endYear!=null&&Number.isFinite(endYear)&&endYear>currentSeason)return;
+         history.push({player:c.name,years:Number(d.originalYears||d.years||d.yearsRemaining)||0,value:Number(d.value)||0,startYear:startYear,endYear:endYear,remaining:remaining});
        });
      });
    }
-   if(!history.length){
-     (Array.isArray(details.deals)?details.deals:[]).forEach(d=>history.push({player:d.player,years:Number(d.years)||0,value:Number(d.value)||0,startYear:null,endYear:null,remaining:Number(d.years)||0}));
-   }
    const seen=new Set();
-   history=history.filter(d=>{const k=[d.player,d.startYear||"",d.years,d.value].join("|");if(seen.has(k))return false;seen.add(k);return true;});
+   history=history.filter(d=>{const k=[d.player,d.startYear==null?"":d.startYear,d.years,d.value].join("|");if(seen.has(k))return false;seen.add(k);return true;});
    history.sort((a,b)=>(b.startYear||0)-(a.startYear||0)||a.player.localeCompare(b.player));
-   if(!history.length)pastOut.innerHTML='<p class="muted">No past contracts recorded yet. Completed and replaced deals will appear here.</p>';
+   if(!history.length)pastOut.innerHTML='<p class="muted">No completed shoe contracts recorded yet. Future and active deals are excluded.</p>';
    else{
      let historyRows='<div style="overflow-x:auto"><table><tr><th>Player</th><th>Contract Years</th><th>Contract Value</th><th>Start Season</th><th>End Season</th><th>Status</th></tr>';
-     history.forEach(d=>{const active=d.remaining>0;historyRows+='<tr><td>'+d.player+'</td><td>'+d.years+' years</td><td>$'+d.value.toLocaleString("en-US")+'M</td><td>'+(d.startYear==null?'—':d.startYear)+'</td><td>'+(d.endYear==null?'—':d.endYear)+'</td><td>'+(active?'Active':'Past')+'</td></tr>';});
+     history.forEach(d=>{historyRows+='<tr><td>'+d.player+'</td><td>'+d.years+' years</td><td>$'+d.value.toLocaleString("en-US")+'M</td><td>'+(d.startYear==null?'—':d.startYear)+'</td><td>'+(d.endYear==null?'—':d.endYear)+'</td><td>Past</td></tr>';});
      historyRows+='</table></div>';
      pastOut.innerHTML=historyRows;
    }
