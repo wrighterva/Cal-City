@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.19.1 -->
-<!-- Build identity: 4.19.2. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
+<!-- Build identity: 4.19.3. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
@@ -298,14 +298,14 @@ return {
   pts:Number(citizen.careerPts??hist.careerPts??0)||0,
   reb:Number(citizen.careerRebs??hist.careerRebs??0)||0,
   mvps:Number(citizen.mvps??hist.mvps??0)||0,
-  /* SNR displays the player's current consecutive-title streak. */
+  /* TNR displays the player's current consecutive-title streak. */
   snr:Number(citizen.currentChampStreak??hist.currentChampStreak??0)||0,
   titles:Number(citizen.championships??hist.championships??0)||0
 };
 });
  
 document.getElementById("teamPageTitle").textContent=t.name;
-const rosterTable='<h3>Roster &amp; Contracts</h3><div class="team-table-wrap"><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th><th>SNR</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:14px;font-weight:900;width:100%;box-sizing:border-box"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td><td>'+p.snr+'</td></tr>').join('')+'</table></div><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the same live contract database used by Offseason and the Citizen Ledger.</p>';
+const rosterTable='<h3>Roster &amp; Contracts</h3><div class="team-table-wrap"><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th><th>TNR</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:14px;font-weight:900;width:100%;box-sizing:border-box"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td><td>'+p.snr+'</td></tr>').join('')+'</table></div><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the same live contract database used by Offseason and the Citizen Ledger.</p>';
  
 document.getElementById("teamPageBody").innerHTML=
 '<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+getLiveTeamCash(t.key)+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div></div>'+rosterTable;
@@ -468,7 +468,7 @@ const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},openRosterSpots:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
-/* 4.19.2: Capture completed Season 29+ permanent game records BEFORE any
+/* 4.19.3: Capture completed Season 29+ permanent game records BEFORE any
   live-season reset filters them out. These actual results are imported into
   the independent BETS ledger later in startup. Only post-Season-28 records
   are captured here so retained historical records are not imported twice. */
@@ -529,11 +529,11 @@ if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPla
 /* 4.19.1: BETS is a permanent append-oriented ledger, independent of the season state.
   Never delete or season-filter this database. Normal saves merge concurrent/older
   in-memory copies with the current browser copy and refuse malformed saved data. */
-/* 4.19.2: Return the LIVE basketball season to the beginning of Season 29.
+/* 4.19.3: Return the LIVE basketball season to the beginning of Season 29.
   This runs once for this build. It preserves Seasons 1–28 and retired-player
   history, captures Season 29+ game records above for BETS import, restores the
   approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.19.2" && !season29ResetBlockedByStaging){
+if(state.season29FreshStartVersion!=="4.19.3" && !season29ResetBlockedByStaging){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -556,8 +556,8 @@ if(state.season29FreshStartVersion!=="4.19.2" && !season29ResetBlockedByStaging)
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
  state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
  /* Force the existing, well-tested Season 29 opening baseline migration to run. */
- state.season29OpeningRestoreVersion="4.19.2-pending";
- state.season29FreshStartVersion="4.19.2";
+ state.season29OpeningRestoreVersion="4.19.3-pending";
+ state.season29FreshStartVersion="4.19.3";
  try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
  catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
 }
@@ -1518,7 +1518,7 @@ if(state.season29FullBaselineRestoreVersion!=="4.17.105"){
  
 /* 4.17.105: Reset both streak fields for the Season 29 opening baseline.
   The records display reads champStreak first, so resetting only
-  currentChampStreak left stale “Ships in a Row” values visible. */
+  currentChampStreak left stale “Titles in a Row” values visible. */
 if(state.season29ShipsInRowResetVersion!=="4.17.105" &&
   Number(state.year)===29 && !state.seasonPlayed &&
   (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
@@ -1665,7 +1665,7 @@ Object.entries(expected).forEach(([name,opening])=>{const matches=groups.get(nam
 Object.entries(state.contracts||{}).forEach(([key,c])=>{if(!c)return;const name=state.roster&&state.roster[key];if(!name)return;const total=Number(c.totalPackage!=null?c.totalPackage:c.value)||0;const paid=Number(c.totalPaid)||0;if(c.upfrontPaid===true&&paid<total)findings.push({severity:"ERROR",player:name,issue:"Contract marked upfront-paid but totalPaid is below package",contractKey:key,totalPackage:total,totalPaid:paid});if(c.paymentModel==="starting-balance"&&Number(c.value)!==Number(c.totalPaid))findings.push({severity:"WARNING",player:name,issue:"Starting contract value and paid amount differ",contractKey:key,value:Number(c.value)||0,totalPaid:paid});});
 const tx=state.playerLedgerTransactions||[];const byPlayer=new Map();tx.forEach(t=>{const k=norm(t.player);if(!byPlayer.has(k))byPlayer.set(k,[]);byPlayer.get(k).push(t);});
 Object.entries(expected).forEach(([name,opening])=>{const list=byPlayer.get(name)||[];if(list.length){const net=list.filter(t=>!String(t.type||"").toUpperCase().includes("UNVERIFIED CASH MUTATION")).reduce((s,t)=>s+(Number(t.amount)||0)*(String(t.type).toLowerCase().includes("payment out")?-1:1),0);const c=(state.citizens||[]).find(x=>x&&norm(x.name)===name);if(c&&c.cash!=null&&Math.abs((opening+net)-Number(c.cash))>0.01)findings.push({severity:"WARNING",player:name,issue:"Opening balance plus recorded transactions does not reconcile to current cash",opening,recordedNet:net,currentCash:Number(c.cash)});}});
-return {diagnosticVersion:"4.19.2",createdAt:new Date().toISOString(),mode:"Read-only; no cash or contracts changed",season:Number(state.year)||null,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,transactionTracking:"Records only instrumented actions from this build onward; pre-existing cash history is not inferred.",citizenCount:(state.citizens||[]).length,transactionCount:tx.length,finalCashReconciliationVersion:state.season29FinalCashReconciliationVersion??null,gameBoundaryAudit:Array.isArray(state.season29GameCashAudit)?state.season29GameCashAudit:[],findings};
+return {diagnosticVersion:"4.19.3",createdAt:new Date().toISOString(),mode:"Read-only; no cash or contracts changed",season:Number(state.year)||null,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,transactionTracking:"Records only instrumented actions from this build onward; pre-existing cash history is not inferred.",citizenCount:(state.citizens||[]).length,transactionCount:tx.length,finalCashReconciliationVersion:state.season29FinalCashReconciliationVersion??null,gameBoundaryAudit:Array.isArray(state.season29GameCashAudit)?state.season29GameCashAudit:[],findings};
 }
 seedInitialLionsRoster();
  
@@ -2561,7 +2561,7 @@ function recordChampionshipAwards(winningTeamGame){
  )[0];
  const mvpName=mvpPlayer&&mvpPlayer.name?mvpPlayer.name:null;
  
- /* 4.17.105: SNR shown in the Ledger, team pages, Records, and Hall of Fame
+ /* 4.17.105: TNR shown in the Ledger, team pages, Records, and Hall of Fame
     means the player's CURRENT consecutive championship run. Every active
     player who is not on this championship-winning roster has their active
     streak reset. champStreak remains stored separately as a career-best. */
@@ -3232,9 +3232,9 @@ const citizens=(Array.isArray(state.citizens)?state.citizens:[]).filter(c=>c&&fo
 }));
 const roster=state.roster||{}, liveContracts=state.contracts||{};
 const live=Object.entries(roster).filter(([k,n])=>focusNames.has(norm(n))).map(([key,name])=>({key,name,contract:liveContracts[key]?JSON.parse(JSON.stringify(liveContracts[key])):null}));
-return {diagnosticVersion:"4.19.2",capturedAt:new Date().toISOString(),note:"Captured after app startup migrations but before the Citizen Ledger render-time cash reconciliation. This report does not change financial data.",state:{year:state.year,seasonPhase:state.seasonPhase,seasonPlayed:state.seasonPlayed,gamesPlayedCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,season29CashBaselineRepairVersion:state.season29CashBaselineRepairVersion??null,season29OpeningCashCleanupVersion:state.season29OpeningCashCleanupVersion??null,season29OpeningCashReconciledVersion:state.season29OpeningCashReconciledVersion??null,season29OpeningRestoreVersion:state.season29OpeningRestoreVersion??null,season29FullBaselineRestoreVersion:state.season29FullBaselineRestoreVersion??null,contractPaymentModelVersion:state.contractPaymentModelVersion??null,startingContractModelVersion:state.startingContractModelVersion??null,season29OpeningContractRepairVersion:state.season29OpeningContractRepairVersion??null},citizens,liveContracts:live};
+return {diagnosticVersion:"4.19.3",capturedAt:new Date().toISOString(),note:"Captured after app startup migrations but before the Citizen Ledger render-time cash reconciliation. This report does not change financial data.",state:{year:state.year,seasonPhase:state.seasonPhase,seasonPlayed:state.seasonPlayed,gamesPlayedCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,season29CashBaselineRepairVersion:state.season29CashBaselineRepairVersion??null,season29OpeningCashCleanupVersion:state.season29OpeningCashCleanupVersion??null,season29OpeningCashReconciledVersion:state.season29OpeningCashReconciledVersion??null,season29OpeningRestoreVersion:state.season29OpeningRestoreVersion??null,season29FullBaselineRestoreVersion:state.season29FullBaselineRestoreVersion??null,contractPaymentModelVersion:state.contractPaymentModelVersion??null,startingContractModelVersion:state.startingContractModelVersion??null,season29OpeningContractRepairVersion:state.season29OpeningContractRepairVersion??null},citizens,liveContracts:live};
 })();
-const cashDiagnosticSnapshot={diagnosticVersion:"4.19.2",note:"Read-only report. startupSnapshot is captured immediately after localStorage load and before payment migrations; ledgerOpenSnapshot is captured later before render-time cash reconciliation.",startupSnapshot:window.__cashDiagnosticStartupSnapshot||null,ledgerOpenSnapshot:cashDiagnosticLedgerOpenSnapshot};
+const cashDiagnosticSnapshot={diagnosticVersion:"4.19.3",note:"Read-only report. startupSnapshot is captured immediately after localStorage load and before payment migrations; ledgerOpenSnapshot is captured later before render-time cash reconciliation.",startupSnapshot:window.__cashDiagnosticStartupSnapshot||null,ledgerOpenSnapshot:cashDiagnosticLedgerOpenSnapshot};
 /* 4.17.118: Normalize and consolidate duplicate citizen identities before
   any ledger sync. Prior builds matched exact strings, so "Bic", "bic", and
   "Bic " could become separate records. Keep one canonical record per
@@ -3399,7 +3399,7 @@ const historyText=contractHistory.map(x=>(x.action||"Contract")+' '+(x.team||'')
 const ledgerStatus=(c.status==="Retired")?"Retired":(c.currentTeam?((c.status||"Active Player")+' • '+c.currentTeam+(c.position?' • '+c.position:'')):"Free Agent");
 const playerLedgerId='playerLedger_'+String(c.id||c.name).replace(/[^a-z0-9_-]/gi,'_');
 const cashTraceId='cashTrace_'+String(c.id||c.name).replace(/[^a-z0-9_-]/gi,'_');
-h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Ships in a Row <b>'+(c.currentChampStreak||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'<button type="button" class="player-ledger-btn" data-player-ledger="'+playerLedgerId+'">Player Ledger</button><div id="'+playerLedgerId+'" class="player-ledger-panel"></div><button type="button" class="player-ledger-btn" data-cash-trace="'+cashTraceId+'">Trace Cash Sources</button><div id="'+cashTraceId+'" class="player-ledger-panel"></div></div>';
+h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Titles in a Row <b>'+(c.currentChampStreak||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'<button type="button" class="player-ledger-btn" data-player-ledger="'+playerLedgerId+'">Player Ledger</button><div id="'+playerLedgerId+'" class="player-ledger-panel"></div><button type="button" class="player-ledger-btn" data-cash-trace="'+cashTraceId+'">Trace Cash Sources</button><div id="'+cashTraceId+'" class="player-ledger-panel"></div></div>';
 });
 out.innerHTML=h;
 /* 4.17.122: Player Ledger and read-only diagnostics. */
@@ -3436,7 +3436,7 @@ const gameAudit=(Array.isArray(state.season29GameCashAudit)?state.season29GameCa
 const positiveTransactions=transactions.filter(t=>Number(t.amount)>0);
 const report={
   reportType:"Citizen Cash Source Trace",
-  diagnosticVersion:"4.19.2",
+  diagnosticVersion:"4.19.3",
   createdAt:new Date().toISOString(),
   mode:"Read-only; no cash or records changed",
   citizen:{id:citizen.id||null,name:citizen.name||name,currentCash:citizen.cash==null?null:Number(citizen.cash),currentTeam:citizen.currentTeam||null,status:citizen.status||null},
@@ -3534,7 +3534,7 @@ h+='<h3>Hall of Fame</h3>';
 h+='<p class="tiny">Eligibility: <b>500 career PTS OR 500 career REB</b>. Hall of Fame membership is permanent once a player qualifies after retirement.</p>';
 if(!hof.length)h+='<p class="muted">No Hall of Fame players recorded yet.</p>';
 else{
-  h+='<table><tr><th>Player</th><th>Points</th><th>Rebounds</th><th>MVPs</th><th>Ships</th><th>SNR</th></tr>';
+  h+='<table><tr><th>Player</th><th>Points</th><th>Rebounds</th><th>MVPs</th><th>Titles</th><th>TNR</th></tr>';
   hof.forEach(p=>{
     const snr=Number(p.currentChampStreak??0)||0;
     h+='<tr><td><b>'+p.name+'</b></td><td>'+Number(p.careerPts||0)+'</td><td>'+Number(p.careerRebs||0)+'</td><td>'+Number(p.mvps||0)+'</td><td>'+Number(p.championships||0)+'</td><td>'+snr+'</td></tr>';
@@ -3545,7 +3545,7 @@ h+='<h3>Retired Players</h3>';
 h+='<p class="tiny">Retired players who do not meet the Hall of Fame threshold are preserved here.</p>';
 if(!retiredNoHof.length)h+='<p class="muted">No retired players outside the Hall of Fame yet.</p>';
 else{
-  h+='<table><tr><th>Player</th><th>Points</th><th>Rebounds</th><th>MVPs</th><th>Ships</th><th>SNR</th></tr>';
+  h+='<table><tr><th>Player</th><th>Points</th><th>Rebounds</th><th>MVPs</th><th>Titles</th><th>TNR</th></tr>';
   retiredNoHof.forEach(p=>{
     const snr=Number(p.currentChampStreak??0)||0;
     h+='<tr><td><b>'+p.name+'</b></td><td>'+Number(p.careerPts||0)+'</td><td>'+Number(p.careerRebs||0)+'</td><td>'+Number(p.mvps||0)+'</td><td>'+Number(p.championships||0)+'</td><td>'+snr+'</td></tr>';
