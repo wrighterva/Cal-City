@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.19.1 -->
-<!-- Build identity: 4.19.1. Permanent, season-independent BETS ledger with append-only merge protection, game-linked bet settlement, and recovery exports. Seasons 1–28 preserved; Season 29 remains the active test season. -->
+<!-- Build identity: 4.19.2. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
@@ -468,13 +468,42 @@ const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},openRosterSpots:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
+/* 4.19.2: Capture completed Season 29+ permanent game records BEFORE any
+  live-season reset filters them out. These actual results are imported into
+  the independent BETS ledger later in startup. Only post-Season-28 records
+  are captured here so retained historical records are not imported twice. */
+const BETS_PENDING_IMPORT_KEY="calvins_city_bets_pending_import_v1";
+const preResetSeason29GameRecords=JSON.parse(JSON.stringify(
+ (state.records&&Array.isArray(state.records.gameRecords)?state.records.gameRecords:[])
+   .filter(g=>Number(g&&g.year||0)>28)
+));
+let season29ResetBlockedByStaging=false;
+/* Persist a recovery copy before filtering live records. If staging fails, the
+  reset below is blocked rather than risking loss of the only available copy. */
+if(preResetSeason29GameRecords.length){
+ try{
+   const pendingRaw=localStorage.getItem(BETS_PENDING_IMPORT_KEY);
+   let pending= pendingRaw===null?[]:JSON.parse(pendingRaw);
+   if(!Array.isArray(pending))throw new Error("Pending BETS import backup is not an array.");
+   const keys=new Set(pending.map((g,i)=>String(g&&g.__betsSourceKey||[Number(g&&g.year)||0,String(g&&g.stage||""),String(g&&g.a||""),Number(g&&g.scoreA),String(g&&g.b||""),Number(g&&g.scoreB),i].join("|"))));
+   preResetSeason29GameRecords.forEach((g,index)=>{
+     const sourceKey=[Number(g&&g.year)||0,String(g&&g.stage||""),String(g&&g.a||""),Number(g&&g.scoreA),String(g&&g.b||""),Number(g&&g.scoreB),index].join("|");
+     if(keys.has(sourceKey))return;
+     const copy={...g,__betsSourceKey:sourceKey};pending.push(copy);keys.add(sourceKey);
+   });
+   localStorage.setItem(BETS_PENDING_IMPORT_KEY,JSON.stringify(pending));
+ }catch(stagingError){
+   season29ResetBlockedByStaging=true;
+   console.error("Season 29 reset blocked because game records could not be safely staged for BETS import:",stagingError);
+ }
+}
 /* 4.17.121: One-time Season 29 test-game reset.
   The Rims–Lions game was intentionally played to test the ledger. Return the
   live season to the Season 29 opening state so more features can be tested
   from game zero. Preserve permanent Seasons 1–28 records and the separate
   BETS database. The full Season 29 baseline migration below restores opening
   player stats/contracts/cash after this reset. */
-if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length>0 && state.season29TestGameResetVersion!=="4.17.121"){
+if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length>0 && state.season29TestGameResetVersion!=="4.17.121" && !season29ResetBlockedByStaging){
  state.gamesPlayed=[];
  state.regularGameIndex=0;
  state.standings=freshStandings();
@@ -500,6 +529,39 @@ if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPla
 /* 4.19.1: BETS is a permanent append-oriented ledger, independent of the season state.
   Never delete or season-filter this database. Normal saves merge concurrent/older
   in-memory copies with the current browser copy and refuse malformed saved data. */
+/* 4.19.2: Return the LIVE basketball season to the beginning of Season 29.
+  This runs once for this build. It preserves Seasons 1–28 and retired-player
+  history, captures Season 29+ game records above for BETS import, restores the
+  approved team cash baseline, and deliberately never clears the BETS database. */
+if(state.season29FreshStartVersion!=="4.19.2" && !season29ResetBlockedByStaging){
+ state.year=29;
+ state.defendingChampion=HISTORICAL_LAST_CHAMPION;
+ state.seasonPhase="regular";
+ state.regularGameIndex=0;
+ state.standings=freshStandings();
+ state.gamesPlayed=[];
+ state.playoff={bye:null,semifinal:null,championship:null};
+ state.seasonPlayed=false;
+ state.offseasonOpen=false;
+ state.offseasonFinalized=false;
+ state.offseasonDecisions={};
+ state.verifiedOffseasonDecisions={};
+ state.openRosterSpots={};
+ state.lastSeason=null;
+ state.lastGame=null;
+ state.contractYearsAdvancedForSeason=null;
+ state.teamCash={Lions:4430,Rims:4470,Dunks:4450};
+ state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+ state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
+ state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
+ state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
+ /* Force the existing, well-tested Season 29 opening baseline migration to run. */
+ state.season29OpeningRestoreVersion="4.19.2-pending";
+ state.season29FreshStartVersion="4.19.2";
+ try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
+ catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
+}
+ 
 const BETS_STORAGE_KEY="calvins_city_bets_v1";
 const BETS_BACKUP_KEY="calvins_city_bets_backup_v1";
 const BETS_SCHEMA_VERSION=2;
@@ -678,13 +740,16 @@ function recordBetsGame(g){
 /* Idempotent import of real completed game results already present in Permanent Records. */
 function importExistingRecordedGamesToBets(){
  if(!betsStorageWritable){renderBetsStorageStatus(betsStorageMessage);return 0;}
- const history=state.records&&Array.isArray(state.records.gameRecords)?state.records.gameRecords:[];let imported=0;
+ const retainedHistory=state.records&&Array.isArray(state.records.gameRecords)?state.records.gameRecords:[];
+ let pendingHistory=[];
+ try{const rawPending=localStorage.getItem(BETS_PENDING_IMPORT_KEY);if(rawPending!==null){const parsedPending=JSON.parse(rawPending);if(Array.isArray(parsedPending))pendingHistory=parsedPending;}}catch(pendingReadError){console.warn("Pending BETS import backup could not be read; retained records remain untouched:",pendingReadError);}
+ const history=[...pendingHistory,...(Array.isArray(preResetSeason29GameRecords)?preResetSeason29GameRecords:[]),...retainedHistory];let imported=0;
  const availableMatches=new Map();
  betsDatabase.games.forEach(row=>{if(!row||row.sourceRecordKey)return;const key=[String(row.teamA),Number(row.scoreA),String(row.teamB),Number(row.scoreB)].join("|");const reverse=[String(row.teamB),Number(row.scoreB),String(row.teamA),Number(row.scoreA)].join("|");const chosen=availableMatches.has(key)?key:reverse;availableMatches.set(chosen,(availableMatches.get(chosen)||0)+1);});
  history.forEach((g,index)=>{
    if(!g||!g.a||!g.b)return;const scoreA=Number(g.scoreA),scoreB=Number(g.scoreB);if(!Number.isFinite(scoreA)||!Number.isFinite(scoreB)||scoreA<0||scoreB<0)return;
    const teamA=String(g.a),teamB=String(g.b);if(!teamA||!teamB||teamA==="N/A"||teamB==="N/A")return;
-   const sourceKey=[Number(g.year)||0,String(g.stage||""),teamA,scoreA,teamB,scoreB,index].join("|");if(betsDatabase.games.some(row=>row&&row.sourceRecordKey===sourceKey))return;
+   const sourceKey=String(g.__betsSourceKey||[Number(g.year)||0,String(g.stage||""),teamA,scoreA,teamB,scoreB,index].join("|"));if(betsDatabase.games.some(row=>row&&row.sourceRecordKey===sourceKey))return;
    const same=[teamA,scoreA,teamB,scoreB].join("|"),reverse=[teamB,scoreB,teamA,scoreA].join("|"),matchKey=availableMatches.has(same)?same:reverse,remaining=availableMatches.get(matchKey)||0;
    if(remaining>0){availableMatches.set(matchKey,remaining-1);return;}
    betsDatabase.games.push({id:"BETS-"+betsDatabase.nextId++,teamA,scoreA,teamB,scoreB,margin:Math.abs(scoreA-scoreB),total:scoreA+scoreB,winner:scoreA===scoreB?"Tie":(scoreA>scoreB?teamA:teamB),recordedAt:new Date().toISOString(),source:"permanent-record-import",sourceRecordKey:sourceKey});imported++;
@@ -1600,7 +1665,7 @@ Object.entries(expected).forEach(([name,opening])=>{const matches=groups.get(nam
 Object.entries(state.contracts||{}).forEach(([key,c])=>{if(!c)return;const name=state.roster&&state.roster[key];if(!name)return;const total=Number(c.totalPackage!=null?c.totalPackage:c.value)||0;const paid=Number(c.totalPaid)||0;if(c.upfrontPaid===true&&paid<total)findings.push({severity:"ERROR",player:name,issue:"Contract marked upfront-paid but totalPaid is below package",contractKey:key,totalPackage:total,totalPaid:paid});if(c.paymentModel==="starting-balance"&&Number(c.value)!==Number(c.totalPaid))findings.push({severity:"WARNING",player:name,issue:"Starting contract value and paid amount differ",contractKey:key,value:Number(c.value)||0,totalPaid:paid});});
 const tx=state.playerLedgerTransactions||[];const byPlayer=new Map();tx.forEach(t=>{const k=norm(t.player);if(!byPlayer.has(k))byPlayer.set(k,[]);byPlayer.get(k).push(t);});
 Object.entries(expected).forEach(([name,opening])=>{const list=byPlayer.get(name)||[];if(list.length){const net=list.filter(t=>!String(t.type||"").toUpperCase().includes("UNVERIFIED CASH MUTATION")).reduce((s,t)=>s+(Number(t.amount)||0)*(String(t.type).toLowerCase().includes("payment out")?-1:1),0);const c=(state.citizens||[]).find(x=>x&&norm(x.name)===name);if(c&&c.cash!=null&&Math.abs((opening+net)-Number(c.cash))>0.01)findings.push({severity:"WARNING",player:name,issue:"Opening balance plus recorded transactions does not reconcile to current cash",opening,recordedNet:net,currentCash:Number(c.cash)});}});
-return {diagnosticVersion:"4.19.1",createdAt:new Date().toISOString(),mode:"Read-only; no cash or contracts changed",season:Number(state.year)||null,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,transactionTracking:"Records only instrumented actions from this build onward; pre-existing cash history is not inferred.",citizenCount:(state.citizens||[]).length,transactionCount:tx.length,finalCashReconciliationVersion:state.season29FinalCashReconciliationVersion??null,gameBoundaryAudit:Array.isArray(state.season29GameCashAudit)?state.season29GameCashAudit:[],findings};
+return {diagnosticVersion:"4.19.2",createdAt:new Date().toISOString(),mode:"Read-only; no cash or contracts changed",season:Number(state.year)||null,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,transactionTracking:"Records only instrumented actions from this build onward; pre-existing cash history is not inferred.",citizenCount:(state.citizens||[]).length,transactionCount:tx.length,finalCashReconciliationVersion:state.season29FinalCashReconciliationVersion??null,gameBoundaryAudit:Array.isArray(state.season29GameCashAudit)?state.season29GameCashAudit:[],findings};
 }
 seedInitialLionsRoster();
  
@@ -3167,9 +3232,9 @@ const citizens=(Array.isArray(state.citizens)?state.citizens:[]).filter(c=>c&&fo
 }));
 const roster=state.roster||{}, liveContracts=state.contracts||{};
 const live=Object.entries(roster).filter(([k,n])=>focusNames.has(norm(n))).map(([key,name])=>({key,name,contract:liveContracts[key]?JSON.parse(JSON.stringify(liveContracts[key])):null}));
-return {diagnosticVersion:"4.19.1",capturedAt:new Date().toISOString(),note:"Captured after app startup migrations but before the Citizen Ledger render-time cash reconciliation. This report does not change financial data.",state:{year:state.year,seasonPhase:state.seasonPhase,seasonPlayed:state.seasonPlayed,gamesPlayedCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,season29CashBaselineRepairVersion:state.season29CashBaselineRepairVersion??null,season29OpeningCashCleanupVersion:state.season29OpeningCashCleanupVersion??null,season29OpeningCashReconciledVersion:state.season29OpeningCashReconciledVersion??null,season29OpeningRestoreVersion:state.season29OpeningRestoreVersion??null,season29FullBaselineRestoreVersion:state.season29FullBaselineRestoreVersion??null,contractPaymentModelVersion:state.contractPaymentModelVersion??null,startingContractModelVersion:state.startingContractModelVersion??null,season29OpeningContractRepairVersion:state.season29OpeningContractRepairVersion??null},citizens,liveContracts:live};
+return {diagnosticVersion:"4.19.2",capturedAt:new Date().toISOString(),note:"Captured after app startup migrations but before the Citizen Ledger render-time cash reconciliation. This report does not change financial data.",state:{year:state.year,seasonPhase:state.seasonPhase,seasonPlayed:state.seasonPlayed,gamesPlayedCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,season29CashBaselineRepairVersion:state.season29CashBaselineRepairVersion??null,season29OpeningCashCleanupVersion:state.season29OpeningCashCleanupVersion??null,season29OpeningCashReconciledVersion:state.season29OpeningCashReconciledVersion??null,season29OpeningRestoreVersion:state.season29OpeningRestoreVersion??null,season29FullBaselineRestoreVersion:state.season29FullBaselineRestoreVersion??null,contractPaymentModelVersion:state.contractPaymentModelVersion??null,startingContractModelVersion:state.startingContractModelVersion??null,season29OpeningContractRepairVersion:state.season29OpeningContractRepairVersion??null},citizens,liveContracts:live};
 })();
-const cashDiagnosticSnapshot={diagnosticVersion:"4.19.1",note:"Read-only report. startupSnapshot is captured immediately after localStorage load and before payment migrations; ledgerOpenSnapshot is captured later before render-time cash reconciliation.",startupSnapshot:window.__cashDiagnosticStartupSnapshot||null,ledgerOpenSnapshot:cashDiagnosticLedgerOpenSnapshot};
+const cashDiagnosticSnapshot={diagnosticVersion:"4.19.2",note:"Read-only report. startupSnapshot is captured immediately after localStorage load and before payment migrations; ledgerOpenSnapshot is captured later before render-time cash reconciliation.",startupSnapshot:window.__cashDiagnosticStartupSnapshot||null,ledgerOpenSnapshot:cashDiagnosticLedgerOpenSnapshot};
 /* 4.17.118: Normalize and consolidate duplicate citizen identities before
   any ledger sync. Prior builds matched exact strings, so "Bic", "bic", and
   "Bic " could become separate records. Keep one canonical record per
@@ -3371,7 +3436,7 @@ const gameAudit=(Array.isArray(state.season29GameCashAudit)?state.season29GameCa
 const positiveTransactions=transactions.filter(t=>Number(t.amount)>0);
 const report={
   reportType:"Citizen Cash Source Trace",
-  diagnosticVersion:"4.19.1",
+  diagnosticVersion:"4.19.2",
   createdAt:new Date().toISOString(),
   mode:"Read-only; no cash or records changed",
   citizen:{id:citizen.id||null,name:citizen.name||name,currentCash:citizen.cash==null?null:Number(citizen.cash),currentTeam:citizen.currentTeam||null,status:citizen.status||null},
