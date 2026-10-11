@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.25 -->
-<!-- Build identity: 4.24.25. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
+<!-- CALVIN'S CITY — VERSION 4.24.26 -->
+<!-- Build identity: 4.24.26. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
@@ -1187,12 +1187,13 @@ Adidas:[["Wallace",50],["Poley",50]],
 "Sports Bets Company":[["June",35],["Coast",35],["Peb",15],["Sam",15]]
 };
 const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+const TEAM_OPENING_CASH={Lions:4430,Rims:4470,Dunks:4450};
  
 /* 4.24.25: Season 29 Game 0 opening cash restoration for every team and business.
   Existing ledger history is preserved. Each changed balance creates an explicit
   before/after adjustment entry; this migration runs once and never overwrites later seasons. */
 (function reconcileSeason29OpeningCashAllAccounts(){
-const version="4.24.25";
+const version="4.24.26";
 if(state.season29AllAccountOpeningCashReconciledVersion===version)return;
 const games=Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0;
 const season=Number(state.year)||0;
@@ -1207,7 +1208,7 @@ state.businessCash=state.businessCash&&typeof state.businessCash==="object"?stat
 state.teamCashLedger=Array.isArray(state.teamCashLedger)?state.teamCashLedger:[];
 state.businessCashLedger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];
 const at=new Date().toISOString(),teamBefore={},teamAfter={},businessBefore={},businessAfter={};
-Object.entries(TEAM_CASH).forEach(([name,opening])=>{
+Object.entries(TEAM_OPENING_CASH).forEach(([name,opening])=>{
  const before=state.teamCash[name]==null?null:Number(state.teamCash[name]);
  const after=Number(opening)||0;teamBefore[name]=before;teamAfter[name]=after;
  state.teamCashLedger.push({id:"opening-reset-team-"+name+"-"+version,season:29,type:"Opening Balance Reset",team:name,amount:before===null?after:Math.round((after-(Number.isFinite(before)?before:0))*100)/100,before,after,reason:"Authoritative Season 29 Game 0 opening balance recorded; any prior balance is retained in this audit entry.",createdAt:at,accountType:"team",migrationVersion:version});
@@ -5623,7 +5624,7 @@ function closeShareOwnershipLedger(){const modal=$("shareOwnershipLedgerModal");
 function cashAccountCatalog(){
 const st=getState();st.teamCash=st.teamCash||{};st.businessCash=st.businessCash||{};
 return [
- ...Object.entries(TEAM_CASH).map(([name,opening])=>({kind:"team",name,opening,current:Number(st.teamCash[name]??opening)})),
+ ...Object.entries(TEAM_OPENING_CASH).map(([name,opening])=>({kind:"team",name,opening,current:Number(st.teamCash[name]??opening)})),
  ...Object.entries(BUSINESS_CASH).map(([name,opening])=>({kind:"business",name,opening,current:Number(st.businessCash[name]??opening)}))
 ];
 }
