@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.21.1 -->
-<!-- Build identity: 4.19.9. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
+<!-- CALVIN'S CITY — VERSION 4.22.0 -->
+<!-- Build identity: 4.22.0. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.21.1</title>
+<title>Calvin's City 4.22.0</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -540,11 +540,32 @@ if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPla
 /* 4.19.1: BETS is a permanent append-oriented ledger, independent of the season state.
   Never delete or season-filter this database. Normal saves merge concurrent/older
   in-memory copies with the current browser copy and refuse malformed saved data. */
+/* 4.22.0: Save and verify a full recovery snapshot before returning to Season 29 Game 0.
+  This does not modify the separate BETS database. The reset is blocked if backup fails. */
+const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_22_0";
+let season29RestoreBackupReady=false;
+try{
+ const snapshot=JSON.stringify({
+   createdAt:new Date().toISOString(),
+   reason:"Pre-restore snapshot before returning to Season 29 Game 0",
+   state:state,
+   betsRaw:localStorage.getItem("calvins_city_bets_v1"),
+   betsBackupRaw:localStorage.getItem("calvins_city_bets_backup_v1"),
+   betsPendingRaw:localStorage.getItem("calvins_city_bets_pending_import_v1")
+ });
+ localStorage.setItem(SEASON29_RESTORE_BACKUP_KEY,snapshot);
+ const verify=JSON.parse(localStorage.getItem(SEASON29_RESTORE_BACKUP_KEY)||"null");
+ season29RestoreBackupReady=!!(verify&&verify.state&&verify.createdAt);
+}catch(backupError){
+ console.error("Season 29 restore blocked: backup could not be saved and verified.",backupError);
+}
+const season29ResetBlockedByBackup=!season29RestoreBackupReady;
+ 
 /* 4.19.9: Return the LIVE basketball season to the beginning of Season 29.
   This runs once for this build. It preserves Seasons 1–28 and retired-player
   history, captures Season 29+ game records above for BETS import, restores the
   approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.19.9" && !season29ResetBlockedByStaging){
+if(state.season29FreshStartVersion!=="4.22.0" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -567,8 +588,9 @@ if(state.season29FreshStartVersion!=="4.19.9" && !season29ResetBlockedByStaging)
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
  state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
  /* Force the existing, well-tested Season 29 opening baseline migration to run. */
- state.season29OpeningRestoreVersion="4.19.9-pending";
- state.season29FreshStartVersion="4.19.9";
+ state.season29OpeningRestoreVersion="4.22.0-pending";
+ state.season29FullBaselineRestoreVersion="pending-4.22.0";
+ state.season29FreshStartVersion="4.22.0";
  try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
  catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
 }
