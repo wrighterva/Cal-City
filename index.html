@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.5 -->
-<!-- Build identity: 4.24.12. HOF excludes active roster players; Season 29 state retained; chart modal. -->
+<!-- Build identity: 4.24.13. Ownership marketplace initialization fix; no Season 29 reset. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.12 — HOF Fix + Chart Popup 4.24.2</title>
+<title>Calvin's City 4.24.13 — Ownership Fix + Chart Popup 4.24.2</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -4842,8 +4842,14 @@ if(valuationEl)valuationEl.textContent=ownershipRecord?"$"+(Number(ownershipReco
   Ownership lives in the season database; completed transfers and cash ledger
   entries are append-only. Business cash is deliberately never changed here. */
 (function(){
+let ownershipMarketplaceInitAttempts=0;
+function initOwnershipMarketplace(){
 const bridge=window.__calvinsCityBridge;
-if(!bridge||typeof bridge.getState!=="function")return;
+if(!bridge||typeof bridge.getState!=="function"){
+ if(ownershipMarketplaceInitAttempts++<5)setTimeout(initOwnershipMarketplace,0);
+ else console.error("Business ownership marketplace could not initialize: city state bridge unavailable.");
+ return;
+}
 const modal=document.getElementById("businessOwnershipMarketplaceModal");
 const citizenSelect=document.getElementById("ownershipActingCitizen");
 const businessSelect=document.getElementById("ownershipBusinessSelect");
@@ -4959,13 +4965,18 @@ function render(){
  refreshBusinessCards();
 }
 window.openOwnershipMarketplace=function(business,citizenId){
+ if(!modal||!businessSelect||!citizenSelect){
+  console.error("Business ownership marketplace UI is unavailable.");
+  alert("The ownership marketplace could not open. Please reload Calvin’s City and try again.");
+  return;
+ }
  registry();
  updateCitizenOptions(citizenId);
  updateBusinessOptions(business);
  if(typeof unlockBusinessPageScroll==="function")unlockBusinessPageScroll();
  const shoeModal=document.getElementById("shoeCompanyModal");
  if(shoeModal)shoeModal.classList.remove("show");
- if(modal)modal.classList.add("show");
+ modal.classList.add("show");
  if(message)message.textContent="";
  render();
 };
@@ -5054,6 +5065,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  registry();saveAll();updateCitizenOptions();updateBusinessOptions();refreshBusinessCards();
 },{once:true});
 else{registry();saveAll();updateCitizenOptions();updateBusinessOptions();refreshBusinessCards();}
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initOwnershipMarketplace,{once:true});
+else initOwnershipMarketplace();
 })();
 </script>
  
