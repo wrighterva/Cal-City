@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.34 -->
-<!-- Build identity: 4.24.34. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
+<!-- CALVIN'S CITY — VERSION 4.24.35 -->
+<!-- Build identity: 4.24.35. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.34 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.35 — TV Company Modal & Ownership View</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -5175,14 +5175,30 @@ window.openOwnershipMarketplace=function(business,citizenId){
  registry();
  updateCitizenOptions(citizenId);
  updateBusinessOptions(business);
- if(typeof unlockBusinessPageScroll==="function")unlockBusinessPageScroll();
+ const tvCompanyModal=document.getElementById("tvCompanyDetailModal");
  const shoeModal=document.getElementById("shoeCompanyModal");
+ // Keep the marketplace above any open company detail modal, rather than behind it.
+ if(tvCompanyModal&&tvCompanyModal.style.display!=="none"){
+  modal.dataset.returnToTVCompany="1";
+  tvCompanyModal.dataset.marketplacePaused="1";
+  tvCompanyModal.style.visibility="hidden";
+ }
+ if(typeof unlockBusinessPageScroll==="function" && !(tvCompanyModal&&tvCompanyModal.dataset.marketplacePaused==="1"))unlockBusinessPageScroll();
  if(shoeModal)shoeModal.classList.remove("show");
+ modal.style.zIndex="100005";
  modal.classList.add("show");
  if(message)message.textContent="";
  render();
 };
-function closeMarketplace(){if(modal)modal.classList.remove("show");}
+function closeMarketplace(){
+ if(modal)modal.classList.remove("show");
+ const tvCompanyModal=document.getElementById("tvCompanyDetailModal");
+ if(modal&&modal.dataset.returnToTVCompany==="1"&&tvCompanyModal){
+  tvCompanyModal.style.visibility="";
+  delete tvCompanyModal.dataset.marketplacePaused;
+  delete modal.dataset.returnToTVCompany;
+ }
+}
 function showOwnershipValidationPopup(text){
  // A native, dismissible popup keeps the current marketplace open behind it.
  // Do not close or rerender the marketplace on validation errors.
@@ -6038,7 +6054,7 @@ if(document.readyState!=="loading")bind();
  
  
 <script>
-/* 4.24.34: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
+/* 4.24.35: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
 (function(){
 "use strict";
 const bridge=window.__calvinsCityBridge;if(!bridge||typeof bridge.getState!=="function")return;
