@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.31 -->
-<!-- Build identity: 4.24.31. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
+<!-- CALVIN'S CITY — VERSION 4.24.32 -->
+<!-- Build identity: 4.24.32. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.31 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.32 — TV Company Modal & Ownership View</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -6038,12 +6038,17 @@ if(document.readyState!=="loading")bind();
  
  
 <script>
-/* 4.24.31: TV broadcasting contracts, full upfront settlement, season eligibility and readiness alert. */
+/* 4.24.32: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
 (function(){
 "use strict";
 const bridge=window.__calvinsCityBridge;if(!bridge||typeof bridge.getState!=="function")return;
 const state=bridge.getState(),$=id=>document.getElementById(id);
 const teams=["Lions","Rims","Dunks"];
+function relocateTVBroadcastCard(){
+ const card=$("tvBroadcastingCard"),dealsPanel=$("tvCompanyDealsPanel");
+ if(card&&dealsPanel&&card.parentElement!==dealsPanel)dealsPanel.appendChild(card);
+ if(card){card.style.display="block";card.style.marginTop="12px";card.style.width="100%";card.style.boxSizing="border-box";}
+}
 const moneyText=v=>"$"+(Number(v)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2})+"M";
 const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function ensure(){state.tvBroadcastingDeals=Array.isArray(state.tvBroadcastingDeals)?state.tvBroadcastingDeals:[];state.businessCash=state.businessCash||{Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};state.businessCashLedger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];state.teamCashLedger=Array.isArray(state.teamCashLedger)?state.teamCashLedger:[];state.teamCash=state.teamCash||{};const base={Lions:4430,Rims:4470,Dunks:4450};teams.forEach(t=>{if(state.teamCash[t]==null)state.teamCash[t]=base[t];});}
@@ -6062,7 +6067,7 @@ function renderTVCompanyOwnership(){
  if(out){if(!owners.length){out.innerHTML='<p class="muted">No ownership records are available.</p>';}else{out.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Owner</th><th>Ownership</th></tr></thead><tbody>'+owners.map(o=>{const citizen=(st.citizens||[]).find(c=>c&&String(c.id)===String(o.citizenId));const name=citizen&&citizen.name||o.name||"Unknown owner";const pct=Number(o.percentage)||0;return '<tr><td>'+esc(name)+'</td><td>'+pct.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'%</td></tr>';}).join('')+'</tbody></table></div>';}}
 }
 function setTVCompanyView(view){tvCompanyActiveView=["overview","deals","ownership"].includes(view)?view:"overview";const modal=$("tvCompanyDetailModal");if(!modal)return;modal.querySelectorAll("[data-tv-company-panel]").forEach(panel=>panel.style.display=panel.getAttribute("data-tv-company-panel")===tvCompanyActiveView?"block":"none");modal.querySelectorAll("[data-tv-company-view]").forEach(button=>{const active=button.getAttribute("data-tv-company-view")===tvCompanyActiveView;button.classList.toggle("active",active);});if(tvCompanyActiveView==="deals")render();if(tvCompanyActiveView==="ownership")renderTVCompanyOwnership();if(tvCompanyActiveView==="overview"){render();const st=bridge.getState(),cash=$("tvCompanyOverviewCash"),contracts=$("tvCompanyOverviewContracts"),elig=$("tvCompanyOverviewEligibility"),active=activeTeams();if(cash)cash.textContent=moneyText(st.businessCash&&st.businessCash["TV Company"]);if(contracts)contracts.textContent=active.length+" / 3";if(elig)elig.textContent=active.length>=2?"Eligible":"Not eligible";}}
-function openSection(view){const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab)tab.click();const modal=$("tvCompanyDetailModal"),card=$("tvBroadcastingCard"),dealsPanel=$("tvCompanyDealsPanel");if(card&&dealsPanel&&card.parentElement!==dealsPanel)dealsPanel.appendChild(card);if(modal){modal.style.display="flex";modal.setAttribute("aria-hidden","false");lockAlertView();}setTVCompanyView(view||"overview");render();}
+function openSection(view){const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab)tab.click();const modal=$("tvCompanyDetailModal");relocateTVBroadcastCard();if(modal){modal.style.display="flex";modal.setAttribute("aria-hidden","false");lockAlertView();}setTVCompanyView(view||"overview");render();}
 function closeTVCompanyModal(){const modal=$("tvCompanyDetailModal");if(modal){modal.style.display="none";modal.setAttribute("aria-hidden","true");}unlockAlertView();}
 let alertScrollY=0;
 function lockAlertView(){if(document.body.classList.contains("tv-broadcast-alert-open"))return;alertScrollY=window.scrollY||window.pageYOffset||0;document.body.dataset.tvBroadcastAlertScroll=String(alertScrollY);document.body.classList.add("tv-broadcast-alert-open");document.body.style.position="fixed";document.body.style.top=(-alertScrollY)+"px";document.body.style.left="0";document.body.style.right="0";document.body.style.width="100%";document.documentElement.style.overflow="hidden";}
@@ -6070,6 +6075,7 @@ function unlockAlertView(){if(!document.body.classList.contains("tv-broadcast-al
 function closeAlert(){const modal=$("tvBroadcastSeasonAlert");if(modal)modal.style.display="none";unlockAlertView();}
 function updateAlert(force){ensure();const modal=$("tvBroadcastSeasonAlert");if(!modal)return;const season=Number(state.year)||29,active=activeTeams();if(active.length>=2){closeAlert();return;}if(!force&&Number(state.tvBroadcastAlertDismissedSeason)===season)return;const count=$("tvBroadcastAlertCount");if(count)count.textContent=String(active.length);modal.style.display="flex";modal.setAttribute("aria-hidden","false");lockAlertView();state.tvBroadcastAlertShownSeason=season;bridge.save();}
 function bindAlertButtons(){
+ relocateTVBroadcastCard();
  const sign=$("tvBroadcastSign");if(sign&&!sign.dataset.tvBroadcastBound){sign.addEventListener("click",signDeal);sign.dataset.tvBroadcastBound="1";}
  const go=$("tvBroadcastAlertSign");if(go&&!go.dataset.tvBroadcastBound){go.addEventListener("click",()=>{state.tvBroadcastAlertDismissedSeason=Number(state.year)||29;bridge.save();closeAlert();openSection("deals");});go.dataset.tvBroadcastBound="1";}
  const dismiss=$("tvBroadcastAlertDismiss");if(dismiss&&!dismiss.dataset.tvBroadcastBound){dismiss.addEventListener("click",()=>{state.tvBroadcastAlertDismissedSeason=Number(state.year)||29;bridge.save();closeAlert();});dismiss.dataset.tvBroadcastBound="1";}
