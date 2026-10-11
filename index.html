@@ -1,14 +1,18 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.35 -->
-<!-- Build identity: 4.24.35. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
+<!-- CALVIN'S CITY — VERSION 4.24.36 -->
+<!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.35 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.36 — TV Company Modal & Ownership View</title>
 <style>
+/* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
+#shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
+#shareOwnershipLedgerModal [data-share-ledger-view]{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;cursor:pointer}
+ 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
 header{padding:16px;background:#182230;border-bottom:1px solid #334155;position:sticky;top:0;z-index:90;isolation:isolate}
@@ -5878,7 +5882,13 @@ else out.innerHTML='<h3>All Share &amp; Ownership Events</h3>'+rows(all);
 function bindShareOwnershipLedger(){
 const open=$("openShareOwnershipLedgerHome"),close=$("shareOwnershipLedgerClose"),refresh=$("shareOwnershipLedgerRefresh"),modal=$("shareOwnershipLedgerModal");
 if(open)open.addEventListener("click",()=>openShareOwnershipLedger("all"));if(close)close.addEventListener("click",closeShareOwnershipLedger);if(refresh)refresh.addEventListener("click",()=>renderShareOwnershipLedger("audit"));
-if(modal){modal.addEventListener("click",e=>{if(e.target===modal)closeShareOwnershipLedger();});modal.querySelectorAll("[data-share-ledger-view]").forEach(b=>b.addEventListener("click",()=>renderShareOwnershipLedger(b.getAttribute("data-share-ledger-view"))));}
+if(modal){
+ modal.addEventListener("click",e=>{
+  const button=e.target&&e.target.closest?e.target.closest("[data-share-ledger-view]"):null;
+  if(button&&modal.contains(button)){e.preventDefault();e.stopPropagation();renderShareOwnershipLedger(button.getAttribute("data-share-ledger-view"));return;}
+  if(e.target===modal)closeShareOwnershipLedger();
+ });
+}
 getShareOwnershipLedger();
 }
 document.addEventListener("DOMContentLoaded",bindShareOwnershipLedger);if(document.readyState!=="loading")bindShareOwnershipLedger();
@@ -6054,7 +6064,7 @@ if(document.readyState!=="loading")bind();
  
  
 <script>
-/* 4.24.35: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
+/* 4.24.36: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
 (function(){
 "use strict";
 const bridge=window.__calvinsCityBridge;if(!bridge||typeof bridge.getState!=="function")return;
