@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.46 -->
+<!-- CALVIN'S CITY — VERSION 4.24.47 -->
 <!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.46 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.47 — TV Company Modal & Ownership View</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -180,6 +180,16 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="card" id="stockExchangeCard">
 <h2>📈 Markets</h2>
 <p class="tiny">Open a market section, select a company, then buy or sell directly from that company’s profile. Public shares remain separate from business ownership. Each company has 500 authorized shares.</p>
+<div class="card" id="marketMoneyPanel" style="margin:12px 0;border:1px solid var(--border,#888)">
+<h3>🏦 Market Money Buyback Reserve</h3>
+<p class="tiny">Pays citizens for eligible shares when they choose to sell back to the market. This reserve is separate from company and team operating cash.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
+ <div class="metric"><small>Reserve Balance</small><strong id="marketMoneyBalance">$3,000M</strong></div>
+ <div class="metric"><small>Interest per Game</small><strong id="marketMoneyRate">0.75%</strong></div>
+ <div class="metric"><small>Games Since Buyback</small><strong id="marketMoneyIdleGames">0</strong></div>
+</div>
+<p id="marketMoneyStatus" class="tiny" role="status" aria-live="polite"></p>
+</div>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px">
 <div class="metric"><small>Listed Companies</small><strong id="stockCompanyCount">10</strong></div>
 <div class="metric"><small>Shares per Company</small><strong>500</strong></div>
@@ -192,7 +202,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
  <div><label for="stockTradingCitizen">Citizen account</label><select id="stockTradingCitizen" style="width:100%"></select></div>
  <div><label for="stockTradingCompany">Company stock</label><select id="stockTradingCompany" style="width:100%"></select></div>
- <div><label for="stockTradingAction">Trade action</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option></select></div>
+ <div><label for="stockTradingAction">Trade action</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option><option value="sellMarketMoney">Sell back to Market Money</option></select></div>
  <div><label for="stockTradingCounterparty">Other citizen</label><select id="stockTradingCounterparty" style="width:100%"></select></div>
  <div><label for="stockTradingShares">Number of shares</label><input id="stockTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></div>
 </div>
@@ -3021,6 +3031,11 @@ function recordGame(g,stage){
  state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});
  recordHistoryGame(g,stage);
  state.lastGame={stage,game:g};
+ /* Market Money earns interest once for each newly recorded completed game. */
+ if(typeof window.processMarketMoneyGameInterest==="function"){
+  try{window.processMarketMoneyGameInterest(Number(state.year)||29,Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0);}
+  catch(marketMoneyInterestError){console.error("Market Money interest accrual failed:",marketMoneyInterestError);}
+ }
 }
 /*
  4.17.105: Bye logic searches the permanent Championship history for the
@@ -5397,6 +5412,14 @@ companies.forEach(def=>{
 });
 db.transactions=Array.isArray(db.transactions)?db.transactions:[];
 db.annualReports=Array.isArray(db.annualReports)?db.annualReports:[];
+/* Market Money is a separate system reserve. Initialize once; never reset an existing balance. */
+if(!db.marketMoney||typeof db.marketMoney!=="object"){
+ db.marketMoney={balance:3000,interestRate:0.75,gamesSinceBuyback:0,lastInterestGameKey:null,transactions:[],createdAt:new Date().toISOString()};
+}
+db.marketMoney.balance=Number.isFinite(Number(db.marketMoney.balance))?Number(db.marketMoney.balance):3000;
+db.marketMoney.interestRate=Number.isFinite(Number(db.marketMoney.interestRate))?Number(db.marketMoney.interestRate):0.75;
+db.marketMoney.gamesSinceBuyback=Math.max(0,Math.floor(Number(db.marketMoney.gamesSinceBuyback)||0));
+db.marketMoney.transactions=Array.isArray(db.marketMoney.transactions)?db.marketMoney.transactions:[];
 // One-time migration: company-name shareholders become business accounts, retaining the same shares.
 if(!db.businessShareAccountsMigrationV1){
  companies.forEach(def=>{const co=db.companies[def.name];if(!co)return;co.holdings=co.holdings||{};co.ownerNames=co.ownerNames||{};co.holderPurchasePrices=co.holderPurchasePrices||{};
@@ -5598,7 +5621,7 @@ if(mode==='priceChart'){renderStockPriceChart();return;}else if(mode==='closeCha
    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">'+
    '<div><label for="stockTradingCitizen">Trading account (citizen or business)</label><select id="stockTradingCitizen" style="width:100%"></select></div>'+
    '<div><label for="stockTradingCompany">Company</label><select id="stockTradingCompany" style="width:100%"></select></div>'+
-   '<div><label for="stockTradingAction">Transaction type</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option></select></div>'+
+   '<div><label for="stockTradingAction">Transaction type</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option><option value="sellMarketMoney">Sell back to Market Money</option></select></div>'+
    '<div><label for="stockTradingCounterparty">Other account (if applicable)</label><select id="stockTradingCounterparty" style="width:100%"></select></div>'+
    '<div><label for="stockTradingShares">Number of shares</label><input id="stockTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></div></div>'+
    '<p id="stockTradeQuote" class="log" style="margin:10px 0">Calculating trade quote…</p>'+
@@ -5920,8 +5943,67 @@ getShareOwnershipLedger();
 }
 document.addEventListener("DOMContentLoaded",bindShareOwnershipLedger);if(document.readyState!=="loading")bindShareOwnershipLedger();
  
+function renderMarketMoney(){
+const mm=db.marketMoney||{balance:3000,interestRate:0.75,gamesSinceBuyback:0};
+const balance=$("marketMoneyBalance"),rate=$("marketMoneyRate"),idle=$("marketMoneyIdleGames"),status=$("marketMoneyStatus");
+if(balance)balance.textContent=money(Number(mm.balance)||0);
+if(rate)rate.textContent=(Number(mm.interestRate)||0).toFixed(2)+"%";
+if(idle)idle.textContent=String(Math.max(0,Number(mm.gamesSinceBuyback)||0));
+if(status)status.textContent="Separate reserve account. Buybacks do not change company/team cash. All reserve activity is recorded in the stock-market transaction history and Share & Ownership Ledger.";
+}
+function transactMarketMoneyBuyback(actor,company,count,co){
+const message=$("stockTradeMessage");
+const fail=msg=>{if(message)message.textContent=msg;else alert(msg);};
+if(!actor||actor.kind!=="citizen"){fail("Market Money buybacks are currently available to citizen accounts only.");return;}
+if(!co||co.needsAllocationReview){fail("This company's shareholder allocation must be confirmed before a buyback.");return;}
+if(!Number.isInteger(count)||count<1){fail("Enter a whole number of shares greater than zero.");return;}
+const holdingKey=String(actor.holdingKey||actor.key);
+if(sharesHeld(co,holdingKey)<count){fail(actor.name+" does not have enough shares to sell.");return;}
+const price=Number(co.price)||0,total=round4(price*count),mm=db.marketMoney;
+if(!Number.isFinite(total)||total<=0){fail("The buyback value is invalid.");return;}
+if(!mm||Number(mm.balance)<total){fail("Market Money has insufficient reserve funds. Required: "+money(total)+". Available: "+money(mm?mm.balance:0)+". No changes were made.");return;}
+const at=new Date().toISOString(),id="MMB-"+Date.now()+"-"+Math.random().toString(36).slice(2,8);
+const before=Number(actor.getCash()),reserveBefore=Number(mm.balance),snapshot=JSON.stringify(db);
+try{
+ if(!Number.isFinite(before))throw new Error("Citizen cash balance is unavailable.");
+ actor.setCash(round4(before+total));
+ updateHolding(co,holdingKey,actor.name,-count);
+ mm.balance=round4(reserveBefore-total);
+ mm.gamesSinceBuyback=0;
+ const tx={id,at,season:Number(getState().year)||29,gameCount:Number(getState().gameCount)||0,type:"Market Money Buyback",company,shares:count,price,total,citizenId:String(actor.key),citizen:actor.name,citizenCashBefore:before,citizenCashAfter:actor.getCash(),reserveBefore,reserveAfter:mm.balance,companyCashChanged:false,status:"completed"};
+ db.transactions.push(tx);mm.transactions.push({...tx});
+ if(!Array.isArray(getState().stockMarketCashLedger))getState().stockMarketCashLedger=[];
+ getState().stockMarketCashLedger.push({...tx});
+ saveDB(db);
+ if(typeof window.recordShareOwnershipLedger==="function")window.recordShareOwnershipLedger({...tx,cashDirection:"market-money-to-citizen",status:"completed"});
+ renderAll();
+ if(message)message.textContent="Buyback complete: Market Money paid "+money(total)+" for "+count+" "+company+" share"+(count===1?"":"s")+". Shares returned to the available 500-share pool. Company cash was unchanged.";
+}catch(err){
+ try{db=JSON.parse(snapshot);saveDB(db);}catch(e){}
+ try{actor.setCash(before);}catch(e){}
+ fail("Buyback failed and was rolled back: "+String(err.message||err));
+}
+}
+window.processMarketMoneyGameInterest=function(season,gameCount){
+const mm=db.marketMoney;if(!mm)return false;
+const gameKey=String(Number(season)||Number(getState().year)||29)+":"+String(Number(gameCount)||0);
+if(mm.lastInterestGameKey===gameKey)return false;
+const st=getState();
+const buybacks=mm.gamesSinceBuyback;
+let rate=Number(mm.interestRate)||0.75;
+if(buybacks>=10)rate=0.10;
+else if(buybacks>=5)rate=Math.max(0.10,round4(0.75-((buybacks-4)*0.13)));
+rate=Math.max(0.10,Math.min(1.00,rate));
+const before=Number(mm.balance)||0,interest=round4(before*rate/100),after=round4(before+interest),at=new Date().toISOString();
+mm.interestRate=rate;mm.balance=after;mm.gamesSinceBuyback=buybacks+1;mm.lastInterestGameKey=gameKey;
+const tx={id:"MMI-"+gameKey.replace(":","-"),at,season:Number(season)||Number(st.year)||29,gameCount:Number(gameCount)||0,type:"Market Money Interest",rate,amount:interest,reserveBefore:before,reserveAfter:after,status:"completed"};
+mm.transactions.push({...tx});db.transactions.push({...tx});saveDB(db);
+if(typeof window.recordShareOwnershipLedger==="function")window.recordShareOwnershipLedger({...tx,company:"Market Money",cashDirection:"interest-credit",status:"completed"});
+renderMarketMoney();return true;
+};
 function transact(){
 const st=getState(),actor=selectedCitizen($("stockTradingCitizen").value),company=$("stockTradingCompany").value,action=$("stockTradingAction").value,count=Math.floor(Number($("stockTradingShares").value)||0),other=selectedCitizen($("stockTradingCounterparty").value),co=db.companies[company];
+if(action==="sellMarketMoney"){transactMarketMoneyBuyback(actor,company,count,co);return;}
 if(!actor||!co){alert("Choose a valid trading account and company.");return;}
 if(co.needsAllocationReview){alert("Trading is paused for this company until its legacy shareholder allocation is confirmed.");return;}
 if(!Number.isInteger(count)||count<1){alert("Enter a whole number of shares greater than zero.");return;}
@@ -6066,7 +6148,7 @@ target.querySelectorAll(".citizen-card").forEach(card=>{
 });
 }
 function renderAll(){
-renderMarketTable();renderReports();renderRegister();
+renderMarketMoney();renderMarketTable();renderReports();renderRegister();
 const latest=$("stockLatestReportSeason");if(latest)latest.textContent=db.lastProcessedSeason==null?"Not reported":"Season "+db.lastProcessedSeason;
 const count=$("stockCompanyCount");if(count)count.textContent=String(companies.length);
 updateTradeQuote();
