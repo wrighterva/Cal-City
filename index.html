@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.18 -->
-<!-- Build identity: 4.24.18. Mobile viewport stability; retains ownership validation and no season reset. -->
+<!-- CALVIN'S CITY — VERSION 4.24.20 -->
+<!-- Build identity: 4.24.20. Share & Ownership Ledger; no Season 29 reset. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.18 — Mobile Viewport Stability</title>
+<title>Calvin's City 4.24.20 — Share & Ownership Ledger</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -84,7 +84,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
-<div class="card"><h2>📚 Record & History</h2><p>Permanent history plus the Citizen Ledger. Every person gets one identity that connects basketball, cash, businesses and future financial systems.</p><div class="grid"><div class="metric"><small>Citizens</small><strong id="citizenCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button><button id="openCitizenLedgerHome" class="secondary">👤 Open Citizen Ledger</button></div></section>
+<div class="card"><h2>📚 Record & History</h2><p>Permanent history plus the Citizen Ledger. Every person gets one identity that connects basketball, cash, businesses and future financial systems.</p><div class="grid"><div class="metric"><small>Citizens</small><strong id="citizenCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button><button id="openCitizenLedgerHome" class="secondary">👤 Open Citizen Ledger</button><button id="openShareOwnershipLedgerHome" class="secondary">📒 Open Share &amp; Ownership Ledger</button></div></section>
  
 <section id="city" class="screen">
 <div class="card city-hub">
@@ -4657,7 +4657,7 @@ window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger
 <div id="recordsBody" class="log"></div>
  
 <button id="recordsClose" class="secondary">Close</button>
-</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
+</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:10px 0"><button type="button" class="secondary" data-share-ledger-view="all">All Events</button><button type="button" class="secondary" data-share-ledger-view="trades">Share Trades</button><button type="button" class="secondary" data-share-ledger-view="ownership">Ownership Transfers</button><button type="button" class="secondary" data-share-ledger-view="audit">Audit &amp; Reconciliation</button></div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
  
  
  
@@ -5127,6 +5127,7 @@ function buyOffer(offerId){
   {id:transferId+"-SELLER",at,season:tx.season,gameCount:tx.gameCount,player:seller.name,amount:price,type:"Business Ownership Sale",reason:"Sold "+pct(offerPct)+" of "+business+" to "+buyer.name,payer:buyer.name,recipient:seller.name,source:"business-ownership-marketplace",balanceBefore:sellerBefore,balanceAfter:seller.cash,ownershipTransactionId:transferId}
  );
  saveAll();
+ if(typeof window.recordShareOwnershipLedger==="function")window.recordShareOwnershipLedger({...tx,type:"Ownership Transfer",status:"completed",cashDirection:"buyer-to-seller",ownershipAfter:{seller:round4(Number(sellerOwner.percentage)),buyer:round4(Number((record.owners||[]).find(o=>String(o.citizenId)===String(buyer.id))?.percentage||0))}});
  message.textContent="Transfer completed. "+buyer.name+" now owns "+pct((record.owners.find(o=>String(o.citizenId)===String(buyer.id))||{}).percentage)+" of "+business+". Business cash was unchanged.";
  render();refreshLedgerIfVisible();
 }
@@ -5501,6 +5502,65 @@ if(next<0)throw new Error("The seller does not have enough shares.");
 if(next===0)delete co.holdings[key];else co.holdings[key]=next;
 if(displayName)co.ownerNames[key]=displayName;
 }
+/* 4.24.20: Central append-only Share & Ownership Ledger. State copy is authoritative;
+  a separate localStorage mirror is retained for recovery. Existing records are imported
+  by ID, never duplicated, and discrepancies are reported rather than silently repaired. */
+const SHARE_OWNERSHIP_LEDGER_KEY="calvins_city_share_ownership_ledger_v1";
+function getShareOwnershipLedger(){
+const st=getState();st.shareOwnershipLedger=Array.isArray(st.shareOwnershipLedger)?st.shareOwnershipLedger:[];
+try{const raw=localStorage.getItem(SHARE_OWNERSHIP_LEDGER_KEY);if(raw){const saved=JSON.parse(raw);if(Array.isArray(saved)){const seen=new Set(st.shareOwnershipLedger.map(x=>String(x&&x.id||"")));saved.forEach(x=>{if(x&&x.id&&!seen.has(String(x.id))){st.shareOwnershipLedger.push(x);seen.add(String(x.id));}});}}}catch(e){console.warn("Share ledger recovery mirror could not be read.",e);}
+return st.shareOwnershipLedger;
+}
+window.recordShareOwnershipLedger=function(entry){
+if(!entry||!entry.id)return false;
+const st=getState(),ledger=getShareOwnershipLedger();
+if(ledger.some(x=>x&&String(x.id)===String(entry.id)))return false;
+const copy={...entry,ledgerRecordedAt:new Date().toISOString()};ledger.push(copy);
+try{localStorage.setItem(SHARE_OWNERSHIP_LEDGER_KEY,JSON.stringify(ledger));}catch(e){console.error("Share ledger recovery mirror save failed.",e);}
+try{bridge.save();}catch(e){console.error("Share ledger state save failed.",e);}
+return true;
+};
+function openShareOwnershipLedger(view){
+const modal=$("shareOwnershipLedgerModal");if(!modal)return;
+modal.classList.add("show");renderShareOwnershipLedger(view||"all");
+}
+function closeShareOwnershipLedger(){const modal=$("shareOwnershipLedgerModal");if(modal)modal.classList.remove("show");}
+function renderShareOwnershipLedger(view){
+const st=getState(),ledger=getShareOwnershipLedger(),out=$("shareOwnershipLedgerBody");if(!out)return;
+const stockTx=(db.transactions||[]).map(t=>({id:t.id,at:t.at,season:t.season,type:"Share Trade",company:t.company,buyer:t.buyer,buyerType:t.buyerType,buyerId:t.buyerId,seller:t.seller,sellerType:t.sellerType,sellerId:t.sellerId,shares:t.shares,price:t.price,total:t.total,buyerCashBefore:t.buyerCashBefore,buyerCashAfter:t.buyerCashAfter,sellerCashBefore:t.sellerCashBefore,sellerCashAfter:t.sellerCashAfter,reservePurchase:t.reservePurchase}));
+const reg=st.businessOwnershipRegistry||{};const ownTx=(Array.isArray(reg.transactions)?reg.transactions:[]).map(t=>({...t,type:"Ownership Transfer",company:t.business,buyer:t.buyerName,seller:t.sellerName,shares:null,total:t.price}));
+const allById=new Map();ledger.concat(stockTx,ownTx).forEach(t=>{if(t&&t.id)allById.set(String(t.id),t);});const all=Array.from(allById.values()).sort((a,b)=>String(b.at||b.createdAt||"").localeCompare(String(a.at||a.createdAt||"")));
+const trades=all.filter(t=>/share trade/i.test(String(t.type||""))||String(t.id||"").startsWith("STK-"));
+const ownership=all.filter(t=>/ownership transfer/i.test(String(t.type||""))||String(t.id||"").startsWith("BOT-"));
+const findings=[];
+(window.calvinsCityStockMarket&&window.calvinsCityStockMarket.getDatabase().companies?Object.values(window.calvinsCityStockMarket.getDatabase().companies):[]).forEach(co=>{
+ const held=Object.values(co.holdings||{}).reduce((sum,n)=>sum+Math.max(0,Number(n)||0),0),available=Math.max(0,Number(co.authorizedShares||500)-held),authorized=Number(co.authorizedShares||500);
+ if(Math.abs(held+available-authorized)>0.0001)findings.push("Share supply mismatch for "+co.name+": held "+held+", available "+available+", authorized "+authorized+".");
+ if(co.needsAllocationReview)findings.push(co.name+" is paused for historical shareholder-allocation review.");
+});
+Object.entries(reg.businesses||{}).forEach(([name,record])=>{const total=(record.owners||[]).reduce((sum,o)=>sum+(Number(o.percentage)||0),0);if(Math.abs(total-100)>0.05)findings.push(name+" ownership totals "+total.toFixed(4)+"%, not 100%.");});
+all.forEach(t=>{if(/share trade/i.test(String(t.type||""))||String(t.id||"").startsWith("STK-")){
+ const total=Number(t.total)||0;if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null){const selfReserve=!!t.reservePurchase&&String(t.buyerId||"")==="BUSINESS:"+String(t.company||"");const expectedBuyer=Number(t.buyerCashBefore)-(selfReserve?0:total);if(Math.abs(expectedBuyer-Number(t.buyerCashAfter))>0.0001)findings.push("Buyer cash math mismatch in "+t.id+".");}
+ if(t.sellerCashBefore!=null&&t.sellerCashAfter!=null&&Math.abs((Number(t.sellerCashBefore)+total)-Number(t.sellerCashAfter))>0.0001)findings.push("Seller cash math mismatch in "+t.id+".");
+}else if(/ownership transfer/i.test(String(t.type||""))||String(t.id||"").startsWith("BOT-")){
+ const total=Number(t.price)||Number(t.total)||0;if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null&&Math.abs((Number(t.buyerCashBefore)-total)-Number(t.buyerCashAfter))>0.0001)findings.push("Ownership buyer cash math mismatch in "+t.id+".");
+ if(t.sellerCashBefore!=null&&t.sellerCashAfter!=null&&Math.abs((Number(t.sellerCashBefore)+total)-Number(t.sellerCashAfter))>0.0001)findings.push("Ownership seller cash math mismatch in "+t.id+".");
+}});
+$("shareLedgerEventCount").textContent=String(all.length);$("shareLedgerTradeCount").textContent=String(trades.length);$("shareLedgerOwnershipCount").textContent=String(ownership.length);$("shareLedgerStatus").textContent=findings.length?"Review needed":"Checks passed";
+const rows=list=>list.length?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Company / Business</th><th>Buyer / New Owner</th><th>Seller / Old Owner</th><th>Shares / Stake</th><th>Amount</th><th>Cash check</th></tr></thead><tbody>'+list.map(t=>{const total=Number(t.total??t.price)||0;let check="Recorded";if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null){const ok=Math.abs(Number(t.buyerCashBefore)-total-Number(t.buyerCashAfter))<0.0001;check=ok?"Pass":"Mismatch";}return '<tr><td>'+esc(t.at?new Date(t.at).toLocaleString():(t.createdAt?new Date(t.createdAt).toLocaleString():"—"))+'</td><td>'+esc(t.type||"Ledger event")+'</td><td>'+esc(t.company||t.business||"—")+'</td><td>'+esc(t.buyer||t.buyerName||"—")+'</td><td>'+esc(t.seller||t.sellerName||"—")+'</td><td>'+(t.shares!=null?Number(t.shares)+" shares":(t.percentage!=null?pct(t.percentage):"—"))+'</td><td>'+money(total)+'</td><td>'+check+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="muted">No events recorded for this view yet. The ledger does not invent missing history.</p>';
+if(view==="audit")out.innerHTML='<h3>Reconciliation Results</h3>'+(findings.length?'<ul>'+findings.map(f=>'<li class="gold">'+esc(f)+'</li>').join("")+'</ul>':'<p class="goodbtn" style="padding:10px;border-radius:8px">No discrepancies found by the current checks.</p>')+'<p class="tiny">These checks cover current share-supply arithmetic, recorded ownership totals, and cash arithmetic in available transaction records. They do not prove that every historical transaction was captured before this ledger existed.</p>';
+else if(view==="trades")out.innerHTML='<h3>Share Trades</h3>'+rows(trades);
+else if(view==="ownership")out.innerHTML='<h3>Ownership Transfers</h3>'+rows(ownership);
+else out.innerHTML='<h3>All Share &amp; Ownership Events</h3>'+rows(all);
+}
+function bindShareOwnershipLedger(){
+const open=$("openShareOwnershipLedgerHome"),close=$("shareOwnershipLedgerClose"),refresh=$("shareOwnershipLedgerRefresh"),modal=$("shareOwnershipLedgerModal");
+if(open)open.addEventListener("click",()=>openShareOwnershipLedger("all"));if(close)close.addEventListener("click",closeShareOwnershipLedger);if(refresh)refresh.addEventListener("click",()=>renderShareOwnershipLedger("audit"));
+if(modal){modal.addEventListener("click",e=>{if(e.target===modal)closeShareOwnershipLedger();});modal.querySelectorAll("[data-share-ledger-view]").forEach(b=>b.addEventListener("click",()=>renderShareOwnershipLedger(b.getAttribute("data-share-ledger-view"))));}
+getShareOwnershipLedger();
+}
+document.addEventListener("DOMContentLoaded",bindShareOwnershipLedger);if(document.readyState!=="loading")bindShareOwnershipLedger();
+ 
 function transact(){
 const st=getState(),actor=selectedCitizen($("stockTradingCitizen").value),company=$("stockTradingCompany").value,action=$("stockTradingAction").value,count=Math.floor(Number($("stockTradingShares").value)||0),other=selectedCitizen($("stockTradingCounterparty").value),co=db.companies[company];
 if(!actor||!co){alert("Choose a valid trading account and company.");return;}
@@ -5554,6 +5614,7 @@ try{
  }
  saveDB(db);
  bridge.save();
+ if(typeof window.recordShareOwnershipLedger==="function")window.recordShareOwnershipLedger({...tx,type:"Share Trade",cashDirection:reservePurchase?"buyer-to-issuer":"buyer-to-seller",status:"completed"});
  // Update visible cash figures without invoking broad sync/reconciliation routines.
  const citizenCashNodes=document.querySelectorAll("[data-citizen-cash]");
  [buyer,seller].filter(Boolean).forEach(person=>{if(person.kind!=="citizen")return;citizenCashNodes.forEach(node=>{if(String(node.getAttribute("data-citizen-cash"))===String(person.id))node.textContent=money(person.getCash());});});
