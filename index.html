@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.22.3 -->
-<!-- Build identity: 4.22.3. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
+<!-- CALVIN'S CITY — VERSION 4.22.4 -->
+<!-- Build identity: 4.22.4. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.22.3</title>
+<title>Calvin's City 4.22.4</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -78,7 +78,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.22.3</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.22.4</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -3692,7 +3692,7 @@ if(season29FinalCashRepaired){
 }
 }
 const rows=Array.from(ledgerSeen.values()).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
-let h='<p class="tiny">Each person has one permanent Citizen ID connecting basketball, cash, businesses and future financial systems.</p>';
+let h='<p class="tiny">Each person has one permanent Citizen ID connecting basketball, cash, businesses and future financial systems.</p><div class="citizen-ledger-search" style="margin:10px 0 14px"><label for="citizenLedgerSearch" style="display:block;font-weight:800;margin-bottom:5px">Search Player / Citizen Ledger</label><input id="citizenLedgerSearch" type="search" placeholder="Search name, Citizen ID, team, status, or details..." autocomplete="off" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid var(--line,#ccc);border-radius:10px"><p id="citizenLedgerSearchCount" class="tiny" style="margin:5px 0 0">Showing all citizens</p></div>';
 if(!rows.length)h+='<p class="muted">No citizens recorded yet.</p>';
 rows.forEach(c=>{
 const biz=(c.businesses||[]).map(x=>x.business+' '+Number(x.ownership).toFixed(Number(x.ownership%1?1:0))+'%').join(' • ')||'None';
@@ -3718,6 +3718,26 @@ const cashTraceId='cashTrace_'+String(c.id||c.name).replace(/[^a-z0-9_-]/gi,'_')
 h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Titles in a Row <b>'+(c.currentChampStreak||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'<button type="button" class="player-ledger-btn" data-player-ledger="'+playerLedgerId+'">Player Ledger</button><div id="'+playerLedgerId+'" class="player-ledger-panel"></div><button type="button" class="player-ledger-btn" data-cash-trace="'+cashTraceId+'">Trace Cash Sources</button><div id="'+cashTraceId+'" class="player-ledger-panel"></div></div>';
 });
 out.innerHTML=h;
+/* 4.22.4: Live, display-only search for Citizen Ledger cards. */
+const citizenLedgerSearch=document.getElementById("citizenLedgerSearch");
+const citizenLedgerSearchCount=document.getElementById("citizenLedgerSearchCount");
+if(citizenLedgerSearch){
+const filterCitizenLedger=()=>{
+ const query=String(citizenLedgerSearch.value||"").trim().toLowerCase();
+ const cards=Array.from(out.querySelectorAll(".citizen-card"));
+ let visible=0;
+ cards.forEach(card=>{
+  const matches=!query||String(card.textContent||"").toLowerCase().includes(query);
+  card.style.display=matches?"":"none";
+  if(matches)visible++;
+ });
+ if(citizenLedgerSearchCount)citizenLedgerSearchCount.textContent=query
+  ?("Showing "+visible+" of "+cards.length+" citizens")
+  :("Showing all "+cards.length+" citizens");
+};
+citizenLedgerSearch.addEventListener("input",filterCitizenLedger);
+filterCitizenLedger();
+}
 /* 4.17.122: Player Ledger and read-only diagnostics. */
 out.querySelectorAll("[data-player-ledger]").forEach(btn=>btn.addEventListener("click",()=>{
 const panel=document.getElementById(btn.getAttribute("data-player-ledger"));if(!panel)return;
@@ -3775,7 +3795,7 @@ if(copyButton)copyButton.addEventListener("click",async()=>{
 });
 }));
 const diagnosticPanel=document.createElement("details");diagnosticPanel.className="ledger-diagnostic-panel";
-diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.3)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
+diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.4)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
 out.appendChild(diagnosticPanel);
 let latestLedgerReport=null;
 const runBtn=document.getElementById("runLedgerDiagnostics"),copyBtn=document.getElementById("copyLedgerDiagnostics"),reportBox=document.getElementById("ledgerDiagnosticText"),summary=document.getElementById("ledgerDiagnosticSummary");
