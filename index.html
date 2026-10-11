@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.5 -->
-<!-- Build identity: 4.24.11. Season 29 fresh test reset + stock chart modal with background lock. -->
+<!-- Build identity: 4.24.12. HOF excludes active roster players; Season 29 state retained; chart modal. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.11 — Season 29 Reset + Chart Popup 4.24.2</title>
+<title>Calvin's City 4.24.12 — HOF Fix + Chart Popup 4.24.2</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -4256,7 +4256,11 @@ return h+'</div>';
 }
  
 function renderHallOfFamePanel(){
-const retiredAll=r.slice().filter(p=>p&&p.name);
+/* 4.24.12: A player currently assigned to a team is active, not retired.
+   Stale/test retirement rows must not place active roster players in HOF. */
+const activeRosterNames=new Set(Object.values(state.roster||{})
+  .filter(Boolean).map(v=>String(v).trim().toLowerCase()));
+const retiredAll=r.slice().filter(p=>p&&p.name&&!activeRosterNames.has(String(p.name).trim().toLowerCase()));
 const hof=retiredAll.filter(p=>(Number(p.careerPts)||0)>=500||(Number(p.careerRebs)||0)>=500)
   .sort((a,b)=>(Number(b.careerPts)||0)-(Number(a.careerPts)||0)||(Number(b.careerRebs)||0)-(Number(a.careerRebs)||0));
 const retiredNoHof=retiredAll.filter(p=>(Number(p.careerPts)||0)<500&&(Number(p.careerRebs)||0)<500)
