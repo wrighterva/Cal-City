@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.23.1 -->
-<!-- Build identity: 4.23.1. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
+<!-- CALVIN'S CITY — VERSION 4.24.2 -->
+<!-- Build identity: 4.24.2. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.23.1</title>
+<title>Calvin's City 4.24.2</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -134,7 +134,42 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </section>
  
 <section id="markets" class="screen">
-<div class="card"><h2>📈 Markets</h2><div class="grid"><div class="metric"><small>Grain</small><strong>$2.00</strong></div><div class="metric"><small>Meat</small><strong>$2.20</strong></div><div class="metric"><small>Produce</small><strong>$1.80</strong></div><div class="metric"><small>Food Demand</small><strong>30,000 meals</strong></div></div></div>
+<div class="card" id="stockExchangeCard">
+<h2>📈 Markets — Stock Exchange</h2>
+<p class="tiny">The Markets page now opens directly to the stock exchange instead of the old Grain, Meat, Produce, and Food Demand commodity summary. Share trading is separate from business ownership. Each company has 500 shares. Stock price and market capitalization move independently from the company's cash balance.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px">
+<div class="metric"><small>Listed Companies</small><strong id="stockCompanyCount">7</strong></div>
+<div class="metric"><small>Shares per Company</small><strong>500</strong></div>
+<div class="metric"><small>Latest Season Report</small><strong id="stockLatestReportSeason">Not reported</strong></div>
+</div>
+<div id="stockMarketTable" aria-live="polite"><p class="muted">Loading stock market…</p></div>
+<div class="card" style="margin-top:12px">
+<h3>Trade Shares</h3>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+ <div><label for="stockTradingCitizen">Citizen account</label><select id="stockTradingCitizen" style="width:100%"></select></div>
+ <div><label for="stockTradingCompany">Company stock</label><select id="stockTradingCompany" style="width:100%"></select></div>
+ <div><label for="stockTradingAction">Trade action</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option></select></div>
+ <div><label for="stockTradingCounterparty">Other citizen</label><select id="stockTradingCounterparty" style="width:100%"></select></div>
+ <div><label for="stockTradingShares">Number of shares</label><input id="stockTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></div>
+</div>
+<p id="stockTradeQuote" class="log" style="margin:10px 0">Choose a company to view the current quote.</p>
+<button id="stockExecuteTrade" type="button" class="goodbtn">Confirm Share Trade</button>
+<p id="stockTradeMessage" class="tiny" role="status" aria-live="polite"></p>
+</div>
+<div class="card" style="margin-top:12px">
+<h3>Annual Company Reports</h3>
+<p class="tiny">At season end, recorded company revenue is compared with the previous season. Revenue growth or decline changes the share price using fixed tiers. A price change does not directly change company cash.</p>
+<div id="stockAnnualReports"><p class="muted">Annual reports appear after a season is completed.</p></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h3>Shareholder Register</h3>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+ <div><label for="stockRegisterCompany">Company</label><select id="stockRegisterCompany" style="width:100%"></select></div>
+</div>
+<div id="stockShareholderRegister" class="log" style="margin-top:10px"></div>
+</div>
+</div>
+ 
 <div class="card" id="freeAgentsMarketCard">
 <h2>🏀 Free Agents</h2>
 <p class="tiny">Review available players and their career records. Player signings and contract decisions are handled through Offseason Management.</p>
@@ -257,7 +292,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <p>Every game gets two dice. Each die is worth $10M. Total range: $20M–$120M.</p>
 <p>Ticket revenue is split 70% to the winner and 30% to the loser.</p>
 <h3>Shoe Revenue</h3>
-<p>Each shoe company gets two dice rolls per game. Dice total × $10M = shoe revenue. Range: $20M–$120M per game.</p>
+<p>Each shoe company gets two dice rolls per game ($20M–$120M) when it has an active player deal. TV Company also rolls two dice ($20M–$120M) and receives an additional 10% of total shoe-company revenue. The TV share does not reduce shoe-company revenue.</p>
 <button id="basketballInfoClose" class="secondary" type="button">Close</button>
 </div></div>
 <script>
@@ -2679,6 +2714,7 @@ const modal=document.getElementById("shoeDealNeedsModal"),list=document.getEleme
 if(!modal||!list)return false;
 if(!state.seasonPlayed || state.seasonPhase!=="offseason" || state.offseasonFinalized)return false;
 const completedSeason=Number(state.year)||0;
+if(typeof window.processStockMarketSeasonReport==="function")window.processStockMarketSeasonReport(completedSeason);
 if(!force && Number(state.shoeDealNeedsPopupShownForSeason)===completedSeason)return false;
 const missing=getShoeCompaniesNeedingDeals();
 list.innerHTML=missing.length
@@ -2690,8 +2726,8 @@ state.shoeDealNeedsPopupShownForSeason=completedSeason;
 save();
 return true;
 }
-function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((p,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;return{A,B,winner,loser,ot,ticket:ticketRevenue(),shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeCompanyHasActivePlayerDeal(s)?shoeRevenue():0]))}}
-function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
+function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((p,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;return{A,B,winner,loser,ot,ticket:ticketRevenue(),shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeCompanyHasActivePlayerDeal(s)?shoeRevenue():0])),tvBaseRevenue:(die()+die())*10}}
+function gameText(g){const shoeTotal=SHOES.reduce((sum,company)=>sum+(Number(g.shoeByCompany&&g.shoeByCompany[company])||0),0);const tvShare=Math.round(shoeTotal*10)/100;const tvBase=Number(g.tvBaseRevenue)||0;let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p><p>📺 TV Company revenue: <b>'+money(tvBase)+'</b> from its two dice + <b>'+money(tvShare)+'</b> (10% of total shoe revenue) = <b>'+money(tvBase+tvShare)+'</b>. This shoe-revenue share is additional and does not reduce shoe-company earnings.</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 function recordGameCareerStats(g){
  /* 4.17.105: Every completed game immediately adds the player's game
     PTS/REB to the Citizen career totals. Overtime is already included in
@@ -2748,13 +2784,14 @@ function applyTicketRevenueToTeamCash(g,stage){
  return true;
 }
  
-/* 4.21.0: Credit each shoe company's game revenue to its business cash.
-  Each company receives the amount already rolled for this game in
-  g.shoeByCompany. The per-game flag prevents duplicate credits. */
+/* 4.24.2: Credit shoe-company revenue and TV Company revenue for each completed game.
+  TV gets its own two-dice revenue roll plus an additional 10% of the total shoe revenue.
+  The TV share is additive and is never deducted from shoe-company cash. Separate flags
+  prevent duplicate credits if the game-recording function is called again. */
 function applyShoeRevenueToBusinessCash(g,stage){
- if(!g || g.shoeRevenueApplied===true)return false;
+ if(!g)return false;
  const revenueByCompany=g.shoeByCompany||{};
- const companies=["Nike","Reebok","Puma","Adidas","New Balance"];
+ const shoeCompanies=["Nike","Reebok","Puma","Adidas","New Balance"];
  state.businessCash=state.businessCash||{
    Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,
    "TV Company":3650,"Sports Bets Company":430
@@ -2763,28 +2800,55 @@ function applyShoeRevenueToBusinessCash(g,stage){
    ?state.businessCashLedger:[];
  const season=Number(state.year)||29;
  const gameIndex=(Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0)+1;
+ const at=new Date().toISOString();
  const entries=[];
- companies.forEach(company=>{
-   const amount=shoeCompanyHasActivePlayerDeal(company)?Math.max(0,Number(revenueByCompany[company])||0):0;
-   const before=Number(state.businessCash[company])||0;
-   const after=Math.round((before+amount)*100)/100;
-   state.businessCash[company]=after;
-   entries.push({
-     id:"shoe-"+season+"-"+gameIndex+"-"+company+"-"+Date.now(),
-     season,stage:String(stage||g.stage||""),gameIndex,
-     type:"Shoe Revenue",company,amount,before,after,
-     reason:"Two dice rolls × $10M for completed game",
-     createdAt:new Date().toISOString()
+ if(g.shoeRevenueApplied!==true){
+   shoeCompanies.forEach(company=>{
+     const amount=shoeCompanyHasActivePlayerDeal(company)?Math.max(0,Number(revenueByCompany[company])||0):0;
+     const before=Number(state.businessCash[company])||0;
+     const after=Math.round((before+amount)*100)/100;
+     state.businessCash[company]=after;
+     entries.push({
+       id:"shoe-"+season+"-"+gameIndex+"-"+company+"-"+Date.now(),
+       season,stage:String(stage||g.stage||""),gameIndex,
+       type:"Shoe Revenue",company,amount,before,after,
+       reason:"Two dice rolls × $10M for completed game",
+       createdAt:at
+     });
    });
- });
- state.businessCashLedger.push(...entries);
- g.shoeRevenueApplied=true;
- g.shoeRevenueDistribution=entries.map(e=>({
-   company:e.company,amount:e.amount,before:e.before,after:e.after
- }));
- return true;
+   g.shoeRevenueApplied=true;
+   g.shoeRevenueDistribution=entries.map(e=>({company:e.company,amount:e.amount,before:e.before,after:e.after}));
+ }
+ if(g.tvRevenueApplied!==true){
+   const totalShoeRevenue=shoeCompanies.reduce((sum,company)=>sum+Math.max(0,Number(revenueByCompany[company])||0),0);
+   const baseRevenue=Math.max(0,Number(g.tvBaseRevenue)||0);
+   const shoeRevenueShare=Math.round(totalShoeRevenue*10)/100;
+   const beforeBase=Number(state.businessCash["TV Company"])||0;
+   const afterBase=Math.round((beforeBase+baseRevenue)*100)/100;
+   state.businessCash["TV Company"]=afterBase;
+   entries.push({
+     id:"tv-dice-"+season+"-"+gameIndex+"-"+Date.now(),
+     season,stage:String(stage||g.stage||""),gameIndex,
+     type:"TV Revenue",company:"TV Company",amount:baseRevenue,before:beforeBase,after:afterBase,
+     reason:"TV Company two dice rolls × $10M for completed game",
+     createdAt:at
+   });
+   const beforeShare=Number(state.businessCash["TV Company"])||0;
+   const afterShare=Math.round((beforeShare+shoeRevenueShare)*100)/100;
+   state.businessCash["TV Company"]=afterShare;
+   entries.push({
+     id:"tv-shoe-share-"+season+"-"+gameIndex+"-"+Date.now(),
+     season,stage:String(stage||g.stage||""),gameIndex,
+     type:"TV Shoe Revenue Share",company:"TV Company",amount:shoeRevenueShare,before:beforeShare,after:afterShare,
+     reason:"Additional 10% of total shoe-company game revenue; no deduction from shoe companies",
+     createdAt:at
+   });
+   g.tvRevenueApplied=true;
+   g.tvRevenueDistribution={baseRevenue,totalShoeRevenue,shoeRevenueShare,total:Math.round((baseRevenue+shoeRevenueShare)*100)/100,before:beforeBase,after:afterShare};
+ }
+ if(entries.length)state.businessCashLedger.push(...entries);
+ return entries.length>0;
 }
- 
 function recordGame(g,stage){
  applyTicketRevenueToTeamCash(g,stage);
  applyShoeRevenueToBusinessCash(g,stage);
@@ -3878,6 +3942,8 @@ const cashTraceId='cashTrace_'+String(c.id||c.name).replace(/[^a-z0-9_-]/gi,'_')
 h+='<div class="citizen-card" data-citizen-id="'+ownershipEscapeHTML(c.id||'')+'"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b data-citizen-cash="'+ownershipEscapeHTML(c.id||'')+'">'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Titles in a Row <b>'+(c.currentChampStreak||0)+'</b></span></div>'+ownershipAssetsHtml+'<div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'<button type="button" class="player-ledger-btn" data-player-ledger="'+playerLedgerId+'">Player Ledger</button><div id="'+playerLedgerId+'" class="player-ledger-panel"></div><button type="button" class="player-ledger-btn" data-cash-trace="'+cashTraceId+'">Trace Cash Sources</button><div id="'+cashTraceId+'" class="player-ledger-panel"></div></div>';
 });
 out.innerHTML=h;
+/* 4.24.1: Show stock-share holdings separately from business ownership assets. */
+if(window.calvinsCityStockMarket&&typeof window.calvinsCityStockMarket.renderCitizenAssets==="function")window.calvinsCityStockMarket.renderCitizenAssets(out);
 /* 4.22.4: Live, display-only search for Citizen Ledger cards. */
 const citizenLedgerSearch=document.getElementById("citizenLedgerSearch");
 const citizenLedgerSearchCount=document.getElementById("citizenLedgerSearchCount");
@@ -4933,6 +4999,312 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  registry();saveAll();updateCitizenOptions();updateBusinessOptions();refreshBusinessCards();
 },{once:true});
 else{registry();saveAll();updateCitizenOptions();updateBusinessOptions();refreshBusinessCards();}
+})();
+</script>
+ 
+ 
+<script>
+/* 4.24.2: Independent share-trading stock market.
+  Shareholders own shares, not business ownership stakes. Annual price changes use
+  recorded revenue only; market capitalization never overwrites business cash. */
+(function(){
+"use strict";
+const bridge=window.__calvinsCityBridge;
+if(!bridge||typeof bridge.getState!=="function")return;
+const STORAGE_KEY="calvins_city_stock_market_v1";
+const TOTAL_SHARES=500;
+const companies=[
+{name:"Nike",cashSeed:5040,known:true,initialHoldings:[["E. Ali",35],["Adidas",100],["Reebok",200],["Nike",100],["S. Oliver",10]]},
+{name:"Reebok",cashSeed:4150,known:true,initialHoldings:[["New Balance",105],["Reebok",149],["TV Company",60],["Nike",68],["Puma",85]]},
+{name:"Puma",cashSeed:2930,known:true,initialHoldings:[["Puma",175],["Lions",75],["Nike",250]]},
+{name:"Adidas",cashSeed:5080,known:true,initialHoldings:[["Benmack II",50],["Adidas",90],["Reese",50],["Sports Bets",53],["Lions",62]]},
+{name:"New Balance",cashSeed:3300,known:false,initialHoldings:[]},
+{name:"TV Company",cashSeed:3650,known:false,initialHoldings:[]},
+{name:"Sports Bets Company",cashSeed:430,known:false,initialHoldings:[]}
+];
+const $=id=>document.getElementById(id);
+const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const norm=value=>String(value||"").trim().toLowerCase();
+const money=value=>"$"+(Number(value)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:4})+"M";
+const pct=value=>(Number(value)>=0?"+":"")+(Number(value)||0).toFixed(2)+"%";
+const round4=value=>Math.round((Number(value)||0)*10000)/10000;
+function getState(){return bridge.getState();}
+function citizens(){const st=getState();return Array.isArray(st.citizens)?st.citizens:[];}
+function findCitizenByName(name){return citizens().find(c=>c&&norm(c.name)===norm(name))||null;}
+function ownerKeyFromName(name){
+const c=findCitizenByName(name);
+return c&&c.id?String(c.id):"LEGACY:"+norm(name);
+}
+function ownerNameForKey(key,db){
+if(String(key).startsWith("LEGACY:")){
+ const wanted=String(key).slice(7);
+ const company=db.companies;
+ for(const co of Object.values(company||{})){
+  if(co.ownerNames&&co.ownerNames[key])return co.ownerNames[key];
+ }
+ return wanted.replace(/\b\w/g,m=>m.toUpperCase());
+}
+const c=citizens().find(x=>x&&String(x.id)===String(key));
+if(c)return c.name;
+for(const co of Object.values(db.companies||{})){
+ if(co.ownerNames&&co.ownerNames[key])return co.ownerNames[key];
+}
+return String(key);
+}
+function initialDatabase(){
+const st=getState(),businessCash=st.businessCash||{};
+const db={version:1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastProcessedSeason:null,companies:{},transactions:[],annualReports:[]};
+companies.forEach(def=>{
+ const cash=Number(businessCash[def.name]!=null?businessCash[def.name]:def.cashSeed)||0;
+ const co={name:def.name,totalShares:TOTAL_SHARES,price:round4(cash/TOTAL_SHARES),initialCashValue:cash,holdings:{},ownerNames:{},priceHistory:[],needsAllocationReview:!def.known,allocationNote:def.known?"Recovered legacy allocation":"Legacy shareholder allocation not recovered; confirm before trading"};
+ if(def.known){
+  def.initialHoldings.forEach(([name,shares])=>{
+   const key=ownerKeyFromName(name);
+   co.holdings[key]=(Number(co.holdings[key])||0)+Number(shares);
+   co.ownerNames[key]=name;
+  });
+ }
+ db.companies[def.name]=co;
+});
+return db;
+}
+function loadDB(){
+let db=null;
+try{const raw=localStorage.getItem(STORAGE_KEY);if(raw)db=JSON.parse(raw);}catch(e){}
+if(!db||!db.companies){db=initialDatabase();saveDB(db);}
+// Keep the separate stock market's original 500-share records; only migrate missing company records.
+companies.forEach(def=>{
+ if(!db.companies[def.name]){
+  const fresh=initialDatabase().companies[def.name];
+  db.companies[def.name]=fresh;
+ }
+});
+db.transactions=Array.isArray(db.transactions)?db.transactions:[];
+db.annualReports=Array.isArray(db.annualReports)?db.annualReports:[];
+return db;
+}
+let db=loadDB();
+function saveDB(next){
+next.updatedAt=new Date().toISOString();
+localStorage.setItem(STORAGE_KEY,JSON.stringify(next));
+db=next;
+}
+function sharesHeld(co,key){return Math.max(0,Number(co.holdings[key])||0);}
+function sharesSold(co){return Object.values(co.holdings||{}).reduce((sum,n)=>sum+Math.max(0,Number(n)||0),0);}
+function sharesAvailable(co){return Math.max(0,TOTAL_SHARES-sharesSold(co));}
+function marketCap(co){return round4(co.price*TOTAL_SHARES);}
+function latestReport(company){return db.annualReports.slice().reverse().find(r=>r.company===company)||null;}
+function renderMarketTable(){
+const out=$("stockMarketTable");if(!out)return;
+const rows=companies.map(def=>{
+ const co=db.companies[def.name],latest=latestReport(def.name),avail=sharesAvailable(co);
+ const flag=co.needsAllocationReview?'<span class="badge">Allocation review needed</span>':"";
+ const priceChange=co.priceHistory.length?co.priceHistory[co.priceHistory.length-1].changePct:0;
+ return '<tr><td><b>'+esc(def.name)+'</b><br><span class="tiny">'+flag+'</span></td><td>'+money(co.price)+'</td><td>'+money(marketCap(co))+'</td><td>'+money((getState().businessCash||{})[def.name]??def.cashSeed)+'</td><td>'+sharesSold(co)+'</td><td>'+avail+'</td><td>'+(latest&&latest.revenueTracked?money(latest.revenue):"Not tracked")+'</td><td>'+(co.priceHistory.length?pct(priceChange):"—")+'</td></tr>';
+}).join("");
+out.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Company</th><th>Share price</th><th>Market cap</th><th>Company cash</th><th>Shares sold</th><th>Shares available</th><th>Latest annual revenue</th><th>Last price move</th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="tiny">Market cap = share price × 500 shares. Company cash is displayed separately and is not changed by a price adjustment.</p>';
+}
+function renderCompanyOptions(){
+const companyOptions=companies.map(c=>'<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>').join("");
+["stockTradingCompany","stockRegisterCompany"].forEach(id=>{const el=$(id);if(el){const current=el.value;el.innerHTML=companyOptions;if(current&&companies.some(c=>c.name===current))el.value=current;}});
+const citizenOptions=citizens().filter(c=>c&&c.id&&String(c.name||"").trim()).sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+' ('+esc(c.id)+')</option>').join("");
+["stockTradingCitizen","stockTradingCounterparty"].forEach(id=>{const el=$(id);if(!el)return;const current=el.value;el.innerHTML=citizenOptions||'<option value="">No citizen accounts</option>';if(current&&Array.from(el.options).some(o=>o.value===current))el.value=current;});
+updateTradeControls();
+}
+function selectedCitizen(id){return citizens().find(c=>c&&String(c.id)===String(id))||null;}
+function updateTradeControls(){
+const action=$("stockTradingAction"),actor=$("stockTradingCitizen"),other=$("stockTradingCounterparty"),company=$("stockTradingCompany");
+if(!action||!actor||!other||!company)return;
+const a=action.value,co=db.companies[company.value];
+other.disabled=a==="buyReserve";
+if(a==="buyReserve"){other.innerHTML='<option value="">Market Reserve</option>';}
+else{
+ const current=other.value;
+ const options=citizens().filter(c=>c&&c.id&&String(c.id)!==String(actor.value)&&String(c.name||"").trim()).sort((x,y)=>String(x.name).localeCompare(String(y.name))).map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+' ('+esc(c.id)+')</option>').join("");
+ other.innerHTML=options||'<option value="">No other citizen accounts</option>';
+ if(current&&Array.from(other.options).some(o=>o.value===current))other.value=current;
+}
+const note=$("stockTradeMessage");
+if(co&&co.needsAllocationReview){
+ if(note)note.textContent="Trading is paused for this company until its legacy shareholder allocation is confirmed. The 500-share supply is preserved; no holders were invented.";
+ $("stockExecuteTrade").disabled=true;
+}else{
+ if(note)note.textContent="";
+ $("stockExecuteTrade").disabled=false;
+}
+updateTradeQuote();
+}
+function updateTradeQuote(){
+const out=$("stockTradeQuote");if(!out)return;
+const company=$("stockTradingCompany"),shares=$("stockTradingShares"),action=$("stockTradingAction"),actor=$("stockTradingCitizen"),other=$("stockTradingCounterparty");
+if(!company||!shares||!action||!actor)return;
+const co=db.companies[company.value];if(!co)return;
+const count=Math.max(0,Math.floor(Number(shares.value)||0)),price=co.price,total=round4(count*price),a=action.value;
+out.innerHTML='<b>Current price:</b> '+money(price)+' per share<br><b>Trade total:</b> '+money(total)+' for '+count+' share'+(count===1?"":"s")+'<br><b>Shares available in reserve:</b> '+sharesAvailable(co);
+if(co.needsAllocationReview)out.innerHTML+='<br><span class="gold">Trading paused: historical holder allocation needs confirmation.</span>';
+else if(a==="buyReserve")out.innerHTML+='<br>New-share proceeds go to the company cash account.';
+else out.innerHTML+='<br>Cash transfers directly between the two citizens; company cash is unchanged.';
+}
+function updateHolding(co,key,displayName,delta){
+const next=round4((Number(co.holdings[key])||0)+delta);
+if(next<0)throw new Error("The seller does not have enough shares.");
+if(next===0)delete co.holdings[key];else co.holdings[key]=next;
+if(displayName)co.ownerNames[key]=displayName;
+}
+function transact(){
+const st=getState(),actor=selectedCitizen($("stockTradingCitizen").value),company=$("stockTradingCompany").value,action=$("stockTradingAction").value,count=Math.floor(Number($("stockTradingShares").value)||0),other=selectedCitizen($("stockTradingCounterparty").value),co=db.companies[company];
+if(!actor||!co){alert("Choose a valid citizen and company.");return;}
+if(co.needsAllocationReview){alert("Trading is paused for this company until its legacy shareholder allocation is confirmed.");return;}
+if(!Number.isInteger(count)||count<1){alert("Enter a whole number of shares greater than zero.");return;}
+const price=Number(co.price)||0;const total=round4(count*price);if(total<=0){alert("The calculated trade value is invalid.");return;}
+let buyer=null,seller=null,source="citizen-to-citizen",reservePurchase=false;
+if(action==="buyReserve"){
+ buyer=actor;reservePurchase=true;
+ if(count>sharesAvailable(co)){alert("Only "+sharesAvailable(co)+" shares remain available.");return;}
+}else if(action==="buyCitizen"){buyer=actor;seller=other;}
+else if(action==="sellCitizen"){seller=actor;buyer=other;}
+if(!buyer||!seller&&!reservePurchase||buyer&&seller&&buyer.id===seller.id){alert("Choose two different valid citizens for this trade.");return;}
+if(seller){
+ const sellerKey=String(seller.id);
+ if(sharesHeld(co,sellerKey)<count){alert(seller.name+" does not have "+count+" shares available to sell.");return;}
+}
+if(Number(buyer.cash)||Number(buyer.cash)===0){if((Number(buyer.cash)||0)<total){alert(buyer.name+" does not have enough cash. Trade cost: "+money(total)+".");return;}}
+else {alert("The buyer's cash balance is unavailable.");return;}
+if(seller&&(!Number.isFinite(Number(seller.cash)))){alert("The seller's cash balance is unavailable.");return;}
+const at=new Date().toISOString(),id="STK-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
+const buyerBefore=Number(buyer.cash)||0,sellerBefore=seller?(Number(seller.cash)||0):null,companyCashBefore=Number((st.businessCash||{})[company]??co.initialCashValue)||0;
+const snapshot=JSON.stringify(db);
+try{
+ buyer.cash=round4(buyerBefore-total);
+ if(seller)seller.cash=round4(sellerBefore+total);
+ if(reservePurchase){
+  const reserveKey=String(buyer.id);
+  updateHolding(co,reserveKey,buyer.name,count);
+  st.businessCash=st.businessCash||{};
+  st.businessCash[company]=round4(companyCashBefore+total);
+  st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
+  st.businessCashLedger.push({id:id+"-ISSUE",season:Number(st.year)||29,type:"Stock Issuance Proceeds",company,amount:total,before:companyCashBefore,after:st.businessCash[company],reason:"Sold "+count+" newly issued shares at market price",createdAt:at});
+ }else{
+  updateHolding(co,String(seller.id),seller.name,-count);
+  updateHolding(co,String(buyer.id),buyer.name,count);
+ }
+ const tx={id,at,season:Number(st.year)||29,company,shares:count,price, total,action,reservePurchase,buyerId:String(buyer.id),buyer:buyer.name,sellerId:seller?String(seller.id):null,seller:seller?seller.name:company+" Market Reserve",buyerCashBefore:buyerBefore,buyerCashAfter:buyer.cash,sellerCashBefore:sellerBefore,sellerCashAfter:seller?seller.cash:null,companyCashBefore:reservePurchase?companyCashBefore:null,companyCashAfter:reservePurchase?st.businessCash[company]:null};
+ db.transactions.push(tx);
+ if(!Array.isArray(st.stockMarketCashLedger))st.stockMarketCashLedger=[];
+ st.stockMarketCashLedger.push({...tx});
+ saveDB(db);
+ bridge.save();
+ // Update visible cash figures without invoking broad sync/reconciliation routines.
+ const citizenCashNodes=document.querySelectorAll("[data-citizen-cash]");
+ [buyer,seller].filter(Boolean).forEach(person=>citizenCashNodes.forEach(node=>{
+  if(String(node.getAttribute("data-citizen-cash"))===String(person.id))node.textContent=money(person.cash);
+ }));
+ renderAll();
+ const message=$("stockTradeMessage");
+ if(message)message.textContent="Trade completed: "+buyer.name+" purchased "+count+" "+company+" share"+(count===1?"":"s")+" for "+money(total)+(seller?" from "+seller.name:". Proceeds credited to "+company+" cash.");
+}catch(err){
+ try{db=JSON.parse(snapshot);saveDB(db);}catch(e){}
+ buyer.cash=buyerBefore;if(seller)seller.cash=sellerBefore;
+ if(reservePurchase&&st.businessCash)st.businessCash[company]=companyCashBefore;
+ try{bridge.save();}catch(e){}
+ console.error("Stock trade failed:",err);alert("The trade could not be completed and cash changes were rolled back. "+String(err.message||err));
+}
+}
+function revenueForSeason(st,company,season){
+const entries=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
+const matching=entries.filter(e=>e&&String(e.company||"")===company&&Number(e.season)===Number(season)&&/revenue/i.test(String(e.type||"")));
+if(!matching.length)return {tracked:false,revenue:0,entries:0};
+return {tracked:true,revenue:round4(matching.reduce((sum,e)=>sum+Math.max(0,Number(e.amount)||0),0)),entries:matching.length};
+}
+function priceAdjustment(previous,current){
+if(previous<=0)return current>0?5:0;
+const growth=((current-previous)/previous)*100;
+if(growth>=10)return 5;
+if(growth>=1)return 2;
+if(growth<=-10)return -5;
+if(growth<=-1)return -2;
+return 0;
+}
+window.processStockMarketSeasonReport=function(season){
+const st=getState(),year=Number(season)||Number(st.year)||29;
+if(Number(db.lastProcessedSeason)===year)return false;
+const reportBatch=[];
+companies.forEach(def=>{
+ const co=db.companies[def.name],rev=revenueForSeason(st,def.name,year);
+ const prior=db.annualReports.slice().reverse().find(r=>r.company===def.name&&r.revenueTracked);
+ let changePct=0,growthPct=null,baseline=false;
+ if(rev.tracked&&prior){
+  growthPct=prior.revenue>0?((rev.revenue-prior.revenue)/prior.revenue)*100:(rev.revenue>0?100:0);
+  changePct=priceAdjustment(prior.revenue,rev.revenue);
+  co.price=round4(Math.max(0.0001,co.price*(1+changePct/100)));
+ }else if(rev.tracked&&!prior){baseline=true;}
+ const report={id:"ANNUAL-"+year+"-"+def.name,season:year,company:def.name,revenueTracked:rev.tracked,revenue:rev.revenue,revenueEntries:rev.entries,previousRevenue:prior?prior.revenue:null,revenueGrowthPct:growthPct,priceBefore:co.priceHistory.length?co.priceHistory[co.priceHistory.length-1].priceAfter:co.price,priceAfter:co.price,priceChangePct:changePct,baseline,createdAt:new Date().toISOString()};
+ // Correct priceBefore for the adjustment, using the value immediately before this report.
+ report.priceAfter=co.price;
+ report.priceBefore=changePct!==0?round4(co.price/(1+changePct/100)):co.price;
+ co.priceHistory.push({season:year,priceBefore:report.priceBefore,priceAfter:report.priceAfter,changePct,revenue:rev.revenue,revenueTracked:rev.tracked,createdAt:report.createdAt});
+ reportBatch.push(report);
+});
+db.annualReports.push(...reportBatch);
+db.lastProcessedSeason=year;
+saveDB(db);
+renderAll();
+return true;
+};
+function renderReports(){
+const out=$("stockAnnualReports");if(!out)return;
+if(!db.annualReports.length){out.innerHTML='<p class="muted">Annual reports appear after a season is completed.</p>';return;}
+const latestSeason=Math.max(...db.annualReports.map(r=>Number(r.season)||0));
+const reports=db.annualReports.filter(r=>Number(r.season)===latestSeason);
+out.innerHTML='<h4>Season '+latestSeason+' Company Reports</h4><div style="overflow-x:auto"><table><thead><tr><th>Company</th><th>Annual revenue</th><th>Previous revenue</th><th>Revenue growth</th><th>Share price move</th><th>New price</th></tr></thead><tbody>'+reports.map(r=>'<tr><td>'+esc(r.company)+'</td><td>'+(r.revenueTracked?money(r.revenue):'<span class="muted">Not tracked</span>')+'</td><td>'+(r.previousRevenue==null?"—":money(r.previousRevenue))+'</td><td>'+(r.revenueGrowthPct==null?(r.baseline?"Baseline":"—"):pct(r.revenueGrowthPct))+'</td><td>'+pct(r.priceChangePct)+(r.baseline?" (baseline)":"")+'</td><td>'+money(r.priceAfter)+'</td></tr>').join("")+'</tbody></table></div><p class="tiny">Fixed tiers: revenue growth ≥10% → +5%; +1% to +9.99% → +2%; changes between −1% and +1% → 0%; decline −1% to −9.99% → −2%; decline ≥10% → −5%. The first recorded revenue report establishes a baseline and does not move price.</p>';
+}
+function renderRegister(){
+const sel=$("stockRegisterCompany"),out=$("stockShareholderRegister");if(!sel||!out)return;
+const co=db.companies[sel.value];if(!co)return;
+const rows=Object.entries(co.holdings||{}).filter(([k,v])=>(Number(v)||0)>0).map(([key,shares])=>({key,name:co.ownerNames&&co.ownerNames[key]?co.ownerNames[key]:ownerNameForKey(key,db),shares:Number(shares)})).sort((a,b)=>b.shares-a.shares);
+out.innerHTML='<p><b>'+esc(co.name)+'</b> · '+TOTAL_SHARES+' total shares · '+sharesSold(co)+' held · '+sharesAvailable(co)+' available</p>'+
+(co.needsAllocationReview?'<p class="gold"><b>Legacy allocation review required.</b> The earlier holder allocation for this company was not recovered, so trading is disabled rather than inventing shareholders.</p>':'')+
+(rows.length?'<div style="overflow-x:auto"><table><thead><tr><th>Shareholder</th><th>Shares</th><th>Percent</th><th>Value at current price</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+r.shares+'</td><td>'+pct(r.shares/TOTAL_SHARES*100)+'</td><td>'+money(r.shares*co.price)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No recovered shareholder allocations recorded.</p>')+
+'<p class="tiny">This is the share register only. It does not grant business ownership or voting control.</p>';
+}
+function renderCitizenAssets(container){
+const target=container||document.getElementById("citizenLedgerBody");if(!target)return;
+target.querySelectorAll(".citizen-card").forEach(card=>{
+ const nameNode=card.querySelector(".citizen-head b");if(!nameNode)return;
+ const name=nameNode.textContent,person=findCitizenByName(name);const key=person&&person.id?String(person.id):null;
+ const holdings=[];
+ Object.values(db.companies).forEach(co=>{
+  const shares=key?sharesHeld(co,key):0;
+  if(shares>0)holdings.push({company:co.name,shares,price:co.price,value:round4(shares*co.price)});
+ });
+ let box=card.querySelector(".citizen-stock-assets");
+ if(!box){box=document.createElement("div");box.className="citizen-stock-assets";box.style.cssText="margin:8px 0;padding:10px;border:1px solid var(--line,#ccc);border-radius:10px";const assets=card.querySelector(".citizen-assets");if(assets)assets.insertAdjacentElement("afterend",box);else card.appendChild(box);}
+ const total=holdings.reduce((sum,h)=>sum+h.value,0);
+ box.innerHTML='<div style="font-weight:800;margin-bottom:6px">Stock Assets · Current Share Value (Not Cash)</div>'+
+  (holdings.length?holdings.map(h=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0"><span>'+esc(h.company)+' · '+h.shares+' share'+(h.shares===1?"":"s")+'</span><b>'+money(h.value)+'</b></div>').join(""):'<div class="tiny muted">No stock shares recorded.</div>')+
+  '<div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line,#ccc);margin-top:6px;padding-top:6px"><span>Total Stock Assets (unrealized value)</span><b>'+money(total)+'</b></div>'+
+  '<p class="tiny" style="margin:6px 0 0">This is the current market value of shares held, not spendable cash. Buying shares reduces cash; selling shares credits sale proceeds to the seller’s cash balance. Unsold shares remain an asset and do not automatically convert to cash.</p>';
+});
+}
+function renderAll(){
+renderMarketTable();renderReports();renderRegister();
+const latest=$("stockLatestReportSeason");if(latest)latest.textContent=db.lastProcessedSeason==null?"Not reported":"Season "+db.lastProcessedSeason;
+const count=$("stockCompanyCount");if(count)count.textContent=String(companies.length);
+updateTradeQuote();
+if($("citizenLedgerBody"))renderCitizenAssets();
+}
+function bind(){
+renderCompanyOptions();renderAll();
+["stockTradingCitizen","stockTradingCompany","stockTradingAction","stockTradingCounterparty","stockTradingShares"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",()=>{if(id==="stockTradingCitizen"||id==="stockTradingAction"||id==="stockTradingCompany")updateTradeControls();else updateTradeQuote();});});
+const execute=$("stockExecuteTrade");if(execute)execute.addEventListener("click",transact);
+const register=$("stockRegisterCompany");if(register)register.addEventListener("change",renderRegister);
+const action=$("stockTradingAction");if(action)action.addEventListener("change",updateTradeControls);
+const citizen=$("stockTradingCitizen");if(citizen)citizen.addEventListener("change",updateTradeControls);
+const company=$("stockTradingCompany");if(company)company.addEventListener("change",updateTradeControls);
+}
+window.calvinsCityStockMarket={getDatabase:()=>JSON.parse(JSON.stringify(db)),renderCitizenAssets,render:renderAll};
+document.addEventListener("DOMContentLoaded",bind);
+if(document.readyState!=="loading")bind();
 })();
 </script>
  
