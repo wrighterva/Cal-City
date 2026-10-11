@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.47 -->
+<!-- CALVIN'S CITY — VERSION 4.24.48 -->
 <!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.47 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.48 — TV Company Modal & Ownership View</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -5358,7 +5358,21 @@ const pct=value=>(Number(value)>=0?"+":"")+(Number(value)||0).toFixed(2)+"%";
 const round4=value=>Math.round((Number(value)||0)*10000)/10000;
 function getState(){return bridge.getState();}
 function citizens(){const st=getState();return Array.isArray(st.citizens)?st.citizens:[];}
-function findCitizenByName(name){return citizens().find(c=>c&&norm(c.name)===norm(name))||null;}
+function findCitizenByName(name){
+const all=citizens().filter(c=>c&&c.id&&String(c.name||"").trim());
+const wanted=norm(name);
+const exact=all.filter(c=>norm(c.name)===wanted);
+if(exact.length===1)return exact[0];
+if(exact.length>1)return null;
+/* Legacy shareholder labels sometimes differ only by punctuation/spacing:
+   "E. Ali" in the share register vs "E.Ali" in permanent citizen history.
+   Match only a unique canonical name; never guess between multiple accounts. */
+const canonical=value=>String(value||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+const key=canonical(name);
+if(!key)return null;
+const matches=all.filter(c=>canonical(c.name)===key);
+return matches.length===1?matches[0]:null;
+}
 function ownerKeyFromName(name){
 const businessName=companies.find(def=>norm(def.name)===norm(name));
 if(businessName)return "BUSINESS:"+businessName.name;
