@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.5 -->
-<!-- Build identity: 4.24.13. Ownership marketplace initialization fix; no Season 29 reset. -->
+<!-- Build identity: 4.24.14. Free-agent career-stat guard + live ownership stake value preview; no season reset. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.13 — Ownership Fix + Chart Popup 4.24.2</title>
+<title>Calvin's City 4.24.14 — Free Agent Stats + Ownership Preview 4.24.2</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -3195,6 +3195,36 @@ Object.entries(state.roster||{}).forEach(([key,name])=>{
 if(changed)save();
 return changed;
 }
+function freeAgentHasRecordedGameParticipation(citizen){
+if(!citizen)return false;
+const id=String(citizen.id||"");
+const name=String(citizen.name||"").trim().toLowerCase();
+const seasons=state.permanentDatabase&&Array.isArray(state.permanentDatabase.seasons)?state.permanentDatabase.seasons:[];
+const logs=[];
+seasons.forEach(season=>{
+ if(!season)return;
+ ["games","gameRecords","regularSeasonGames","playoffGames","championshipGames"].forEach(key=>{
+  if(Array.isArray(season[key]))logs.push(...season[key]);
+ });
+});
+const legacy=state.gameHistory||state.completedGames||state.gamesHistory;
+if(Array.isArray(legacy))logs.push(...legacy);
+return logs.some(game=>{
+ if(!game||typeof game!=="object")return false;
+ const candidates=[];
+ ["players","playerStats","boxScore","boxscore","stats"].forEach(key=>{
+  const value=game[key];
+  if(Array.isArray(value))candidates.push(...value);
+  else if(value&&typeof value==="object")Object.values(value).forEach(v=>{if(v&&typeof v==="object")candidates.push(v);});
+ });
+ return candidates.some(p=>{
+  const pid=String(p.citizenId||p.playerId||p.id||"");
+  const pname=String(p.name||p.player||p.playerName||"").trim().toLowerCase();
+  const pts=Number(p.pts??p.points??p.PTS)||0,reb=Number(p.reb??p.rebounds??p.REB)||0;
+  return ((id&&pid===id)||(name&&pname===name))&&(pts>0||reb>0||p.played===true||p.gamesPlayed>0);
+ });
+});
+}
 function renderFreeAgentMarket(){
 const out=document.getElementById("freeAgentsMarketList");
 if(!out)return;
@@ -3224,7 +3254,10 @@ let h='<p class="tiny">'+available.length+' available player'+(available.length=
 h+='<div class="team-table-wrap"><table class="team-table"><tr><th>Citizen ID</th><th>Player</th><th>Position</th><th>Career PTS</th><th>Career REB</th><th>Cash</th><th>MVPs</th><th>Titles</th><th>TNR</th></tr>';
 available.forEach(c=>{
   const cashValue=c.cash==null?"Unconfirmed":"$"+(Number(c.cash)||0)+"M";
-  h+='<tr><td>'+escapeFreeAgentText(c.id||"—")+'</td><td><b>'+escapeFreeAgentText(c.name)+'</b></td><td>'+escapeFreeAgentText(c.position||"—")+'</td><td>'+(Number(c.careerPts)||0)+'</td><td>'+(Number(c.careerRebs)||0)+'</td><td>'+escapeFreeAgentText(cashValue)+'</td><td>'+(Number(c.mvps)||0)+'</td><td>'+(Number(c.championships)||0)+'</td><td>'+(Number(c.currentChampStreak)||0)+'</td></tr>';
+  const hasPlayed=freeAgentHasRecordedGameParticipation(c);
+  const careerPts=hasPlayed?(Number(c.careerPts)||0):0;
+  const careerRebs=hasPlayed?(Number(c.careerRebs)||0):0;
+  h+='<tr><td>'+escapeFreeAgentText(c.id||"—")+'</td><td><b>'+escapeFreeAgentText(c.name)+'</b></td><td>'+escapeFreeAgentText(c.position||"—")+'</td><td>'+careerPts+'</td><td>'+careerRebs+'</td><td>'+escapeFreeAgentText(cashValue)+'</td><td>'+(hasPlayed?(Number(c.mvps)||0):0)+'</td><td>'+(hasPlayed?(Number(c.championships)||0):0)+'</td><td>'+(hasPlayed?(Number(c.currentChampStreak)||0):0)+'</td></tr>';
 });
 h+='</table></div><p class="team-note">To sign or replace a player, use Offseason Management. Retired players are excluded from this list.</p>';
 out.innerHTML=h;
@@ -4829,6 +4862,7 @@ if(valuationEl)valuationEl.textContent=ownershipRecord?"$"+(Number(ownershipReco
   <p class="tiny">Choose a percentage you own and have available. The stake is reserved while the offer is active. The price is based on the current valuation when a buyer accepts.</p>
   <label for="ownershipStakePercent">Percentage to offer</label>
   <input id="ownershipStakePercent" type="number" min="0.01" max="100" step="0.01" value="10" style="width:100%">
+  <div id="ownershipStakeValuePreview" class="log" aria-live="polite" style="margin:8px 0">Stake value: calculating…</div>
   <button id="ownershipCreateOffer" type="button" class="goodbtn">List Stake for Sale</button>
   <p id="ownershipActionMessage" class="tiny" aria-live="polite"></p>
  </div>
@@ -4919,6 +4953,19 @@ function refreshLedgerIfVisible(){
    '<button type="button" class="player-ledger-btn" data-ownership-citizen="'+esc(id)+'" style="margin-top:8px">Manage Business Stakes</button>';
  });
 }
+function renderStakeValuePreview(){
+ const preview=document.getElementById("ownershipStakeValuePreview");
+ if(!preview)return;
+ const business=businessSelect&&businessSelect.value;
+ const record=business?recordForBusiness(business):null;
+ const value=Number(percentInput&&percentInput.value);
+ if(!record||!Number.isFinite(value)||value<=0){
+  preview.innerHTML='<b>Stake value:</b> Enter a valid percentage.';
+  return;
+ }
+ const stakeValue=round4((Number(record.valuation)||0)*value/100);
+ preview.innerHTML='<b>'+pct(value)+' stake</b> · Estimated cash value: <b>'+money(stakeValue)+'</b><div class="tiny muted">Based on the current business valuation; final offer value may change if valuation changes.</div>';
+}
 function render(){
  const st=state(),business=businessSelect.value,actingId=citizenSelect.value,record=recordForBusiness(business);
  if(!record){summary.innerHTML='<p class="muted">Business record unavailable.</p>';return;}
@@ -4962,6 +5009,7 @@ function render(){
   historyHtml+='</tbody></table></div>';
  }
  historyOut.innerHTML=historyHtml;
+ renderStakeValuePreview();
  refreshBusinessCards();
 }
 window.openOwnershipMarketplace=function(business,citizenId){
@@ -5046,6 +5094,7 @@ function buyOffer(offerId){
 if(businessSelect)businessSelect.addEventListener("change",render);
 if(citizenSelect)citizenSelect.addEventListener("change",render);
 if(document.getElementById("ownershipCreateOffer"))document.getElementById("ownershipCreateOffer").addEventListener("click",listStake);
+if(percentInput)percentInput.addEventListener("input",renderStakeValuePreview);
 if(offersOut)offersOut.addEventListener("click",event=>{
  const buy=event.target.closest("[data-buy-ownership-offer]");
  const cancel=event.target.closest("[data-cancel-ownership-offer]");
