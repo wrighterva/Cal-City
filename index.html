@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.50 -->
+<!-- CALVIN'S CITY — VERSION 4.24.51 -->
 <!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.50 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.51 — TV Company Modal & Ownership View</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -5996,16 +5996,28 @@ const before=Number(actor.getCash()),reserveBefore=Number(mm.balance),snapshot=J
 try{
  if(!Number.isFinite(before))throw new Error("Citizen cash balance is unavailable.");
  actor.setCash(round4(before+total));
+ /* Confirm the authoritative citizen record actually received the payout. */
+ const credited=Number(actor.getCash());
+ if(!Number.isFinite(credited)||Math.abs(credited-round4(before+total))>0.0001)throw new Error("Citizen cash credit could not be verified. The buyback was rolled back.");
  /* Market Sell: remove shares from the citizen's holding. The company holding
     register then treats them as available from the authorized 500-share pool;
     Market Money never receives a permanent shareholder allocation. */
  updateHolding(co,holdingKey,actor.name,-count);
  mm.balance=round4(reserveBefore-total);
  mm.gamesSinceBuyback=0;
- const tx={id,at,season:Number(getState().year)||29,gameCount:Number(getState().gameCount)||0,type:"Market Money Buyback",company,shares:count,price,total,citizenId:String(actor.key),citizen:actor.name,citizenCashBefore:before,citizenCashAfter:actor.getCash(),reserveBefore,reserveAfter:mm.balance,companyCashChanged:false,status:"completed"};
+ const tx={id,at,season:Number(getState().year)||29,gameCount:Number(getState().gameCount)||0,type:"Market Money Buyback",company,shares:count,price,total,citizenId:String(actor.id||actor.key),citizen:actor.name,citizenCashBefore:before,citizenCashAfter:credited,reserveBefore,reserveAfter:mm.balance,companyCashChanged:false,status:"completed"};
  db.transactions.push(tx);mm.transactions.push({...tx});
  if(!Array.isArray(getState().stockMarketCashLedger))getState().stockMarketCashLedger=[];
  getState().stockMarketCashLedger.push({...tx});
+ /* The player ledger lives in the main Season 29 state, not the stock-market DB.
+    Persist the cash credit and its citizen-ledger event before confirming success. */
+ if(typeof recordPlayerLedgerTransaction==="function"){
+  recordPlayerLedgerTransaction({player:actor.name,amount:total,type:"Market Money Buyback",reason:"Sold "+count+" share(s) of "+company+" back to Market Money",payer:"Market Money",recipient:actor.name,season:Number(getState().year)||29,source:"Market Money buyback",before,after:credited,codeLocation:"transactMarketMoneyBuyback"});
+ }else{
+  const st=getState();st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
+  st.playerLedgerTransactions.push({id:"PLT-"+id,at,season:Number(st.year)||29,gameCount:Array.isArray(st.gamesPlayed)?st.gamesPlayed.length:0,player:actor.name,amount:total,type:"Market Money Buyback",reason:"Sold "+count+" share(s) of "+company+" back to Market Money",payer:"Market Money",recipient:actor.name,source:"Market Money buyback",balanceBefore:before,balanceAfter:credited,codeLocation:"transactMarketMoneyBuyback"});
+ }
+ save();
  saveDB(db);
  if(typeof window.recordShareOwnershipLedger==="function")window.recordShareOwnershipLedger({...tx,cashDirection:"market-money-to-citizen",status:"completed"});
  renderAll();
