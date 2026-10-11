@@ -1,20 +1,15 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.42 -->
-<!-- Build identity: 4.24.42. Business and team cash ledgers use resilient account references and a local unified-ledger fallback; existing records preserved. -->
+<!-- CALVIN'S CITY — VERSION 4.24.43 -->
+<!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.42 — Business & Unified Ledger Repair</title>
+<title>Calvin's City 4.24.43 — TV Company Modal & Ownership View</title>
 <style>
-#shareOwnershipLedgerNavigation.share-ledger-navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0;position:relative}
-#shareOwnershipLedgerNavigation button{display:block;width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.25;margin:0;touch-action:manipulation;pointer-events:auto;cursor:pointer}
-#shareOwnershipLedgerNavigation button.active{outline:2px solid #93c5fd;background:#2459b8}
-#shareOwnershipLedgerNavigation button:last-child:nth-child(odd){grid-column:1/-1}
- 
-/* v4.24.39: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
+/* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
 #shareOwnershipLedgerModal [data-share-ledger-view]{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;cursor:pointer}
  
@@ -4792,15 +4787,7 @@ window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger
 <div id="recordsBody" class="log"></div>
  
 <button id="recordsClose" class="secondary">Close</button>
-</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><nav id="shareOwnershipLedgerNavigation" aria-label="Share and ownership ledger views" class="share-ledger-navigation">
-<button type="button" class="secondary" data-ledger-view="all">All Events</button>
-<button type="button" class="secondary" data-ledger-view="trades">Share Trades</button>
-<button type="button" class="secondary" data-ledger-view="ownership">Ownership Transfers</button>
-<button type="button" class="secondary" data-ledger-view="audit">Audit &amp; Reconciliation</button>
-<button type="button" class="secondary" data-ledger-view="businesscash" onclick="window.renderShareOwnershipLedger('businesscash');return false;">Business Cash Ledger</button>
-<button type="button" class="secondary" data-ledger-view="financial" onclick="window.renderShareOwnershipLedger('financial');return false;">Unified Financial Ledger</button>
-<button type="button" class="secondary" data-ledger-view="cashaudit">Cash Audit &amp; Corrections</button>
-</nav><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
+</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:10px 0"><button type="button" class="secondary" data-share-ledger-view="all">All Events</button><button type="button" class="secondary" data-share-ledger-view="trades">Share Trades</button><button type="button" class="secondary" data-share-ledger-view="ownership">Ownership Transfers</button><button type="button" class="secondary" data-share-ledger-view="audit">Audit &amp; Reconciliation</button><button type="button" class="secondary" data-share-ledger-view="businesscash">Business Cash Ledger</button><button type="button" class="secondary" data-share-ledger-view="financial">Unified Financial Ledger</button><button type="button" class="secondary" data-share-ledger-view="cashaudit">Cash Audit &amp; Corrections</button></div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
  
  
  
@@ -5783,12 +5770,9 @@ function closeShareOwnershipLedger(){const modal=$("shareOwnershipLedgerModal");
   Corrections append new entries and never delete or rewrite the transaction being corrected. */
 function cashAccountCatalog(){
 const st=getState();st.teamCash=st.teamCash||{};st.businessCash=st.businessCash||{};
-/* Keep ledger rendering independent of script-scope/window bridge timing. */
-const teamOpenings=(window.__calvinsCityTeamOpeningCash&&typeof window.__calvinsCityTeamOpeningCash==="object")?window.__calvinsCityTeamOpeningCash:{Lions:4430,Rims:4470,Dunks:4450};
-const businessOpenings=(typeof BUSINESS_CASH!=="undefined"&&BUSINESS_CASH&&typeof BUSINESS_CASH==="object")?BUSINESS_CASH:{Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
 return [
- ...Object.entries(teamOpenings).map(([name,opening])=>({kind:"team",name,opening:Number(opening)||0,current:Number(st.teamCash[name]??opening)})),
- ...Object.entries(businessOpenings).map(([name,opening])=>({kind:"business",name,opening:Number(opening)||0,current:Number(st.businessCash[name]??opening)}))
+ ...Object.entries(TEAM_OPENING_CASH).map(([name,opening])=>({kind:"team",name,opening,current:Number(st.teamCash[name]??opening)})),
+ ...Object.entries(BUSINESS_CASH).map(([name,opening])=>({kind:"business",name,opening,current:Number(st.businessCash[name]??opening)}))
 ];
 }
 function cashLedgerEntries(){
@@ -5840,18 +5824,7 @@ out.innerHTML='<h3>Business &amp; Team Cash Ledger</h3><p class="tiny">All value
 }
 function renderUnifiedFinancialLedger(){
 const st=getState(),out=$("shareOwnershipLedgerBody");if(!out)return;
-/* Use the app bridge when available; otherwise safely rebuild the index from the
-   preserved legacy ledgers. This fallback never alters account balances or deletes history. */
-let synced=false;
-try{if(typeof window.__calvinsCitySyncUnifiedFinancialLedger==="function"){window.__calvinsCitySyncUnifiedFinancialLedger();synced=true;}}catch(err){console.warn("Unified ledger bridge failed; using local index fallback.",err);}
-if(!synced){
- const existing=Array.isArray(st.financialTransactions)?st.financialTransactions:[];
- const byId=new Map(existing.filter(t=>t&&t.transaction_id).map(t=>[String(t.transaction_id),t]));
- const ingest=(list,kind)=>{(Array.isArray(list)?list:[]).forEach((e,i)=>{if(!e||typeof e!=="object")return;const isTeam=kind==="team"||String(e.accountType||"")==="arena-team";const name=String(e.team||e.company||e.business||e.account||"Unknown account");const id=String(e.id||((isTeam?"team":"business")+"-"+name+"-"+i+"-"+String(e.createdAt||e.at||"")));const signed=Math.round((Number(e.amount)||0)*10000)/10000;const txid="FIN-"+id;if(byId.has(txid))return;const stamp=String(e.createdAt||e.at||new Date().toISOString());byId.set(txid,{transaction_id:txid,source_entry_id:id,event_id:id.replace(/-(TV|TEAM)$/i,""),season:Number(e.season)||Number(st.year)||29,game_id:e.gameIndex!=null?String(e.gameIndex):null,timestamp:stamp,transaction_type:String(e.type||e.transactionType||"Cash movement"),amount:Math.abs(signed),signed_account_change:signed,account_type:isTeam?"team":"business",account_id:name,account_name:name,source:signed<0?name:String(e.source||e.reason||"Unspecified source"),destination:signed>0?name:String(e.destination||e.reason||"Unspecified destination"),balance_before:e.before!=null?Number(e.before):null,balance_after:e.after!=null?Number(e.after):null,reason:String(e.reason||e.source||"No reason supplied"),status:String(e.status||"recorded"),legacy_ledger:isTeam?"teamCashLedger":"businessCashLedger"});});};
- ingest(st.teamCashLedger,"team");ingest(st.businessCashLedger,"business");
- st.financialTransactions=Array.from(byId.values()).sort((a,b)=>String(a.timestamp||"").localeCompare(String(b.timestamp||"")));
- try{localStorage.setItem("calvins_city_financial_transactions_v1",JSON.stringify({version:1,updatedAt:new Date().toISOString(),transactions:st.financialTransactions}));}catch(err){console.warn("Unified ledger recovery mirror could not be saved.",err);}
-}
+syncUnifiedFinancialLedger();
 const rows=(Array.isArray(st.financialTransactions)?st.financialTransactions:[]).slice().sort((a,b)=>String(b.timestamp||"").localeCompare(String(a.timestamp||"")));
 const escText=v=>esc(v==null?"":String(v));
 const amountText=v=>money(Number(v)||0);
@@ -5898,38 +5871,27 @@ all.forEach(t=>{if(/share trade/i.test(String(t.type||""))||String(t.id||"").sta
 }});
 $("shareLedgerEventCount").textContent=String(all.length);$("shareLedgerTradeCount").textContent=String(trades.length);$("shareLedgerOwnershipCount").textContent=String(ownership.length);$("shareLedgerStatus").textContent=findings.length?"Review needed":"Checks passed";
 const rows=list=>list.length?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Company / Business</th><th>Buyer / New Owner</th><th>Seller / Old Owner</th><th>Shares / Stake</th><th>Amount</th><th>Cash check</th></tr></thead><tbody>'+list.map(t=>{const total=Number(t.total??t.price)||0;let check="Recorded";if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null){const ok=Math.abs(Number(t.buyerCashBefore)-total-Number(t.buyerCashAfter))<0.0001;check=ok?"Pass":"Mismatch";}return '<tr><td>'+esc(t.at?new Date(t.at).toLocaleString():(t.createdAt?new Date(t.createdAt).toLocaleString():"—"))+'</td><td>'+esc(t.type||"Ledger event")+'</td><td>'+esc(t.company||t.business||"—")+'</td><td>'+esc(t.buyer||t.buyerName||"—")+'</td><td>'+esc(t.seller||t.sellerName||"—")+'</td><td>'+(t.shares!=null?Number(t.shares)+" shares":(t.percentage!=null?pct(t.percentage):"—"))+'</td><td>'+money(total)+'</td><td>'+check+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="muted">No events recorded for this view yet. The ledger does not invent missing history.</p>';
-if(view==="businesscash"){try{renderBusinessCashLedger();}catch(err){console.error("Business Cash Ledger render failed",err);out.innerHTML="<h3>Business &amp; Team Cash Ledger</h3><p class=\"gold\">The ledger view encountered an error while loading. Your records were not changed.</p><pre style=\"white-space:pre-wrap;overflow-wrap:anywhere\">"+esc(err&&err.message?err.message:String(err))+"</pre>";}return;}
-if(view==="financial"){try{renderUnifiedFinancialLedger();}catch(err){console.error("Unified Financial Ledger render failed",err);out.innerHTML="<h3>Unified Financial Transaction Ledger</h3><p class=\"gold\">The ledger view encountered an error while loading. Your records were not changed.</p><pre style=\"white-space:pre-wrap;overflow-wrap:anywhere\">"+esc(err&&err.message?err.message:String(err))+"</pre>";}return;}
+if(view==="businesscash"){renderBusinessCashLedger();return;}
+if(view==="financial"){renderUnifiedFinancialLedger();return;}
 if(view==="cashaudit"){renderCashAudit();return;}
 if(view==="audit")out.innerHTML='<h3>Reconciliation Results</h3>'+(findings.length?'<ul>'+findings.map(f=>'<li class="gold">'+esc(f)+'</li>').join("")+'</ul>':'<p class="goodbtn" style="padding:10px;border-radius:8px">No discrepancies found by the current checks.</p>')+'<p class="tiny">These checks cover current share-supply arithmetic, recorded ownership totals, and cash arithmetic in available transaction records. They do not prove that every historical transaction was captured before this ledger existed.</p>';
 else if(view==="trades")out.innerHTML='<h3>Share Trades</h3>'+rows(trades);
 else if(view==="ownership")out.innerHTML='<h3>Ownership Transfers</h3>'+rows(ownership);
 else out.innerHTML='<h3>All Share &amp; Ownership Events</h3>'+rows(all);
 }
-window.renderShareOwnershipLedger = renderShareOwnershipLedger;
- 
 function bindShareOwnershipLedger(){
-const open=$("openShareOwnershipLedgerHome"),close=$("shareOwnershipLedgerClose"),refresh=$("shareOwnershipLedgerRefresh"),nav=$("shareOwnershipLedgerNavigation");
-if(open&&!open.dataset.ledgerBound){open.dataset.ledgerBound="1";open.addEventListener("click",()=>openShareOwnershipLedger("all"));}
-if(close&&!close.dataset.ledgerBound){close.dataset.ledgerBound="1";close.addEventListener("click",closeShareOwnershipLedger);}
-if(refresh&&!refresh.dataset.ledgerBound){refresh.dataset.ledgerBound="1";refresh.addEventListener("click",()=>renderShareOwnershipLedger("audit"));}
-if(nav&&!nav.dataset.ledgerBound){
- nav.dataset.ledgerBound="1";
- nav.addEventListener("click",function(event){
-  const button=event.target.closest("button[data-ledger-view]");
-  if(!button||!nav.contains(button))return;
-  event.preventDefault();
-  event.stopPropagation();
-  renderShareOwnershipLedger(button.getAttribute("data-ledger-view"));
-  nav.querySelectorAll("button[data-ledger-view]").forEach(b=>b.classList.toggle("active",b===button));
- },false);
+const open=$("openShareOwnershipLedgerHome"),close=$("shareOwnershipLedgerClose"),refresh=$("shareOwnershipLedgerRefresh"),modal=$("shareOwnershipLedgerModal");
+if(open)open.addEventListener("click",()=>openShareOwnershipLedger("all"));if(close)close.addEventListener("click",closeShareOwnershipLedger);if(refresh)refresh.addEventListener("click",()=>renderShareOwnershipLedger("audit"));
+if(modal){
+ modal.addEventListener("click",e=>{
+  const button=e.target&&e.target.closest?e.target.closest("[data-share-ledger-view]"):null;
+  if(button&&modal.contains(button)){e.preventDefault();e.stopPropagation();renderShareOwnershipLedger(button.getAttribute("data-share-ledger-view"));return;}
+  if(e.target===modal)closeShareOwnershipLedger();
+ });
 }
 getShareOwnershipLedger();
 }
 document.addEventListener("DOMContentLoaded",bindShareOwnershipLedger);if(document.readyState!=="loading")bindShareOwnershipLedger();
-// 4.24.41: Explicit bridges let the separately scoped ledger view access the authoritative app constants and sync routine.
-window.__calvinsCityTeamOpeningCash=TEAM_OPENING_CASH;
-window.__calvinsCitySyncUnifiedFinancialLedger=syncUnifiedFinancialLedger;
  
 function transact(){
 const st=getState(),actor=selectedCitizen($("stockTradingCitizen").value),company=$("stockTradingCompany").value,action=$("stockTradingAction").value,count=Math.floor(Number($("stockTradingShares").value)||0),other=selectedCitizen($("stockTradingCounterparty").value),co=db.companies[company];
@@ -6102,7 +6064,7 @@ if(document.readyState!=="loading")bind();
  
  
 <script>
-/* 4.24.39: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
+/* 4.24.36: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
 (function(){
 "use strict";
 const bridge=window.__calvinsCityBridge;if(!bridge||typeof bridge.getState!=="function")return;
