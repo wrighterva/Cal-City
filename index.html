@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.51 -->
-<!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
+<!-- Build identity: 4.24.52. Season 29 Game 0 reset plus Market Money authoritative citizen cash and Player Ledger reconciliation. -->
  
 <html lang="en">
 <head>
@@ -636,7 +636,7 @@ if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPla
   in-memory copies with the current browser copy and refuse malformed saved data. */
 /* 4.23.1: Save and verify a full recovery snapshot before returning to Season 29 Game 0 for offseason-feature testing.
   This does not modify the separate BETS database. The reset is blocked if backup fails. */
-const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_24_11";
+const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_24_52";
 let season29RestoreBackupReady=false;
 try{
  const snapshot=JSON.stringify({
@@ -659,7 +659,7 @@ const season29ResetBlockedByBackup=!season29RestoreBackupReady;
   This runs once for this build. It preserves Seasons 1–28 and retired-player
   history, captures Season 29+ game records above for BETS import, restores the
   approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.24.11" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
+if(state.season29FreshStartVersion!=="4.24.52" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -682,9 +682,9 @@ if(state.season29FreshStartVersion!=="4.24.11" && !season29ResetBlockedByStaging
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
  state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
  /* Force the existing, well-tested Season 29 opening baseline migration to run. */
- state.season29OpeningRestoreVersion="4.24.11-pending";
- state.season29FullBaselineRestoreVersion="pending-4.24.11";
- state.season29FreshStartVersion="4.24.11";
+ state.season29OpeningRestoreVersion="4.24.52-pending";
+ state.season29FullBaselineRestoreVersion="pending-4.24.52";
+ state.season29FreshStartVersion="4.24.52";
  try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
  catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
 }
@@ -5991,43 +5991,67 @@ if(sharesHeld(co,holdingKey)<count){fail(actor.name+" does not have enough share
 const price=Number(co.price)||0,total=round4(price*count),mm=db.marketMoney;
 if(!Number.isFinite(total)||total<=0){fail("The buyback value is invalid.");return;}
 if(!mm||Number(mm.balance)<total){fail("Market Money has insufficient reserve funds. Required: "+money(total)+". Available: "+money(mm?mm.balance:0)+". No changes were made.");return;}
+const st=getState();
+const citizenId=String(actor.id||actor.key||"");
+const citizen=(Array.isArray(st.citizens)?st.citizens:[]).find(c=>c&&String(c.id)===citizenId);
+if(!citizen){fail("The authoritative citizen account could not be found. No changes were made.");return;}
 const at=new Date().toISOString(),id="MMB-"+Date.now()+"-"+Math.random().toString(36).slice(2,8);
-const before=Number(actor.getCash()),reserveBefore=Number(mm.balance),snapshot=JSON.stringify(db);
+const before=Number(citizen.cash),reserveBefore=Number(mm.balance),stateSnapshot=JSON.stringify(st),dbSnapshot=JSON.stringify(db);
 try{
  if(!Number.isFinite(before))throw new Error("Citizen cash balance is unavailable.");
- actor.setCash(round4(before+total));
- /* Confirm the authoritative citizen record actually received the payout. */
- const credited=Number(actor.getCash());
- if(!Number.isFinite(credited)||Math.abs(credited-round4(before+total))>0.0001)throw new Error("Citizen cash credit could not be verified. The buyback was rolled back.");
- /* Market Sell: remove shares from the citizen's holding. The company holding
-    register then treats them as available from the authorized 500-share pool;
-    Market Money never receives a permanent shareholder allocation. */
+ /* Credit the canonical citizen object in the main season database, not a detached selector wrapper. */
+ citizen.cash=round4(before+total);
+ if(!Number.isFinite(Number(citizen.cash))||Math.abs(Number(citizen.cash)-round4(before+total))>0.0001)throw new Error("Authoritative citizen cash credit could not be verified.");
  updateHolding(co,holdingKey,actor.name,-count);
  mm.balance=round4(reserveBefore-total);
  mm.gamesSinceBuyback=0;
- const tx={id,at,season:Number(getState().year)||29,gameCount:Number(getState().gameCount)||0,type:"Market Money Buyback",company,shares:count,price,total,citizenId:String(actor.id||actor.key),citizen:actor.name,citizenCashBefore:before,citizenCashAfter:credited,reserveBefore,reserveAfter:mm.balance,companyCashChanged:false,status:"completed"};
- db.transactions.push(tx);mm.transactions.push({...tx});
- if(!Array.isArray(getState().stockMarketCashLedger))getState().stockMarketCashLedger=[];
- getState().stockMarketCashLedger.push({...tx});
- /* The player ledger lives in the main Season 29 state, not the stock-market DB.
-    Persist the cash credit and its citizen-ledger event before confirming success. */
- if(typeof recordPlayerLedgerTransaction==="function"){
-  recordPlayerLedgerTransaction({player:actor.name,amount:total,type:"Market Money Buyback",reason:"Sold "+count+" share(s) of "+company+" back to Market Money",payer:"Market Money",recipient:actor.name,season:Number(getState().year)||29,source:"Market Money buyback",before,after:credited,codeLocation:"transactMarketMoneyBuyback"});
- }else{
-  const st=getState();st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
-  st.playerLedgerTransactions.push({id:"PLT-"+id,at,season:Number(st.year)||29,gameCount:Array.isArray(st.gamesPlayed)?st.gamesPlayed.length:0,player:actor.name,amount:total,type:"Market Money Buyback",reason:"Sold "+count+" share(s) of "+company+" back to Market Money",payer:"Market Money",recipient:actor.name,source:"Market Money buyback",balanceBefore:before,balanceAfter:credited,codeLocation:"transactMarketMoneyBuyback"});
- }
+ const tx={id,at,season:Number(st.year)||29,gameCount:Array.isArray(st.gamesPlayed)?st.gamesPlayed.length:0,type:"Market Money Buyback",company,shares:count,price,total,citizenId,citizen:citizen.name||actor.name,citizenCashBefore:before,citizenCashAfter:Number(citizen.cash),reserveBefore,reserveAfter:mm.balance,companyCashChanged:false,status:"completed",cashCreditVerified:true};
+ db.transactions=Array.isArray(db.transactions)?db.transactions:[];
+ mm.transactions=Array.isArray(mm.transactions)?mm.transactions:[];
+ db.transactions.push({...tx});mm.transactions.push({...tx});
+ st.stockMarketCashLedger=Array.isArray(st.stockMarketCashLedger)?st.stockMarketCashLedger:[];
+ st.stockMarketCashLedger.push({...tx});
+ st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
+ const ledgerEntry={id:"PLT-"+id,at,season:Number(st.year)||29,gameCount:Array.isArray(st.gamesPlayed)?st.gamesPlayed.length:0,player:String(citizen.name||actor.name),citizenId,amount:total,type:"Market Money Buyback",reason:"Sold "+count+" share(s) of "+company+" back to Market Money",payer:"Market Money",recipient:String(citizen.name||actor.name),source:"Market Money buyback",balanceBefore:before,balanceAfter:Number(citizen.cash),codeLocation:"transactMarketMoneyBuyback",transactionId:id};
+ st.playerLedgerTransactions.push(ledgerEntry);
+ /* Persist the canonical season/citizen state first, then the market database. */
  save();
  saveDB(db);
  if(typeof window.recordShareOwnershipLedger==="function")window.recordShareOwnershipLedger({...tx,cashDirection:"market-money-to-citizen",status:"completed"});
  renderAll();
- if(message)message.textContent="Market Sell complete: Market Money paid "+money(total)+" for "+count+" "+company+" share"+(count===1?"":"s")+". Shares returned to the available 500-share pool. Company cash was unchanged.";
+ if(message)message.textContent="Market Sell complete: "+money(total)+" credited to "+String(citizen.name||actor.name)+" and recorded in the Player Ledger. Market Money paid for "+count+" "+company+" share"+(count===1?"":"s")+". Shares returned to the available 500-share pool. Company cash was unchanged.";
 }catch(err){
- try{db=JSON.parse(snapshot);saveDB(db);}catch(e){}
- try{actor.setCash(before);}catch(e){}
+ try{const restored=JSON.parse(stateSnapshot);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,restored);save();}catch(e){}
+ try{db=JSON.parse(dbSnapshot);saveDB(db);}catch(e){}
  fail("Buyback failed and was rolled back: "+String(err.message||err));
 }
 }
+/* 4.24.52: Safely reconcile a previous Market Money payout only when its recorded
+  pre-sale cash exactly matches the current canonical citizen cash. This prevents
+  duplicate credits and leaves ambiguous histories untouched for manual review. */
+function reconcilePendingMarketMoneyCitizenCredits(){
+const mm=db&&db.marketMoney;if(!mm||!Array.isArray(mm.transactions))return;
+const st=getState();let changed=false;
+(mm.transactions||[]).forEach(tx=>{
+ if(!tx||tx.type!=="Market Money Buyback"||tx.legacyCashReconciled||tx.cashCreditVerified===true)return;
+ const id=String(tx.citizenId||"");
+ const citizen=(Array.isArray(st.citizens)?st.citizens:[]).find(c=>c&&String(c.id)===id);
+ const amount=Number(tx.total),before=Number(tx.citizenCashBefore);
+ if(!citizen||!Number.isFinite(amount)||amount<=0||!Number.isFinite(before))return;
+ /* Only repair a provably missing credit: canonical cash still equals exact recorded pre-sale cash. */
+ if(Math.abs(Number(citizen.cash)-before)>0.0001)return;
+ const at=new Date().toISOString(),after=round4(before+amount);
+ citizen.cash=after;
+ st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
+ const exists=st.playerLedgerTransactions.some(e=>e&&String(e.transactionId||e.id||"")===String(tx.id||""));
+ if(!exists)st.playerLedgerTransactions.push({id:"PLT-RECON-"+String(tx.id),transactionId:String(tx.id),at,season:Number(tx.season)||29,gameCount:Number(tx.gameCount)||0,player:String(citizen.name||tx.citizen||""),citizenId:id,amount,type:"Market Money Buyback Reconciliation",reason:"Reconciled missing cash credit for prior sale of "+Number(tx.shares||1)+" share(s) of "+String(tx.company||"company")+" to Market Money",payer:"Market Money",recipient:String(citizen.name||tx.citizen||""),source:"Market Money buyback reconciliation",balanceBefore:before,balanceAfter:after,codeLocation:"reconcilePendingMarketMoneyCitizenCredits"});
+ tx.legacyCashReconciled=true;tx.reconciledAt=at;tx.reconciledCashBefore=before;tx.reconciledCashAfter=after;tx.cashCreditVerified=true;changed=true;
+ const mainTx=(db.transactions||[]).find(e=>e&&String(e.id)===String(tx.id));if(mainTx){mainTx.legacyCashReconciled=true;mainTx.reconciledAt=at;mainTx.reconciledCashBefore=before;mainTx.reconciledCashAfter=after;mainTx.cashCreditVerified=true;}
+});
+if(changed){save();saveDB(db);}
+}
+try{reconcilePendingMarketMoneyCitizenCredits();}catch(reconcileError){console.error("Market Money legacy cash reconciliation needs review:",reconcileError);}
+ 
 window.processMarketMoneyGameInterest=function(season,gameCount){
 const mm=db.marketMoney;if(!mm)return false;
 const gameKey=String(Number(season)||Number(getState().year)||29)+":"+String(Number(gameCount)||0);
