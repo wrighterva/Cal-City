@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.48 -->
+<!-- CALVIN'S CITY — VERSION 4.24.49 -->
 <!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.48 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.49 — TV Company Modal & Ownership View</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -202,7 +202,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
  <div><label for="stockTradingCitizen">Citizen account</label><select id="stockTradingCitizen" style="width:100%"></select></div>
  <div><label for="stockTradingCompany">Company stock</label><select id="stockTradingCompany" style="width:100%"></select></div>
- <div><label for="stockTradingAction">Trade action</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option><option value="sellMarketMoney">Sell back to Market Money</option></select></div>
+ <div><label for="stockTradingAction">Trade action</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option><option value="sellMarketMoney">Market Sell (Sell Back to Market)</option></select></div>
  <div><label for="stockTradingCounterparty">Other citizen</label><select id="stockTradingCounterparty" style="width:100%"></select></div>
  <div><label for="stockTradingShares">Number of shares</label><input id="stockTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></div>
 </div>
@@ -5635,7 +5635,7 @@ if(mode==='priceChart'){renderStockPriceChart();return;}else if(mode==='closeCha
    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">'+
    '<div><label for="stockTradingCitizen">Trading account (citizen or business)</label><select id="stockTradingCitizen" style="width:100%"></select></div>'+
    '<div><label for="stockTradingCompany">Company</label><select id="stockTradingCompany" style="width:100%"></select></div>'+
-   '<div><label for="stockTradingAction">Transaction type</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option><option value="sellMarketMoney">Sell back to Market Money</option></select></div>'+
+   '<div><label for="stockTradingAction">Transaction type</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option><option value="sellMarketMoney">Market Sell (Sell Back to Market)</option></select></div>'+
    '<div><label for="stockTradingCounterparty">Other account (if applicable)</label><select id="stockTradingCounterparty" style="width:100%"></select></div>'+
    '<div><label for="stockTradingShares">Number of shares</label><input id="stockTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></div></div>'+
    '<p id="stockTradeQuote" class="log" style="margin:10px 0">Calculating trade quote…</p>'+
@@ -5981,6 +5981,9 @@ const before=Number(actor.getCash()),reserveBefore=Number(mm.balance),snapshot=J
 try{
  if(!Number.isFinite(before))throw new Error("Citizen cash balance is unavailable.");
  actor.setCash(round4(before+total));
+ /* Market Sell: remove shares from the citizen's holding. The company holding
+    register then treats them as available from the authorized 500-share pool;
+    Market Money never receives a permanent shareholder allocation. */
  updateHolding(co,holdingKey,actor.name,-count);
  mm.balance=round4(reserveBefore-total);
  mm.gamesSinceBuyback=0;
@@ -5991,7 +5994,7 @@ try{
  saveDB(db);
  if(typeof window.recordShareOwnershipLedger==="function")window.recordShareOwnershipLedger({...tx,cashDirection:"market-money-to-citizen",status:"completed"});
  renderAll();
- if(message)message.textContent="Buyback complete: Market Money paid "+money(total)+" for "+count+" "+company+" share"+(count===1?"":"s")+". Shares returned to the available 500-share pool. Company cash was unchanged.";
+ if(message)message.textContent="Market Sell complete: Market Money paid "+money(total)+" for "+count+" "+company+" share"+(count===1?"":"s")+". Shares returned to the available 500-share pool. Company cash was unchanged.";
 }catch(err){
  try{db=JSON.parse(snapshot);saveDB(db);}catch(e){}
  try{actor.setCash(before);}catch(e){}
