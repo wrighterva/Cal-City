@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.49 -->
+<!-- CALVIN'S CITY — VERSION 4.24.50 -->
 <!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.49 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.50 — TV Company Modal & Ownership View</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -5647,6 +5647,21 @@ if(mode==='priceChart'){renderStockPriceChart();return;}else if(mode==='closeCha
   modal.innerHTML='<section class="card" style="width:min(100%,960px);max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:#1e293b;color:#f8fafc;border:1px solid #53647c;border-radius:14px;padding:16px;box-sizing:border-box;box-shadow:0 24px 80px rgba(0,0,0,.55)"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0">'+(mode==='buy'?'Buy Shares':'Sell Shares')+' · '+esc(name)+'</h3><p class="tiny" style="color:#d5deea;margin:5px 0 0">Choose the accounts and share amount, and review current shareholders before confirming.</p></div><button type="button" id="closeStockTradeModal" class="market-back" aria-label="Close share trading">Close ✕</button></div><div id="stockTradeModalBody"></div><div id="stockTradeModalRegister" style="margin-top:16px"></div></section>';
   document.body.appendChild(modal);
   const modalBody=modal.querySelector('#stockTradeModalBody');if(modalBody)modalBody.appendChild(tradeCard);
+  const syncCounterpartyVisibility=()=>{
+   const actionEl=tradeCard.querySelector('#stockTradingAction');
+   const counterpartyEl=tradeCard.querySelector('#stockTradingCounterparty');
+   if(!actionEl||!counterpartyEl)return;
+   const field=counterpartyEl.closest('div');
+   const isMarketSell=actionEl.value==='sellMarketMoney';
+   if(field)field.style.display=isMarketSell?'none':'';
+   counterpartyEl.disabled=isMarketSell;
+   if(isMarketSell)counterpartyEl.value='';
+  };
+  const tradeActionSelect=tradeCard.querySelector('#stockTradingAction');
+  if(tradeActionSelect){
+   tradeActionSelect.addEventListener('change',syncCounterpartyVisibility);
+   syncCounterpartyVisibility();
+  }
   let escHandler=null;const closeModal=()=>{if(escHandler)document.removeEventListener('keydown',escHandler);showCompanySubpanel('closeTrade');};
   modal.querySelector('#closeStockTradeModal').addEventListener('click',closeModal);
   modal.addEventListener('click',ev=>{if(ev.target===modal)closeModal();});
