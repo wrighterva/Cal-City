@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.26 -->
-<!-- Build identity: 4.24.26. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
+<!-- CALVIN'S CITY — VERSION 4.24.27 -->
+<!-- Build identity: 4.24.27. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
@@ -5321,6 +5321,46 @@ if(!db.userProvidedShareholderEntriesV1Imported){
 return db;
 }
 let db=loadDB();
+/* 4.24.27: At the untouched Season 29 opening, reconcile stale persisted stock
+  prices to the agreed starting formula: current company/team cash ÷ 500 shares.
+  This changes current prices only; it preserves shareholder holdings, completed
+  trades, prior price history, and annual reports. It will not run after Season 29
+  has begun or if Season 29 has a completed annual price report. */
+(function reconcileSeason29OpeningMarketPrices(){
+const st=getState();
+const season=Number(st&&st.year)||0;
+const untouchedOpening=season===29 &&
+  st.seasonPlayed!==true &&
+  Array.isArray(st.gamesPlayed) && st.gamesPlayed.length===0 &&
+  String(st.seasonPhase||"regular")==="regular";
+if(!untouchedOpening)return;
+const hasSeason29Report=(db.annualReports||[]).some(r=>Number(r&&r.season)===29);
+const hasSeason29PriceHistory=companies.some(def=>
+  ((db.companies[def.name]||{}).priceHistory||[]).some(r=>Number(r&&r.season)===29)
+);
+if(hasSeason29Report||hasSeason29PriceHistory)return;
+if(db.season29OpeningMarketCashPriceReconciled===true)return;
+const before={},after={};
+companies.forEach(def=>{
+  const co=db.companies[def.name];
+  if(!co)return;
+  const cash=Number(def.category==="Basketball Teams"
+    ?(st.teamCash||{})[def.name]
+    :(st.businessCash||{})[def.name]);
+  const resolvedCash=Number.isFinite(cash)?cash:Number(def.cashSeed)||0;
+  before[def.name]={price:Number(co.price)||0,marketCap:round4((Number(co.price)||0)*TOTAL_SHARES)};
+  co.price=round4(resolvedCash/TOTAL_SHARES);
+  co.initialCashValue=resolvedCash;
+  after[def.name]={cash:resolvedCash,price:co.price,marketCap:round4(co.price*TOTAL_SHARES)};
+});
+db.season29OpeningMarketCashPriceReconciled=true;
+db.season29OpeningMarketCashPriceReconciliation={
+  at:new Date().toISOString(),season:29,status:"Applied",
+  reason:"Reconciled opening stock prices to opening cash ÷ 500 shares before any Season 29 game or annual price report.",
+  before,after,holdingsChanged:false,transactionsChanged:false,priceHistoryDeleted:false
+};
+saveDB(db);
+})();
 function saveDB(next){
 next.updatedAt=new Date().toISOString();
 localStorage.setItem(STORAGE_KEY,JSON.stringify(next));
