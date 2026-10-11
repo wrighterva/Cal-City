@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.5 -->
-<!-- Build identity: 4.24.10. Fresh Season 29 test reset; backup-first; Seasons 1–28 and BETS preserved. -->
+<!-- Build identity: 4.24.11. Season 29 fresh test reset + stock chart modal with background lock. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.10 — Season 29 Fresh Test Reset 4.24.2</title>
+<title>Calvin's City 4.24.11 — Season 29 Reset + Chart Popup 4.24.2</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -599,7 +599,7 @@ if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPla
   in-memory copies with the current browser copy and refuse malformed saved data. */
 /* 4.23.1: Save and verify a full recovery snapshot before returning to Season 29 Game 0 for offseason-feature testing.
   This does not modify the separate BETS database. The reset is blocked if backup fails. */
-const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_24_10";
+const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_24_11";
 let season29RestoreBackupReady=false;
 try{
  const snapshot=JSON.stringify({
@@ -622,7 +622,7 @@ const season29ResetBlockedByBackup=!season29RestoreBackupReady;
   This runs once for this build. It preserves Seasons 1–28 and retired-player
   history, captures Season 29+ game records above for BETS import, restores the
   approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.24.10" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
+if(state.season29FreshStartVersion!=="4.24.11" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -645,9 +645,9 @@ if(state.season29FreshStartVersion!=="4.24.10" && !season29ResetBlockedByStaging
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
  state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
  /* Force the existing, well-tested Season 29 opening baseline migration to run. */
- state.season29OpeningRestoreVersion="4.24.10-pending";
- state.season29FullBaselineRestoreVersion="pending-4.24.10";
- state.season29FreshStartVersion="4.24.10";
+ state.season29OpeningRestoreVersion="4.24.11-pending";
+ state.season29FullBaselineRestoreVersion="pending-4.24.11";
+ state.season29FreshStartVersion="4.24.11";
  try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
  catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
 }
@@ -5216,6 +5216,18 @@ function renderMarketTableCardsOnly(){
 const out=$("stockMarketTable");if(!out)return;
 out.querySelectorAll('[data-market-company]').forEach(btn=>{btn.style.outline=btn.getAttribute('data-market-company')===selectedMarketCompany?'2px solid var(--accent,#6ba8ff)':'';});
 }
+function closeStockChartModal(){
+const modal=document.getElementById('stockPriceChartModal');
+if(modal)modal.remove();
+if(typeof window.__calCityChartEscapeHandler==='function'){
+ document.removeEventListener('keydown',window.__calCityChartEscapeHandler);
+ window.__calCityChartEscapeHandler=null;
+}
+if(typeof window.__calCityChartPreviousOverflow==='string'){
+ document.body.style.overflow=window.__calCityChartPreviousOverflow;
+ window.__calCityChartPreviousOverflow=null;
+}
+}
 function renderStockPriceChart(){
 const out=$("stockCompanySubpanel"),name=selectedMarketCompany,co=db.companies[name];if(!out||!co)return;
 const raw=(co.priceHistory||[]).slice().sort((a,b)=>(Number(a.season)||0)-(Number(b.season)||0));
@@ -5231,12 +5243,28 @@ const yTicks=4;let grid='';for(let i=0;i<=yTicks;i++){const v=hi-(hi-lo)*i/yTick
 const dots=points.map((p,i)=>'<circle cx="'+x(i)+'" cy="'+y(p.price)+'" r="4" fill="#60a5fa"><title>'+esc(p.label+': '+money(p.price)+(p.move==null?'':' ('+(p.move>=0?'+':'')+p.move.toFixed(2)+'%)'))+'</title></circle>').join('');
 const labels=points.map((p,i)=>{if(points.length>8&&i%Math.ceil(points.length/8)!==0&&i!==points.length-1)return '';return '<text x="'+x(i)+'" y="'+(height-bottom+22)+'" text-anchor="middle" fill="#d5deea" font-size="11">'+esc(p.label.replace('Season ','S'))+'</text>';}).join('');
 const rows=points.slice().reverse().map(p=>'<tr><td>'+esc(p.label)+'</td><td>'+money(p.price)+'</td><td>'+(p.move==null?'Baseline / no prior move':pct(p.move))+'</td></tr>').join('');
-out.innerHTML='<section class="card market-price-chart-panel" style="margin-top:14px;background:#1e293b;color:#f8fafc;border:1px solid #53647c"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h4 style="margin:0">'+esc(name)+' — Stock Price History</h4><p class="tiny" style="color:#d5deea;margin:5px 0 0">Historical closing price by recorded season. Scroll down for the full price ledger.</p></div><button type="button" class="market-back" data-market-action="closeChart">Close chart</button></div><div style="width:100%;overflow-x:auto;margin-top:10px"><svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Stock price history chart for '+esc(name)+'" style="width:100%;min-width:520px;height:auto;display:block">'+grid+'<path d="'+path+'" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>'+dots+labels+'</svg></div><div style="overflow-x:auto;max-height:260px;overflow-y:auto;margin-top:10px"><table><thead><tr><th>Period</th><th>Closing price</th><th>Price move</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';
+closeStockChartModal();
+const overlay=document.createElement('div');
+overlay.id='stockPriceChartModal';
+overlay.setAttribute('role','dialog');
+overlay.setAttribute('aria-modal','true');
+overlay.setAttribute('aria-label',name+' stock price history');
+overlay.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(2,6,23,.78);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;';
+overlay.innerHTML='<section class="card market-price-chart-panel" style="width:min(100%,900px);max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;background:#1e293b;color:#f8fafc;border:1px solid #53647c;border-radius:14px;padding:16px;box-sizing:border-box;box-shadow:0 24px 80px rgba(0,0,0,.55)"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h4 style="margin:0">'+esc(name)+' — Stock Price History</h4><p class="tiny" style="color:#d5deea;margin:5px 0 0">Historical closing price by recorded season. Scroll inside this window for the full price ledger.</p></div><button type="button" id="closeStockPriceChart" class="market-back" aria-label="Close stock price chart">Close ✕</button></div><div style="width:100%;overflow-x:auto;margin-top:10px"><svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Stock price history chart for '+esc(name)+'" style="width:100%;min-width:520px;height:auto;display:block">'+grid+'<path d="'+path+'" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>'+dots+labels+'</svg></div><div style="overflow-x:auto;max-height:260px;overflow-y:auto;overscroll-behavior:contain;margin-top:10px"><table><thead><tr><th>Period</th><th>Closing price</th><th>Price move</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';
+document.body.appendChild(overlay);
+window.__calCityChartPreviousOverflow=document.body.style.overflow;
+document.body.style.overflow='hidden';
+const closeBtn=overlay.querySelector('#closeStockPriceChart');
+if(closeBtn)closeBtn.addEventListener('click',closeStockChartModal);
+overlay.addEventListener('click',function(ev){if(ev.target===overlay)closeStockChartModal();});
+window.__calCityChartEscapeHandler=function(ev){if(ev.key==='Escape')closeStockChartModal();};
+document.addEventListener('keydown',window.__calCityChartEscapeHandler);
+if(closeBtn)closeBtn.focus();
 }
 function showCompanySubpanel(mode){
 const out=$("stockCompanySubpanel"),name=selectedMarketCompany,co=db.companies[name];if(!out||!co)return;
 const existingTrade=$("stockTradeCard")||detachedStockTradeCard;if(existingTrade&&existingTrade.parentNode===out){detachedStockTradeCard=existingTrade;existingTrade.remove();}
-if(mode==='priceChart'){renderStockPriceChart();return;}else if(mode==='closeChart'){out.innerHTML='';return;}else if(mode==='holders'){
+if(mode==='priceChart'){renderStockPriceChart();return;}else if(mode==='closeChart'){closeStockChartModal();out.innerHTML='';return;}else if(mode==='holders'){
  const rows=Object.entries(co.holdings||{}).filter(([k,v])=>(Number(v)||0)>0).map(([key,shares])=>'<tr><td>'+esc(co.ownerNames&&co.ownerNames[key]?co.ownerNames[key]:ownerNameForKey(key,db))+'</td><td>'+Number(shares)+'</td><td>'+pct(Number(shares)/TOTAL_SHARES*100)+'</td><td>'+money(Number(shares)*co.price)+'</td></tr>').join('');
  out.innerHTML='<h4>Shareholder Register</h4>'+(co.needsAllocationReview?'<p class="gold">Allocation review required; no missing holder data has been fabricated.</p>':'')+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Shareholder</th><th>Shares</th><th>Ownership</th><th>Current Value</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No recovered shareholder allocations recorded.</p>');
 }else if(mode==='reports'){
