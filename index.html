@@ -3166,9 +3166,39 @@ if(!alreadyRecorded){
 }
 return citizen;
 }
+/* 4.24.7: Keep actual player status synchronized with roster membership.
+  Roster membership is authoritative: retired players stay retired; every other
+  player with no roster slot becomes a Free Agent. This also repairs stale
+  "Active Player" status and stale currentTeam values left by player creation. */
+function reconcilePlayerRosterStatus(){
+let changed=false;
+const rosterByName=new Map();
+Object.entries(state.roster||{}).forEach(([key,name])=>{
+  if(!name)return;
+  const parts=String(key).split("_");
+  rosterByName.set(String(name).trim().toLowerCase(),{team:parts[0]||null,position:parts[1]||null});
+});
+(state.citizens||[]).forEach(c=>{
+  if(!c||!c.name)return;
+  const status=String(c.status||"").trim().toLowerCase();
+  if(status==="retired")return;
+  const roster=rosterByName.get(String(c.name).trim().toLowerCase());
+  if(roster){
+    if(c.status!=="Active Player"){c.status="Active Player";changed=true;}
+    if(c.currentTeam!==roster.team){c.currentTeam=roster.team;changed=true;}
+    if(roster.position&&c.position!==roster.position){c.position=roster.position;changed=true;}
+  }else if(status==="active player"||status==="free agent"){
+    if(c.status!=="Free Agent"){c.status="Free Agent";changed=true;}
+    if(c.currentTeam!=null){c.currentTeam=null;changed=true;}
+  }
+});
+if(changed)save();
+return changed;
+}
 function renderFreeAgentMarket(){
 const out=document.getElementById("freeAgentsMarketList");
 if(!out)return;
+reconcilePlayerRosterStatus();
 const search=document.getElementById("freeAgentSearch");
 const query=String(search&&search.value||"").trim().toLowerCase();
 const rosterNames=new Set(Object.values(state.roster||{}).filter(Boolean).map(n=>String(n).trim().toLowerCase()));
