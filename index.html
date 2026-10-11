@@ -4967,6 +4967,14 @@ function refreshLedgerIfVisible(){
    '<button type="button" class="player-ledger-btn" data-ownership-citizen="'+esc(id)+'" style="margin-top:8px">Manage Business Stakes</button>';
  });
 }
+function updateStakeInputLimit(){
+ if(!percentInput||!businessSelect||!citizenSelect)return;
+ const business=businessSelect.value,owner=(recordForBusiness(business)?.owners||[]).find(o=>String(o.citizenId)===String(citizenSelect.value));
+ const max=round4(availablePercent(business,owner));
+ percentInput.max=String(max);
+ percentInput.setAttribute("aria-describedby","ownershipStakeValuePreview");
+ if(Number(percentInput.value)>max)percentInput.value=String(max);
+}
 function renderStakeValuePreview(){
  const preview=document.getElementById("ownershipStakeValuePreview");
  if(!preview)return;
@@ -4977,11 +4985,15 @@ function renderStakeValuePreview(){
   preview.innerHTML='<b>Stake value:</b> Enter a valid percentage.';
   return;
  }
+ const actingOwner=(record.owners||[]).find(o=>String(o.citizenId)===String(citizenSelect.value));
+ const maxAvailable=availablePercent(business,actingOwner);
+ if(value>maxAvailable+0.000001){preview.innerHTML='<b>Stake value:</b> You can offer at most '+pct(maxAvailable)+' based on your current unreserved ownership.';return;}
  const stakeValue=round4((Number(record.valuation)||0)*value/100);
  preview.innerHTML='<b>'+pct(value)+' stake</b> · Estimated cash value: <b>'+money(stakeValue)+'</b><div class="tiny muted">Based on the current business valuation; final offer value may change if valuation changes.</div>';
 }
 function render(){
  const st=state(),business=businessSelect.value,actingId=citizenSelect.value,record=recordForBusiness(business);
+ updateStakeInputLimit();
  if(!record){summary.innerHTML='<p class="muted">Business record unavailable.</p>';return;}
  const cash=st.businessCash&&st.businessCash[business]!=null?Number(st.businessCash[business]):Number(businessCashSeed[business])||0;
  const owners=(record.owners||[]).filter(o=>Number(o.percentage)>0);
@@ -5048,6 +5060,7 @@ function listStake(){
  const seller=citizenById(actingId),percentToSell=Number(percentInput.value);
  if(!seller||!record){message.textContent="Select a citizen and business first.";return;}
  if(!Number.isFinite(percentToSell)||percentToSell<=0){message.textContent="Enter a percentage greater than 0.";return;}
+ if(percentToSell>100){message.textContent="You cannot offer more than 100% ownership.";return;}
  const owner=(record.owners||[]).find(o=>String(o.citizenId)===String(seller.id));
  const available=availablePercent(business,owner);
  if(!owner||percentToSell>available+0.000001){message.textContent="This citizen does not own enough unreserved stake. Available to offer: "+pct(available)+".";return;}
@@ -5167,6 +5180,8 @@ function getState(){return bridge.getState();}
 function citizens(){const st=getState();return Array.isArray(st.citizens)?st.citizens:[];}
 function findCitizenByName(name){return citizens().find(c=>c&&norm(c.name)===norm(name))||null;}
 function ownerKeyFromName(name){
+const businessName=companies.find(def=>norm(def.name)===norm(name));
+if(businessName)return "BUSINESS:"+businessName.name;
 const c=findCitizenByName(name);
 return c&&c.id?String(c.id):"LEGACY:"+norm(name);
 }
@@ -5217,6 +5232,18 @@ companies.forEach(def=>{
 });
 db.transactions=Array.isArray(db.transactions)?db.transactions:[];
 db.annualReports=Array.isArray(db.annualReports)?db.annualReports:[];
+// One-time migration: company-name shareholders become business accounts, retaining the same shares.
+if(!db.businessShareAccountsMigrationV1){
+ companies.forEach(def=>{const co=db.companies[def.name];if(!co)return;co.holdings=co.holdings||{};co.ownerNames=co.ownerNames||{};co.holderPurchasePrices=co.holderPurchasePrices||{};
+  Object.keys(co.holdings).forEach(key=>{const holderName=co.ownerNames[key]||"";if(norm(holderName)!==norm(def.name)||key==="BUSINESS:"+def.name)return;
+   const newKey="BUSINESS:"+def.name;co.holdings[newKey]=(Number(co.holdings[newKey])||0)+(Number(co.holdings[key])||0);co.ownerNames[newKey]=def.name;
+   if(co.holderPurchasePrices[key]!=null&&co.holderPurchasePrices[newKey]==null)co.holderPurchasePrices[newKey]=co.holderPurchasePrices[key];
+   delete co.holdings[key];delete co.ownerNames[key];delete co.holderPurchasePrices[key];
+  });
+ });
+ db.businessShareAccountsMigrationV1=true;db.businessShareAccountsMigrationV1At=new Date().toISOString();
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
+}
 // One-time import of the shareholder entries explicitly supplied by the user.
 // This only adds these known allocations once; it does not replace company cash,
 // market prices, prior trades, reports, or existing holder balances.
@@ -5363,10 +5390,10 @@ if(mode==='priceChart'){renderStockPriceChart();return;}else if(mode==='closeCha
   tradeCard.style.marginTop='12px';
   tradeCard.innerHTML='<h4 style="margin-top:0">'+(mode==='buy'?'Buy Shares':'Sell Shares')+' · '+esc(name)+'</h4>'+
    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">'+
-   '<div><label for="stockTradingCitizen">Your citizen account</label><select id="stockTradingCitizen" style="width:100%"></select></div>'+
+   '<div><label for="stockTradingCitizen">Trading account (citizen or business)</label><select id="stockTradingCitizen" style="width:100%"></select></div>'+
    '<div><label for="stockTradingCompany">Company</label><select id="stockTradingCompany" style="width:100%"></select></div>'+
    '<div><label for="stockTradingAction">Transaction type</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option></select></div>'+
-   '<div><label for="stockTradingCounterparty">Other citizen (if applicable)</label><select id="stockTradingCounterparty" style="width:100%"></select></div>'+
+   '<div><label for="stockTradingCounterparty">Other account (if applicable)</label><select id="stockTradingCounterparty" style="width:100%"></select></div>'+
    '<div><label for="stockTradingShares">Number of shares</label><input id="stockTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></div></div>'+
    '<p id="stockTradeQuote" class="log" style="margin:10px 0">Calculating trade quote…</p>'+
    '<button id="stockExecuteTrade" type="button" class="goodbtn">Confirm '+(mode==='buy'?'Purchase':'Sale')+'</button>'+
@@ -5391,10 +5418,27 @@ if(mode==='priceChart'){renderStockPriceChart();return;}else if(mode==='closeCha
 function renderCompanyOptions(){
 const companyOptions=companies.map(c=>'<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>').join("");
 ["stockTradingCompany","stockRegisterCompany"].forEach(id=>{const el=$(id);if(el){const current=el.value;el.innerHTML=companyOptions;if(current&&companies.some(c=>c.name===current))el.value=current;}});
-const citizenOptions=citizens().filter(c=>c&&c.id&&String(c.name||"").trim()).sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+' ('+esc(c.id)+')</option>').join("");
-["stockTradingCitizen","stockTradingCounterparty"].forEach(id=>{const el=$(id);if(!el)return;const current=el.value;el.innerHTML=citizenOptions||'<option value="">No citizen accounts</option>';if(current&&Array.from(el.options).some(o=>o.value===current))el.value=current;});
+const accountOptions=buildAccountOptions();
+["stockTradingCitizen","stockTradingCounterparty"].forEach(id=>{const el=$(id);if(!el)return;const current=el.value;el.innerHTML=accountOptions||'<option value="">No accounts available</option>';if(current&&Array.from(el.options).some(o=>o.value===current))el.value=current;});
 updateTradeControls();
 }
+function buildAccountOptions(excludeValue){
+const list=[];
+citizens().filter(c=>c&&c.id&&String(c.name||"").trim()).forEach(c=>list.push({value:"CITIZEN:"+String(c.id),label:c.name+" · Citizen · Cash "+money(c.cash),sort:c.name}));
+const st=getState(),businessNames=Object.keys(st.businessCash||{});
+companies.forEach(def=>{if(!businessNames.includes(def.name))businessNames.push(def.name);});
+[...new Set(businessNames)].sort((a,b)=>a.localeCompare(b)).forEach(name=>{const cash=Number((st.businessCash||{})[name]??companies.find(c=>c.name===name)?.cashSeed)||0;list.push({value:"BUSINESS:"+name,label:name+" · Business · Cash "+money(cash),sort:name});});
+return list.filter(x=>x.value!==excludeValue).sort((a,b)=>a.sort.localeCompare(b.sort)||a.value.localeCompare(b.value)).map(x=>'<option value="'+esc(x.value)+'">'+esc(x.label)+'</option>').join("");
+}
+function resolveTradingAccount(value){
+const raw=String(value||"");
+if(raw.startsWith("CITIZEN:")){const id=raw.slice(8),c=citizens().find(x=>x&&String(x.id)===id);return c?{kind:"citizen",id:String(c.id),name:String(c.name||c.id),entity:c,getCash:()=>Number(c.cash),setCash:v=>{c.cash=round4(v);},key:String(c.id)}:null;}
+if(raw.startsWith("BUSINESS:")){const name=raw.slice(9),st=getState();st.businessCash=st.businessCash||{};if(st.businessCash[name]==null){const def=companies.find(c=>c.name===name);if(!def)return null;st.businessCash[name]=Number(def.cashSeed)||0;}return {kind:"business",id:name,name,entity:null,getCash:()=>Number(st.businessCash[name]),setCash:v=>{st.businessCash[name]=round4(v);},key:"BUSINESS:"+name};}
+// Compatibility with any older selector values that held a bare citizen ID.
+const c=citizens().find(x=>x&&String(x.id)===raw);return c?{kind:"citizen",id:String(c.id),name:String(c.name||c.id),entity:c,getCash:()=>Number(c.cash),setCash:v=>{c.cash=round4(v);},key:String(c.id)}:null;
+}
+function selectedCitizen(id){return resolveTradingAccount(id);}
+ 
 function selectedCitizen(id){return citizens().find(c=>c&&String(c.id)===String(id))||null;}
 function updateTradeControls(){
 const action=$("stockTradingAction"),actor=$("stockTradingCitizen"),other=$("stockTradingCounterparty"),company=$("stockTradingCompany");
@@ -5404,8 +5448,8 @@ other.disabled=a==="buyReserve";
 if(a==="buyReserve"){other.innerHTML='<option value="">Market Reserve</option>';}
 else{
  const current=other.value;
- const options=citizens().filter(c=>c&&c.id&&String(c.id)!==String(actor.value)&&String(c.name||"").trim()).sort((x,y)=>String(x.name).localeCompare(String(y.name))).map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+' ('+esc(c.id)+')</option>').join("");
- other.innerHTML=options||'<option value="">No other citizen accounts</option>';
+ const options=buildAccountOptions(actor.value);
+ other.innerHTML=options||'<option value="">No other accounts available</option>';
  if(current&&Array.from(other.options).some(o=>o.value===current))other.value=current;
 }
 const note=$("stockTradeMessage");
@@ -5437,7 +5481,7 @@ if(displayName)co.ownerNames[key]=displayName;
 }
 function transact(){
 const st=getState(),actor=selectedCitizen($("stockTradingCitizen").value),company=$("stockTradingCompany").value,action=$("stockTradingAction").value,count=Math.floor(Number($("stockTradingShares").value)||0),other=selectedCitizen($("stockTradingCounterparty").value),co=db.companies[company];
-if(!actor||!co){alert("Choose a valid citizen and company.");return;}
+if(!actor||!co){alert("Choose a valid trading account and company.");return;}
 if(co.needsAllocationReview){alert("Trading is paused for this company until its legacy shareholder allocation is confirmed.");return;}
 if(!Number.isInteger(count)||count<1){alert("Enter a whole number of shares greater than zero.");return;}
 const price=Number(co.price)||0;const total=round4(count*price);if(total<=0){alert("The calculated trade value is invalid.");return;}
@@ -5447,48 +5491,55 @@ if(action==="buyReserve"){
  if(count>sharesAvailable(co)){alert("Only "+sharesAvailable(co)+" shares remain available.");return;}
 }else if(action==="buyCitizen"){buyer=actor;seller=other;}
 else if(action==="sellCitizen"){seller=actor;buyer=other;}
-if(!buyer||!seller&&!reservePurchase||buyer&&seller&&buyer.id===seller.id){alert("Choose two different valid citizens for this trade.");return;}
+if(!buyer||!seller&&!reservePurchase||buyer&&seller&&buyer.key===seller.key){alert("Choose two different valid accounts for this trade.");return;}
 if(seller){
- const sellerKey=String(seller.id);
+ const sellerKey=String(seller.key);
  if(sharesHeld(co,sellerKey)<count){alert(seller.name+" does not have "+count+" shares available to sell.");return;}
 }
-if(Number(buyer.cash)||Number(buyer.cash)===0){if((Number(buyer.cash)||0)<total){alert(buyer.name+" does not have enough cash. Trade cost: "+money(total)+".");return;}}
-else {alert("The buyer's cash balance is unavailable.");return;}
-if(seller&&(!Number.isFinite(Number(seller.cash)))){alert("The seller's cash balance is unavailable.");return;}
+if(Number.isFinite(buyer.getCash())){if(buyer.getCash()<total){alert(buyer.name+" does not have enough cash. Trade cost: "+money(total)+".");return;}}
+else {alert("The buyer account cash balance is unavailable.");return;}
+if(seller&&(!Number.isFinite(seller.getCash()))){alert("The seller account cash balance is unavailable.");return;}
 const at=new Date().toISOString(),id="STK-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
-const buyerBefore=Number(buyer.cash)||0,sellerBefore=seller?(Number(seller.cash)||0):null,companyCashBefore=Number((st.businessCash||{})[company]??co.initialCashValue)||0;
+const buyerBefore=buyer.getCash(),sellerBefore=seller?seller.getCash():null,companyCashBefore=Number((st.businessCash||{})[company]??co.initialCashValue)||0;
 const snapshot=JSON.stringify(db);
 try{
- buyer.cash=round4(buyerBefore-total);
- if(seller)seller.cash=round4(sellerBefore+total);
+ buyer.setCash(buyerBefore-total);
+ if(seller)seller.setCash(sellerBefore+total);
  if(reservePurchase){
-  const reserveKey=String(buyer.id);
+  const reserveKey=String(buyer.key);
   updateHolding(co,reserveKey,buyer.name,count);
   st.businessCash=st.businessCash||{};
   st.businessCash[company]=round4(companyCashBefore+total);
   st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
   st.businessCashLedger.push({id:id+"-ISSUE",season:Number(st.year)||29,type:"Stock Issuance Proceeds",company,amount:total,before:companyCashBefore,after:st.businessCash[company],reason:"Sold "+count+" newly issued shares at market price",createdAt:at});
+  if(buyer.kind==="business"){
+   const selfPurchase=buyer.id===company;
+   st.businessCashLedger.push({id:id+"-BUYER",season:Number(st.year)||29,type:"Stock Trade Cash Flow",company:buyer.id,amount:selfPurchase?0:-total,before:buyerBefore,after:st.businessCash[buyer.id],reason:selfPurchase?"Own-company reserve purchase; issuer proceeds offset buyer payment":"Paid for newly issued shares in "+company,createdAt:at,stockTransactionId:id,accountType:"business"});
+   if(selfPurchase)st.businessCash[company]=companyCashBefore;
+  }
  }else{
-  updateHolding(co,String(seller.id),seller.name,-count);
-  updateHolding(co,String(buyer.id),buyer.name,count);
+  updateHolding(co,String(seller.key),seller.name,-count);
+  updateHolding(co,String(buyer.key),buyer.name,count);
  }
- const tx={id,at,season:Number(st.year)||29,company,shares:count,price, total,action,reservePurchase,buyerId:String(buyer.id),buyer:buyer.name,sellerId:seller?String(seller.id):null,seller:seller?seller.name:company+" Market Reserve",buyerCashBefore:buyerBefore,buyerCashAfter:buyer.cash,sellerCashBefore:sellerBefore,sellerCashAfter:seller?seller.cash:null,companyCashBefore:reservePurchase?companyCashBefore:null,companyCashAfter:reservePurchase?st.businessCash[company]:null};
+ const tx={id,at,season:Number(st.year)||29,company,shares:count,price, total,action,reservePurchase,buyerId:String(buyer.key),buyer:buyer.name,buyerType:buyer.kind,sellerId:seller?String(seller.key):null,seller:seller?seller.name:company+" Market Reserve",sellerType:seller?seller.kind:"market-reserve",buyerCashBefore:buyerBefore,buyerCashAfter:buyer.getCash(),sellerCashBefore:sellerBefore,sellerCashAfter:seller?seller.getCash():null,companyCashBefore:reservePurchase?companyCashBefore:null,companyCashAfter:reservePurchase?st.businessCash[company]:null};
  db.transactions.push(tx);
  if(!Array.isArray(st.stockMarketCashLedger))st.stockMarketCashLedger=[];
  st.stockMarketCashLedger.push({...tx});
+ if(!reservePurchase){
+  st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
+  [buyer,seller].filter(Boolean).forEach(account=>{if(account.kind!=="business")return;const before=account===buyer?buyerBefore:sellerBefore,after=account.getCash(),amount=account===buyer?-total:total;st.businessCashLedger.push({id:id+"-"+account.kind+"-"+account.id,season:Number(st.year)||29,type:"Stock Trade Cash Flow",company:account.id,amount,before,after,reason:(amount<0?"Paid for":"Received proceeds from")+" stock trade in "+company,createdAt:at,stockTransactionId:id,accountType:"business"});});
+ }
  saveDB(db);
  bridge.save();
  // Update visible cash figures without invoking broad sync/reconciliation routines.
  const citizenCashNodes=document.querySelectorAll("[data-citizen-cash]");
- [buyer,seller].filter(Boolean).forEach(person=>citizenCashNodes.forEach(node=>{
-  if(String(node.getAttribute("data-citizen-cash"))===String(person.id))node.textContent=money(person.cash);
- }));
+ [buyer,seller].filter(Boolean).forEach(person=>{if(person.kind!=="citizen")return;citizenCashNodes.forEach(node=>{if(String(node.getAttribute("data-citizen-cash"))===String(person.id))node.textContent=money(person.getCash());});});
  renderAll();
  const message=$("stockTradeMessage");
  if(message)message.textContent="Trade completed: "+buyer.name+" purchased "+count+" "+company+" share"+(count===1?"":"s")+" for "+money(total)+(seller?" from "+seller.name:". Proceeds credited to "+company+" cash.");
 }catch(err){
  try{db=JSON.parse(snapshot);saveDB(db);}catch(e){}
- buyer.cash=buyerBefore;if(seller)seller.cash=sellerBefore;
+ buyer.setCash(buyerBefore);if(seller)seller.setCash(sellerBefore);
  if(reservePurchase&&st.businessCash)st.businessCash[company]=companyCashBefore;
  try{bridge.save();}catch(e){}
  console.error("Stock trade failed:",err);alert("The trade could not be completed and cash changes were rolled back. "+String(err.message||err));
