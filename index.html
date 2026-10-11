@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.5 -->
-<!-- Build identity: 4.24.14. Free-agent career-stat guard + live ownership stake value preview; no season reset. -->
+<!-- Build identity: 4.24.15. Direct ownership button handler fixes stopped click bubbling; no season reset. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.14 — Free Agent Stats + Ownership Preview 4.24.2</title>
+<title>Calvin's City 4.24.15 — Ownership Button Fix 4.24.2</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -4778,6 +4778,20 @@ if(valuationEl)valuationEl.textContent=ownershipRecord?"$"+(Number(ownershipReco
  });
  rows+='</table></div><button type="button" class="goodbtn" data-open-business-ownership="'+company+'">Manage Ownership &amp; Offers</button>';
  document.getElementById("shoeCompanyOwnership").innerHTML=rows;
+ /* 4.24.15: bind directly because the shoe-company modal stops click bubbling,
+    which prevents document-level delegated ownership-button handlers from seeing the click. */
+ const ownershipButton=document.querySelector("#shoeCompanyOwnership [data-open-business-ownership]");
+ if(ownershipButton){
+  ownershipButton.addEventListener("click",function(event){
+   event.preventDefault();
+   event.stopPropagation();
+   if(typeof window.openOwnershipMarketplace==="function"){
+    window.openOwnershipMarketplace(ownershipButton.getAttribute("data-open-business-ownership"),null);
+   }else{
+    alert("The ownership marketplace is not ready. Please close and reopen this business, then try again.");
+   }
+  });
+ }
  const currentSeason=Math.max(0,Number(liveState&&liveState.year)||0);
  const dealOut=document.getElementById("shoeCompanyDeals");
  let deals=Array.isArray(details.deals)?details.deals:[];
