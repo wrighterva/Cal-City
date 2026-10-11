@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.44 -->
+<!-- CALVIN'S CITY — VERSION 4.24.45 -->
 <!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.44 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.45 — TV Company Modal & Ownership View</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -45,7 +45,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;b
 .city-business-card{background:#121b27;border:1px solid #2d3a4d;border-radius:12px;padding:12px;min-height:68px}
 .city-business-card strong{display:block;font-size:14px}
 .city-business-card span{display:block;color:#9eabba;font-size:10px;margin-top:5px}
-.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:auto;pointer-events:none}.modal.show{display:flex;pointer-events:auto}.modalbox{position:relative;z-index:101;width:min(100%,420px);max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px;pointer-events:auto}.modalbox h2{margin-top:0}body.verify-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none} body.business-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none}
+.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:auto;pointer-events:none}.modal.show{display:flex;pointer-events:auto}.modalbox{position:relative;z-index:101;width:min(100%,420px);max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px;pointer-events:auto}.modalbox h2{margin-top:0}body.verify-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none} body.business-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none} body.share-ledger-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none}
 body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!important;touch-action:none!important}#citizenLedgerModal.show{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;touch-action:none}#citizenLedgerModal.show .modalbox{max-height:80dvh;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
 .nav button{margin:0;padding:9px 3px 10px;font-size:12px;background:#273446;min-width:0;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap}.nav button.active{background:#2f6fed}
@@ -5762,11 +5762,26 @@ try{localStorage.setItem(SHARE_OWNERSHIP_LEDGER_KEY,JSON.stringify(ledger));}cat
 try{bridge.save();}catch(e){console.error("Share ledger state save failed.",e);}
 return true;
 };
+let shareLedgerScrollY=0;
+function lockShareLedgerBackground(){
+if(document.body.classList.contains("share-ledger-modal-open"))return;
+shareLedgerScrollY=window.scrollY||window.pageYOffset||0;
+document.body.classList.add("share-ledger-modal-open");
+document.body.style.top=`-${shareLedgerScrollY}px`;
+}
+function unlockShareLedgerBackground(){
+if(!document.body.classList.contains("share-ledger-modal-open"))return;
+document.body.classList.remove("share-ledger-modal-open");
+document.body.style.removeProperty("top");
+window.scrollTo(0,shareLedgerScrollY);
+}
 function openShareOwnershipLedger(view){
 const modal=$("shareOwnershipLedgerModal");if(!modal)return;
-modal.classList.add("show");renderShareOwnershipLedger(view||"all");
+lockShareLedgerBackground();
+modal.classList.add("show");
+renderShareOwnershipLedger(view||"all");
 }
-function closeShareOwnershipLedger(){const modal=$("shareOwnershipLedgerModal");if(modal)modal.classList.remove("show");}
+function closeShareOwnershipLedger(){const modal=$("shareOwnershipLedgerModal");if(modal)modal.classList.remove("show");unlockShareLedgerBackground();}
 /* 4.24.25: Unified append-only cash trace, account reconciliation, and controlled voids.
   Corrections append new entries and never delete or rewrite the transaction being corrected. */
 function cashAccountCatalog(){
