@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.22 -->
-<!-- Build identity: 4.24.22. Legacy shareholder matching repair; Buy/Sell modal with live shareholder register; Share & Ownership Ledger retained; no Season 29 reset. -->
+<!-- CALVIN'S CITY — VERSION 4.24.23 -->
+<!-- Build identity: 4.24.23. Season 29 Game 0 shoe-company opening cash reconciliation; shareholder lookup and Buy/Sell modal retained; guarded cash migration only. -->
  
 <html lang="en">
 <head>
@@ -1187,6 +1187,36 @@ Adidas:[["Wallace",50],["Poley",50]],
 "Sports Bets Company":[["June",35],["Coast",35],["Peb",15],["Sam",15]]
 };
 const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+ 
+/* 4.24.23: Reconcile shoe-company opening cash only at the untouched Season 29 opening.
+  This is deliberately blocked after any completed game or recorded business-cash
+  transaction. A before/after audit snapshot is retained before changing any value. */
+(function reconcileSeason29OpeningShoeCash(){
+const version="4.24.23";
+const companies=["Nike","Reebok","Puma","Adidas","New Balance"];
+if(state.season29ShoeCashOpeningReconciledVersion===version)return;
+const games=Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0;
+const ledger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];
+const relevantLedger=ledger.filter(entry=>entry&&companies.includes(String(entry.company||entry.business||"")));
+const atOpening=Number(state.year)===29&&games===0&&relevantLedger.length===0;
+if(!atOpening){
+ state.season29ShoeCashOpeningReconciledVersion="4.24.23-skipped";
+ state.season29ShoeCashOpeningReconciliation={version,at:new Date().toISOString(),status:"Skipped",reason:"Not an untouched Season 29 opening; game or business cash ledger activity exists.",season:Number(state.year)||null,gamesPlayed:games,relevantLedgerEntries:relevantLedger.length};
+ try{save();}catch(e){console.warn("Shoe-company opening cash reconciliation status could not be saved.",e);}
+ return;
+}
+state.businessCash=state.businessCash&&typeof state.businessCash==="object"?state.businessCash:{};
+const before={};
+const after={};
+companies.forEach(company=>{
+ before[company]=state.businessCash[company]==null?null:Number(state.businessCash[company]);
+ after[company]=Number(BUSINESS_CASH[company])||0;
+});
+state.season29ShoeCashOpeningReconciliation={version,at:new Date().toISOString(),status:"Applied",reason:"Restored opening cash for five shoe companies at Season 29 Game 0; no games or matching business-cash ledger entries existed.",season:29,gamesPlayed:0,before,after,shareholderHoldingsChanged:false,ownershipChanged:false,permanentHistoryChanged:false};
+companies.forEach(company=>{state.businessCash[company]=after[company];});
+state.season29ShoeCashOpeningReconciledVersion=version;
+try{save();}catch(e){console.error("Shoe-company opening cash reconciliation could not be saved.",e);}
+})();
  
 /* 4.23.1: Permanent citizen/business ownership registry.
   Initial valuations are seeded from the existing listed business figures,
