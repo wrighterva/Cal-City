@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.51 -->
-<!-- Build identity: 4.24.52. Season 29 Game 0 reset plus Market Money authoritative citizen cash and Player Ledger reconciliation. -->
+<!-- Build identity: 4.24.54. Share & Ownership Ledger buyer/seller field normalization. -->
  
 <html lang="en">
 <head>
@@ -634,14 +634,14 @@ if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPla
 /* 4.19.1: BETS is a permanent append-oriented ledger, independent of the season state.
   Never delete or season-filter this database. Normal saves merge concurrent/older
   in-memory copies with the current browser copy and refuse malformed saved data. */
-/* 4.23.1: Save and verify a full recovery snapshot before returning to Season 29 Game 0 for offseason-feature testing.
+/* 4.23.1: Save and verify a full recovery snapshot before returning to Season 29 Game 0 and voiding the uncredited S. Oliver buyback.
   This does not modify the separate BETS database. The reset is blocked if backup fails. */
-const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_24_52";
+const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_24_53";
 let season29RestoreBackupReady=false;
 try{
  const snapshot=JSON.stringify({
    createdAt:new Date().toISOString(),
-   reason:"Pre-restore snapshot before returning to Season 29 Game 0 for offseason-feature testing",
+   reason:"Pre-restore snapshot before returning to Season 29 Game 0 and voiding the uncredited S. Oliver buyback",
    state:state,
    betsRaw:localStorage.getItem("calvins_city_bets_v1"),
    betsBackupRaw:localStorage.getItem("calvins_city_bets_backup_v1"),
@@ -659,7 +659,7 @@ const season29ResetBlockedByBackup=!season29RestoreBackupReady;
   This runs once for this build. It preserves Seasons 1–28 and retired-player
   history, captures Season 29+ game records above for BETS import, restores the
   approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.24.52" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
+if(state.season29FreshStartVersion!=="4.24.53" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -682,9 +682,9 @@ if(state.season29FreshStartVersion!=="4.24.52" && !season29ResetBlockedByStaging
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
  state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
  /* Force the existing, well-tested Season 29 opening baseline migration to run. */
- state.season29OpeningRestoreVersion="4.24.52-pending";
- state.season29FullBaselineRestoreVersion="pending-4.24.52";
- state.season29FreshStartVersion="4.24.52";
+ state.season29OpeningRestoreVersion="4.24.53-pending";
+ state.season29FullBaselineRestoreVersion="pending-4.24.53";
+ state.season29FreshStartVersion="4.24.53";
  try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
  catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
 }
@@ -5471,6 +5471,50 @@ if(!db.userProvidedShareholderEntriesV1Imported){
 return db;
 }
 let db=loadDB();
+/* 4.24.53: One-time rollback of the uncredited Season 29 S. Oliver Market Sell.
+  Keep the original transaction as an audit record, restore the reserve and share,
+  and do not fabricate a citizen cash credit. The user asked for Season 29 Game 0. */
+(function rollbackUncreditedSOliverBuybackForSeason29Reset(){
+const marker="season29SOliverBuybackRollback_4_24_53";
+if(db[marker]===true)return;
+const st=getState();
+const mm=db.marketMoney;
+if(!mm)return;
+const normName=v=>String(v||"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");
+const candidates=(Array.isArray(mm.transactions)?mm.transactions:[]).filter(tx=>
+  tx&&tx.type==="Market Money Buyback"&&tx.status==="completed"&&
+  normName(tx.citizen||tx.player)==="soliver"&&Number(tx.season||29)===29&&
+  tx.voidedBySeason29Reset!==true&&Number(tx.total)>0&&tx.company
+);
+let restored=0,restoredShares=0;
+candidates.forEach(tx=>{
+  const co=db.companies&&db.companies[tx.company];
+  const shares=Math.max(1,Math.floor(Number(tx.shares)||1));
+  const amount=Number(tx.total);
+  const citizenId=String(tx.citizenId||"");
+  const citizen=(Array.isArray(st.citizens)?st.citizens:[]).find(c=>c&&String(c.id)===citizenId)||
+    (Array.isArray(st.citizens)?st.citizens:[]).find(c=>normName(c.name)==="soliver");
+  if(!co||!Number.isFinite(amount)||amount<=0||!citizen)return;
+  const key=String(citizen.id||citizenId);
+  const current=Number(co.holdings&&co.holdings[key])||0;
+  co.holdings=co.holdings||{};co.ownerNames=co.ownerNames||{};
+  co.holdings[key]=round4(current+shares);co.ownerNames[key]=String(citizen.name||"S. Oliver");
+  mm.balance=round4((Number(mm.balance)||0)+amount);
+  tx.status="voided";tx.voidedBySeason29Reset=true;tx.voidedAt=new Date().toISOString();
+  tx.voidReason="Season 29 test rollback: Market Sell deducted reserve but did not credit S. Oliver; sale reversed to restore opening state.";
+  const mirror=(Array.isArray(db.transactions)?db.transactions:[]).find(x=>x&&String(x.id)===String(tx.id));
+  if(mirror){mirror.status="voided";mirror.voidedBySeason29Reset=true;mirror.voidedAt=tx.voidedAt;mirror.voidReason=tx.voidReason;}
+  restored+=amount;restoredShares+=shares;
+  if(typeof window.recordShareOwnershipLedger==="function"){
+    try{window.recordShareOwnershipLedger({id:"MMR-RESET-"+String(tx.id),at:tx.voidedAt,season:29,gameCount:0,type:"Market Money Buyback Reversal",company:tx.company,shares,amount,reserveBefore:round4(Number(mm.balance)-amount),reserveAfter:mm.balance,citizenId:String(citizen.id||citizenId),citizen:String(citizen.name||"S. Oliver"),source:"Season 29 opening reset",reversesTransactionId:String(tx.id),status:"completed",reason:tx.voidReason});}catch(e){console.warn("Buyback reversal ledger mirror could not be written",e);}
+  }
+});
+mm.balance=3000;
+mm.interestRate=0.75;mm.gamesSinceBuyback=0;mm.lastInterestGameKey=null;
+mm.season29OpeningReset={at:new Date().toISOString(),season:29,gameCount:0,startingReserve:3000,voidedBuybackAmount:round4(restored),restoredShares,transactionsVoided:candidates.length};
+db[marker]=true;db[marker+"At"]=new Date().toISOString();
+saveDB(db);
+})();
 /* 4.24.28: At the untouched Season 29 opening, reconcile stale persisted stock
   prices to the agreed starting formula: current company/team cash ÷ 500 shares.
   This changes current prices only; it preserves shareholder holdings, completed
@@ -5929,7 +5973,7 @@ const btn=$("voidUnsupportedCashButton");if(btn)btn.addEventListener("click",voi
 }
 function renderShareOwnershipLedger(view){
 const st=getState(),ledger=getShareOwnershipLedger(),out=$("shareOwnershipLedgerBody");if(!out)return;
-const stockTx=(db.transactions||[]).map(t=>({id:t.id,at:t.at,season:t.season,type:"Share Trade",company:t.company,buyer:t.buyer,buyerType:t.buyerType,buyerId:t.buyerId,seller:t.seller,sellerType:t.sellerType,sellerId:t.sellerId,shares:t.shares,price:t.price,total:t.total,buyerCashBefore:t.buyerCashBefore,buyerCashAfter:t.buyerCashAfter,sellerCashBefore:t.sellerCashBefore,sellerCashAfter:t.sellerCashAfter,reservePurchase:t.reservePurchase}));
+const stockTx=(db.transactions||[]).map(t=>{const marketBuyback=String(t.type||"").toLowerCase().includes("market money buyback")||String(t.action||"")==="sellMarketMoney";return {...t,id:t.id,at:t.at||t.createdAt,season:t.season,type:t.status==="void"||t.status==="reversed"?"Share Trade (Voided/Reversed)":"Share Trade",company:t.company||t.business,buyer:marketBuyback?(t.buyer||"Market Money"):(t.buyer||t.buyerName||t.newOwner||t.buyerAccountName),buyerType:marketBuyback?(t.buyerType||"market-money"):(t.buyerType||t.buyerAccountType),buyerId:t.buyerId||t.buyerAccountId,seller:marketBuyback?(t.seller||t.citizen||t.citizenName):(t.seller||t.sellerName||t.oldOwner||t.sellerAccountName),sellerType:marketBuyback?(t.sellerType||"citizen"):(t.sellerType||t.sellerAccountType),sellerId:t.sellerId||t.sellerAccountId,shares:t.shares??t.count,price:t.price,total:t.total??t.amount,buyerCashBefore:t.buyerCashBefore,buyerCashAfter:t.buyerCashAfter,sellerCashBefore:t.sellerCashBefore,sellerCashAfter:t.sellerCashAfter,reservePurchase:t.reservePurchase||marketBuyback};});
 const reg=st.businessOwnershipRegistry||{};const ownTx=(Array.isArray(reg.transactions)?reg.transactions:[]).map(t=>({...t,type:"Ownership Transfer",company:t.business,buyer:t.buyerName,seller:t.sellerName,shares:null,total:t.price}));
 const allById=new Map();ledger.concat(stockTx,ownTx).forEach(t=>{if(t&&t.id)allById.set(String(t.id),t);});const all=Array.from(allById.values()).sort((a,b)=>String(b.at||b.createdAt||"").localeCompare(String(a.at||a.createdAt||"")));
 const trades=all.filter(t=>/share trade/i.test(String(t.type||""))||String(t.id||"").startsWith("STK-"));
@@ -5949,7 +5993,7 @@ all.forEach(t=>{if(/share trade/i.test(String(t.type||""))||String(t.id||"").sta
  if(t.sellerCashBefore!=null&&t.sellerCashAfter!=null&&Math.abs((Number(t.sellerCashBefore)+total)-Number(t.sellerCashAfter))>0.0001)findings.push("Ownership seller cash math mismatch in "+t.id+".");
 }});
 $("shareLedgerEventCount").textContent=String(all.length);$("shareLedgerTradeCount").textContent=String(trades.length);$("shareLedgerOwnershipCount").textContent=String(ownership.length);$("shareLedgerStatus").textContent=findings.length?"Review needed":"Checks passed";
-const rows=list=>list.length?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Company / Business</th><th>Buyer / New Owner</th><th>Seller / Old Owner</th><th>Shares / Stake</th><th>Amount</th><th>Cash check</th></tr></thead><tbody>'+list.map(t=>{const total=Number(t.total??t.price)||0;let check="Recorded";if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null){const ok=Math.abs(Number(t.buyerCashBefore)-total-Number(t.buyerCashAfter))<0.0001;check=ok?"Pass":"Mismatch";}return '<tr><td>'+esc(t.at?new Date(t.at).toLocaleString():(t.createdAt?new Date(t.createdAt).toLocaleString():"—"))+'</td><td>'+esc(t.type||"Ledger event")+'</td><td>'+esc(t.company||t.business||"—")+'</td><td>'+esc(t.buyer||t.buyerName||"—")+'</td><td>'+esc(t.seller||t.sellerName||"—")+'</td><td>'+(t.shares!=null?Number(t.shares)+" shares":(t.percentage!=null?pct(t.percentage):"—"))+'</td><td>'+money(total)+'</td><td>'+check+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="muted">No events recorded for this view yet. The ledger does not invent missing history.</p>';
+const rows=list=>list.length?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Company / Business</th><th>Buyer / New Owner</th><th>Seller / Old Owner</th><th>Shares / Stake</th><th>Amount</th><th>Cash check</th></tr></thead><tbody>'+list.map(t=>{const total=Number(t.total??t.price)||0;let check="Recorded";if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null){const ok=Math.abs(Number(t.buyerCashBefore)-total-Number(t.buyerCashAfter))<0.0001;check=ok?"Pass":"Mismatch";}return '<tr><td>'+esc(t.at?new Date(t.at).toLocaleString():(t.createdAt?new Date(t.createdAt).toLocaleString():"—"))+'</td><td>'+esc(t.type||"Ledger event")+'</td><td>'+esc(t.company||t.business||"—")+'</td><td>'+esc(t.buyer||t.buyerName||"Unknown buyer (not recorded)")+'</td><td>'+esc(t.seller||t.sellerName||"Unknown seller (not recorded)")+'</td><td>'+(t.shares!=null?Number(t.shares)+" shares":(t.percentage!=null?pct(t.percentage):"—"))+'</td><td>'+money(total)+'</td><td>'+check+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="muted">No events recorded for this view yet. The ledger does not invent missing history.</p>';
 if(view==="businesscash"){renderBusinessCashLedger();return;}
 if(view==="financial"){renderUnifiedFinancialLedger();return;}
 if(view==="cashaudit"){renderCashAudit();return;}
