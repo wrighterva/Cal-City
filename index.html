@@ -5055,15 +5055,25 @@ window.openOwnershipMarketplace=function(business,citizenId){
  render();
 };
 function closeMarketplace(){if(modal)modal.classList.remove("show");}
+function showOwnershipValidationPopup(text){
+ // A native, dismissible popup keeps the current marketplace open behind it.
+ // Do not close or rerender the marketplace on validation errors.
+ alert(text+"\n\nPlease close this message and try again.");
+ if(percentInput){percentInput.focus();if(typeof percentInput.select==="function")percentInput.select();}
+}
 function listStake(){
  const st=state(),business=businessSelect.value,actingId=citizenSelect.value,record=recordForBusiness(business);
  const seller=citizenById(actingId),percentToSell=Number(percentInput.value);
- if(!seller||!record){message.textContent="Select a citizen and business first.";return;}
- if(!Number.isFinite(percentToSell)||percentToSell<=0){message.textContent="Enter a percentage greater than 0.";return;}
- if(percentToSell>100){message.textContent="You cannot offer more than 100% ownership.";return;}
+ if(!seller||!record){showOwnershipValidationPopup("Select a citizen and business first.");return;}
+ if(!Number.isFinite(percentToSell)||percentToSell<=0){showOwnershipValidationPopup("Enter a percentage greater than 0.");return;}
+ if(percentToSell>100){showOwnershipValidationPopup("You cannot offer more than 100% ownership.");return;}
  const owner=(record.owners||[]).find(o=>String(o.citizenId)===String(seller.id));
  const available=availablePercent(business,owner);
- if(!owner||percentToSell>available+0.000001){message.textContent="This citizen does not own enough unreserved stake. Available to offer: "+pct(available)+".";return;}
+ if(!owner||percentToSell>available+0.000001){
+  message.textContent="Offer not listed. Available to offer: "+pct(available)+".";
+  showOwnershipValidationPopup(seller.name+" does not own enough available stake to sell "+pct(percentToSell)+".\n\nAvailable to offer: "+pct(available)+".\n\nThis offer was not created.");
+  return;
+ }
  const offer={id:"BOF-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),business,sellerId:seller.id,sellerName:seller.name,percentage:round4(percentToSell),status:"active",createdAt:new Date().toISOString(),valuationAtListing:Number(record.valuation)||0};
  registry().offers.push(offer);
  saveAll();
