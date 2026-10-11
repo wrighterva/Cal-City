@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.20.0 -->
+<!-- CALVIN'S CITY — VERSION 4.21.1 -->
 <!-- Build identity: 4.19.9. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.20.0</title>
+<title>Calvin's City 4.21.1</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -2507,7 +2507,31 @@ if(state.season29OpeningTeamCashReconciledVersion!=="4.17.105"){
 function die(){return Math.floor(Math.random()*6)+1} function money(n){return "$"+n.toFixed(0)+"M"} function ticketRevenue(){return(die()+die())*10} function shoeRevenue(){return(die()+die())*10} function playerName(t,p){return state.roster[t+"_"+p]||p}
 function rollPlayer(){let pts=0,rebs=0;for(let q=1;q<=4;q++){pts+=die()+die();rebs+=die()+die()}return{pts,rebs}}
 function playTeam(team){const players=POSITIONS.map(pos=>({team,pos,name:playerName(team,pos),...rollPlayer()}));return{team,players,score:players.reduce((a,p)=>a+p.pts,0),rebs:players.reduce((a,p)=>a+p.rebs,0)}}
-function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((p,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;return{A,B,winner,loser,ot,ticket:ticketRevenue(),shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeRevenue()]))}}
+function shoeCompanyHasActivePlayerDeal(company){
+const roster=state.roster||{};
+const activeNames=new Set(Object.values(roster).filter(Boolean).map(n=>String(n).trim().toLowerCase()));
+return (state.citizens||[]).some(c=>{
+ if(!c||!c.name||!activeNames.has(String(c.name).trim().toLowerCase()))return false;
+ const status=String(c.status||"").trim().toLowerCase();
+ if(status==="retired"||status==="free agent")return false;
+ return (Array.isArray(c.shoeDeals)?c.shoeDeals:[]).some(d=>{
+  if(!d||String(d.company||"").trim().toLowerCase()!==String(company).trim().toLowerCase())return false;
+  const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
+  return remaining>0;
+ });
+});
+}
+function getShoeCompaniesNeedingDeals(){return SHOES.filter(company=>!shoeCompanyHasActivePlayerDeal(company));}
+function showShoeDealNeedsPopup(){
+const modal=document.getElementById("shoeDealNeedsModal"),list=document.getElementById("shoeDealNeedsList");
+if(!modal||!list)return;
+const missing=getShoeCompaniesNeedingDeals();
+list.innerHTML=missing.length
+ ?'<ul>'+missing.map(company=>'<li><b>'+company+'</b> — no active player deal</li>').join("")+'</ul>'
+ :'<p class="gold"><b>All five shoe companies have at least one active player deal.</b></p>';
+modal.classList.add("show");
+}
+function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((p,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;return{A,B,winner,loser,ot,ticket:ticketRevenue(),shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeCompanyHasActivePlayerDeal(s)?shoeRevenue():0]))}}
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
 function recordGameCareerStats(g){
  /* 4.17.105: Every completed game immediately adds the player's game
@@ -2565,8 +2589,46 @@ function applyTicketRevenueToTeamCash(g,stage){
  return true;
 }
  
+/* 4.21.0: Credit each shoe company's game revenue to its business cash.
+  Each company receives the amount already rolled for this game in
+  g.shoeByCompany. The per-game flag prevents duplicate credits. */
+function applyShoeRevenueToBusinessCash(g,stage){
+ if(!g || g.shoeRevenueApplied===true)return false;
+ const revenueByCompany=g.shoeByCompany||{};
+ const companies=["Nike","Reebok","Puma","Adidas","New Balance"];
+ state.businessCash=state.businessCash||{
+   Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,
+   "TV Company":3650,"Sports Bets Company":430
+ };
+ state.businessCashLedger=Array.isArray(state.businessCashLedger)
+   ?state.businessCashLedger:[];
+ const season=Number(state.year)||29;
+ const gameIndex=(Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0)+1;
+ const entries=[];
+ companies.forEach(company=>{
+   const amount=shoeCompanyHasActivePlayerDeal(company)?Math.max(0,Number(revenueByCompany[company])||0):0;
+   const before=Number(state.businessCash[company])||0;
+   const after=Math.round((before+amount)*100)/100;
+   state.businessCash[company]=after;
+   entries.push({
+     id:"shoe-"+season+"-"+gameIndex+"-"+company+"-"+Date.now(),
+     season,stage:String(stage||g.stage||""),gameIndex,
+     type:"Shoe Revenue",company,amount,before,after,
+     reason:"Two dice rolls × $10M for completed game",
+     createdAt:new Date().toISOString()
+   });
+ });
+ state.businessCashLedger.push(...entries);
+ g.shoeRevenueApplied=true;
+ g.shoeRevenueDistribution=entries.map(e=>({
+   company:e.company,amount:e.amount,before:e.before,after:e.after
+ }));
+ return true;
+}
+ 
 function recordGame(g,stage){
  applyTicketRevenueToTeamCash(g,stage);
+ applyShoeRevenueToBusinessCash(g,stage);
  /* 4.17.105: Feed each completed season game into the independent BETS history. */
  recordBetsGame(g);
  if(stage==="Regular Season"){
@@ -2776,6 +2838,8 @@ advanceActivePlayerContractsAfterSeason();
 syncActivePlayerContracts();
 syncCitizenLedger();
 save();
+/* 4.21.1: Alert about shoe companies lacking a deal before offseason begins. */
+showShoeDealNeedsPopup();
 }
 function playNextGame(){
 if(state.seasonPhase==="offseason"){alert("Season complete. Finish the offseason before the new year begins.");return;}
@@ -3942,6 +4006,7 @@ document.addEventListener("DOMContentLoaded",bindRecordsModal);
 if(document.readyState!=="loading")bindRecordsModal();
 })();
  
+const shoeNeedsContinue=document.getElementById("shoeDealNeedsContinue");if(shoeNeedsContinue)shoeNeedsContinue.addEventListener("click",()=>{const modal=document.getElementById("shoeDealNeedsModal");if(modal)modal.classList.remove("show");});
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
 /* 4.18.6: Audit direct citizen.cash changes in either direction.
   Records before/after, signed delta, and code location for investigation.
@@ -4024,6 +4089,13 @@ window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger
  
 </script>
  
+<div id="shoeDealNeedsModal" class="modal"><div class="modalbox">
+<h2>👟 Shoe Deals Needed</h2>
+<p>The season is complete. These shoe companies have no active player shoe deal and will not receive shoe revenue until they sign at least one player.</p>
+<div id="shoeDealNeedsList" class="log"></div>
+<p class="tiny">A company needs at least one active player deal to qualify. Additional players do not increase the company’s two-dice revenue roll.</p>
+<button id="shoeDealNeedsContinue" class="goodbtn" type="button">Continue to Offseason</button>
+</div></div>
 <div id="contractVerifyModal" class="modal"><div class="modalbox"><h2>🔒 Verify Contract</h2><p>Are you sure you want to Verify this Contract?</p><div id="contractVerifySummary" class="contract-verify-summary"></div><p class="tiny">Once verified, this player and contract will be locked for this offseason so the contract cannot be duplicated.</p><div class="contract-confirm-actions"><button id="contractVerifyYes" class="goodbtn" type="button">Yes — Verify</button><button id="contractVerifyNo" class="secondary" type="button">No</button></div></div></div>
 <div id="recordsModal" class="modal"><div class="modalbox"><h2>📚 Calvin's City Records</h2>
 <div class="record-tabs">
@@ -4224,4 +4296,4 @@ document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleStri
 })();
 </script>
  
-</body></html> 
+</body></html>
