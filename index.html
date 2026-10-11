@@ -152,7 +152,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <section id="markets" class="screen">
 <div class="card" id="stockExchangeCard">
 <h2>📈 Markets</h2>
-<p class="tiny">Choose a company to open its market profile. Buy and sell public shares separately from business ownership. Every listed company has 500 shares; market value and company cash are tracked separately.</p>
+<p class="tiny">Open a market section, select a company, then buy or sell directly from that company’s profile. Public shares remain separate from business ownership. Each company has 500 authorized shares.</p>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px">
 <div class="metric"><small>Listed Companies</small><strong id="stockCompanyCount">10</strong></div>
 <div class="metric"><small>Shares per Company</small><strong>500</strong></div>
@@ -160,8 +160,8 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </div>
 <div id="stockMarketTable" aria-live="polite"><p class="muted">Loading Markets…</p></div>
 <div id="stockCompanyDetail" class="card" style="display:none;margin-top:12px" aria-live="polite"></div>
-<div class="card" style="margin-top:12px">
-<h3 id="stockTradePanelHeading">Trade Shares</h3>
+<div class="card" id="stockTradeCard" style="margin-top:12px;display:none">
+<h3 id="stockTradePanelHeading">Buy / Sell Shares</h3>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
  <div><label for="stockTradingCitizen">Citizen account</label><select id="stockTradingCitizen" style="width:100%"></select></div>
  <div><label for="stockTradingCompany">Company stock</label><select id="stockTradingCompany" style="width:100%"></select></div>
@@ -5173,6 +5173,7 @@ function marketCap(co){return round4(co.price*TOTAL_SHARES);}
 function latestReport(company){return db.annualReports.slice().reverse().find(r=>r.company===company)||null;}
 let selectedMarketCompany=null;
 let selectedMarketCategory=null;
+let detachedStockTradeCard=null;
 function marketCategory(def){return def.category||"Company";}
 function renderMarketTable(){
 const out=$("stockMarketTable");if(!out)return;
@@ -5205,8 +5206,10 @@ const history=db.transactions.filter(t=>t&&t.company===name).slice().reverse().s
 panel.innerHTML='<div class="market-profile-top"><div><div class="market-profile-category">'+esc(marketCategory(def))+'</div><h3 style="margin:4px 0">'+def.icon+' '+esc(name)+'</h3><p class="market-help">Public stock ownership is separate from the business ownership registry.</p></div><button type="button" class="market-back" data-market-close="1">← Back to '+esc(marketCategory(def))+'</button></div>'+
 '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Share Price</small><strong>'+money(co.price)+'</strong></div><div class="metric"><small>Market Cap</small><strong>'+money(marketCap(co))+'</strong></div><div class="metric"><small>Company Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Shares Held / Available</small><strong>'+sharesSold(co)+' / '+sharesAvailable(co)+'</strong></div><div class="metric"><small>Last Price Move</small><strong>'+(change===null?'—':pct(change))+'</strong></div><div class="metric"><small>Latest Revenue</small><strong>'+(latest&&latest.revenueTracked?money(latest.revenue):'Not tracked')+'</strong></div></div>'+
 (co.needsAllocationReview?'<p class="gold" style="margin-top:10px"><b>Trading paused:</b> historic shareholder allocation has not been confirmed. The system will not invent missing shareholders.</p>':'')+
-'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button type="button" class="goodbtn" data-market-action="buy">Buy Shares</button><button type="button" data-market-action="sell">Sell Shares</button><button type="button" data-market-action="holders">Shareholders</button><button type="button" data-market-action="reports">Company Reports</button><button type="button" data-market-action="history">Trade History</button></div>'+
+'<div class="market-profile-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button type="button" class="goodbtn" data-market-action="buy">Buy Shares</button><button type="button" data-market-action="sell">Sell Shares</button><button type="button" data-market-action="holders">Shareholders</button><button type="button" data-market-action="reports">Company Reports</button><button type="button" data-market-action="history">Trade History</button></div>'+
 '<div id="stockCompanySubpanel"></div>';
+const tradeCard=$("stockTradeCard")||detachedStockTradeCard;
+if(tradeCard){detachedStockTradeCard=tradeCard;tradeCard.style.display="none";tradeCard.remove();}
 renderMarketTableCardsOnly();
 }
 function renderMarketTableCardsOnly(){
@@ -5215,6 +5218,7 @@ out.querySelectorAll('[data-market-company]').forEach(btn=>{btn.style.outline=bt
 }
 function showCompanySubpanel(mode){
 const out=$("stockCompanySubpanel"),name=selectedMarketCompany,co=db.companies[name];if(!out||!co)return;
+const existingTrade=$("stockTradeCard")||detachedStockTradeCard;if(existingTrade&&existingTrade.parentNode===out){detachedStockTradeCard=existingTrade;existingTrade.remove();}
 if(mode==='holders'){
  const rows=Object.entries(co.holdings||{}).filter(([k,v])=>(Number(v)||0)>0).map(([key,shares])=>'<tr><td>'+esc(co.ownerNames&&co.ownerNames[key]?co.ownerNames[key]:ownerNameForKey(key,db))+'</td><td>'+Number(shares)+'</td><td>'+pct(Number(shares)/TOTAL_SHARES*100)+'</td><td>'+money(Number(shares)*co.price)+'</td></tr>').join('');
  out.innerHTML='<h4>Shareholder Register</h4>'+(co.needsAllocationReview?'<p class="gold">Allocation review required; no missing holder data has been fabricated.</p>':'')+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Shareholder</th><th>Shares</th><th>Ownership</th><th>Current Value</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No recovered shareholder allocations recorded.</p>');
@@ -5227,9 +5231,34 @@ if(mode==='holders'){
 }else if(mode==='buy'||mode==='sell'){
  const action=$('stockTradingAction');if(action)action.value=mode==='buy'?'buyReserve':'sellCitizen';
  const company=$('stockTradingCompany');if(company)company.value=name;
- updateTradeControls();
- out.innerHTML='<p>Trade setup selected for <b>'+esc(name)+'</b>. Review the citizen, shares, counterparty and total in the Trade Shares panel below, then confirm the trade. Buying from reserve credits the company; citizen-to-citizen trades transfer cash between citizens.</p>';
- const trade=$('stockTradingCitizen');if(trade)trade.scrollIntoView({behavior:'smooth',block:'center'});
+ const tradeCard=$('stockTradeCard')||detachedStockTradeCard;
+ if(tradeCard){detachedStockTradeCard=tradeCard;
+  tradeCard.style.display='block';
+  tradeCard.style.marginTop='12px';
+  tradeCard.innerHTML='<h4 style="margin-top:0">'+(mode==='buy'?'Buy Shares':'Sell Shares')+' · '+esc(name)+'</h4>'+
+   '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">'+
+   '<div><label for="stockTradingCitizen">Your citizen account</label><select id="stockTradingCitizen" style="width:100%"></select></div>'+
+   '<div><label for="stockTradingCompany">Company</label><select id="stockTradingCompany" style="width:100%"></select></div>'+
+   '<div><label for="stockTradingAction">Transaction type</label><select id="stockTradingAction" style="width:100%"><option value="buyReserve">Buy available new shares</option><option value="buyCitizen">Buy from another citizen</option><option value="sellCitizen">Sell to another citizen</option></select></div>'+
+   '<div><label for="stockTradingCounterparty">Other citizen (if applicable)</label><select id="stockTradingCounterparty" style="width:100%"></select></div>'+
+   '<div><label for="stockTradingShares">Number of shares</label><input id="stockTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></div></div>'+
+   '<p id="stockTradeQuote" class="log" style="margin:10px 0">Calculating trade quote…</p>'+
+   '<button id="stockExecuteTrade" type="button" class="goodbtn">Confirm '+(mode==='buy'?'Purchase':'Sale')+'</button>'+
+   '<button type="button" class="market-back" data-market-action="closeTrade">Cancel</button>'+
+   '<p id="stockTradeMessage" class="tiny" role="status" aria-live="polite"></p>';
+  out.appendChild(tradeCard);
+  renderCompanyOptions();
+  const coSelect=$('stockTradingCompany');if(coSelect)coSelect.value=name;
+  const act=$('stockTradingAction');if(act)act.value=mode==='buy'?'buyReserve':'sellCitizen';
+  const execute=$('stockExecuteTrade');if(execute)execute.addEventListener('click',transact);
+  ['stockTradingCitizen','stockTradingCompany','stockTradingAction','stockTradingCounterparty','stockTradingShares'].forEach(id=>{
+   const el=$(id);if(el)el.addEventListener('change',()=>{if(id==='stockTradingCitizen'||id==='stockTradingAction'||id==='stockTradingCompany')updateTradeControls();else updateTradeQuote();});
+  });
+  updateTradeControls();
+ }
+ const profile=out.closest('#stockCompanyDetail');if(profile)profile.scrollIntoView({behavior:'smooth',block:'nearest'});
+}else if(mode==='closeTrade'){
+ const tradeCard=$('stockTradeCard')||detachedStockTradeCard;if(tradeCard){detachedStockTradeCard=tradeCard;tradeCard.style.display='none';tradeCard.remove();}
 }
 }
  
