@@ -1,21 +1,20 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.37 -->
-<!-- Build identity: 4.24.37. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
+<!-- CALVIN'S CITY — VERSION 4.24.38 -->
+<!-- Build identity: 4.24.38. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.37 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.38 — TV Company Modal & Ownership View</title>
 <style>
-/* v4.24.37: direct click handlers for Share & Ownership Ledger views */
-#shareOwnershipLedgerModal{z-index:1000000!important;pointer-events:auto!important}
-#shareOwnershipLedgerModal.show{display:flex!important;pointer-events:auto!important}
-#shareOwnershipLedgerModal .modalbox{position:relative;z-index:1000001!important;pointer-events:auto!important}
-#shareOwnershipLedgerModal [data-share-ledger-view]{position:relative;z-index:1000002!important;pointer-events:auto!important;touch-action:manipulation;cursor:pointer}
+/* v4.24.38: simplified Share & Ownership Ledger navigation */
+#shareOwnershipLedgerNavigation.share-ledger-navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+#shareOwnershipLedgerNavigation button{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.25;margin:0;position:static;z-index:auto;touch-action:manipulation}
+#shareOwnershipLedgerNavigation button:last-child:nth-child(odd){grid-column:1/-1}
  
-/* v4.24.37: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
+/* v4.24.38: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
 #shareOwnershipLedgerModal [data-share-ledger-view]{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;cursor:pointer}
  
@@ -4793,7 +4792,15 @@ window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger
 <div id="recordsBody" class="log"></div>
  
 <button id="recordsClose" class="secondary">Close</button>
-</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:10px 0"><button type="button" class="secondary" data-share-ledger-view="all" onclick="event.preventDefault();event.stopPropagation();renderShareOwnershipLedger('all')" >All Events</button><button type="button" class="secondary" data-share-ledger-view="trades" onclick="event.preventDefault();event.stopPropagation();renderShareOwnershipLedger('trades')" >Share Trades</button><button type="button" class="secondary" data-share-ledger-view="ownership" onclick="event.preventDefault();event.stopPropagation();renderShareOwnershipLedger('ownership')" >Ownership Transfers</button><button type="button" class="secondary" data-share-ledger-view="audit" onclick="event.preventDefault();event.stopPropagation();renderShareOwnershipLedger('audit')" >Audit &amp; Reconciliation</button><button type="button" class="secondary" data-share-ledger-view="businesscash" onclick="event.preventDefault();event.stopPropagation();renderShareOwnershipLedger('businesscash')" >Business Cash Ledger</button><button type="button" class="secondary" data-share-ledger-view="financial" onclick="event.preventDefault();event.stopPropagation();renderShareOwnershipLedger('financial')" >Unified Financial Ledger</button><button type="button" class="secondary" data-share-ledger-view="cashaudit" onclick="event.preventDefault();event.stopPropagation();renderShareOwnershipLedger('cashaudit')" >Cash Audit &amp; Corrections</button></div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
+</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><div id="shareOwnershipLedgerNavigation" class="share-ledger-navigation">
+<button type="button" class="secondary" onclick="renderShareOwnershipLedger('all')">All Events</button>
+<button type="button" class="secondary" onclick="renderShareOwnershipLedger('trades')">Share Trades</button>
+<button type="button" class="secondary" onclick="renderShareOwnershipLedger('ownership')">Ownership Transfers</button>
+<button type="button" class="secondary" onclick="renderShareOwnershipLedger('audit')">Audit &amp; Reconciliation</button>
+<button type="button" class="secondary" onclick="renderShareOwnershipLedger('businesscash')">Business Cash Ledger</button>
+<button type="button" class="secondary" onclick="renderShareOwnershipLedger('financial')">Unified Financial Ledger</button>
+<button type="button" class="secondary" onclick="renderShareOwnershipLedger('cashaudit')">Cash Audit &amp; Corrections</button>
+</div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
  
  
  
@@ -5886,15 +5893,10 @@ else if(view==="ownership")out.innerHTML='<h3>Ownership Transfers</h3>'+rows(own
 else out.innerHTML='<h3>All Share &amp; Ownership Events</h3>'+rows(all);
 }
 function bindShareOwnershipLedger(){
-const open=$("openShareOwnershipLedgerHome"),close=$("shareOwnershipLedgerClose"),refresh=$("shareOwnershipLedgerRefresh"),modal=$("shareOwnershipLedgerModal");
-if(open)open.addEventListener("click",()=>openShareOwnershipLedger("all"));if(close)close.addEventListener("click",closeShareOwnershipLedger);if(refresh)refresh.addEventListener("click",()=>renderShareOwnershipLedger("audit"));
-if(modal){
- modal.addEventListener("click",e=>{
-  const button=e.target&&e.target.closest?e.target.closest("[data-share-ledger-view]"):null;
-  if(button&&modal.contains(button)){e.preventDefault();e.stopPropagation();renderShareOwnershipLedger(button.getAttribute("data-share-ledger-view"));return;}
-  if(e.target===modal)closeShareOwnershipLedger();
- });
-}
+const open=$("openShareOwnershipLedgerHome"),close=$("shareOwnershipLedgerClose"),refresh=$("shareOwnershipLedgerRefresh");
+if(open&&!open.dataset.bound){open.dataset.bound="1";open.addEventListener("click",()=>openShareOwnershipLedger("all"));}
+if(close&&!close.dataset.bound){close.dataset.bound="1";close.addEventListener("click",closeShareOwnershipLedger);}
+if(refresh&&!refresh.dataset.bound){refresh.dataset.bound="1";refresh.addEventListener("click",()=>renderShareOwnershipLedger("audit"));}
 getShareOwnershipLedger();
 }
 document.addEventListener("DOMContentLoaded",bindShareOwnershipLedger);if(document.readyState!=="loading")bindShareOwnershipLedger();
@@ -6070,7 +6072,7 @@ if(document.readyState!=="loading")bind();
  
  
 <script>
-/* 4.24.37: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
+/* 4.24.38: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
 (function(){
 "use strict";
 const bridge=window.__calvinsCityBridge;if(!bridge||typeof bridge.getState!=="function")return;
