@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.20 -->
-<!-- Build identity: 4.24.20. Share & Ownership Ledger; no Season 29 reset. -->
+<!-- CALVIN'S CITY — VERSION 4.24.21 -->
+<!-- Build identity: 4.24.21. Shareholder-only seller selectors; Share & Ownership Ledger retained; no Season 29 reset. -->
  
 <html lang="en">
 <head>
@@ -5435,18 +5435,23 @@ const accountOptions=buildAccountOptions();
 ["stockTradingCitizen","stockTradingCounterparty"].forEach(id=>{const el=$(id);if(!el)return;const current=el.value;el.innerHTML=accountOptions||'<option value="">No accounts available</option>';if(current&&Array.from(el.options).some(o=>o.value===current))el.value=current;});
 updateTradeControls();
 }
-function buildAccountOptions(excludeValue){
+function buildAccountOptions(excludeValue,companyName,holdersOnly){
 const list=[];
-citizens().filter(c=>c&&c.id&&String(c.name||"").trim()).forEach(c=>list.push({value:"CITIZEN:"+String(c.id),label:c.name+" · Citizen · Cash "+money(c.cash),sort:c.name}));
+citizens().filter(c=>c&&c.id&&String(c.name||"").trim()).forEach(c=>list.push({value:"CITIZEN:"+String(c.id),key:String(c.id),label:c.name+" · Citizen · Cash "+money(c.cash),sort:c.name}));
 const st=getState(),businessNames=Object.keys(st.businessCash||{});
 companies.forEach(def=>{if(!businessNames.includes(def.name))businessNames.push(def.name);});
 [...new Set(businessNames)].sort((a,b)=>a.localeCompare(b)).forEach(name=>{
  const def=companies.find(c=>c.name===name);
  const isArenaTeam=!!(def&&def.category==="Basketball Teams");
  const cash=isArenaTeam?Number((st.teamCash||{})[name]??st.businessCash?.[name]??def.cashSeed)||0:Number((st.businessCash||{})[name]??def?.cashSeed)||0;
- list.push({value:"BUSINESS:"+name,label:name+(isArenaTeam?" · Arena Team Account":" · Business Account")+" · Cash "+money(cash),sort:name});
+ list.push({value:"BUSINESS:"+name,key:"BUSINESS:"+name,label:name+(isArenaTeam?" · Arena Team Account":" · Business Account")+" · Cash "+money(cash),sort:name});
 });
-return list.filter(x=>x.value!==excludeValue).sort((a,b)=>a.sort.localeCompare(b.sort)||a.value.localeCompare(b.value)).map(x=>'<option value="'+esc(x.value)+'">'+esc(x.label)+'</option>').join("");
+let eligible=list;
+if(holdersOnly){
+ const co=db.companies[companyName];
+ eligible=co?list.filter(x=>Number(co.holdings&&co.holdings[x.key])>0):[];
+}
+return eligible.filter(x=>x.value!==excludeValue).sort((a,b)=>a.sort.localeCompare(b.sort)||a.value.localeCompare(b.value)).map(x=>'<option value="'+esc(x.value)+'">'+esc(x.label)+'</option>').join("");
 }
 function resolveTradingAccount(value){
 const raw=String(value||"");
@@ -5467,21 +5472,32 @@ function updateTradeControls(){
 const action=$("stockTradingAction"),actor=$("stockTradingCitizen"),other=$("stockTradingCounterparty"),company=$("stockTradingCompany");
 if(!action||!actor||!other||!company)return;
 const a=action.value,co=db.companies[company.value];
+/* 4.24.21: In Sell Shares mode, the trading-account selector contains only
+   accounts with a positive holding in the selected company. For Buy from
+   another holder, the counterparty seller list is filtered the same way. */
+const actorCurrent=actor.value;
+const actorOptions=buildAccountOptions(null,company.value,a==="sellCitizen");
+actor.innerHTML=actorOptions||'<option value="">'+(a==="sellCitizen"?'No shareholders recorded for this company':'No accounts available')+'</option>';
+if(actorCurrent&&Array.from(actor.options).some(o=>o.value===actorCurrent))actor.value=actorCurrent;
+else if(actor.options.length)actor.selectedIndex=0;
 other.disabled=a==="buyReserve";
-if(a==="buyReserve"){other.innerHTML='<option value="">Market Reserve</option>';}
-else{
+if(a==="buyReserve"){
+ other.innerHTML='<option value="">Market Reserve</option>';
+}else{
  const current=other.value;
- const options=buildAccountOptions(actor.value);
- other.innerHTML=options||'<option value="">No other accounts available</option>';
+ const sellerOnly=a==="buyCitizen";
+ const options=buildAccountOptions(actor.value,company.value,sellerOnly);
+ other.innerHTML=options||'<option value="">'+(sellerOnly?'No other shareholders recorded for this company':'No other accounts available')+'</option>';
  if(current&&Array.from(other.options).some(o=>o.value===current))other.value=current;
+ else if(other.options.length)other.selectedIndex=0;
 }
 const note=$("stockTradeMessage");
 if(co&&co.needsAllocationReview){
  if(note)note.textContent="Trading is paused for this company until its legacy shareholder allocation is confirmed. The 500-share supply is preserved; no holders were invented.";
  $("stockExecuteTrade").disabled=true;
 }else{
- if(note)note.textContent="";
- $("stockExecuteTrade").disabled=false;
+ if(note)note.textContent=a==="sellCitizen"&&!actorOptions?"No recorded shareholders are available to sell shares in this company.":"";
+ $("stockExecuteTrade").disabled=!!(a==="sellCitizen"&&!actorOptions);
 }
 updateTradeQuote();
 }
