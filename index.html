@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.22.11 -->
-<!-- Build identity: 4.22.11. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
+<!-- CALVIN'S CITY — VERSION 4.22.12 -->
+<!-- Build identity: 4.22.12. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.22.11</title>
+<title>Calvin's City 4.22.12</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -78,7 +78,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.22.11</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.22.12</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -540,7 +540,7 @@ if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPla
 /* 4.19.1: BETS is a permanent append-oriented ledger, independent of the season state.
   Never delete or season-filter this database. Normal saves merge concurrent/older
   in-memory copies with the current browser copy and refuse malformed saved data. */
-/* 4.22.11: Save and verify a full recovery snapshot before returning to Season 29 Game 0 for offseason-feature testing.
+/* 4.22.12: Save and verify a full recovery snapshot before returning to Season 29 Game 0 for offseason-feature testing.
   This does not modify the separate BETS database. The reset is blocked if backup fails. */
 const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_22_10";
 let season29RestoreBackupReady=false;
@@ -565,7 +565,7 @@ const season29ResetBlockedByBackup=!season29RestoreBackupReady;
   This runs once for this build. It preserves Seasons 1–28 and retired-player
   history, captures Season 29+ game records above for BETS import, restores the
   approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.22.11" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
+if(state.season29FreshStartVersion!=="4.22.12" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -588,9 +588,9 @@ if(state.season29FreshStartVersion!=="4.22.11" && !season29ResetBlockedByStaging
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
  state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
  /* Force the existing, well-tested Season 29 opening baseline migration to run. */
- state.season29OpeningRestoreVersion="4.22.11-pending";
- state.season29FullBaselineRestoreVersion="pending-4.22.11";
- state.season29FreshStartVersion="4.22.11";
+ state.season29OpeningRestoreVersion="4.22.12-pending";
+ state.season29FullBaselineRestoreVersion="pending-4.22.12";
+ state.season29FreshStartVersion="4.22.12";
  try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
  catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
 }
@@ -2561,14 +2561,24 @@ return (state.citizens||[]).some(c=>{
 });
 }
 function getShoeCompaniesNeedingDeals(){return SHOES.filter(company=>!shoeCompanyHasActivePlayerDeal(company));}
-function showShoeDealNeedsPopup(){
+/* 4.22.12: Show the shoe-deal reminder once for EVERY completed season.
+  Persist the season marker only after the modal/list are available, so a failed
+  early call can be retried by the startup fallback. */
+function showShoeDealNeedsPopup(force){
 const modal=document.getElementById("shoeDealNeedsModal"),list=document.getElementById("shoeDealNeedsList");
-if(!modal||!list)return;
+if(!modal||!list)return false;
+if(!state.seasonPlayed || state.seasonPhase!=="offseason" || state.offseasonFinalized)return false;
+const completedSeason=Number(state.year)||0;
+if(!force && Number(state.shoeDealNeedsPopupShownForSeason)===completedSeason)return false;
 const missing=getShoeCompaniesNeedingDeals();
 list.innerHTML=missing.length
  ?'<ul>'+missing.map(company=>'<li><b>'+company+'</b> — no active player deal</li>').join("")+'</ul>'
  :'<p class="gold"><b>All five shoe companies have at least one active player deal.</b></p>';
+modal.style.display="";
 modal.classList.add("show");
+state.shoeDealNeedsPopupShownForSeason=completedSeason;
+save();
+return true;
 }
 function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((p,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;return{A,B,winner,loser,ot,ticket:ticketRevenue(),shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeCompanyHasActivePlayerDeal(s)?shoeRevenue():0]))}}
 function gameText(g){let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>';[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
@@ -2907,7 +2917,10 @@ if(stage==="Regular Season"){
 if(auditEnabled)captureSeason29GameCashBoundary("after-game-finalization-before-save",{stage,a:g.A.team,b:g.B.team});
 save();
 if(auditEnabled){captureSeason29GameCashBoundary("after-save-before-render",{stage,a:g.A.team,b:g.B.team});save();}
-renderGameResult(g,stage);renderProgress();renderBetsSection();
+renderGameResult(g,stage);renderProgress();
+/* 4.22.12: Ensure completed-season shoe-deal reminder is not skipped. */
+if(state.seasonPlayed && state.seasonPhase==="offseason" && !state.offseasonFinalized)showShoeDealNeedsPopup(false);
+renderBetsSection();
 }
 function renderGameResult(g,stage){document.getElementById("seasonOutput").innerHTML='<p class="gold"><b>'+stage+' completed and saved.</b></p>'+gameText(g)}
 function nextGameDescription(){if(state.seasonPhase==="regular"){const p=REGULAR_SCHEDULE[state.regularGameIndex];return p?'Game '+(state.regularGameIndex+1)+' of 3: <b>'+p[0]+' vs '+p[1]+'</b>':'Regular season complete.'}if(state.seasonPhase==="semifinal"){const o=TEAMS.filter(t=>t!==state.playoff.bye);return '<b>Semifinal:</b> '+o[0]+' vs '+o[1]+' <span class="badge">'+state.playoff.bye+' has the bye</span>'}if(state.seasonPhase==="championship")return '<b>Championship:</b> '+state.playoff.bye+' vs '+state.playoff.semifinal.winner;if(state.seasonPhase==="offseason")return '<b>Season complete.</b> Open Offseason to manage contracts, trades and roster decisions.';return '<b>New season ready.</b>'}
@@ -3382,7 +3395,7 @@ window.closeContractVerifyModal=closeContractVerifyModal;
 window.confirmContractVerification=confirmContractVerification;
  
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
-/* 4.22.11: Public bridge for the dynamically displayed shoe-deal popup.
+/* 4.22.12: Public bridge for the dynamically displayed shoe-deal popup.
   This function is defined in the same closure as state/openOffseason, so the
   popup button can invoke the real offseason workflow instead of a private,
   inaccessible function name. */
@@ -3780,7 +3793,7 @@ const shoes=(c.shoeDeals||[]).map(d=>'<div class="ledger-entry"><b>Shoe deal —
 const events=tx.map(t=>'<div class="ledger-entry"><b>'+String(t.type||"Transaction")+' · '+(Number(t.amount)>=0?'+':'')+'$'+(Number(t.amount)||0)+'M</b><br>'+String(t.reason||"Reason not recorded")+' · '+new Date(t.at).toLocaleString()+'<br>Source: '+String(t.source||"Not recorded")+' · Balance '+(t.balanceBefore==null?'?':'$'+t.balanceBefore+'M')+' → '+(t.balanceAfter==null?'?':'$'+t.balanceAfter+'M')+'</div>').join("")||'<p class="tiny">No instrumented transaction events for this player yet. Tracking starts with supported financial actions in v4.17.122; older cash changes cannot be reconstructed reliably.</p>';
 panel.innerHTML='<h4 style="margin:0 0 8px">'+name+' — Financial Activity</h4><p><b>Current cash:</b> '+(c.cash==null?'Not recorded':'$'+Number(c.cash)+'M')+'</p><h4>Active Contract</h4>'+(liveHtml||'<p class="tiny">No active team contract found for this player.</p>')+'<h4>Contract History</h4>'+contracts+'<h4>Shoe Deals</h4>'+shoes+'<h4>Recorded Transactions ('+tx.length+')</h4>'+events;
 }));
-/* 4.22.11: Delete active contracts OR individual contract-history entries from the Player Ledger.
+/* 4.22.12: Delete active contracts OR individual contract-history entries from the Player Ledger.
   Each contract package is debited from citizen cash once; no team/company receives a refund.
   Deleting the active contract also removes its matching history record and ends included shoe deals. */
 const deleteContractFromCitizenLedger=({playerName,packageValue,source,activeKey=null,historyIndex=null})=>{
@@ -3854,7 +3867,7 @@ if(alreadyVoided){
 }
 deleteContractFromCitizenLedger({playerName,packageValue,source:'deleteContractHistoryFromCitizenLedger',activeKey:sameActive?rosterKey:null,historyIndex});
 }));
-/* 4.22.11: Delegated contract-delete click handlers.
+/* 4.22.12: Delegated contract-delete click handlers.
   The Player Ledger buttons are inserted dynamically when a ledger is opened.
   Binding directly during the initial render misses those buttons; delegation on
   the Citizen Ledger container ensures confirmation and cash deduction handlers run. */
@@ -3942,7 +3955,7 @@ if(copyButton)copyButton.addEventListener("click",async()=>{
 });
 }));
 const diagnosticPanel=document.createElement("details");diagnosticPanel.className="ledger-diagnostic-panel";
-diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.11)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
+diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.12)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
 out.appendChild(diagnosticPanel);
 let latestLedgerReport=null;
 const runBtn=document.getElementById("runLedgerDiagnostics"),copyBtn=document.getElementById("copyLedgerDiagnostics"),reportBox=document.getElementById("ledgerDiagnosticText"),summary=document.getElementById("ledgerDiagnosticSummary");
@@ -4212,7 +4225,7 @@ document.addEventListener("DOMContentLoaded",bindRecordsModal);
 if(document.readyState!=="loading")bindRecordsModal();
 })();
  
-/* 4.22.11: Continue from the shoe-deal warning into the actual Offseason workflow.
+/* 4.22.12: Continue from the shoe-deal warning into the actual Offseason workflow.
   Previously this button only closed the popup; it did not reliably reach the
   private Offseason function. Use the public bridge defined beside openOffseason. */
 const shoeNeedsContinue=document.getElementById("shoeDealNeedsContinue");
@@ -4268,6 +4281,11 @@ citizens.forEach(c=>{
 })();
 renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 document.addEventListener("DOMContentLoaded",function(){
+/* 4.22.12: Recovery trigger. If a season is complete but the popup was missed
+  during the championship completion path, display it once on page load. */
+if(state.seasonPlayed && state.seasonPhase==="offseason" && !state.offseasonFinalized){
+ showShoeDealNeedsPopup(false);
+}
 const freeAgentSearchEl=document.getElementById("freeAgentSearch");if(freeAgentSearchEl)freeAgentSearchEl.addEventListener("input",renderFreeAgentMarket);
 const citizenLedgerHomeBtn=document.getElementById("openCitizenLedgerHome");
 const citizenLedgerModalEl=document.getElementById("citizenLedgerModal");
@@ -4517,4 +4535,4 @@ document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleStri
 })();
 </script>
  
-</body></html> 
+</body></html>
