@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.30 -->
-<!-- Build identity: 4.24.30. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
+<!-- CALVIN'S CITY — VERSION 4.24.31 -->
+<!-- Build identity: 4.24.31. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.30 — Share & Ownership Ledger</title>
+<title>Calvin's City 4.24.31 — TV Company Modal & Ownership View</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
@@ -128,7 +128,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="city-business-card" data-business-name="Puma" role="button" tabindex="0" onclick="openShoeCompanySection('Puma')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Puma')"><strong>👟 Puma</strong><span>Shoe Company • 50% House / 50% West</span></div>
 <div class="city-business-card" data-business-name="Adidas" role="button" tabindex="0" onclick="openShoeCompanySection('Adidas')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Adidas')"><strong>👟 Adidas</strong><span>Shoe Company • 50% Wallace / 50% Poley</span></div>
 <div class="city-business-card" data-business-name="New Balance" role="button" tabindex="0" onclick="openShoeCompanySection('New Balance')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('New Balance')"><strong>👟 New Balance</strong><span>Shoe Company • Folcook / Bole / Hall</span></div>
-<div class="city-business-card" data-business-name="TV Company" role="button" tabindex="0" onclick="openTVBroadcastingSection()" onkeydown="if(event.key==='Enter'||event.key===' ')openTVBroadcastingSection()"><strong>📺 TV Company</strong><span>Media Company</span></div>
+<div class="city-business-card" data-business-name="TV Company" role="button" tabindex="0" onclick="openTVBroadcastingSection()" onkeydown="if(event.key==='Enter'||event.key===' ')openTVBroadcastingSection()"><strong>📺 TV Company</strong><span>Media Company • View Ownership &amp; Broadcasting Deals</span></div>
 <div class="city-business-card" data-business-name="Sports Bets Company" role="button" tabindex="0" onclick="window.openOwnershipMarketplace('Sports Bets Company')" onkeydown="if(event.key==='Enter'||event.key===' ')window.openOwnershipMarketplace('Sports Bets Company')"><strong>🎲 Sports Bets</strong><span>Sports Business</span></div>
 </div>
 <div class="card" id="tvBroadcastingCard" style="margin-top:14px">
@@ -2747,7 +2747,7 @@ if(state.season29BHallOpeningCashRepairVersion!=="4.22.3" &&
 }
 renderRecords();
 renderBetsStorageStatus();
-/* 4.24.30: Unified append-only financial transaction ledger.
+/* 4.24.31: Unified append-only financial transaction ledger.
   The existing team/business ledgers remain intact as source records. This central ledger
   indexes every recorded cash-ledger entry and keeps a recovery mirror. It does not invent
   transactions for unexplained balance changes; those remain audit findings. */
@@ -6038,7 +6038,7 @@ if(document.readyState!=="loading")bind();
  
  
 <script>
-/* 4.24.30: TV broadcasting contracts, full upfront settlement, season eligibility and readiness alert. */
+/* 4.24.31: TV broadcasting contracts, full upfront settlement, season eligibility and readiness alert. */
 (function(){
 "use strict";
 const bridge=window.__calvinsCityBridge;if(!bridge||typeof bridge.getState!=="function")return;
@@ -6051,7 +6051,19 @@ function activeDeals(){ensure();const year=Number(state.year)||29;return state.t
 function activeTeams(){return [...new Set(activeDeals().map(d=>d.team))];}
 function render(){ensure();const current=Number(state.year)||29,active=activeTeams(),cash=$("tvBroadcastCash"),count=$("tvBroadcastActiveCount"),eligible=$("tvBroadcastEligibility"),warning=$("tvBroadcastWarning"),out=$("tvBroadcastRegister"),select=$("tvBroadcastTeam");if(cash)cash.textContent=moneyText(state.businessCash["TV Company"]);if(count)count.textContent=active.length+" / 3";if(eligible){eligible.textContent=active.length>=2?"Eligible":"Not eligible";eligible.style.color=active.length>=2?"#9ff0b5":"#f1d37a";}if(warning){warning.style.display=active.length>=2?"none":"block";warning.innerHTML=active.length>=2?"":"<b>Season "+current+" readiness:</b> TV Company has "+active.length+" active team contract(s). Sign at least "+(2-active.length)+" more team contract(s) before game revenue can be earned.";}if(select){const previous=select.value;Array.from(select.options).forEach(o=>{o.disabled=active.includes(o.value);});if(active.includes(previous)){const first=Array.from(select.options).find(o=>!o.disabled);if(first)select.value=first.value;}}if(out){const deals=state.tvBroadcastingDeals.slice().sort((a,b)=>(Number(a.startSeason)||0)-(Number(b.startSeason)||0));if(!deals.length){out.innerHTML='<p class="muted">No broadcasting deals recorded. At least two different teams must have active contracts for TV Company to earn game revenue.</p>';}else{out.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Team</th><th>Full Payment</th><th>Term</th><th>Seasons</th><th>Status</th></tr></thead><tbody>'+deals.map(d=>{const on=d.status!=="cancelled"&&Number(d.startSeason)<=current&&Number(d.endSeason)>=current;const status=d.status==="cancelled"?"Cancelled":on?"Active":current<Number(d.startSeason)?"Upcoming":"Expired";return '<tr><td>'+esc(d.team)+'</td><td>'+moneyText(d.contractValue)+'</td><td>'+esc(d.termYears)+' season(s)</td><td>'+esc(d.startSeason)+'–'+esc(d.endSeason)+'</td><td>'+status+'</td></tr>';}).join("")+'</tbody></table></div><p class="tiny">Contract payments are paid in full at signing. Expired contracts do not count toward the two-team minimum.</p>';}}}
 function signDeal(){ensure();const team=$("tvBroadcastTeam"),term=$("tvBroadcastTerm"),valueEl=$("tvBroadcastValue"),msg=$("tvBroadcastMessage");if(!team||!term||!valueEl||!msg)return;const name=String(team.value||""),years=Number(term.value),value=Math.round(Number(valueEl.value)*100)/100,season=Number(state.year)||29;if(!teams.includes(name)){msg.textContent="Choose a valid team.";return;}if(!Number.isInteger(years)||years<1||years>6){msg.textContent="A broadcasting contract must last 1–6 seasons.";return;}if(!Number.isFinite(value)||value<=0){msg.textContent="Enter a total upfront payment greater than $0M.";return;}if(activeDeals().some(d=>d.team===name)){msg.textContent=name+" already has an active TV contract.";return;}const tvBefore=Number(state.businessCash["TV Company"])||0;if(value>tvBefore){msg.textContent="TV Company does not have enough cash. Available: "+moneyText(tvBefore)+".";return;}const teamBefore=Number(state.teamCash[name])||0,tvAfter=Math.round((tvBefore-value)*100)/100,teamAfter=Math.round((teamBefore+value)*100)/100,id="TV-BROADCAST-"+season+"-"+name+"-"+Date.now(),at=new Date().toISOString(),end=season+years-1;const deal={id,team:name,contractValue:value,termYears:years,startSeason:season,endSeason:end,status:"active",paidInFull:true,paidAt:at};state.businessCash["TV Company"]=tvAfter;state.teamCash[name]=teamAfter;state.tvBroadcastingDeals.push(deal);state.businessCashLedger.push({id:id+"-TV",season,type:"TV Broadcasting Deal Payment",company:"TV Company",amount:-value,before:tvBefore,after:tvAfter,reason:"Full upfront broadcasting contract payment to "+name+" for "+years+" season(s)",createdAt:at});state.teamCashLedger.push({id:id+"-TEAM",season,team:name,type:"TV Broadcasting Deal Payment",amount:value,before:teamBefore,after:teamAfter,reason:"Full upfront broadcasting contract payment from TV Company; term "+years+" season(s)",createdAt:at});syncUnifiedFinancialLedger();bridge.save();valueEl.value="";msg.textContent="Contract signed: TV Company paid "+moneyText(value)+" to "+name+" in full. Active through Season "+end+".";render();updateAlert();}
-function openSection(){const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab)tab.click();const card=$("tvBroadcastingCard");if(card)card.scrollIntoView({behavior:"smooth",block:"start"});render();}
+let tvCompanyActiveView="overview";
+function renderTVCompanyOwnership(){
+ const st=bridge.getState();if(typeof bridge.ensureBusinessOwnershipRegistry==="function")bridge.ensureBusinessOwnershipRegistry();
+ const registry=st.businessOwnershipRegistry||{},record=registry.businesses&&registry.businesses["TV Company"];
+ const owners=record&&Array.isArray(record.owners)?record.owners:[];
+ const valuation=$("tvCompanyOwnershipValuation"),count=$("tvCompanyOwnershipCount"),out=$("tvCompanyOwnershipOwners");
+ if(valuation)valuation.textContent=moneyText(record&&record.valuation!=null?record.valuation:3650);
+ if(count)count.textContent=String(owners.length);
+ if(out){if(!owners.length){out.innerHTML='<p class="muted">No ownership records are available.</p>';}else{out.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Owner</th><th>Ownership</th></tr></thead><tbody>'+owners.map(o=>{const citizen=(st.citizens||[]).find(c=>c&&String(c.id)===String(o.citizenId));const name=citizen&&citizen.name||o.name||"Unknown owner";const pct=Number(o.percentage)||0;return '<tr><td>'+esc(name)+'</td><td>'+pct.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'%</td></tr>';}).join('')+'</tbody></table></div>';}}
+}
+function setTVCompanyView(view){tvCompanyActiveView=["overview","deals","ownership"].includes(view)?view:"overview";const modal=$("tvCompanyDetailModal");if(!modal)return;modal.querySelectorAll("[data-tv-company-panel]").forEach(panel=>panel.style.display=panel.getAttribute("data-tv-company-panel")===tvCompanyActiveView?"block":"none");modal.querySelectorAll("[data-tv-company-view]").forEach(button=>{const active=button.getAttribute("data-tv-company-view")===tvCompanyActiveView;button.classList.toggle("active",active);});if(tvCompanyActiveView==="deals")render();if(tvCompanyActiveView==="ownership")renderTVCompanyOwnership();if(tvCompanyActiveView==="overview"){render();const st=bridge.getState(),cash=$("tvCompanyOverviewCash"),contracts=$("tvCompanyOverviewContracts"),elig=$("tvCompanyOverviewEligibility"),active=activeTeams();if(cash)cash.textContent=moneyText(st.businessCash&&st.businessCash["TV Company"]);if(contracts)contracts.textContent=active.length+" / 3";if(elig)elig.textContent=active.length>=2?"Eligible":"Not eligible";}}
+function openSection(view){const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab)tab.click();const modal=$("tvCompanyDetailModal"),card=$("tvBroadcastingCard"),dealsPanel=$("tvCompanyDealsPanel");if(card&&dealsPanel&&card.parentElement!==dealsPanel)dealsPanel.appendChild(card);if(modal){modal.style.display="flex";modal.setAttribute("aria-hidden","false");lockAlertView();}setTVCompanyView(view||"overview");render();}
+function closeTVCompanyModal(){const modal=$("tvCompanyDetailModal");if(modal){modal.style.display="none";modal.setAttribute("aria-hidden","true");}unlockAlertView();}
 let alertScrollY=0;
 function lockAlertView(){if(document.body.classList.contains("tv-broadcast-alert-open"))return;alertScrollY=window.scrollY||window.pageYOffset||0;document.body.dataset.tvBroadcastAlertScroll=String(alertScrollY);document.body.classList.add("tv-broadcast-alert-open");document.body.style.position="fixed";document.body.style.top=(-alertScrollY)+"px";document.body.style.left="0";document.body.style.right="0";document.body.style.width="100%";document.documentElement.style.overflow="hidden";}
 function unlockAlertView(){if(!document.body.classList.contains("tv-broadcast-alert-open"))return;const y=Number(document.body.dataset.tvBroadcastAlertScroll)||alertScrollY||0;document.body.classList.remove("tv-broadcast-alert-open");document.body.style.position="";document.body.style.top="";document.body.style.left="";document.body.style.right="";document.body.style.width="";document.documentElement.style.overflow="";delete document.body.dataset.tvBroadcastAlertScroll;window.scrollTo(0,y);alertScrollY=0;}
@@ -6059,16 +6071,47 @@ function closeAlert(){const modal=$("tvBroadcastSeasonAlert");if(modal)modal.sty
 function updateAlert(force){ensure();const modal=$("tvBroadcastSeasonAlert");if(!modal)return;const season=Number(state.year)||29,active=activeTeams();if(active.length>=2){closeAlert();return;}if(!force&&Number(state.tvBroadcastAlertDismissedSeason)===season)return;const count=$("tvBroadcastAlertCount");if(count)count.textContent=String(active.length);modal.style.display="flex";modal.setAttribute("aria-hidden","false");lockAlertView();state.tvBroadcastAlertShownSeason=season;bridge.save();}
 function bindAlertButtons(){
  const sign=$("tvBroadcastSign");if(sign&&!sign.dataset.tvBroadcastBound){sign.addEventListener("click",signDeal);sign.dataset.tvBroadcastBound="1";}
- const go=$("tvBroadcastAlertSign");if(go&&!go.dataset.tvBroadcastBound){go.addEventListener("click",()=>{state.tvBroadcastAlertDismissedSeason=Number(state.year)||29;bridge.save();closeAlert();openSection();});go.dataset.tvBroadcastBound="1";}
+ const go=$("tvBroadcastAlertSign");if(go&&!go.dataset.tvBroadcastBound){go.addEventListener("click",()=>{state.tvBroadcastAlertDismissedSeason=Number(state.year)||29;bridge.save();closeAlert();openSection("deals");});go.dataset.tvBroadcastBound="1";}
  const dismiss=$("tvBroadcastAlertDismiss");if(dismiss&&!dismiss.dataset.tvBroadcastBound){dismiss.addEventListener("click",()=>{state.tvBroadcastAlertDismissedSeason=Number(state.year)||29;bridge.save();closeAlert();});dismiss.dataset.tvBroadcastBound="1";}
+ const modal=$("tvCompanyDetailModal"),close=$("tvCompanyDetailClose"),box=$("tvCompanyDetailModalBox");
+ if(close&&!close.dataset.bound){close.addEventListener("click",closeTVCompanyModal);close.dataset.bound="1";}
+ if(modal&&!modal.dataset.bound){modal.addEventListener("click",e=>{if(e.target===modal)closeTVCompanyModal();});modal.dataset.bound="1";}
+ if(box&&!box.dataset.bound){box.addEventListener("click",e=>e.stopPropagation());box.dataset.bound="1";}
+ if(modal&&!modal.dataset.tabsBound){modal.querySelectorAll("[data-tv-company-view]").forEach(b=>b.addEventListener("click",()=>setTVCompanyView(b.getAttribute("data-tv-company-view"))));modal.querySelectorAll("[data-tv-company-go]").forEach(b=>b.addEventListener("click",()=>setTVCompanyView(b.getAttribute("data-tv-company-go"))));const manage=$("tvCompanyManageOwnership");if(manage)manage.addEventListener("click",()=>{if(typeof window.openOwnershipMarketplace==="function")window.openOwnershipMarketplace("TV Company");else alert("The ownership marketplace is not ready. Please try again.");});modal.dataset.tabsBound="1";}
  const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab&&!tab.dataset.tvBroadcastRenderBound){tab.addEventListener("click",render);tab.dataset.tvBroadcastRenderBound="1";}
 }
-window.openTVBroadcastingSection=openSection;window.renderTVBroadcastingDeals=render;window.checkTVBroadcastingSeasonReadiness=()=>updateAlert(true);
+window.openTVBroadcastingSection=()=>openSection("overview");window.renderTVBroadcastingDeals=render;window.checkTVBroadcastingSeasonReadiness=()=>updateAlert(true);
 ensure();render();
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bindAlertButtons();setTimeout(()=>{const yr=Number(state.year)||29;if(Number(state.tvBroadcastAlertDismissedSeason)!==yr)updateAlert(false);},300);},{once:true});
 else {bindAlertButtons();setTimeout(()=>{const yr=Number(state.year)||29;if(Number(state.tvBroadcastAlertDismissedSeason)!==yr)updateAlert(false);},300);}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){const modal=$("tvCompanyDetailModal");if(modal&&modal.style.display==="flex")closeTVCompanyModal();}});
 })();
 </script>
+<div id="tvCompanyDetailModal" style="display:none;position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:14px;box-sizing:border-box" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tvCompanyDetailTitle">
+<div id="tvCompanyDetailModalBox" style="width:min(980px,100%);max-height:92vh;overflow:auto;background:#111827;color:#f8fafc;border:1px solid #53647c;border-radius:18px;padding:18px;box-shadow:0 20px 60px #0008;box-sizing:border-box">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><h2 id="tvCompanyDetailTitle" style="margin:0">📺 TV Company</h2><button type="button" id="tvCompanyDetailClose" class="secondary">Close</button></div>
+ <p class="tiny">TV Company profile, ownership, and broadcasting contracts.</p>
+ <div class="city-tabs" role="tablist" aria-label="TV Company sections" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px">
+  <button type="button" class="city-tab active" data-tv-company-view="overview">Overview</button>
+  <button type="button" class="city-tab" data-tv-company-view="deals">Broadcasting Deals</button>
+  <button type="button" class="city-tab" data-tv-company-view="ownership">Ownership</button>
+ </div>
+ <section id="tvCompanyOverviewPanel" data-tv-company-panel="overview">
+  <div class="grid" style="margin:12px 0"><div class="metric"><small>TV Company Cash</small><strong id="tvCompanyOverviewCash">—</strong></div><div class="metric"><small>Active Team Contracts</small><strong id="tvCompanyOverviewContracts">0 / 3</strong></div><div class="metric"><small>Game Revenue Eligibility</small><strong id="tvCompanyOverviewEligibility">Not eligible</strong></div></div>
+  <p class="tiny">TV Company must have active broadcasting contracts with at least two different teams to qualify for its game revenue.</p>
+  <button type="button" class="goodbtn" data-tv-company-go="deals">Manage Broadcasting Deals</button>
+  <button type="button" class="secondary" data-tv-company-go="ownership">View Ownership</button>
+ </section>
+ <section id="tvCompanyDealsPanel" data-tv-company-panel="deals" style="display:none"></section>
+ <section id="tvCompanyOwnershipPanel" data-tv-company-panel="ownership" style="display:none">
+  <h3>TV Company Ownership</h3>
+  <div class="grid" style="margin:10px 0"><div class="metric"><small>Business Valuation</small><strong id="tvCompanyOwnershipValuation">—</strong></div><div class="metric"><small>Registered Owners</small><strong id="tvCompanyOwnershipCount">0</strong></div></div>
+  <div id="tvCompanyOwnershipOwners" class="log">Ownership information is loading…</div>
+  <button type="button" id="tvCompanyManageOwnership" class="goodbtn">Manage Ownership &amp; Offers</button>
+  <p class="tiny">Ownership percentages are separate from company cash and public stock-market shares.</p>
+ </section>
+</div>
+</div>
 <div id="tvBroadcastSeasonAlert" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:18px;box-sizing:border-box" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tvBroadcastAlertTitle" onwheel="if(event.target===this)event.preventDefault()" ontouchmove="if(event.target===this)event.preventDefault()">
 <div style="width:min(520px,100%);background:#111827;color:#f8fafc;border:1px solid #b45309;border-radius:18px;padding:22px;box-shadow:0 20px 60px #0008">
  <h2 id="tvBroadcastAlertTitle">📺 TV Company — Season Readiness</h2>
@@ -6079,4 +6122,13 @@ else {bindAlertButtons();setTimeout(()=>{const yr=Number(state.year)||29;if(Numb
 </div>
 </div>
  
+<style>
+body.tv-broadcast-alert-open{overflow:hidden!important;touch-action:none}
+#tvCompanyDetailModal .city-tab{background:#344255;color:#fff}
+#tvCompanyDetailModal .city-tab.active{background:#2f6fed}
+#tvCompanyDetailModal .metric{background:#263449;border:1px solid #53647c;color:#fff}
+#tvCompanyDetailModal .metric small,#tvCompanyDetailModal .tiny{color:#d5deea}
+#tvCompanyDetailModal table{width:100%;border-collapse:collapse}
+#tvCompanyDetailModal th,#tvCompanyDetailModal td{padding:9px;border-bottom:1px solid #39465a;text-align:left}
+</style>
 </body></html>
