@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.45 -->
+<!-- CALVIN'S CITY — VERSION 4.24.46 -->
 <!-- Build identity: 4.24.36. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.45 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.46 — TV Company Modal & Ownership View</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -3386,10 +3386,15 @@ let h='<p class="tiny">'+available.length+' available player'+(available.length=
 h+='<div class="team-table-wrap"><table class="team-table"><tr><th>Citizen ID</th><th>Player</th><th>Position</th><th>Career PTS</th><th>Career REB</th><th>Cash</th><th>MVPs</th><th>Titles</th><th>TNR</th></tr>';
 available.forEach(c=>{
   const cashValue=c.cash==null?"Unconfirmed":"$"+(Number(c.cash)||0)+"M";
-  const hasPlayed=freeAgentHasRecordedGameParticipation(c);
-  const careerPts=hasPlayed?(Number(c.careerPts)||0):0;
-  const careerRebs=hasPlayed?(Number(c.careerRebs)||0):0;
-  h+='<tr><td>'+escapeFreeAgentText(c.id||"—")+'</td><td><b>'+escapeFreeAgentText(c.name)+'</b></td><td>'+escapeFreeAgentText(c.position||"—")+'</td><td>'+careerPts+'</td><td>'+careerRebs+'</td><td>'+escapeFreeAgentText(cashValue)+'</td><td>'+(hasPlayed?(Number(c.mvps)||0):0)+'</td><td>'+(hasPlayed?(Number(c.championships)||0):0)+'</td><td>'+(hasPlayed?(Number(c.currentChampStreak)||0):0)+'</td></tr>';
+  /* Display the player's saved career record directly. Do not hide valid stats
+     merely because the participation scan cannot match an older historical format. */
+  const displayStat=value=>(value===null||value===undefined||value==="")?"—":(Number.isFinite(Number(value))?Number(value):"—");
+  const careerPts=displayStat(c.careerPts);
+  const careerRebs=displayStat(c.careerRebs);
+  const mvps=displayStat(c.mvps);
+  const titles=displayStat(c.championships);
+  const streak=displayStat(c.currentChampStreak);
+  h+='<tr><td>'+escapeFreeAgentText(c.id||"—")+'</td><td><b>'+escapeFreeAgentText(c.name)+'</b></td><td>'+escapeFreeAgentText(c.position||"—")+'</td><td>'+careerPts+'</td><td>'+careerRebs+'</td><td>'+escapeFreeAgentText(cashValue)+'</td><td>'+mvps+'</td><td>'+titles+'</td><td>'+streak+'</td></tr>';
 });
 h+='</table></div><p class="team-note">To sign or replace a player, use Offseason Management. Retired players are excluded from this list.</p>';
 out.innerHTML=h;
