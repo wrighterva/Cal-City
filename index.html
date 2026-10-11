@@ -5320,7 +5320,7 @@ out.innerHTML=html;
 function renderCompanyDetail(name){
 const panel=$("stockCompanyDetail"),def=companies.find(c=>c.name===name),co=db.companies[name];if(!panel||!def||!co)return;
 selectedMarketCompany=name;selectedMarketCategory=marketCategory(def);panel.style.display="block";
-const st=getState(),cash=Number((st.businessCash||{})[name]??def.cashSeed)||0,latest=latestReport(name),lastPriceRecord=co.priceHistory.length?co.priceHistory[co.priceHistory.length-1]:null,change=lastPriceRecord?Number(lastPriceRecord.changePct??0):(latest&&latest.priceChangePct!=null?Number(latest.priceChangePct):null);
+const st=getState(),cash=Number((def.category==="Basketball Teams"?(st.teamCash||{})[name]:(st.businessCash||{})[name])??def.cashSeed)||0,latest=latestReport(name),lastPriceRecord=co.priceHistory.length?co.priceHistory[co.priceHistory.length-1]:null,change=lastPriceRecord?Number(lastPriceRecord.changePct??0):(latest&&latest.priceChangePct!=null?Number(latest.priceChangePct):null);
 const holders=Object.entries(co.holdings||{}).filter(([k,v])=>(Number(v)||0)>0).map(([key,shares])=>({key,name:co.ownerNames&&co.ownerNames[key]?co.ownerNames[key]:ownerNameForKey(key,db),shares:Number(shares)})).sort((a,b)=>b.shares-a.shares);
 const history=db.transactions.filter(t=>t&&t.company===name).slice().reverse().slice(0,5);
 panel.innerHTML='<div class="market-profile-top"><div><div class="market-profile-category">'+esc(marketCategory(def))+'</div><h3 style="margin:4px 0">'+def.icon+' '+esc(name)+'</h3><p class="market-help">Public stock ownership is separate from the business ownership registry.</p></div><button type="button" class="market-back" data-market-close="1">← Back to '+esc(marketCategory(def))+'</button></div>'+
@@ -5439,19 +5439,29 @@ const list=[];
 citizens().filter(c=>c&&c.id&&String(c.name||"").trim()).forEach(c=>list.push({value:"CITIZEN:"+String(c.id),label:c.name+" · Citizen · Cash "+money(c.cash),sort:c.name}));
 const st=getState(),businessNames=Object.keys(st.businessCash||{});
 companies.forEach(def=>{if(!businessNames.includes(def.name))businessNames.push(def.name);});
-[...new Set(businessNames)].sort((a,b)=>a.localeCompare(b)).forEach(name=>{const cash=Number((st.businessCash||{})[name]??companies.find(c=>c.name===name)?.cashSeed)||0;list.push({value:"BUSINESS:"+name,label:name+" · Business · Cash "+money(cash),sort:name});});
+[...new Set(businessNames)].sort((a,b)=>a.localeCompare(b)).forEach(name=>{
+ const def=companies.find(c=>c.name===name);
+ const isArenaTeam=!!(def&&def.category==="Basketball Teams");
+ const cash=isArenaTeam?Number((st.teamCash||{})[name]??st.businessCash?.[name]??def.cashSeed)||0:Number((st.businessCash||{})[name]??def?.cashSeed)||0;
+ list.push({value:"BUSINESS:"+name,label:name+(isArenaTeam?" · Arena Team Account":" · Business Account")+" · Cash "+money(cash),sort:name});
+});
 return list.filter(x=>x.value!==excludeValue).sort((a,b)=>a.sort.localeCompare(b.sort)||a.value.localeCompare(b.value)).map(x=>'<option value="'+esc(x.value)+'">'+esc(x.label)+'</option>').join("");
 }
 function resolveTradingAccount(value){
 const raw=String(value||"");
 if(raw.startsWith("CITIZEN:")){const id=raw.slice(8),c=citizens().find(x=>x&&String(x.id)===id);return c?{kind:"citizen",id:String(c.id),name:String(c.name||c.id),entity:c,getCash:()=>Number(c.cash),setCash:v=>{c.cash=round4(v);},key:String(c.id)}:null;}
-if(raw.startsWith("BUSINESS:")){const name=raw.slice(9),st=getState();st.businessCash=st.businessCash||{};if(st.businessCash[name]==null){const def=companies.find(c=>c.name===name);if(!def)return null;st.businessCash[name]=Number(def.cashSeed)||0;}return {kind:"business",id:name,name,entity:null,getCash:()=>Number(st.businessCash[name]),setCash:v=>{st.businessCash[name]=round4(v);},key:"BUSINESS:"+name};}
+if(raw.startsWith("BUSINESS:")){
+ const name=raw.slice(9),st=getState(),def=companies.find(c=>c.name===name);if(!def)return null;
+ st.businessCash=st.businessCash||{};st.teamCash=st.teamCash||{};
+ const isArenaTeam=def.category==="Basketball Teams";
+ if(isArenaTeam){if(st.teamCash[name]==null)st.teamCash[name]=Number(st.businessCash[name]??def.cashSeed)||0;}
+ else if(st.businessCash[name]==null)st.businessCash[name]=Number(def.cashSeed)||0;
+ return {kind:"business",id:name,name,entity:null,getCash:()=>isArenaTeam?Number(st.teamCash[name]):Number(st.businessCash[name]),setCash:v=>{const amount=round4(v);if(isArenaTeam){st.teamCash[name]=amount;st.businessCash[name]=amount;}else st.businessCash[name]=amount;},key:"BUSINESS:"+name,isArenaTeam};
+}
 // Compatibility with any older selector values that held a bare citizen ID.
 const c=citizens().find(x=>x&&String(x.id)===raw);return c?{kind:"citizen",id:String(c.id),name:String(c.name||c.id),entity:c,getCash:()=>Number(c.cash),setCash:v=>{c.cash=round4(v);},key:String(c.id)}:null;
 }
 function selectedCitizen(id){return resolveTradingAccount(id);}
- 
-function selectedCitizen(id){return citizens().find(c=>c&&String(c.id)===String(id))||null;}
 function updateTradeControls(){
 const action=$("stockTradingAction"),actor=$("stockTradingCitizen"),other=$("stockTradingCounterparty"),company=$("stockTradingCompany");
 if(!action||!actor||!other||!company)return;
@@ -5483,7 +5493,7 @@ const count=Math.max(0,Math.floor(Number(shares.value)||0)),price=co.price,total
 out.innerHTML='<b>Current price:</b> '+money(price)+' per share<br><b>Trade total:</b> '+money(total)+' for '+count+' share'+(count===1?"":"s")+'<br><b>Shares available in reserve:</b> '+sharesAvailable(co);
 if(co.needsAllocationReview)out.innerHTML+='<br><span class="gold">Trading paused: historical holder allocation needs confirmation.</span>';
 else if(a==="buyReserve")out.innerHTML+='<br>New-share proceeds go to the company cash account.';
-else out.innerHTML+='<br>Cash transfers directly between the two citizens; company cash is unchanged.';
+else out.innerHTML+='<br>Cash transfers directly between the selected accounts; company cash is unchanged.';
 }
 function updateHolding(co,key,displayName,delta){
 const next=round4((Number(co.holdings[key])||0)+delta);
@@ -5512,7 +5522,7 @@ if(Number.isFinite(buyer.getCash())){if(buyer.getCash()<total){alert(buyer.name+
 else {alert("The buyer account cash balance is unavailable.");return;}
 if(seller&&(!Number.isFinite(seller.getCash()))){alert("The seller account cash balance is unavailable.");return;}
 const at=new Date().toISOString(),id="STK-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
-const buyerBefore=buyer.getCash(),sellerBefore=seller?seller.getCash():null,companyCashBefore=Number((st.businessCash||{})[company]??co.initialCashValue)||0;
+const buyerBefore=buyer.getCash(),sellerBefore=seller?seller.getCash():null,companyDef=companies.find(c=>c.name===company),companyIsArenaTeam=!!(companyDef&&companyDef.category==="Basketball Teams"),companyCashBefore=(Number(companyIsArenaTeam?(st.teamCash||{})[company]:(st.businessCash||{})[company])||Number(co.initialCashValue)||0);
 const snapshot=JSON.stringify(db);
 try{
  buyer.setCash(buyerBefore-total);
@@ -5522,12 +5532,13 @@ try{
   updateHolding(co,reserveKey,buyer.name,count);
   st.businessCash=st.businessCash||{};
   st.businessCash[company]=round4(companyCashBefore+total);
+  if(companyIsArenaTeam){st.teamCash=st.teamCash||{};st.teamCash[company]=st.businessCash[company];}
   st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
-  st.businessCashLedger.push({id:id+"-ISSUE",season:Number(st.year)||29,type:"Stock Issuance Proceeds",company,amount:total,before:companyCashBefore,after:st.businessCash[company],reason:"Sold "+count+" newly issued shares at market price",createdAt:at});
+  st.businessCashLedger.push({id:id+"-ISSUE",season:Number(st.year)||29,type:"Stock Issuance Proceeds",company,amount:total,before:companyCashBefore,after:st.businessCash[company],reason:"Sold "+count+" newly issued shares at market price",createdAt:at,accountType:companyIsArenaTeam?"arena-team":"business"});
   if(buyer.kind==="business"){
    const selfPurchase=buyer.id===company;
-   st.businessCashLedger.push({id:id+"-BUYER",season:Number(st.year)||29,type:"Stock Trade Cash Flow",company:buyer.id,amount:selfPurchase?0:-total,before:buyerBefore,after:st.businessCash[buyer.id],reason:selfPurchase?"Own-company reserve purchase; issuer proceeds offset buyer payment":"Paid for newly issued shares in "+company,createdAt:at,stockTransactionId:id,accountType:"business"});
-   if(selfPurchase)st.businessCash[company]=companyCashBefore;
+   st.businessCashLedger.push({id:id+"-BUYER",season:Number(st.year)||29,type:"Stock Trade Cash Flow",company:buyer.id,amount:selfPurchase?0:-total,before:buyerBefore,after:buyer.getCash(),reason:selfPurchase?"Own-company reserve purchase; issuer proceeds offset buyer payment":"Paid for newly issued shares in "+company,createdAt:at,stockTransactionId:id,accountType:buyer.isArenaTeam?"arena-team":"business"});
+   if(selfPurchase){st.businessCash[company]=companyCashBefore;if(companyIsArenaTeam)st.teamCash[company]=companyCashBefore;}
   }
  }else{
   updateHolding(co,String(seller.key),seller.name,-count);
@@ -5539,7 +5550,7 @@ try{
  st.stockMarketCashLedger.push({...tx});
  if(!reservePurchase){
   st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
-  [buyer,seller].filter(Boolean).forEach(account=>{if(account.kind!=="business")return;const before=account===buyer?buyerBefore:sellerBefore,after=account.getCash(),amount=account===buyer?-total:total;st.businessCashLedger.push({id:id+"-"+account.kind+"-"+account.id,season:Number(st.year)||29,type:"Stock Trade Cash Flow",company:account.id,amount,before,after,reason:(amount<0?"Paid for":"Received proceeds from")+" stock trade in "+company,createdAt:at,stockTransactionId:id,accountType:"business"});});
+  [buyer,seller].filter(Boolean).forEach(account=>{if(account.kind!=="business")return;const before=account===buyer?buyerBefore:sellerBefore,after=account.getCash(),amount=account===buyer?-total:total;st.businessCashLedger.push({id:id+"-"+account.kind+"-"+account.id,season:Number(st.year)||29,type:"Stock Trade Cash Flow",company:account.id,amount,before,after,reason:(amount<0?"Paid for":"Received proceeds from")+" stock trade in "+company,createdAt:at,stockTransactionId:id,accountType:account.isArenaTeam?"arena-team":"business"});});
  }
  saveDB(db);
  bridge.save();
@@ -5552,7 +5563,7 @@ try{
 }catch(err){
  try{db=JSON.parse(snapshot);saveDB(db);}catch(e){}
  buyer.setCash(buyerBefore);if(seller)seller.setCash(sellerBefore);
- if(reservePurchase&&st.businessCash)st.businessCash[company]=companyCashBefore;
+ if(reservePurchase&&st.businessCash)st.businessCash[company]=companyCashBefore;if(reservePurchase&&companyIsArenaTeam&&st.teamCash)st.teamCash[company]=companyCashBefore;
  try{bridge.save();}catch(e){}
  console.error("Stock trade failed:",err);alert("The trade could not be completed and cash changes were rolled back. "+String(err.message||err));
 }
