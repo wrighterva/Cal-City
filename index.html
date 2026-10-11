@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.19.9 -->
+<!-- CALVIN'S CITY — VERSION 4.20.0 -->
 <!-- Build identity: 4.19.9. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.19.9</title>
+<title>Calvin's City 4.20.0</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -2527,7 +2527,46 @@ function recordGameCareerStats(g){
    });
  });
 }
+/* 4.20.0: Credit ticket revenue to team cash after every completed game.
+  This is idempotent: a game already marked as paid cannot credit cash twice.
+  A separate append-only team cash ledger records the two team-side credits. */
+function applyTicketRevenueToTeamCash(g,stage){
+ if(!g || g.ticketRevenueApplied===true)return false;
+ const total=Math.max(0,Number(g.ticket)||0);
+ const winner=String(g.winner&&g.winner.team||"").trim();
+ const loser=String(g.loser&&g.loser.team||"").trim();
+ if(!winner||!loser||winner===loser)return false;
+ state.teamCash=state.teamCash||{};
+ ensureTeamCash();
+ const winnerAmount=Math.round(total*0.70*100)/100;
+ const loserAmount=Math.round(total*0.30*100)/100;
+ const season=Number(state.year)||29;
+ const ledger=Array.isArray(state.teamCashLedger)?state.teamCashLedger:(state.teamCashLedger=[]);
+ const beforeWinner=Number(state.teamCash[winner])||0;
+ const beforeLoser=Number(state.teamCash[loser])||0;
+ state.teamCash[winner]=Math.round((beforeWinner+winnerAmount)*100)/100;
+ state.teamCash[loser]=Math.round((beforeLoser+loserAmount)*100)/100;
+ const gameIndex=(Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0)+1;
+ const transactionBase="ticket-"+season+"-"+gameIndex+"-"+Date.now();
+ ledger.push({
+   id:transactionBase+"-winner",season,stage:String(stage||g.stage||""),
+   gameIndex,winner,loser,type:"Ticket Revenue",reason:"Winner ticket revenue share (70%)",
+   amount:winnerAmount,totalRevenue:total,before:beforeWinner,after:state.teamCash[winner],
+   createdAt:new Date().toISOString()
+ });
+ ledger.push({
+   id:transactionBase+"-loser",season,stage:String(stage||g.stage||""),
+   gameIndex,winner,loser,type:"Ticket Revenue",reason:"Loser ticket revenue share (30%)",
+   amount:loserAmount,totalRevenue:total,before:beforeLoser,after:state.teamCash[loser],
+   createdAt:new Date().toISOString()
+ });
+ g.ticketRevenueApplied=true;
+ g.ticketRevenueDistribution={total,winner, winnerAmount,loser,loserAmount,season,stage:String(stage||g.stage||"")};
+ return true;
+}
+ 
 function recordGame(g,stage){
+ applyTicketRevenueToTeamCash(g,stage);
  /* 4.17.105: Feed each completed season game into the independent BETS history. */
  recordBetsGame(g);
  if(stage==="Regular Season"){
