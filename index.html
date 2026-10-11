@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.22.8 -->
-<!-- Build identity: 4.22.8. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
+<!-- CALVIN'S CITY — VERSION 4.22.9 -->
+<!-- Build identity: 4.22.9. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.22.8</title>
+<title>Calvin's City 4.22.9</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -78,7 +78,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.22.8</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.22.9</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -3752,7 +3752,7 @@ const shoes=(c.shoeDeals||[]).map(d=>'<div class="ledger-entry"><b>Shoe deal —
 const events=tx.map(t=>'<div class="ledger-entry"><b>'+String(t.type||"Transaction")+' · '+(Number(t.amount)>=0?'+':'')+'$'+(Number(t.amount)||0)+'M</b><br>'+String(t.reason||"Reason not recorded")+' · '+new Date(t.at).toLocaleString()+'<br>Source: '+String(t.source||"Not recorded")+' · Balance '+(t.balanceBefore==null?'?':'$'+t.balanceBefore+'M')+' → '+(t.balanceAfter==null?'?':'$'+t.balanceAfter+'M')+'</div>').join("")||'<p class="tiny">No instrumented transaction events for this player yet. Tracking starts with supported financial actions in v4.17.122; older cash changes cannot be reconstructed reliably.</p>';
 panel.innerHTML='<h4 style="margin:0 0 8px">'+name+' — Financial Activity</h4><p><b>Current cash:</b> '+(c.cash==null?'Not recorded':'$'+Number(c.cash)+'M')+'</p><h4>Active Contract</h4>'+(liveHtml||'<p class="tiny">No active team contract found for this player.</p>')+'<h4>Contract History</h4>'+contracts+'<h4>Shoe Deals</h4>'+shoes+'<h4>Recorded Transactions ('+tx.length+')</h4>'+events;
 }));
-/* 4.22.8: Delete active contracts OR individual contract-history entries from the Player Ledger.
+/* 4.22.9: Delete active contracts OR individual contract-history entries from the Player Ledger.
   Each contract package is debited from citizen cash once; no team/company receives a refund.
   Deleting the active contract also removes its matching history record and ends included shoe deals. */
 const deleteContractFromCitizenLedger=({playerName,packageValue,source,activeKey=null,historyIndex=null})=>{
@@ -3826,7 +3826,7 @@ if(alreadyVoided){
 }
 deleteContractFromCitizenLedger({playerName,packageValue,source:'deleteContractHistoryFromCitizenLedger',activeKey:sameActive?rosterKey:null,historyIndex});
 }));
-/* 4.22.8: Delegated contract-delete click handlers.
+/* 4.22.9: Delegated contract-delete click handlers.
   The Player Ledger buttons are inserted dynamically when a ledger is opened.
   Binding directly during the initial render misses those buttons; delegation on
   the Citizen Ledger container ensures confirmation and cash deduction handlers run. */
@@ -3914,7 +3914,7 @@ if(copyButton)copyButton.addEventListener("click",async()=>{
 });
 }));
 const diagnosticPanel=document.createElement("details");diagnosticPanel.className="ledger-diagnostic-panel";
-diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.8)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
+diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.9)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
 out.appendChild(diagnosticPanel);
 let latestLedgerReport=null;
 const runBtn=document.getElementById("runLedgerDiagnostics"),copyBtn=document.getElementById("copyLedgerDiagnostics"),reportBox=document.getElementById("ledgerDiagnosticText"),summary=document.getElementById("ledgerDiagnosticSummary");
@@ -4184,7 +4184,21 @@ document.addEventListener("DOMContentLoaded",bindRecordsModal);
 if(document.readyState!=="loading")bindRecordsModal();
 })();
  
-const shoeNeedsContinue=document.getElementById("shoeDealNeedsContinue");if(shoeNeedsContinue)shoeNeedsContinue.addEventListener("click",()=>{const modal=document.getElementById("shoeDealNeedsModal");if(modal)modal.classList.remove("show");});
+/* 4.22.9: Continue from the shoe-deal warning into the actual Offseason workflow.
+  Previously this button only hid the shoe-deal modal, leaving the user on the completed
+  season screen. Open the Offseason card after closing the popup. */
+const shoeNeedsContinue=document.getElementById("shoeDealNeedsContinue");
+if(shoeNeedsContinue)shoeNeedsContinue.addEventListener("click",()=>{
+ const modal=document.getElementById("shoeDealNeedsModal");
+ if(modal)modal.classList.remove("show");
+ if(typeof openOffseason==="function"){
+   openOffseason();
+ }else{
+   const offseasonCard=document.getElementById("offseasonCard");
+   if(offseasonCard)offseasonCard.style.display="block";
+   if(typeof buildContractBoard==="function")buildContractBoard();
+ }
+});
 document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
 /* 4.18.6: Audit direct citizen.cash changes in either direction.
   Records before/after, signed delta, and code location for investigation.
