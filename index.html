@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.22.4 -->
-<!-- Build identity: 4.22.4. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
+<!-- CALVIN'S CITY — VERSION 4.22.6 -->
+<!-- Build identity: 4.22.6. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.22.4</title>
+<title>Calvin's City 4.22.6</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -78,7 +78,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.22.4</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.22.6</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -3747,10 +3747,47 @@ const c=(state.citizens||[]).find(x=>x&&String(x.name||"").trim().toLowerCase()=
 const tx=(state.playerLedgerTransactions||[]).filter(t=>String(t.player||"").trim().toLowerCase()===String(name).trim().toLowerCase()).slice().reverse();
 const contracts=(c.contracts||[]).map(r=>'<div class="ledger-entry"><b>Contract — '+String(r.team||"Team")+'</b><br>Season '+(r.year??"—")+' · $'+(Number(r.value)||0)+'M · '+(Number(r.years)||0)+' year(s)'+(r.action?' · '+String(r.action):'')+'</div>').join("")||'<p class="tiny">No citizen contract-history entries saved. Active contract is shown below if available.</p>';
 const key=Object.keys(state.roster||{}).find(k=>state.roster[k]===name),live=key&&(state.contracts||{})[key];
-const liveHtml=live?'<div class="ledger-entry"><b>Current team contract</b><br>'+key+' · Package $'+(Number(live.totalPackage!=null?live.totalPackage:live.value)||0)+'M · Paid $'+(Number(live.totalPaid)||0)+'M · '+(live.years||0)+' year(s) · '+String(live.paymentModel||"model not recorded")+'</div>':'';
+const liveHtml=live?'<div class="ledger-entry"><b>Current team contract</b><br>'+key+' · Package $'+(Number(live.totalPackage!=null?live.totalPackage:live.value)||0)+'M · Paid $'+(Number(live.totalPaid)||0)+'M · '+(live.years||0)+' year(s) · '+String(live.paymentModel||"model not recorded")+'<br><button type="button" class="dangerbtn" data-cancel-player-contract="'+String(key).replace(/"/g,'&quot;')+'" data-contract-player="'+String(name).replace(/"/g,'&quot;')+'">Cancel / Delete Active Contract</button><p class="tiny">This cancels the contract and deducts its full package amount from the player’s cash. No money is returned to the team or shoe company. Player identity, career stats, and completed game history remain.</p></div>':'';
 const shoes=(c.shoeDeals||[]).map(d=>'<div class="ledger-entry"><b>Shoe deal — '+String(d.company||"Company")+'</b><br>$'+(Number(d.value)||0)+'M · '+(Number(d.years||d.originalYears)||0)+' year(s) · Included in contract: '+(d.includedInContract===true?'Yes':d.includedInContract===false?'No':'Not specified')+'</div>').join("")||'<p class="tiny">No shoe deals recorded.</p>';
 const events=tx.map(t=>'<div class="ledger-entry"><b>'+String(t.type||"Transaction")+' · '+(Number(t.amount)>=0?'+':'')+'$'+(Number(t.amount)||0)+'M</b><br>'+String(t.reason||"Reason not recorded")+' · '+new Date(t.at).toLocaleString()+'<br>Source: '+String(t.source||"Not recorded")+' · Balance '+(t.balanceBefore==null?'?':'$'+t.balanceBefore+'M')+' → '+(t.balanceAfter==null?'?':'$'+t.balanceAfter+'M')+'</div>').join("")||'<p class="tiny">No instrumented transaction events for this player yet. Tracking starts with supported financial actions in v4.17.122; older cash changes cannot be reconstructed reliably.</p>';
-panel.innerHTML='<h4 style="margin:0 0 8px">'+name+' — Financial Activity</h4><p><b>Current cash:</b> '+(c.cash==null?'Not recorded':'$'+Number(c.cash)+'M')+'</p><h4>Active Contract</h4>'+liveHtml+'<h4>Contract History</h4>'+contracts+'<h4>Shoe Deals</h4>'+shoes+'<h4>Recorded Transactions ('+tx.length+')</h4>'+events;
+panel.innerHTML='<h4 style="margin:0 0 8px">'+name+' — Financial Activity</h4><p><b>Current cash:</b> '+(c.cash==null?'Not recorded':'$'+Number(c.cash)+'M')+'</p><h4>Active Contract</h4>'+(liveHtml||'<p class="tiny">No active team contract found for this player.</p>')+'<h4>Contract History</h4>'+contracts+'<h4>Shoe Deals</h4>'+shoes+'<h4>Recorded Transactions ('+tx.length+')</h4>'+events;
+}));
+/* 4.22.6: Allow manual cancellation of a live team contract from that player's ledger.
+  This removes the active contract, deducts its full package from player cash, ends included shoe deals,
+  keeps the roster/player identity and history, and does not credit any team/company. */
+out.querySelectorAll('[data-cancel-player-contract]').forEach(btn=>btn.addEventListener('click',()=>{
+const key=btn.getAttribute('data-cancel-player-contract');
+const playerName=btn.getAttribute('data-contract-player')||'';
+if(!key||!state.roster||!state.roster[key]||String(state.roster[key]).trim().toLowerCase()!==playerName.trim().toLowerCase()){
+ alert('The active contract could not be matched to this player. Refresh the Citizen Ledger and try again.');return;
+}
+const contract=state.contracts&&state.contracts[key];
+if(!contract){alert('No active contract exists in this roster slot.');return;}
+const packageValue=Number(contract.totalPackage!=null?contract.totalPackage:contract.value)||0;
+if(!confirm('Cancel/delete the active team contract for '+playerName+' ('+key+')?\n\nContract package to deduct from player cash: $'+packageValue+'M.\nThis money will NOT be refunded to the team or shoe company. If the player has spent some of the money, their cash balance may become negative. Player, stats, and completed history remain. Continue?'))return;
+const citizen=(state.citizens||[]).find(x=>x&&String(x.name||'').trim().toLowerCase()===playerName.trim().toLowerCase());
+if(!citizen){alert('The player citizen record could not be found. Contract cancellation was stopped so the cash deduction cannot be skipped.');return;}
+const cashBefore=Number(citizen.cash)||0;
+const cashAfter=Math.round((cashBefore-packageValue)*100)/100;
+const cancelledAt=new Date().toISOString();
+/* The contract package is voided from the player's cash. Do not credit the team
+   or any shoe company: cancelled money is removed from circulation. */
+citizen.cash=cashAfter;
+citizen.shoeDeals=Array.isArray(citizen.shoeDeals)?citizen.shoeDeals:[];
+citizen.shoeDeals.forEach(deal=>{
+ if(deal&&deal.includedInContract===true&&Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)>0){
+  deal.yearsRemaining=0;deal.years=0;deal.endYear=Number(state.year)||0;deal.cancelled=true;deal.cancelledAt=cancelledAt;
+ }
+});
+recordPlayerLedgerTransaction({player:playerName,amount:-packageValue,type:'Contract Cancellation Debit',reason:'Full contract package voided when active contract was cancelled; funds removed from circulation',payer:playerName,recipient:'Voided contract funds',source:'cancelPlayerContractFromCitizenLedger',before:cashBefore,after:cashAfter});
+delete state.contracts[key];
+if(citizen&&Array.isArray(citizen.contracts)){
+ const matching=citizen.contracts.slice().reverse().find(r=>r&&r.current===true&&(String(r.team||'').trim().toLowerCase()===String(key.split('_')[0]||'').toLowerCase()||!r.team));
+ if(matching){matching.current=false;matching.cancelled=true;matching.cancelledAt=cancelledAt;matching.cancelledSeason=Number(state.year)||0;matching.action='Contract Cancelled';matching.cashVoided=packageValue;}
+}
+try{save();}catch(err){console.error('Contract cancellation save failed:',err);alert('The contract could not be saved as cancelled. Please reload and check the ledger before trying again.');return;}
+alert('Contract cancelled. $'+packageValue+'M was deducted from '+playerName+'’s cash and was not refunded to any team or company.');
+renderCitizenLedger();
 }));
 /* 4.18.3: Per-citizen cash source report. Read-only: combines tracked transactions
   with game-boundary cash deltas so unexpected increases can be traced without
@@ -3795,7 +3832,7 @@ if(copyButton)copyButton.addEventListener("click",async()=>{
 });
 }));
 const diagnosticPanel=document.createElement("details");diagnosticPanel.className="ledger-diagnostic-panel";
-diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.4)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
+diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.6)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
 out.appendChild(diagnosticPanel);
 let latestLedgerReport=null;
 const runBtn=document.getElementById("runLedgerDiagnostics"),copyBtn=document.getElementById("copyLedgerDiagnostics"),reportBox=document.getElementById("ledgerDiagnosticText"),summary=document.getElementById("ledgerDiagnosticSummary");
