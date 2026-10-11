@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.22.12 -->
-<!-- Build identity: 4.22.12. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
+<!-- CALVIN'S CITY — VERSION 4.23.0 -->
+<!-- Build identity: 4.23.0. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.22.12</title>
+<title>Calvin's City 4.23.0</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh}
@@ -78,7 +78,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.22.12</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.23.0</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -121,13 +121,13 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <h3>🏢 Businesses</h3>
 <p class="tiny">Businesses operating in Calvin's City.</p>
 <div class="city-business-grid">
-<div class="city-business-card" role="button" tabindex="0" onclick="openShoeCompanySection('Nike')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Nike')"><strong>👟 Nike</strong><span>Shoe Company • 100% Coffvee</span></div>
-<div class="city-business-card" role="button" tabindex="0" onclick="openShoeCompanySection('Reebok')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Reebok')"><strong>👟 Reebok</strong><span>Shoe Company • 50% Kobal / 50% Benmack</span></div>
-<div class="city-business-card" role="button" tabindex="0" onclick="openShoeCompanySection('Puma')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Puma')"><strong>👟 Puma</strong><span>Shoe Company • 50% House / 50% West</span></div>
-<div class="city-business-card" role="button" tabindex="0" onclick="openShoeCompanySection('Adidas')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Adidas')"><strong>👟 Adidas</strong><span>Shoe Company • 50% Wallace / 50% Poley</span></div>
-<div class="city-business-card" role="button" tabindex="0" onclick="openShoeCompanySection('New Balance')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('New Balance')"><strong>👟 New Balance</strong><span>Shoe Company • Folcook / Bole / Hall</span></div>
-<div class="city-business-card"><strong>📺 TV Company</strong><span>Media Company</span></div>
-<div class="city-business-card"><strong>🎲 Sports Bets</strong><span>Sports Business</span></div>
+<div class="city-business-card" data-business-name="Nike" role="button" tabindex="0" onclick="openShoeCompanySection('Nike')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Nike')"><strong>👟 Nike</strong><span>Shoe Company • 100% Coffvee</span></div>
+<div class="city-business-card" data-business-name="Reebok" role="button" tabindex="0" onclick="openShoeCompanySection('Reebok')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Reebok')"><strong>👟 Reebok</strong><span>Shoe Company • 50% Kobal / 50% Benmack</span></div>
+<div class="city-business-card" data-business-name="Puma" role="button" tabindex="0" onclick="openShoeCompanySection('Puma')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Puma')"><strong>👟 Puma</strong><span>Shoe Company • 50% House / 50% West</span></div>
+<div class="city-business-card" data-business-name="Adidas" role="button" tabindex="0" onclick="openShoeCompanySection('Adidas')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('Adidas')"><strong>👟 Adidas</strong><span>Shoe Company • 50% Wallace / 50% Poley</span></div>
+<div class="city-business-card" data-business-name="New Balance" role="button" tabindex="0" onclick="openShoeCompanySection('New Balance')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('New Balance')"><strong>👟 New Balance</strong><span>Shoe Company • Folcook / Bole / Hall</span></div>
+<div class="city-business-card" data-business-name="TV Company" role="button" tabindex="0" onclick="window.openOwnershipMarketplace('TV Company')" onkeydown="if(event.key==='Enter'||event.key===' ')window.openOwnershipMarketplace('TV Company')"><strong>📺 TV Company</strong><span>Media Company</span></div>
+<div class="city-business-card" data-business-name="Sports Bets Company" role="button" tabindex="0" onclick="window.openOwnershipMarketplace('Sports Bets Company')" onkeydown="if(event.key==='Enter'||event.key===' ')window.openOwnershipMarketplace('Sports Bets Company')"><strong>🎲 Sports Bets</strong><span>Sports Business</span></div>
 </div>
 </div>
 </div>
@@ -219,6 +219,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <p id="shoeCompanyType" class="tiny">Shoe Company</p>
 <div class="grid">
 <div class="metric"><small>Cash</small><strong id="shoeCompanyCash">—</strong></div>
+<div class="metric"><small>Valuation</small><strong id="shoeCompanyValuation">—</strong></div>
 <div class="metric"><small>Owners</small><strong id="shoeCompanyOwnerCount">—</strong></div>
 </div>
 <h3>Ownership</h3>
@@ -540,7 +541,7 @@ if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPla
 /* 4.19.1: BETS is a permanent append-oriented ledger, independent of the season state.
   Never delete or season-filter this database. Normal saves merge concurrent/older
   in-memory copies with the current browser copy and refuse malformed saved data. */
-/* 4.22.12: Save and verify a full recovery snapshot before returning to Season 29 Game 0 for offseason-feature testing.
+/* 4.23.0: Save and verify a full recovery snapshot before returning to Season 29 Game 0 for offseason-feature testing.
   This does not modify the separate BETS database. The reset is blocked if backup fails. */
 const SEASON29_RESTORE_BACKUP_KEY="calvins_city_pre_season29_restore_4_22_10";
 let season29RestoreBackupReady=false;
@@ -565,7 +566,7 @@ const season29ResetBlockedByBackup=!season29RestoreBackupReady;
   This runs once for this build. It preserves Seasons 1–28 and retired-player
   history, captures Season 29+ game records above for BETS import, restores the
   approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.22.12" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
+if(state.season29FreshStartVersion!=="4.23.0" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
  state.year=29;
  state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  state.seasonPhase="regular";
@@ -588,9 +589,9 @@ if(state.season29FreshStartVersion!=="4.22.12" && !season29ResetBlockedByStaging
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
  state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
  /* Force the existing, well-tested Season 29 opening baseline migration to run. */
- state.season29OpeningRestoreVersion="4.22.12-pending";
- state.season29FullBaselineRestoreVersion="pending-4.22.12";
- state.season29FreshStartVersion="4.22.12";
+ state.season29OpeningRestoreVersion="4.23.0-pending";
+ state.season29FullBaselineRestoreVersion="pending-4.23.0";
+ state.season29FreshStartVersion="4.23.0";
  try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
  catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
 }
@@ -1128,6 +1129,110 @@ Adidas:[["Wallace",50],["Poley",50]],
 "Sports Bets Company":[["June",35],["Coast",35],["Peb",15],["Sam",15]]
 };
 const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+ 
+/* 4.23.0: Permanent citizen/business ownership registry.
+  Initial valuations are seeded from the existing listed business figures,
+  but business cash is never changed by a secondary ownership transfer. */
+const BUSINESS_OWNERSHIP_STORAGE_KEY="calvins_city_business_ownership_v1";
+let ownershipRegistryLoaded=false;
+function ownershipNorm(value){return String(value||"").trim().toLowerCase();}
+function nextBusinessCitizenId(){
+const used=new Set((state.citizens||[]).map(c=>String(c&&c.id||"").trim()).filter(Boolean));
+let n=1,id="";
+do{id="C"+String(n++).padStart(3,"0");}while(used.has(id));
+return id;
+}
+function getOrCreateBusinessOwnerCitizen(name){
+state.citizens=Array.isArray(state.citizens)?state.citizens:[];
+const key=ownershipNorm(name);
+let citizen=state.citizens.find(c=>c&&ownershipNorm(c.name)===key);
+if(citizen){
+ if(!citizen.id)citizen.id=nextBusinessCitizenId();
+ citizen.businesses=Array.isArray(citizen.businesses)?citizen.businesses:[];
+ citizen.contracts=Array.isArray(citizen.contracts)?citizen.contracts:[];
+ citizen.investments=Array.isArray(citizen.investments)?citizen.investments:[];
+ citizen.history=Array.isArray(citizen.history)?citizen.history:[];
+ return citizen;
+}
+citizen={id:nextBusinessCitizenId(),name:String(name).trim(),status:"Business Owner",position:null,currentTeam:null,
+ cash:0,debt:0,careerPts:0,careerRebs:0,mvps:0,championships:0,champStreak:0,currentChampStreak:0,
+ businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
+state.citizens.push(citizen);
+return citizen;
+}
+function ensureBusinessOwnershipRegistry(){
+state.citizens=Array.isArray(state.citizens)?state.citizens:[];
+let registry=state.businessOwnershipRegistry;
+if(!ownershipRegistryLoaded){
+ ownershipRegistryLoaded=true;
+ try{
+  const raw=localStorage.getItem(BUSINESS_OWNERSHIP_STORAGE_KEY);
+  if(raw){
+   const saved=JSON.parse(raw);
+   if(saved&&typeof saved==="object"&&saved.businesses){
+    const inState=state.businessOwnershipRegistry;
+    const savedCount=Array.isArray(saved.transactions)?saved.transactions.length:0;
+    const stateCount=inState&&Array.isArray(inState.transactions)?inState.transactions.length:0;
+    const savedAt=Date.parse(saved.updatedAt||"")||0;
+    const stateAt=Date.parse(inState&&inState.updatedAt||"")||0;
+    registry=(inState&&(stateCount>savedCount||(stateCount===savedCount&&stateAt>savedAt)))?inState:saved;
+   }
+  }
+ }catch(error){console.warn("Business ownership registry could not be loaded; existing in-state registry will be retained.",error);}
+}
+if(!registry||typeof registry!=="object")registry={version:1,businesses:{},offers:[],transactions:[]};
+registry.version=1;
+registry.businesses=registry.businesses&&typeof registry.businesses==="object"?registry.businesses:{};
+registry.offers=Array.isArray(registry.offers)?registry.offers:[];
+registry.transactions=Array.isArray(registry.transactions)?registry.transactions:[];
+Object.entries(BUSINESS_OWNERSHIP).forEach(([business,seedOwners])=>{
+ let record=registry.businesses[business];
+ if(!record||typeof record!=="object"){
+  record={name:business,valuation:Number(BUSINESS_CASH[business])||0,
+   owners:seedOwners.map(([name,percentage])=>({name,citizenId:null,percentage:Number(percentage)})),createdAt:new Date().toISOString()};
+  registry.businesses[business]=record;
+ }
+ if(record.valuation==null||!Number.isFinite(Number(record.valuation)))record.valuation=Number(BUSINESS_CASH[business])||0;
+ record.valuation=Math.max(0,Number(record.valuation)||0);
+ record.owners=Array.isArray(record.owners)?record.owners:[];
+ record.owners.forEach(owner=>{
+  if(!owner||typeof owner!=="object")return;
+  let citizen=owner.citizenId?state.citizens.find(c=>c&&String(c.id)===String(owner.citizenId)):null;
+  if(!citizen&&owner.name)citizen=state.citizens.find(c=>c&&ownershipNorm(c.name)===ownershipNorm(owner.name));
+  if(!citizen&&owner.name)citizen=getOrCreateBusinessOwnerCitizen(owner.name);
+  if(citizen){owner.citizenId=citizen.id;owner.name=citizen.name;}
+  owner.percentage=Math.max(0,Number(owner.percentage)||0);
+ });
+ record.owners=record.owners.filter(o=>o&&o.citizenId&&Number(o.percentage)>0);
+});
+state.businessOwnershipRegistry=registry;
+return registry;
+}
+function persistBusinessOwnershipRegistry(){
+const registry=ensureBusinessOwnershipRegistry();
+registry.updatedAt=new Date().toISOString();
+try{localStorage.setItem(BUSINESS_OWNERSHIP_STORAGE_KEY,JSON.stringify(registry));return true;}
+catch(error){console.error("Permanent business ownership registry save failed:",error);return false;}
+}
+function getCitizenBusinessOwnership(citizenId){
+const registry=ensureBusinessOwnershipRegistry(),stakes=[];
+Object.entries(registry.businesses).forEach(([business,record])=>{
+ (record.owners||[]).forEach(owner=>{
+  if(String(owner.citizenId)===String(citizenId)&&Number(owner.percentage)>0){
+   stakes.push({business,percentage:Number(owner.percentage),value:(Number(record.valuation)||0)*Number(owner.percentage)/100});
+  }
+ });
+});
+return stakes;
+}
+function ownershipMoney(value){
+const n=Number(value)||0;
+return "$"+n.toLocaleString("en-US",{maximumFractionDigits:2})+"M";
+}
+function ownershipEscapeHTML(value){
+return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+ 
 const INITIAL_LIONS_PLAYERS={
  Lions_C:{name:"Wall",position:"C",careerPts:568,careerRebs:549,mvps:1,championships:2},
  Lions_SG:{name:"Diggs",position:"SG",careerPts:83,careerRebs:80,mvps:0,championships:0},
@@ -1623,12 +1728,14 @@ if(state.crazBoTestResetVersion!=="4.17.105"){
  
 function citizenByName(name){const key=String(name||"").trim().toLowerCase();return state.citizens.find(c=>String(c&&c.name||"").trim().toLowerCase()===key)}
 function citizenBusinessSummary(name){
-const out=[];
-Object.entries(BUSINESS_OWNERSHIP).forEach(([business,owners])=>{
-const hit=owners.find(x=>x[0]===name);
-if(hit)out.push({business,ownership:Number(hit[1]),cash:Number(BUSINESS_CASH[business]||0)});
-});
-return out;
+ensureBusinessOwnershipRegistry();
+const citizen=(state.citizens||[]).find(c=>c&&ownershipNorm(c.name)===ownershipNorm(name));
+if(!citizen)return [];
+return getCitizenBusinessOwnership(citizen.id).map(stake=>({
+ business:stake.business,ownership:Number(stake.percentage)||0,
+ cash:Number(state.businessCash&&state.businessCash[stake.business]!=null?state.businessCash[stake.business]:BUSINESS_CASH[stake.business]||0),
+ value:Number(stake.value)||0
+}));
 }
 function ensureCitizen(name,seed={}){
 if(!name||!String(name).trim())return null;
@@ -2155,7 +2262,7 @@ if(state.season29OpeningCashCleanupVersion!=="4.17.116" &&
   While Season 29 has no current-season games, force the nine opening players
   back to the paper-game cash baseline on every load. This is intentionally
   limited to the opening state; after the first game, earned cash is preserved. */
-if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
+if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular" && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
  const season29CashBaseline={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
  Object.entries(season29CashBaseline).forEach(([name,amount])=>{
    const citizen=(state.citizens||[]).find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
@@ -2171,12 +2278,15 @@ if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && state.season
 }
  
  
+/* 4.23.0: Load permanent ownership transfers before Season 29 cash repairs,
+  so an ownership purchase cannot be overwritten by opening-balance logic. */
+ensureBusinessOwnershipRegistry();
 /* 4.17.116: Single authoritative Season 29 opening reconciliation.
   Run only while Season 29 is at game zero. This deliberately overrides stale
   test balances and live contract records after all older migrations have run.
   Starting contract amounts are already reflected in opening cash; do not pay
   them again or derive cash from contract history. */
-if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0){
+if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const opening={
  Lions_C:{name:"Wall",team:"Lions",position:"C",cash:787,value:787,teamValue:497,years:2,rookie:false,shoe:{company:"Reebok",value:290,years:2}},
  Lions_SG:{name:"Diggs",team:"Lions",position:"SG",cash:0,value:0,teamValue:0,years:2,rookie:true},
@@ -2477,7 +2587,7 @@ function recordHistoryGame(g,stage){const mvp=g.winner.players.slice().sort((a,b
 /* 4.18.0: Final opening-state integrity pass. The season reset above is
   one-time and preserves permanent Seasons 1-28. Normalize Wall's single
   Reebok deal even if an older test record used a different start-year field. */
-if((state.season29OpeningRestoreVersion==="4.18.8" || state.season29OpeningRestoreVersion==="4.18.9") && state.season29OpeningCashIntegrityVersion!=="4.18.9" && Number(state.year)===29 && !state.seasonPlayed && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
+if((state.season29OpeningRestoreVersion==="4.18.8" || state.season29OpeningRestoreVersion==="4.18.9") && state.season29OpeningCashIntegrityVersion!=="4.18.9" && Number(state.year)===29 && !state.seasonPlayed && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular" && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
  const wall=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()==="wall");
  if(wall){
    wall.shoeDeals=[{company:"Reebok",years:2,originalYears:2,yearsRemaining:2,value:290,startYear:29,includedInContract:true}];
@@ -2561,7 +2671,7 @@ return (state.citizens||[]).some(c=>{
 });
 }
 function getShoeCompaniesNeedingDeals(){return SHOES.filter(company=>!shoeCompanyHasActivePlayerDeal(company));}
-/* 4.22.12: Show the shoe-deal reminder once for EVERY completed season.
+/* 4.23.0: Show the shoe-deal reminder once for EVERY completed season.
   Persist the season marker only after the modal/list are available, so a failed
   early call can be retried by the startup fallback. */
 function showShoeDealNeedsPopup(force){
@@ -2918,7 +3028,7 @@ if(auditEnabled)captureSeason29GameCashBoundary("after-game-finalization-before-
 save();
 if(auditEnabled){captureSeason29GameCashBoundary("after-save-before-render",{stage,a:g.A.team,b:g.B.team});save();}
 renderGameResult(g,stage);renderProgress();
-/* 4.22.12: Ensure completed-season shoe-deal reminder is not skipped. */
+/* 4.23.0: Ensure completed-season shoe-deal reminder is not skipped. */
 if(state.seasonPlayed && state.seasonPhase==="offseason" && !state.offseasonFinalized)showShoeDealNeedsPopup(false);
 renderBetsSection();
 }
@@ -3395,7 +3505,7 @@ window.closeContractVerifyModal=closeContractVerifyModal;
 window.confirmContractVerification=confirmContractVerification;
  
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
-/* 4.22.12: Public bridge for the dynamically displayed shoe-deal popup.
+/* 4.23.0: Public bridge for the dynamically displayed shoe-deal popup.
   This function is defined in the same closure as state/openOffseason, so the
   popup button can invoke the real offseason workflow instead of a private,
   inaccessible function name. */
@@ -3574,6 +3684,7 @@ if(state.season29CashOverageCorrectionVersion!=="4.17.121" &&
  
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
+ensureBusinessOwnershipRegistry();
 /* 4.17.119: Capture the loaded state BEFORE the existing Ledger opening-cash
   reconciliation changes anything. This is diagnostic only: it does not pay,
   reset, delete, or otherwise mutate financial records. */
@@ -3636,7 +3747,7 @@ state.citizens=mergedCitizens;
 /* 4.17.118: Authoritative Season 29 opening data is applied immediately
   before every Ledger render, after saved-state loading and old migrations.
   These are starting balances, not new payments; never sum contract history. */
-if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0){
+if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const opening={
  Lions_C:{name:"Wall",cash:787,value:787,years:2,teamValue:497,rookie:false},
  Lions_SG:{name:"Diggs",cash:0,value:0,years:2,teamValue:0,rookie:true},
@@ -3679,7 +3790,8 @@ return;
   or touch Seasons 1–28. */
 if(state.season29LedgerCashRepairVersion!=="4.17.123" &&
   Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 &&
-  state.seasonPhase==="regular" && !state.seasonPlayed){
+  state.seasonPhase==="regular" && !state.seasonPlayed &&
+  !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
  const fixes={Holly:{bad:450,baseline:350},Kap:{bad:750,baseline:450},Bic:{bad:633,baseline:533}};
  let repaired=false;
  Object.entries(fixes).forEach(([name,fix])=>{
@@ -3716,7 +3828,8 @@ const kept=ledgerSeen.get(key);
   baseline restoration, not a payment. It runs only before any Season 29 game exists.
   Preserve all historical records and never change team/game results. */
 let season29FinalCashRepaired=false;
-if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 && state.seasonPhase==="regular"){
+if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 && state.seasonPhase==="regular" &&
+  !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const finalOpeningCash={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
 Object.entries(finalOpeningCash).forEach(([name,amount])=>{
   (state.citizens||[]).filter(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase()).forEach(c=>{
@@ -3737,7 +3850,13 @@ let h='<p class="tiny">Each person has one permanent Citizen ID connecting baske
 if(!rows.length)h+='<p class="muted">No citizens recorded yet.</p>';
 rows.forEach(c=>{
 const biz=(c.businesses||[]).map(x=>x.business+' '+Number(x.ownership).toFixed(Number(x.ownership%1?1:0))+'%').join(' • ')||'None';
-const cash=c.cash==null?'—':'$'+Number(c.cash).toFixed(0)+'M';
+const cash=c.cash==null?'—':'$'+Number(c.cash).toLocaleString('en-US',{maximumFractionDigits:4})+'M';
+const ownershipStakes=getCitizenBusinessOwnership(c.id);
+const ownershipAssetTotal=ownershipStakes.reduce((sum,stake)=>sum+(Number(stake.value)||0),0);
+const ownershipAssetsHtml='<div class="citizen-assets" data-citizen-assets="'+ownershipEscapeHTML(c.id||'')+'" style="margin:10px 0;padding:10px;border:1px solid var(--line,#ccc);border-radius:10px"><div style="font-weight:800;margin-bottom:6px">Assets</div>'+
+(ownershipStakes.length?ownershipStakes.map(stake=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0"><span>'+ownershipEscapeHTML(stake.business)+' · '+Number(stake.percentage.toFixed(2))+'%</span><b>'+ownershipMoney(stake.value)+'</b></div>').join(''):'<div class="tiny muted">No business ownership stakes yet.</div>')+
+'<div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line,#ccc);margin-top:6px;padding-top:6px"><span>Total Business Assets</span><b>'+ownershipMoney(ownershipAssetTotal)+'</b></div>'+
+'<button type="button" class="player-ledger-btn" data-ownership-citizen="'+ownershipEscapeHTML(c.id||'')+'" style="margin-top:8px">Manage Business Stakes</button></div>';
 /* 4.18.7: Resolve roster membership by normalized name and treat the live
   roster slot as authoritative. This avoids hiding contracts when a citizen
   has a stale team field or a harmless capitalization/whitespace difference. */
@@ -3756,7 +3875,7 @@ const historyText=contractHistory.map(x=>(x.action||"Contract")+' '+(x.team||'')
 const ledgerStatus=(c.status==="Retired")?"Retired":(c.currentTeam?((c.status||"Active Player")+' • '+c.currentTeam+(c.position?' • '+c.position:'')):"Free Agent");
 const playerLedgerId='playerLedger_'+String(c.id||c.name).replace(/[^a-z0-9_-]/gi,'_');
 const cashTraceId='cashTrace_'+String(c.id||c.name).replace(/[^a-z0-9_-]/gi,'_');
-h+='<div class="citizen-card"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b>'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Titles in a Row <b>'+(c.currentChampStreak||0)+'</b></span></div><div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'<button type="button" class="player-ledger-btn" data-player-ledger="'+playerLedgerId+'">Player Ledger</button><div id="'+playerLedgerId+'" class="player-ledger-panel"></div><button type="button" class="player-ledger-btn" data-cash-trace="'+cashTraceId+'">Trace Cash Sources</button><div id="'+cashTraceId+'" class="player-ledger-panel"></div></div>';
+h+='<div class="citizen-card" data-citizen-id="'+ownershipEscapeHTML(c.id||'')+'"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b data-citizen-cash="'+ownershipEscapeHTML(c.id||'')+'">'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Titles in a Row <b>'+(c.currentChampStreak||0)+'</b></span></div>'+ownershipAssetsHtml+'<div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'<button type="button" class="player-ledger-btn" data-player-ledger="'+playerLedgerId+'">Player Ledger</button><div id="'+playerLedgerId+'" class="player-ledger-panel"></div><button type="button" class="player-ledger-btn" data-cash-trace="'+cashTraceId+'">Trace Cash Sources</button><div id="'+cashTraceId+'" class="player-ledger-panel"></div></div>';
 });
 out.innerHTML=h;
 /* 4.22.4: Live, display-only search for Citizen Ledger cards. */
@@ -3793,7 +3912,7 @@ const shoes=(c.shoeDeals||[]).map(d=>'<div class="ledger-entry"><b>Shoe deal —
 const events=tx.map(t=>'<div class="ledger-entry"><b>'+String(t.type||"Transaction")+' · '+(Number(t.amount)>=0?'+':'')+'$'+(Number(t.amount)||0)+'M</b><br>'+String(t.reason||"Reason not recorded")+' · '+new Date(t.at).toLocaleString()+'<br>Source: '+String(t.source||"Not recorded")+' · Balance '+(t.balanceBefore==null?'?':'$'+t.balanceBefore+'M')+' → '+(t.balanceAfter==null?'?':'$'+t.balanceAfter+'M')+'</div>').join("")||'<p class="tiny">No instrumented transaction events for this player yet. Tracking starts with supported financial actions in v4.17.122; older cash changes cannot be reconstructed reliably.</p>';
 panel.innerHTML='<h4 style="margin:0 0 8px">'+name+' — Financial Activity</h4><p><b>Current cash:</b> '+(c.cash==null?'Not recorded':'$'+Number(c.cash)+'M')+'</p><h4>Active Contract</h4>'+(liveHtml||'<p class="tiny">No active team contract found for this player.</p>')+'<h4>Contract History</h4>'+contracts+'<h4>Shoe Deals</h4>'+shoes+'<h4>Recorded Transactions ('+tx.length+')</h4>'+events;
 }));
-/* 4.22.12: Delete active contracts OR individual contract-history entries from the Player Ledger.
+/* 4.23.0: Delete active contracts OR individual contract-history entries from the Player Ledger.
   Each contract package is debited from citizen cash once; no team/company receives a refund.
   Deleting the active contract also removes its matching history record and ends included shoe deals. */
 const deleteContractFromCitizenLedger=({playerName,packageValue,source,activeKey=null,historyIndex=null})=>{
@@ -3867,7 +3986,7 @@ if(alreadyVoided){
 }
 deleteContractFromCitizenLedger({playerName,packageValue,source:'deleteContractHistoryFromCitizenLedger',activeKey:sameActive?rosterKey:null,historyIndex});
 }));
-/* 4.22.12: Delegated contract-delete click handlers.
+/* 4.23.0: Delegated contract-delete click handlers.
   The Player Ledger buttons are inserted dynamically when a ledger is opened.
   Binding directly during the initial render misses those buttons; delegation on
   the Citizen Ledger container ensures confirmation and cash deduction handlers run. */
@@ -3955,7 +4074,7 @@ if(copyButton)copyButton.addEventListener("click",async()=>{
 });
 }));
 const diagnosticPanel=document.createElement("details");diagnosticPanel.className="ledger-diagnostic-panel";
-diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.22.12)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
+diagnosticPanel.innerHTML='<summary>Run Ledger Diagnostics (4.23.0)</summary><p class="tiny">Read-only checks for Season 29 opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, recorded-transaction reconciliation, and opening cash, duplicate citizen identities, starting-contract payment flags, contract payment totals, and recorded-transaction reconciliation. These checks do not change money or contracts.</p><button type="button" id="runLedgerDiagnostics" class="goodbtn">Run Ledger Diagnostics</button><button type="button" id="copyLedgerDiagnostics" class="secondary">Copy Diagnostic Report</button><div id="ledgerDiagnosticSummary" class="tiny" style="margin-top:8px">Run diagnostics to create a report.</div><textarea id="ledgerDiagnosticText" readonly rows="12" style="width:100%;box-sizing:border-box;font-size:11px;white-space:pre;overflow:auto"></textarea>';
 out.appendChild(diagnosticPanel);
 let latestLedgerReport=null;
 const runBtn=document.getElementById("runLedgerDiagnostics"),copyBtn=document.getElementById("copyLedgerDiagnostics"),reportBox=document.getElementById("ledgerDiagnosticText"),summary=document.getElementById("ledgerDiagnosticSummary");
@@ -4225,7 +4344,7 @@ document.addEventListener("DOMContentLoaded",bindRecordsModal);
 if(document.readyState!=="loading")bindRecordsModal();
 })();
  
-/* 4.22.12: Continue from the shoe-deal warning into the actual Offseason workflow.
+/* 4.23.0: Continue from the shoe-deal warning into the actual Offseason workflow.
   Previously this button only closed the popup; it did not reliably reach the
   private Offseason function. Use the public bridge defined beside openOffseason. */
 const shoeNeedsContinue=document.getElementById("shoeDealNeedsContinue");
@@ -4281,7 +4400,7 @@ citizens.forEach(c=>{
 })();
 renderProgress();save();const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;if(state.offseasonOpen){document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 document.addEventListener("DOMContentLoaded",function(){
-/* 4.22.12: Recovery trigger. If a season is complete but the popup was missed
+/* 4.23.0: Recovery trigger. If a season is complete but the popup was missed
   during the championship completion path, display it once on page load. */
 if(state.seasonPlayed && state.seasonPhase==="offseason" && !state.offseasonFinalized){
  showShoeDealNeedsPopup(false);
@@ -4311,7 +4430,7 @@ if(citizenLedgerModalEl){
  };
 }
 });
-window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger:syncCitizenLedger,save:save};
+window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger:syncCitizenLedger,save:save,ensureBusinessOwnershipRegistry:ensureBusinessOwnershipRegistry,saveBusinessOwnershipRegistry:persistBusinessOwnershipRegistry};
 })();
  
 /* 4.17.105: Championship awards now update Citizen/Arena/Ledger/Records.
@@ -4453,18 +4572,23 @@ function openShoeCompanySection(company){
 const modal=document.getElementById("shoeCompanyModal");
 if(!details||!modal)return;
 const bridge=window.__calvinsCityBridge;
+if(bridge&&typeof bridge.ensureBusinessOwnershipRegistry==="function")bridge.ensureBusinessOwnershipRegistry();
 const liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
 const liveCash=liveState&&liveState.businessCash&&liveState.businessCash[company]!=null?Number(liveState.businessCash[company]):Number(details.cash);
+const ownershipRecord=liveState&&liveState.businessOwnershipRegistry&&liveState.businessOwnershipRegistry.businesses?liveState.businessOwnershipRegistry.businesses[company]:null;
+const liveOwners=ownershipRecord&&Array.isArray(ownershipRecord.owners)?ownershipRecord.owners.map(owner=>({name:(liveState.citizens||[]).find(c=>c&&String(c.id)===String(owner.citizenId))?.name||owner.name||"Unknown owner",percentage:Number(owner.percentage)||0})):details.owners.map(([name,percentage])=>({name,percentage}));
 document.getElementById("shoeCompanyTitle").textContent="👟 "+company;
 document.getElementById("shoeCompanyType").textContent="Shoe Company";
 document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleString("en-US")+"M";
- document.getElementById("shoeCompanyOwnerCount").textContent=String(details.owners.length);
+const valuationEl=document.getElementById("shoeCompanyValuation");
+if(valuationEl)valuationEl.textContent=ownershipRecord?"$"+(Number(ownershipRecord.valuation)||0).toLocaleString("en-US")+"M":"—";
+ document.getElementById("shoeCompanyOwnerCount").textContent=String(liveOwners.length);
  let rows='<div style="overflow-x:auto"><table><tr><th>Owner</th><th>Ownership</th></tr>';
- details.owners.forEach(([name,share])=>{
-   const pct=Number(share);
-   rows+='<tr><td>'+name+'</td><td>'+(Math.abs(pct-Math.round(pct))<0.00001?Math.round(pct):pct.toFixed(2).replace(/0+$/,'').replace(/\.$/,''))+'%</td></tr>';
+ liveOwners.forEach(owner=>{
+   const pct=Number(owner.percentage)||0;
+   rows+='<tr><td>'+String(owner.name).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))+'</td><td>'+(Math.abs(pct-Math.round(pct))<0.00001?Math.round(pct):pct.toFixed(2).replace(/0+$/,'').replace(/\.$/,''))+'%</td></tr>';
  });
- rows+='</table></div>';
+ rows+='</table></div><button type="button" class="goodbtn" data-open-business-ownership="'+company+'">Manage Ownership &amp; Offers</button>';
  document.getElementById("shoeCompanyOwnership").innerHTML=rows;
  const currentSeason=Math.max(0,Number(liveState&&liveState.year)||0);
  const dealOut=document.getElementById("shoeCompanyDeals");
@@ -4532,6 +4656,249 @@ document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleStri
  }
  document.addEventListener("DOMContentLoaded",bindShoeCompanyModal);
  if(document.readyState!=="loading")bindShoeCompanyModal();
+})();
+</script>
+ 
+ 
+<div id="businessOwnershipMarketplaceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="businessOwnershipMarketplaceTitle">
+<div class="modalbox">
+ <h2 id="businessOwnershipMarketplaceTitle">🏢 Business Ownership Marketplace</h2>
+ <p class="tiny">Buy and sell ownership stakes directly between citizens. Prices are calculated from the business valuation. A resale never changes the business's cash balance.</p>
+ <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+  <div><label for="ownershipActingCitizen">Citizen making the transaction</label><select id="ownershipActingCitizen" style="width:100%"></select></div>
+  <div><label for="ownershipBusinessSelect">Business</label><select id="ownershipBusinessSelect" style="width:100%"></select></div>
+ </div>
+ <div id="ownershipBusinessSummary" class="log" style="margin-top:12px"></div>
+ <div class="card" style="margin:12px 0">
+  <h3>Offer a stake for sale</h3>
+  <p class="tiny">Choose a percentage you own and have available. The stake is reserved while the offer is active. The price is based on the current valuation when a buyer accepts.</p>
+  <label for="ownershipStakePercent">Percentage to offer</label>
+  <input id="ownershipStakePercent" type="number" min="0.01" max="100" step="0.01" value="10" style="width:100%">
+  <button id="ownershipCreateOffer" type="button" class="goodbtn">List Stake for Sale</button>
+  <p id="ownershipActionMessage" class="tiny" aria-live="polite"></p>
+ </div>
+ <div id="ownershipOffersList" class="log"></div>
+ <div id="ownershipHistoryList" class="log"></div>
+ <button id="ownershipMarketplaceClose" type="button" class="secondary">Close Marketplace</button>
+</div>
+</div>
+<script>
+/* 4.23.0: Direct-sale business ownership marketplace.
+  Ownership lives in the season database; completed transfers and cash ledger
+  entries are append-only. Business cash is deliberately never changed here. */
+(function(){
+const bridge=window.__calvinsCityBridge;
+if(!bridge||typeof bridge.getState!=="function")return;
+const modal=document.getElementById("businessOwnershipMarketplaceModal");
+const citizenSelect=document.getElementById("ownershipActingCitizen");
+const businessSelect=document.getElementById("ownershipBusinessSelect");
+const summary=document.getElementById("ownershipBusinessSummary");
+const offersOut=document.getElementById("ownershipOffersList");
+const historyOut=document.getElementById("ownershipHistoryList");
+const percentInput=document.getElementById("ownershipStakePercent");
+const message=document.getElementById("ownershipActionMessage");
+const businessCashSeed={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+const categories={"Nike":"Shoe Company","Reebok":"Shoe Company","Puma":"Shoe Company","Adidas":"Shoe Company","New Balance":"Shoe Company","TV Company":"Media Company","Sports Bets Company":"Sports Business"};
+const money=value=>"$"+(Number(value)||0).toLocaleString("en-US",{maximumFractionDigits:4})+"M";
+const pct=value=>((Number(value)||0).toFixed(2).replace(/\.?0+$/,"")||"0")+"%";
+const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const round4=value=>Math.round((Number(value)||0)*10000)/10000;
+const norm=value=>String(value||"").trim().toLowerCase();
+function state(){return bridge.getState();}
+function registry(){if(typeof bridge.ensureBusinessOwnershipRegistry==="function")bridge.ensureBusinessOwnershipRegistry();return state().businessOwnershipRegistry;}
+function saveAll(){if(typeof bridge.saveBusinessOwnershipRegistry==="function")bridge.saveBusinessOwnershipRegistry();bridge.save();}
+function citizenById(id){return (state().citizens||[]).find(c=>c&&String(c.id)===String(id))||null;}
+function ownerName(owner){const c=citizenById(owner.citizenId);return c&&c.name||owner.name||"Unknown owner";}
+function recordForBusiness(name){return registry().businesses[name]||null;}
+function activeOffers(business){return registry().offers.filter(o=>o&&o.business===business&&o.status==="active");}
+function reservedPercent(business,citizenId,excludeOfferId){
+ return activeOffers(business).filter(o=>String(o.sellerId)===String(citizenId)&&o.id!==excludeOfferId).reduce((sum,o)=>sum+(Number(o.percentage)||0),0);
+}
+function availablePercent(business,owner){
+ return Math.max(0,(Number(owner&&owner.percentage)||0)-reservedPercent(business,owner&&owner.citizenId));
+}
+function updateCitizenOptions(preferredId){
+ const citizens=(state().citizens||[]).filter(c=>c&&c.id).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+ const old=preferredId||citizenSelect.value;
+ citizenSelect.innerHTML=citizens.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+' ('+esc(c.id)+') · Cash '+(c.cash==null?"unavailable":money(c.cash))+'</option>').join("");
+ if(citizens.some(c=>String(c.id)===String(old)))citizenSelect.value=String(old);
+ else if(citizens.length)citizenSelect.value=String(citizens[0].id);
+}
+function updateBusinessOptions(preferredBusiness){
+ const names=Object.keys(registry().businesses).sort((a,b)=>a.localeCompare(b));
+ const old=preferredBusiness||businessSelect.value;
+ businessSelect.innerHTML=names.map(name=>'<option value="'+esc(name)+'">'+esc(name)+'</option>').join("");
+ if(names.includes(old))businessSelect.value=old;
+ else if(names.length)businessSelect.value=names[0];
+}
+function refreshBusinessCards(){
+ document.querySelectorAll("[data-business-name]").forEach(card=>{
+  const business=card.getAttribute("data-business-name"),record=recordForBusiness(business);
+  const span=card.querySelector("span");if(!record||!span)return;
+  const owners=(record.owners||[]).filter(o=>Number(o.percentage)>0).map(o=>ownerName(o)+" "+pct(o.percentage));
+  span.textContent=(categories[business]||"Business")+" · "+(owners.join(" / ")||"No owners");
+ });
+}
+function refreshLedgerIfVisible(){
+ const ledgerModal=document.getElementById("citizenLedgerModal");
+ if(!ledgerModal||!ledgerModal.classList.contains("show"))return;
+ document.querySelectorAll("[data-citizen-cash]").forEach(el=>{
+  const citizen=citizenById(el.getAttribute("data-citizen-cash"));
+  if(citizen)el.textContent=citizen.cash==null?"—":"$"+Number(citizen.cash).toLocaleString("en-US",{maximumFractionDigits:4})+"M";
+ });
+ document.querySelectorAll("[data-citizen-assets]").forEach(block=>{
+  const id=block.getAttribute("data-citizen-assets"),stakes=[];
+  Object.entries(registry().businesses).forEach(([business,record])=>(record.owners||[]).forEach(owner=>{
+   if(String(owner.citizenId)===String(id)&&Number(owner.percentage)>0)stakes.push({business,percentage:Number(owner.percentage),value:(Number(record.valuation)||0)*Number(owner.percentage)/100});
+  }));
+  const total=stakes.reduce((sum,stake)=>sum+stake.value,0);
+  block.innerHTML='<div style="font-weight:800;margin-bottom:6px">Assets</div>'+
+   (stakes.length?stakes.map(stake=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0"><span>'+esc(stake.business)+' · '+pct(stake.percentage)+'</span><b>'+money(stake.value)+'</b></div>').join(""):'<div class="tiny muted">No business ownership stakes yet.</div>')+
+   '<div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line,#ccc);margin-top:6px;padding-top:6px"><span>Total Business Assets</span><b>'+money(total)+'</b></div>'+
+   '<button type="button" class="player-ledger-btn" data-ownership-citizen="'+esc(id)+'" style="margin-top:8px">Manage Business Stakes</button>';
+ });
+}
+function render(){
+ const st=state(),business=businessSelect.value,actingId=citizenSelect.value,record=recordForBusiness(business);
+ if(!record){summary.innerHTML='<p class="muted">Business record unavailable.</p>';return;}
+ const cash=st.businessCash&&st.businessCash[business]!=null?Number(st.businessCash[business]):Number(businessCashSeed[business])||0;
+ const owners=(record.owners||[]).filter(o=>Number(o.percentage)>0);
+ const total=owners.reduce((sum,o)=>sum+(Number(o.percentage)||0),0);
+ let html='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px"><div class="metric"><small>Business Valuation</small><strong>'+money(record.valuation)+'</strong></div><div class="metric"><small>Business Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Total Ownership</small><strong>'+pct(total)+'</strong></div></div>';
+ html+='<h3>Current Ownership</h3><div style="overflow-x:auto"><table><thead><tr><th>Owner</th><th>Stake</th><th>Stake Value</th><th>Available to Offer</th></tr></thead><tbody>';
+ owners.forEach(owner=>{
+  const stake=Number(owner.percentage)||0,available=availablePercent(business,owner);
+  html+='<tr><td>'+esc(ownerName(owner))+(String(owner.citizenId)===String(actingId)?' <span class="badge">Selected Citizen</span>':'')+'</td><td>'+pct(stake)+'</td><td>'+money(Number(record.valuation)*stake/100)+'</td><td>'+pct(available)+'</td></tr>';
+ });
+ html+='</tbody></table></div><p class="tiny">Ownership totals should equal 100%. Current business cash is displayed separately and is not changed by stake resales.</p>';
+ summary.innerHTML=html;
+ 
+ const offers=activeOffers(business);
+ let offerHtml='<h3>Stakes Offered for Sale</h3>';
+ if(!offers.length)offerHtml+='<p class="muted">No active offers for this business.</p>';
+ else{
+  offerHtml+='<div style="overflow-x:auto"><table><thead><tr><th>Seller</th><th>Stake</th><th>Current Price</th><th>Action</th></tr></thead><tbody>';
+  offers.forEach(offer=>{
+   const price=round4(Number(record.valuation)*(Number(offer.percentage)||0)/100);
+   const isSeller=String(offer.sellerId)===String(actingId);
+   const action=isSeller
+     ?'<button type="button" data-cancel-ownership-offer="'+esc(offer.id)+'">Cancel Offer</button>'
+     :'<button type="button" class="goodbtn" data-buy-ownership-offer="'+esc(offer.id)+'">Buy Stake / Buy Back</button>';
+   offerHtml+='<tr><td>'+esc(ownerName({citizenId:offer.sellerId,name:offer.sellerName}))+'</td><td>'+pct(offer.percentage)+'</td><td>'+money(price)+'</td><td>'+action+'</td></tr>';
+  });
+  offerHtml+='</tbody></table></div>';
+ }
+ offersOut.innerHTML=offerHtml;
+ 
+ const history=registry().transactions.filter(t=>t&&t.business===business).slice().reverse().slice(0,10);
+ let historyHtml='<h3>Recent Ownership Transfers</h3>';
+ if(!history.length)historyHtml+='<p class="muted">No completed ownership transfers recorded yet.</p>';
+ else{
+  historyHtml+='<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Seller → Buyer</th><th>Stake</th><th>Price</th></tr></thead><tbody>';
+  history.forEach(tx=>{
+   historyHtml+='<tr><td>'+esc(new Date(tx.at).toLocaleString())+'</td><td>'+esc(tx.sellerName)+' → '+esc(tx.buyerName)+'</td><td>'+pct(tx.percentage)+'</td><td>'+money(tx.price)+'</td></tr>';
+  });
+  historyHtml+='</tbody></table></div>';
+ }
+ historyOut.innerHTML=historyHtml;
+ refreshBusinessCards();
+}
+window.openOwnershipMarketplace=function(business,citizenId){
+ registry();
+ updateCitizenOptions(citizenId);
+ updateBusinessOptions(business);
+ if(typeof unlockBusinessPageScroll==="function")unlockBusinessPageScroll();
+ const shoeModal=document.getElementById("shoeCompanyModal");
+ if(shoeModal)shoeModal.classList.remove("show");
+ if(modal)modal.classList.add("show");
+ if(message)message.textContent="";
+ render();
+};
+function closeMarketplace(){if(modal)modal.classList.remove("show");}
+function listStake(){
+ const st=state(),business=businessSelect.value,actingId=citizenSelect.value,record=recordForBusiness(business);
+ const seller=citizenById(actingId),percentToSell=Number(percentInput.value);
+ if(!seller||!record){message.textContent="Select a citizen and business first.";return;}
+ if(!Number.isFinite(percentToSell)||percentToSell<=0){message.textContent="Enter a percentage greater than 0.";return;}
+ const owner=(record.owners||[]).find(o=>String(o.citizenId)===String(seller.id));
+ const available=availablePercent(business,owner);
+ if(!owner||percentToSell>available+0.000001){message.textContent="This citizen does not own enough unreserved stake. Available to offer: "+pct(available)+".";return;}
+ const offer={id:"BOF-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),business,sellerId:seller.id,sellerName:seller.name,percentage:round4(percentToSell),status:"active",createdAt:new Date().toISOString(),valuationAtListing:Number(record.valuation)||0};
+ registry().offers.push(offer);
+ saveAll();
+ message.textContent="Offer listed. The stake is reserved, and the current price is calculated from the business valuation.";
+ render();
+}
+function cancelOffer(offerId){
+ const offer=registry().offers.find(o=>o&&o.id===offerId&&o.status==="active");
+ if(!offer){message.textContent="That offer is no longer active.";return;}
+ if(String(offer.sellerId)!==String(citizenSelect.value)){message.textContent="Only the selling owner can cancel this offer.";return;}
+ if(!confirm("Cancel this "+pct(offer.percentage)+" ownership offer for "+offer.business+"? No cash will move."))return;
+ offer.status="cancelled";offer.cancelledAt=new Date().toISOString();offer.cancelledBy=String(citizenSelect.value);
+ saveAll();message.textContent="Offer cancelled. The stake is available to offer again.";render();
+}
+function buyOffer(offerId){
+ const st=state(),reg=registry(),offer=reg.offers.find(o=>o&&o.id===offerId&&o.status==="active");
+ if(!offer){message.textContent="This offer is no longer available.";return;}
+ const business=offer.business,record=reg.businesses[business],buyer=citizenById(citizenSelect.value);
+ const seller=citizenById(offer.sellerId);
+ if(!buyer||!seller||!record){message.textContent="Buyer, seller, or business record could not be found.";return;}
+ if(String(buyer.id)===String(seller.id)){message.textContent="An owner cannot buy their own offer.";return;}
+ const total=(record.owners||[]).reduce((sum,o)=>sum+(Number(o.percentage)||0),0);
+ if(Math.abs(total-100)>0.05){message.textContent="Ownership does not reconcile to 100%; transfer blocked to protect the ownership registry.";return;}
+ const sellerOwner=(record.owners||[]).find(o=>String(o.citizenId)===String(seller.id));
+ const offerPct=Number(offer.percentage)||0;
+ if(!sellerOwner||Number(sellerOwner.percentage)+0.000001<offerPct){message.textContent="The seller no longer owns enough stake to fulfill this offer.";return;}
+ const otherReserved=reservedPercent(business,seller.id,offer.id);
+ if(Number(sellerOwner.percentage)-offerPct+0.000001<otherReserved){message.textContent="This transfer would interfere with another reserved offer. Cancel or complete the other offer first.";return;}
+ const price=round4((Number(record.valuation)||0)*offerPct/100);
+ const buyerCash=Number(buyer.cash),sellerCash=Number(seller.cash)||0;
+ if(buyer.cash==null||!Number.isFinite(buyerCash)){message.textContent="The selected buyer has no valid cash balance recorded.";return;}
+ if(buyerCash+0.000001<price){message.textContent="Insufficient cash. Purchase price: "+money(price)+"; buyer cash: "+money(buyerCash)+".";return;}
+ if(!confirm("Confirm ownership purchase?\n\nBuyer: "+buyer.name+"\nSeller: "+seller.name+"\nBusiness: "+business+"\nStake: "+pct(offerPct)+"\nPrice: "+money(price)+"\n\nCash moves directly from buyer to seller. The business's cash balance will not change."))return;
+ const buyerBefore=buyerCash,sellerBefore=sellerCash;
+ buyer.cash=round4(buyerCash-price);
+ seller.cash=round4(sellerCash+price);
+ sellerOwner.percentage=round4(Number(sellerOwner.percentage)-offerPct);
+ let buyerOwner=(record.owners||[]).find(o=>String(o.citizenId)===String(buyer.id));
+ if(buyerOwner)buyerOwner.percentage=round4(Number(buyerOwner.percentage)+offerPct);
+ else{buyerOwner={citizenId:buyer.id,name:buyer.name,percentage:offerPct};record.owners.push(buyerOwner);}
+ record.owners=record.owners.filter(o=>Number(o.percentage)>0.000001);
+ const at=new Date().toISOString(),transferId="BOT-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
+ const tx={id:transferId,at,season:Number(st.year)||0,gameCount:Array.isArray(st.gamesPlayed)?st.gamesPlayed.length:0,business,buyerId:buyer.id,buyerName:buyer.name,sellerId:seller.id,sellerName:seller.name,percentage:offerPct,price,valuation:Number(record.valuation)||0,buyerCashBefore:buyerBefore,buyerCashAfter:buyer.cash,sellerCashBefore:sellerBefore,sellerCashAfter:seller.cash,offerId:offer.id,type:"Ownership Transfer"};
+ reg.transactions.push(tx);
+ offer.status="sold";offer.completedAt=at;offer.buyerId=buyer.id;offer.buyerName=buyer.name;offer.transactionId=transferId;offer.completedPrice=price;
+ st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
+ st.playerLedgerTransactions.push(
+  {id:transferId+"-BUYER",at,season:tx.season,gameCount:tx.gameCount,player:buyer.name,amount:-price,type:"Business Ownership Purchase",reason:"Purchased "+pct(offerPct)+" of "+business+" from "+seller.name,payer:buyer.name,recipient:seller.name,source:"business-ownership-marketplace",balanceBefore:buyerBefore,balanceAfter:buyer.cash,ownershipTransactionId:transferId},
+  {id:transferId+"-SELLER",at,season:tx.season,gameCount:tx.gameCount,player:seller.name,amount:price,type:"Business Ownership Sale",reason:"Sold "+pct(offerPct)+" of "+business+" to "+buyer.name,payer:buyer.name,recipient:seller.name,source:"business-ownership-marketplace",balanceBefore:sellerBefore,balanceAfter:seller.cash,ownershipTransactionId:transferId}
+ );
+ saveAll();
+ message.textContent="Transfer completed. "+buyer.name+" now owns "+pct((record.owners.find(o=>String(o.citizenId)===String(buyer.id))||{}).percentage)+" of "+business+". Business cash was unchanged.";
+ render();refreshLedgerIfVisible();
+}
+if(businessSelect)businessSelect.addEventListener("change",render);
+if(citizenSelect)citizenSelect.addEventListener("change",render);
+if(document.getElementById("ownershipCreateOffer"))document.getElementById("ownershipCreateOffer").addEventListener("click",listStake);
+if(offersOut)offersOut.addEventListener("click",event=>{
+ const buy=event.target.closest("[data-buy-ownership-offer]");
+ const cancel=event.target.closest("[data-cancel-ownership-offer]");
+ if(buy)buyOffer(buy.getAttribute("data-buy-ownership-offer"));
+ if(cancel)cancelOffer(cancel.getAttribute("data-cancel-ownership-offer"));
+});
+document.addEventListener("click",event=>{
+ const manage=event.target.closest("[data-ownership-citizen]");
+ const openBusiness=event.target.closest("[data-open-business-ownership]");
+ if(manage){event.preventDefault();event.stopPropagation();window.openOwnershipMarketplace(businessSelect.value,manage.getAttribute("data-ownership-citizen"));return;}
+ if(openBusiness){event.preventDefault();event.stopPropagation();window.openOwnershipMarketplace(openBusiness.getAttribute("data-open-business-ownership"),citizenSelect.value||null);}
+});
+const closeButton=document.getElementById("ownershipMarketplaceClose");
+if(closeButton)closeButton.addEventListener("click",closeMarketplace);
+if(modal)modal.addEventListener("click",event=>{if(event.target===modal)closeMarketplace();});
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{
+ registry();saveAll();updateCitizenOptions();updateBusinessOptions();refreshBusinessCards();
+},{once:true});
+else{registry();saveAll();updateCitizenOptions();updateBusinessOptions();refreshBusinessCards();}
 })();
 </script>
  
