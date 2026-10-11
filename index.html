@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.23 -->
-<!-- Build identity: 4.24.23. Season 29 Game 0 shoe-company opening cash reconciliation; shareholder lookup and Buy/Sell modal retained; guarded cash migration only. -->
+<!-- CALVIN'S CITY — VERSION 4.24.25 -->
+<!-- Build identity: 4.24.25. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
@@ -1188,34 +1188,40 @@ Adidas:[["Wallace",50],["Poley",50]],
 };
 const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
  
-/* 4.24.23: Reconcile shoe-company opening cash only at the untouched Season 29 opening.
-  This is deliberately blocked after any completed game or recorded business-cash
-  transaction. A before/after audit snapshot is retained before changing any value. */
-(function reconcileSeason29OpeningShoeCash(){
-const version="4.24.23";
-const companies=["Nike","Reebok","Puma","Adidas","New Balance"];
-if(state.season29ShoeCashOpeningReconciledVersion===version)return;
+/* 4.24.25: Season 29 Game 0 opening cash restoration for every team and business.
+  Existing ledger history is preserved. Each changed balance creates an explicit
+  before/after adjustment entry; this migration runs once and never overwrites later seasons. */
+(function reconcileSeason29OpeningCashAllAccounts(){
+const version="4.24.25";
+if(state.season29AllAccountOpeningCashReconciledVersion===version)return;
 const games=Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0;
-const ledger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];
-const relevantLedger=ledger.filter(entry=>entry&&companies.includes(String(entry.company||entry.business||"")));
-const atOpening=Number(state.year)===29&&games===0&&relevantLedger.length===0;
-if(!atOpening){
- state.season29ShoeCashOpeningReconciledVersion="4.24.23-skipped";
- state.season29ShoeCashOpeningReconciliation={version,at:new Date().toISOString(),status:"Skipped",reason:"Not an untouched Season 29 opening; game or business cash ledger activity exists.",season:Number(state.year)||null,gamesPlayed:games,relevantLedgerEntries:relevantLedger.length};
- try{save();}catch(e){console.warn("Shoe-company opening cash reconciliation status could not be saved.",e);}
+const season=Number(state.year)||0;
+if(season!==29||games!==0||state.seasonPlayed===true||String(state.seasonPhase||"")!=="regular"){
+ state.season29AllAccountOpeningCashReconciliation={version,at:new Date().toISOString(),status:"Skipped",reason:"Opening cash can only be restored at Season 29 Game 0 during the regular-season phase before a season has been played; current state did not meet all guards.",season,gamesPlayed:games};
+ state.season29AllAccountOpeningCashReconciledVersion=version+"-skipped";
+ try{save();}catch(e){console.warn("Opening cash migration status could not be saved.",e);}
  return;
 }
+state.teamCash=state.teamCash&&typeof state.teamCash==="object"?state.teamCash:{};
 state.businessCash=state.businessCash&&typeof state.businessCash==="object"?state.businessCash:{};
-const before={};
-const after={};
-companies.forEach(company=>{
- before[company]=state.businessCash[company]==null?null:Number(state.businessCash[company]);
- after[company]=Number(BUSINESS_CASH[company])||0;
+state.teamCashLedger=Array.isArray(state.teamCashLedger)?state.teamCashLedger:[];
+state.businessCashLedger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];
+const at=new Date().toISOString(),teamBefore={},teamAfter={},businessBefore={},businessAfter={};
+Object.entries(TEAM_CASH).forEach(([name,opening])=>{
+ const before=state.teamCash[name]==null?null:Number(state.teamCash[name]);
+ const after=Number(opening)||0;teamBefore[name]=before;teamAfter[name]=after;
+ state.teamCashLedger.push({id:"opening-reset-team-"+name+"-"+version,season:29,type:"Opening Balance Reset",team:name,amount:before===null?after:Math.round((after-(Number.isFinite(before)?before:0))*100)/100,before,after,reason:"Authoritative Season 29 Game 0 opening balance recorded; any prior balance is retained in this audit entry.",createdAt:at,accountType:"team",migrationVersion:version});
+ state.teamCash[name]=after;
 });
-state.season29ShoeCashOpeningReconciliation={version,at:new Date().toISOString(),status:"Applied",reason:"Restored opening cash for five shoe companies at Season 29 Game 0; no games or matching business-cash ledger entries existed.",season:29,gamesPlayed:0,before,after,shareholderHoldingsChanged:false,ownershipChanged:false,permanentHistoryChanged:false};
-companies.forEach(company=>{state.businessCash[company]=after[company];});
-state.season29ShoeCashOpeningReconciledVersion=version;
-try{save();}catch(e){console.error("Shoe-company opening cash reconciliation could not be saved.",e);}
+Object.entries(BUSINESS_CASH).forEach(([name,opening])=>{
+ const before=state.businessCash[name]==null?null:Number(state.businessCash[name]);
+ const after=Number(opening)||0;businessBefore[name]=before;businessAfter[name]=after;
+ state.businessCashLedger.push({id:"opening-reset-business-"+name.replace(/[^a-z0-9]/gi,"-")+"-"+version,season:29,type:"Opening Balance Reset",company:name,amount:before===null?after:Math.round((after-(Number.isFinite(before)?before:0))*100)/100,before,after,reason:"Authoritative Season 29 Game 0 opening balance recorded; any prior balance is retained in this audit entry.",createdAt:at,accountType:"business",migrationVersion:version});
+ state.businessCash[name]=after;
+});
+state.season29AllAccountOpeningCashReconciliation={version,at,status:"Applied",reason:"Restored all three teams and all seven businesses to opening cash at Season 29 Game 0. Existing ledger history was preserved; changed balances were recorded as append-only adjustments.",season:29,gamesPlayed:0,teamBefore,teamAfter,businessBefore,businessAfter,permanentHistoryChanged:false};
+state.season29AllAccountOpeningCashReconciledVersion=version;
+try{save();}catch(e){console.error("All-account opening cash reconciliation could not be saved.",e);}
 })();
  
 /* 4.23.1: Permanent citizen/business ownership registry.
@@ -1350,7 +1356,9 @@ Object.entries(contracts).forEach(([key,contract])=>{
   citizen.cash=cashBefore+remainder;
   recordPlayerLedgerTransaction({player:name,amount:remainder,type:"Payment In",reason:"Contract payment migration",payer:team,recipient:name,source:"migrateContractPaymentsToUpfront",before:cashBefore,after:citizen.cash});
   state.teamCash=state.teamCash||{};
-  state.teamCash[team]=Math.max(0,(Number(state.teamCash[team])||0)-remainder);
+  const teamCashBefore=Number(state.teamCash[team])||0;
+  state.teamCash[team]=Math.max(0,Math.round((teamCashBefore-remainder)*100)/100);
+  appendCashLedgerEntry("team",team,{type:"Contract Payment Migration",amount:Math.round((state.teamCash[team]-teamCashBefore)*100)/100,before:teamCashBefore,after:state.teamCash[team],reason:"Team cash paid to player during legacy contract-payment migration",player:name,source:"migrateContractPaymentsToUpfront"});
  }
  const years=Math.max(1,Number(contract.contractYears!=null?contract.contractYears:contract.years)||1);
  contract.paymentModel="upfront-total";
@@ -3606,8 +3614,8 @@ if(decision==="Resign"||decision==="Replace"){
   const totalPackage=Math.round((salary+shoeValue)*100)/100;
   const annualValue=years?Math.round((totalPackage/years)*100)/100:0;
   if(citizen&&totalPackage>0){citizen.cash=(Number(citizen.cash)||0)+totalPackage;}
-  if(salary>0)state.teamCash[team]=Math.max(0,(Number(state.teamCash[team])||0)-salary);
-  if(shoeCompany&&shoeValue>0)state.businessCash[shoeCompany]=Math.max(0,(Number(state.businessCash[shoeCompany])||0)-shoeValue);
+  if(salary>0){const teamCashBefore=Number(state.teamCash[team])||0;const teamCashAfter=Math.max(0,Math.round((teamCashBefore-salary)*100)/100);state.teamCash[team]=teamCashAfter;appendCashLedgerEntry("team",team,{type:"Player Contract Payment",amount:Math.round((teamCashAfter-teamCashBefore)*100)/100,before:teamCashBefore,after:teamCashAfter,reason:"Team salary paid for player contract; decision: "+decision,player:name,source:"offseason contract verification"});}
+  if(shoeCompany&&shoeValue>0){const cashBefore=Number(state.businessCash[shoeCompany])||0;const cashAfter=Math.max(0,Math.round((cashBefore-shoeValue)*100)/100);state.businessCash[shoeCompany]=cashAfter;state.businessCashLedger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];state.businessCashLedger.push({id:"shoe-deal-payment-"+Date.now()+"-"+String(shoeCompany).replace(/[^a-z0-9]/gi,"-"),season:Number(state.year)||29,type:"Shoe Deal Payment",company:shoeCompany,amount:Math.round((cashAfter-cashBefore)*100)/100,before:cashBefore,after:cashAfter,reason:"Cash paid for player shoe deal; decision: "+decision,createdAt:new Date().toISOString(),accountType:"business"});}
   if(citizen){
     citizen.shoeDeals=Array.isArray(citizen.shoeDeals)?citizen.shoeDeals:[];
     citizen.shoeDeals.forEach(deal=>{if(deal&&Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)>0){if(!deal.originalYears)deal.originalYears=Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)||0;deal.yearsRemaining=0;deal.years=0;deal.endYear=Number(state.year)||0;}});
@@ -4687,7 +4695,7 @@ window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger
 <div id="recordsBody" class="log"></div>
  
 <button id="recordsClose" class="secondary">Close</button>
-</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:10px 0"><button type="button" class="secondary" data-share-ledger-view="all">All Events</button><button type="button" class="secondary" data-share-ledger-view="trades">Share Trades</button><button type="button" class="secondary" data-share-ledger-view="ownership">Ownership Transfers</button><button type="button" class="secondary" data-share-ledger-view="audit">Audit &amp; Reconciliation</button></div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
+</div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:10px 0"><button type="button" class="secondary" data-share-ledger-view="all">All Events</button><button type="button" class="secondary" data-share-ledger-view="trades">Share Trades</button><button type="button" class="secondary" data-share-ledger-view="ownership">Ownership Transfers</button><button type="button" class="secondary" data-share-ledger-view="audit">Audit &amp; Reconciliation</button><button type="button" class="secondary" data-share-ledger-view="businesscash">Business Cash Ledger</button><button type="button" class="secondary" data-share-ledger-view="cashaudit">Cash Audit &amp; Corrections</button></div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
  
  
  
@@ -5610,6 +5618,80 @@ const modal=$("shareOwnershipLedgerModal");if(!modal)return;
 modal.classList.add("show");renderShareOwnershipLedger(view||"all");
 }
 function closeShareOwnershipLedger(){const modal=$("shareOwnershipLedgerModal");if(modal)modal.classList.remove("show");}
+/* 4.24.25: Unified append-only cash trace, account reconciliation, and controlled voids.
+  Corrections append new entries and never delete or rewrite the transaction being corrected. */
+function cashAccountCatalog(){
+const st=getState();st.teamCash=st.teamCash||{};st.businessCash=st.businessCash||{};
+return [
+ ...Object.entries(TEAM_CASH).map(([name,opening])=>({kind:"team",name,opening,current:Number(st.teamCash[name]??opening)})),
+ ...Object.entries(BUSINESS_CASH).map(([name,opening])=>({kind:"business",name,opening,current:Number(st.businessCash[name]??opening)}))
+];
+}
+function cashLedgerEntries(){
+const st=getState();
+return (Array.isArray(st.teamCashLedger)?st.teamCashLedger:[]).map(e=>({...e,_cashKind:"team",_cashAccount:String(e.team||e.account||"")}))
+ .concat((Array.isArray(st.businessCashLedger)?st.businessCashLedger:[]).map(e=>{const arenaTeam=String(e.accountType||"")==="arena-team";return {...e,_cashKind:arenaTeam?"team":"business",_cashAccount:String(e.team||e.company||e.business||e.account||"")};}))
+ .sort((a,b)=>String(b.createdAt||b.at||"").localeCompare(String(a.createdAt||a.at||"")));
+}
+function appendCashLedgerEntry(kind,name,entry){
+const st=getState(),listKey=kind==="team"?"teamCashLedger":"businessCashLedger";
+st[listKey]=Array.isArray(st[listKey])?st[listKey]:[];
+const saved={...entry,id:entry.id||("cash-"+kind+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)),season:Number(st.year)||29,createdAt:new Date().toISOString(),accountType:kind};
+if(kind==="team")saved.team=name;else saved.company=name;
+st[listKey].push(saved);
+try{save();}catch(e){console.error("Cash ledger entry save failed.",e);}
+try{if(window.__calvinsCityBridge&&typeof window.__calvinsCityBridge.save==="function")window.__calvinsCityBridge.save();}catch(e){}
+return saved;
+}
+function voidUnsupportedCash(){
+const accounts=cashAccountCatalog();
+const menu=accounts.map((a,i)=>(i+1)+". "+a.name+" ("+(a.kind==="team"?"Team":"Business")+", current "+money(a.current)+")").join("\n");
+const pick=prompt("Choose the account with unsupported cash by number:\n"+menu);
+if(pick===null)return;
+const idx=Math.floor(Number(pick))-1;
+if(!Number.isInteger(idx)||idx<0||idx>=accounts.length){alert("Invalid account selection. No cash changed.");return;}
+const account=accounts[idx];
+const raw=prompt("Amount of unsupported cash to void from "+account.name+" (in millions). Enter a positive amount. Current cash: "+account.current+"M");
+if(raw===null)return;
+const amount=Math.round(Number(raw)*100)/100;
+if(!Number.isFinite(amount)||amount<=0){alert("Enter a valid positive amount. No cash changed.");return;}
+if(amount>account.current+0.0001){alert("The void amount cannot exceed current cash. No cash changed.");return;}
+const reason=prompt("Explain why this cash is unsupported. This reason is permanently recorded:");
+if(reason===null)return;
+if(!String(reason).trim()){alert("A reason is required. No cash changed.");return;}
+if(!confirm("Void "+amount+"M of unsupported cash from "+account.name+"?\n\nThis will append a correction entry. The earlier ledger records will not be deleted."))return;
+const st=getState(),before=account.kind==="team"?Number(st.teamCash[account.name])||0:Number(st.businessCash[account.name])||0;
+const after=Math.round((before-amount)*100)/100;
+if(account.kind==="team")st.teamCash[account.name]=after;else st.businessCash[account.name]=after;
+appendCashLedgerEntry(account.kind,account.name,{type:"Void Unsupported Cash",amount:-amount,before,after,reason:String(reason).trim(),voidMethod:"append-only adjustment",voidedAt:new Date().toISOString()});
+try{save();}catch(e){}
+alert("Correction recorded. "+account.name+" cash is now "+after+"M. The audit trail was preserved.");
+renderShareOwnershipLedger("cashaudit");
+}
+function renderBusinessCashLedger(){
+const st=getState(),out=$("shareOwnershipLedgerBody");if(!out)return;
+const accounts=cashAccountCatalog(),entries=cashLedgerEntries();
+const rows=entries.length?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Season / Game</th><th>Change</th><th>Before</th><th>After</th><th>Source / Reason</th></tr></thead><tbody>'+entries.map(e=>'<tr><td>'+esc(e.createdAt||e.at?new Date(e.createdAt||e.at).toLocaleString():"—")+'</td><td>'+esc(e._cashAccount||"Unknown")+' ('+esc(e._cashKind)+')</td><td>'+esc(e.type||"Cash movement")+'</td><td>'+esc(String(e.season??"—")+(e.gameIndex!=null?" / "+e.gameIndex:""))+'</td><td>'+money(Number(e.amount)||0)+'</td><td>'+(e.before==null?"—":money(Number(e.before)||0))+'</td><td>'+(e.after==null?"—":money(Number(e.after)||0))+'</td><td>'+esc(e.reason||e.source||"No reason supplied")+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No cash ledger entries exist yet. Current balances are shown above; future tracked changes and corrections will be appended here.</p>';
+out.innerHTML='<h3>Business &amp; Team Cash Ledger</h3><p class="tiny">All values are in millions (M). Historical entries remain intact. A correction adds a new entry rather than deleting prior records.</p><div style="overflow-x:auto"><table><thead><tr><th>Account</th><th>Opening Cash</th><th>Current Cash</th><th>Entries</th></tr></thead><tbody>'+accounts.map(a=>'<tr><td>'+esc(a.name)+' ('+esc(a.kind)+')</td><td>'+money(a.opening)+'</td><td>'+money(a.current)+'</td><td>'+entries.filter(e=>e._cashKind===a.kind&&e._cashAccount===a.name).length+'</td></tr>').join("")+'</tbody></table></div><h3>Cash Transactions</h3>'+rows+'<p class="tiny">Note: this view displays recorded ledger entries. A cash change made by a pathway that has not emitted a ledger entry will appear as a discrepancy in Cash Audit.</p>';
+}
+function renderCashAudit(){
+const st=getState(),out=$("shareOwnershipLedgerBody");if(!out)return;
+const accounts=cashAccountCatalog(),entries=cashLedgerEntries(),findings=[];
+accounts.forEach(a=>{
+ const related=entries.filter(e=>e._cashKind===a.kind&&e._cashAccount===a.name);
+ const currentSeason=related.filter(e=>Number(e.season)===(Number(st.year)||29));
+ const ordered=currentSeason.slice().sort((x,y)=>String(x.createdAt||x.at||"").localeCompare(String(y.createdAt||y.at||"")));
+ const last=ordered.length?ordered[ordered.length-1]:null;
+ if(!related.length)findings.push(a.name+": no cash ledger entries exist; current cash is not yet fully traceable.");
+ else if(!last)findings.push(a.name+": no ledger entry exists for the active Season "+(Number(st.year)||29)+"; current balance needs a documented opening-balance checkpoint.");
+ else if(last.after!=null&&Math.abs(Number(last.after)-a.current)>0.0001)findings.push(a.name+": current cash is "+a.current+"M, but latest recorded ledger balance is "+Number(last.after)+"M.");
+ const chain=ordered.filter(e=>e.before!=null&&e.after!=null);
+ for(let i=1;i<chain.length;i++)if(Math.abs(Number(chain[i].before)-Number(chain[i-1].after))>0.0001)findings.push(a.name+": ledger balance chain gap between "+(chain[i-1].id||"prior entry")+" and "+(chain[i].id||"next entry")+".");
+});
+const opening=st.season29AllAccountOpeningCashReconciliation;
+out.innerHTML='<h3>Cash Audit &amp; Corrections</h3><p class="tiny">Audit checks current account balances against available current-season ledger entries. Missing history is reported as a finding, not silently fabricated. Corrections are append-only.</p><div class="metric"><small>Accounts Checked</small><strong>'+accounts.length+'</strong></div><div class="metric"><small>Cash Ledger Entries</small><strong>'+entries.length+'</strong></div><div class="metric"><small>Findings</small><strong>'+findings.length+'</strong></div><h4>Opening Cash Restoration</h4><p>'+esc(opening?opening.status+" — "+opening.reason:"No all-account opening cash migration report is available.")+'</p><h4>Audit Findings</h4>'+(findings.length?'<ul>'+findings.map(f=>'<li class="gold">'+esc(f)+'</li>').join("")+'</ul>':'<p class="goodbtn" style="padding:10px;border-radius:8px">No current-season balance-chain discrepancies were found. This does not independently prove unrecorded activity never occurred.</p>')+'<button type="button" id="voidUnsupportedCashButton" class="secondary">Void Unsupported Cash (Append Correction)</button><p class="tiny">Only void cash when you have identified the unsupported amount and can explain why it is invalid. This action subtracts the specified amount and records who/why/when through the correction entry.</p>';
+const btn=$("voidUnsupportedCashButton");if(btn)btn.addEventListener("click",voidUnsupportedCash);
+}
 function renderShareOwnershipLedger(view){
 const st=getState(),ledger=getShareOwnershipLedger(),out=$("shareOwnershipLedgerBody");if(!out)return;
 const stockTx=(db.transactions||[]).map(t=>({id:t.id,at:t.at,season:t.season,type:"Share Trade",company:t.company,buyer:t.buyer,buyerType:t.buyerType,buyerId:t.buyerId,seller:t.seller,sellerType:t.sellerType,sellerId:t.sellerId,shares:t.shares,price:t.price,total:t.total,buyerCashBefore:t.buyerCashBefore,buyerCashAfter:t.buyerCashAfter,sellerCashBefore:t.sellerCashBefore,sellerCashAfter:t.sellerCashAfter,reservePurchase:t.reservePurchase}));
@@ -5633,6 +5715,8 @@ all.forEach(t=>{if(/share trade/i.test(String(t.type||""))||String(t.id||"").sta
 }});
 $("shareLedgerEventCount").textContent=String(all.length);$("shareLedgerTradeCount").textContent=String(trades.length);$("shareLedgerOwnershipCount").textContent=String(ownership.length);$("shareLedgerStatus").textContent=findings.length?"Review needed":"Checks passed";
 const rows=list=>list.length?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Company / Business</th><th>Buyer / New Owner</th><th>Seller / Old Owner</th><th>Shares / Stake</th><th>Amount</th><th>Cash check</th></tr></thead><tbody>'+list.map(t=>{const total=Number(t.total??t.price)||0;let check="Recorded";if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null){const ok=Math.abs(Number(t.buyerCashBefore)-total-Number(t.buyerCashAfter))<0.0001;check=ok?"Pass":"Mismatch";}return '<tr><td>'+esc(t.at?new Date(t.at).toLocaleString():(t.createdAt?new Date(t.createdAt).toLocaleString():"—"))+'</td><td>'+esc(t.type||"Ledger event")+'</td><td>'+esc(t.company||t.business||"—")+'</td><td>'+esc(t.buyer||t.buyerName||"—")+'</td><td>'+esc(t.seller||t.sellerName||"—")+'</td><td>'+(t.shares!=null?Number(t.shares)+" shares":(t.percentage!=null?pct(t.percentage):"—"))+'</td><td>'+money(total)+'</td><td>'+check+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="muted">No events recorded for this view yet. The ledger does not invent missing history.</p>';
+if(view==="businesscash"){renderBusinessCashLedger();return;}
+if(view==="cashaudit"){renderCashAudit();return;}
 if(view==="audit")out.innerHTML='<h3>Reconciliation Results</h3>'+(findings.length?'<ul>'+findings.map(f=>'<li class="gold">'+esc(f)+'</li>').join("")+'</ul>':'<p class="goodbtn" style="padding:10px;border-radius:8px">No discrepancies found by the current checks.</p>')+'<p class="tiny">These checks cover current share-supply arithmetic, recorded ownership totals, and cash arithmetic in available transaction records. They do not prove that every historical transaction was captured before this ledger existed.</p>';
 else if(view==="trades")out.innerHTML='<h3>Share Trades</h3>'+rows(trades);
 else if(view==="ownership")out.innerHTML='<h3>Ownership Transfers</h3>'+rows(ownership);
