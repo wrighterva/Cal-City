@@ -78,7 +78,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.23.1</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.24.6</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -371,8 +371,12 @@ return {
 document.getElementById("teamPageTitle").textContent=t.name;
 const rosterTable='<h3>Roster &amp; Contracts</h3><div class="team-table-wrap"><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th><th>TNR</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:14px;font-weight:900;width:100%;box-sizing:border-box"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td><td>'+p.snr+'</td></tr>').join('')+'</table></div><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the same live contract database used by Offseason and the Citizen Ledger.</p>';
  
+const marketDB=(()=>{try{return JSON.parse(localStorage.getItem("calvins_city_stock_market_v1")||"null")}catch(e){return null}})();
+const stockRecord=marketDB&&marketDB.companies?marketDB.companies[t.key]:null;
+const teamHolders=stockRecord?Object.entries(stockRecord.holdings||{}).filter(([key,n])=>Number(n)>0).map(([key,n])=>({name:(stockRecord.ownerNames&&stockRecord.ownerNames[key])||key.replace(/^LEGACY:/,"").replace(/\b\w/g,m=>m.toUpperCase()),shares:Number(n),stake:Number(n)/5})).sort((a,b)=>b.shares-a.shares):[];
+const stakePanel='<div class="card" style="margin:10px 0;padding:12px"><h3 style="margin:0 0 8px">📊 Public Share Stakes</h3><p class="team-note">Public stockholders own shares in this team; this is separate from team cash and business ownership.</p>'+(teamHolders.length?'<div class="team-table-wrap"><table class="team-table"><tr><th>Shareholder</th><th>Shares</th><th>Stake</th></tr>'+teamHolders.map(h=>'<tr><td>'+String(h.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</td><td>'+h.shares+'</td><td>'+h.stake.toFixed(2)+'%</td></tr>').join('')+'</table></div>':'<p class="team-note">No public shares are currently recorded as purchased.</p>')+'<p class="team-note">Shares available: '+(stockRecord?Math.max(0,500-teamHolders.reduce((sum,h)=>sum+h.shares,0)):500)+' / 500</p></div>';
 document.getElementById("teamPageBody").innerHTML=
-'<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+getLiveTeamCash(t.key)+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div></div>'+rosterTable;
+'<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+getLiveTeamCash(t.key)+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div></div>'+stakePanel+rosterTable;
  
 lockTeamPageScroll();
 document.getElementById("teamPageModal").classList.add("show");
@@ -5021,7 +5025,7 @@ else{registry();saveAll();updateCitizenOptions();updateBusinessOptions();refresh
  
  
 <script>
-/* 4.24.5: Markets category navigation and high-contrast company screens; independent share-trading stock market.
+/* 4.24.6: User-provided shareholder registers and Team Arena public stake display; independent share-trading stock market.
   Shareholders own shares, not business ownership stakes. Annual price changes use
   recorded revenue only; market capitalization never overwrites business cash. */
 (function(){
@@ -5031,16 +5035,16 @@ if(!bridge||typeof bridge.getState!=="function")return;
 const STORAGE_KEY="calvins_city_stock_market_v1";
 const TOTAL_SHARES=500;
 const companies=[
-{name:"Lions",category:"Basketball Teams",icon:"🏀",cashSeed:4430,known:false,initialHoldings:[]},
-{name:"Rims",category:"Basketball Teams",icon:"🏀",cashSeed:4470,known:false,initialHoldings:[]},
-{name:"Dunks",category:"Basketball Teams",icon:"🏀",cashSeed:4450,known:false,initialHoldings:[]},
+{name:"Lions",category:"Basketball Teams",icon:"🏀",cashSeed:4430,known:true,initialHoldings:[["New Balance",28]],initialPrices:{"New Balance":8.6}},
+{name:"Rims",category:"Basketball Teams",icon:"🏀",cashSeed:4470,known:true,initialHoldings:[["Lions",65],["Rims",83]],initialPrices:{"Lions":7.2,"Rims":7.2}},
+{name:"Dunks",category:"Basketball Teams",icon:"🏀",cashSeed:4450,known:true,initialHoldings:[["Adidas",60],["Reebok",78],["Vico",14]],initialPrices:{"Adidas":4.9,"Reebok":6.6,"Vico":8.6}},
 {name:"Nike",category:"Shoe Companies",icon:"👟",cashSeed:5040,known:true,initialHoldings:[["E. Ali",35],["Adidas",100],["Reebok",200],["Nike",100],["S. Oliver",10]]},
 {name:"Reebok",category:"Shoe Companies",icon:"👟",cashSeed:4150,known:true,initialHoldings:[["New Balance",105],["Reebok",149],["TV Company",60],["Nike",68],["Puma",85]]},
 {name:"Puma",category:"Shoe Companies",icon:"👟",cashSeed:2930,known:true,initialHoldings:[["Puma",175],["Lions",75],["Nike",250]]},
 {name:"Adidas",category:"Shoe Companies",icon:"👟",cashSeed:5080,known:true,initialHoldings:[["Benmack II",50],["Adidas",90],["Reese",50],["Sports Bets",53],["Lions",62]]},
-{name:"New Balance",category:"Shoe Companies",icon:"👟",cashSeed:3300,known:false,initialHoldings:[]},
-{name:"TV Company",category:"Media",icon:"📺",cashSeed:3650,known:false,initialHoldings:[]},
-{name:"Sports Bets Company",category:"Sports Business",icon:"🎲",cashSeed:430,known:false,initialHoldings:[]}
+{name:"New Balance",category:"Shoe Companies",icon:"👟",cashSeed:3300,known:true,initialHoldings:[["Reebok",167],["Jacks",66],["Nike",119],["New Balance",148]],initialPrices:{"Reebok":6,"Jacks":4.2,"Nike":4.2,"New Balance":6}},
+{name:"TV Company",category:"Media",icon:"📺",cashSeed:3650,known:true,initialHoldings:[["Adidas",100],["Reebok",100]],initialPrices:{"Adidas":3.1,"Reebok":6.2}},
+{name:"Sports Bets Company",category:"Sports Business",icon:"🎲",cashSeed:430,known:true,initialHoldings:[["Peb",60],["Coffvee",60],["Sam",60]],initialPrices:{"Peb":3,"Coffvee":3,"Sam":3}}
 ];
 const $=id=>document.getElementById(id);
 const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -5076,12 +5080,13 @@ const st=getState(),businessCash=st.businessCash||{};
 const db={version:1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastProcessedSeason:null,companies:{},transactions:[],annualReports:[]};
 companies.forEach(def=>{
  const cash=Number(businessCash[def.name]!=null?businessCash[def.name]:def.cashSeed)||0;
- const co={name:def.name,totalShares:TOTAL_SHARES,price:round4(cash/TOTAL_SHARES),initialCashValue:cash,holdings:{},ownerNames:{},priceHistory:[],needsAllocationReview:!def.known,allocationNote:def.known?"Recovered legacy allocation":"Legacy shareholder allocation not recovered; confirm before trading"};
+ const co={name:def.name,totalShares:TOTAL_SHARES,price:round4(cash/TOTAL_SHARES),initialCashValue:cash,holdings:{},ownerNames:{},holderPurchasePrices:{},priceHistory:[],needsAllocationReview:!def.known,allocationNote:def.known?"Shareholder allocations entered from user-provided records":"Shareholder allocation not recovered"};
  if(def.known){
   def.initialHoldings.forEach(([name,shares])=>{
    const key=ownerKeyFromName(name);
    co.holdings[key]=(Number(co.holdings[key])||0)+Number(shares);
    co.ownerNames[key]=name;
+   if(def.initialPrices&&def.initialPrices[name]!=null)co.holderPurchasePrices[key]=Number(def.initialPrices[name]);
   });
  }
  db.companies[def.name]=co;
@@ -5101,6 +5106,28 @@ companies.forEach(def=>{
 });
 db.transactions=Array.isArray(db.transactions)?db.transactions:[];
 db.annualReports=Array.isArray(db.annualReports)?db.annualReports:[];
+// One-time import of the shareholder entries explicitly supplied by the user.
+// This only adds these known allocations once; it does not replace company cash,
+// market prices, prior trades, reports, or existing holder balances.
+if(!db.userProvidedShareholderEntriesV1Imported){
+ companies.forEach(def=>{
+  const co=db.companies[def.name];if(!co)return;
+  co.holdings=co.holdings||{};co.ownerNames=co.ownerNames||{};co.holderPurchasePrices=co.holderPurchasePrices||{};
+  (def.initialHoldings||[]).forEach(([name,shares])=>{
+   const key=ownerKeyFromName(name);
+   // For the companies previously flagged as allocation-review, this is the first confirmed register.
+   // For existing records, only add user-provided holders if that exact holder has not already been recorded.
+   if(!Object.prototype.hasOwnProperty.call(co.holdings,key))co.holdings[key]=Number(shares)||0;
+   co.ownerNames[key]=name;
+   if(def.initialPrices&&def.initialPrices[name]!=null&&!Object.prototype.hasOwnProperty.call(co.holderPurchasePrices,key))co.holderPurchasePrices[key]=Number(def.initialPrices[name]);
+  });
+  co.needsAllocationReview=false;
+  co.allocationNote="User-provided shareholder register loaded; remaining shares are available for purchase.";
+ });
+ db.userProvidedShareholderEntriesV1Imported=true;
+ db.userProvidedShareholderEntriesV1ImportedAt=new Date().toISOString();
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
+}
 return db;
 }
 let db=loadDB();
