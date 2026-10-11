@@ -1,6 +1,6 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.2 -->
+<!-- CALVIN'S CITY — VERSION 4.24.4 -->
 <!-- Build identity: 4.24.2. One-time Season 29 opening reset, preserving pre-reset game records for import into the permanent BETS ledger. BETS remains season-independent and append-only. -->
  
 <html lang="en">
@@ -135,16 +135,17 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 <section id="markets" class="screen">
 <div class="card" id="stockExchangeCard">
-<h2>📈 Markets — Stock Exchange</h2>
-<p class="tiny">The Markets page now opens directly to the stock exchange instead of the old Grain, Meat, Produce, and Food Demand commodity summary. Share trading is separate from business ownership. Each company has 500 shares. Stock price and market capitalization move independently from the company's cash balance.</p>
+<h2>📈 Markets</h2>
+<p class="tiny">Choose a company to open its market profile. Buy and sell public shares separately from business ownership. Every listed company has 500 shares; market value and company cash are tracked separately.</p>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px">
-<div class="metric"><small>Listed Companies</small><strong id="stockCompanyCount">7</strong></div>
+<div class="metric"><small>Listed Companies</small><strong id="stockCompanyCount">10</strong></div>
 <div class="metric"><small>Shares per Company</small><strong>500</strong></div>
 <div class="metric"><small>Latest Season Report</small><strong id="stockLatestReportSeason">Not reported</strong></div>
 </div>
-<div id="stockMarketTable" aria-live="polite"><p class="muted">Loading stock market…</p></div>
+<div id="stockMarketTable" aria-live="polite"><p class="muted">Loading Markets…</p></div>
+<div id="stockCompanyDetail" class="card" style="display:none;margin-top:12px" aria-live="polite"></div>
 <div class="card" style="margin-top:12px">
-<h3>Trade Shares</h3>
+<h3 id="stockTradePanelHeading">Trade Shares</h3>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
  <div><label for="stockTradingCitizen">Citizen account</label><select id="stockTradingCitizen" style="width:100%"></select></div>
  <div><label for="stockTradingCompany">Company stock</label><select id="stockTradingCompany" style="width:100%"></select></div>
@@ -157,12 +158,12 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <p id="stockTradeMessage" class="tiny" role="status" aria-live="polite"></p>
 </div>
 <div class="card" style="margin-top:12px">
-<h3>Annual Company Reports</h3>
+<h3 id="stockReportsPanelHeading">Annual Company Reports</h3>
 <p class="tiny">At season end, recorded company revenue is compared with the previous season. Revenue growth or decline changes the share price using fixed tiers. A price change does not directly change company cash.</p>
 <div id="stockAnnualReports"><p class="muted">Annual reports appear after a season is completed.</p></div>
 </div>
 <div class="card" style="margin-top:12px">
-<h3>Shareholder Register</h3>
+<h3 id="stockRegisterPanelHeading">Shareholder Register</h3>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
  <div><label for="stockRegisterCompany">Company</label><select id="stockRegisterCompany" style="width:100%"></select></div>
 </div>
@@ -5004,7 +5005,7 @@ else{registry();saveAll();updateCitizenOptions();updateBusinessOptions();refresh
  
  
 <script>
-/* 4.24.2: Independent share-trading stock market.
+/* 4.24.4: Company-by-company Markets experience; independent share-trading stock market.
   Shareholders own shares, not business ownership stakes. Annual price changes use
   recorded revenue only; market capitalization never overwrites business cash. */
 (function(){
@@ -5014,13 +5015,16 @@ if(!bridge||typeof bridge.getState!=="function")return;
 const STORAGE_KEY="calvins_city_stock_market_v1";
 const TOTAL_SHARES=500;
 const companies=[
-{name:"Nike",cashSeed:5040,known:true,initialHoldings:[["E. Ali",35],["Adidas",100],["Reebok",200],["Nike",100],["S. Oliver",10]]},
-{name:"Reebok",cashSeed:4150,known:true,initialHoldings:[["New Balance",105],["Reebok",149],["TV Company",60],["Nike",68],["Puma",85]]},
-{name:"Puma",cashSeed:2930,known:true,initialHoldings:[["Puma",175],["Lions",75],["Nike",250]]},
-{name:"Adidas",cashSeed:5080,known:true,initialHoldings:[["Benmack II",50],["Adidas",90],["Reese",50],["Sports Bets",53],["Lions",62]]},
-{name:"New Balance",cashSeed:3300,known:false,initialHoldings:[]},
-{name:"TV Company",cashSeed:3650,known:false,initialHoldings:[]},
-{name:"Sports Bets Company",cashSeed:430,known:false,initialHoldings:[]}
+{name:"Lions",category:"Basketball Teams",icon:"🏀",cashSeed:4430,known:false,initialHoldings:[]},
+{name:"Rims",category:"Basketball Teams",icon:"🏀",cashSeed:4470,known:false,initialHoldings:[]},
+{name:"Dunks",category:"Basketball Teams",icon:"🏀",cashSeed:4450,known:false,initialHoldings:[]},
+{name:"Nike",category:"Shoe Companies",icon:"👟",cashSeed:5040,known:true,initialHoldings:[["E. Ali",35],["Adidas",100],["Reebok",200],["Nike",100],["S. Oliver",10]]},
+{name:"Reebok",category:"Shoe Companies",icon:"👟",cashSeed:4150,known:true,initialHoldings:[["New Balance",105],["Reebok",149],["TV Company",60],["Nike",68],["Puma",85]]},
+{name:"Puma",category:"Shoe Companies",icon:"👟",cashSeed:2930,known:true,initialHoldings:[["Puma",175],["Lions",75],["Nike",250]]},
+{name:"Adidas",category:"Shoe Companies",icon:"👟",cashSeed:5080,known:true,initialHoldings:[["Benmack II",50],["Adidas",90],["Reese",50],["Sports Bets",53],["Lions",62]]},
+{name:"New Balance",category:"Shoe Companies",icon:"👟",cashSeed:3300,known:false,initialHoldings:[]},
+{name:"TV Company",category:"Media",icon:"📺",cashSeed:3650,known:false,initialHoldings:[]},
+{name:"Sports Bets Company",category:"Sports Business",icon:"🎲",cashSeed:430,known:false,initialHoldings:[]}
 ];
 const $=id=>document.getElementById(id);
 const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -5094,16 +5098,62 @@ function sharesSold(co){return Object.values(co.holdings||{}).reduce((sum,n)=>su
 function sharesAvailable(co){return Math.max(0,TOTAL_SHARES-sharesSold(co));}
 function marketCap(co){return round4(co.price*TOTAL_SHARES);}
 function latestReport(company){return db.annualReports.slice().reverse().find(r=>r.company===company)||null;}
+let selectedMarketCompany=null;
+function marketCategory(def){return def.category||"Company";}
 function renderMarketTable(){
 const out=$("stockMarketTable");if(!out)return;
-const rows=companies.map(def=>{
- const co=db.companies[def.name],latest=latestReport(def.name),avail=sharesAvailable(co);
- const flag=co.needsAllocationReview?'<span class="badge">Allocation review needed</span>':"";
- const priceChange=co.priceHistory.length?co.priceHistory[co.priceHistory.length-1].changePct:0;
- return '<tr><td><b>'+esc(def.name)+'</b><br><span class="tiny">'+flag+'</span></td><td>'+money(co.price)+'</td><td>'+money(marketCap(co))+'</td><td>'+money((getState().businessCash||{})[def.name]??def.cashSeed)+'</td><td>'+sharesSold(co)+'</td><td>'+avail+'</td><td>'+(latest&&latest.revenueTracked?money(latest.revenue):"Not tracked")+'</td><td>'+(co.priceHistory.length?pct(priceChange):"—")+'</td></tr>';
-}).join("");
-out.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Company</th><th>Share price</th><th>Market cap</th><th>Company cash</th><th>Shares sold</th><th>Shares available</th><th>Latest annual revenue</th><th>Last price move</th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="tiny">Market cap = share price × 500 shares. Company cash is displayed separately and is not changed by a price adjustment.</p>';
+const st=getState(),groups=["Basketball Teams","Shoe Companies","Media","Sports Business"];
+let html='';
+groups.forEach(group=>{
+ const defs=companies.filter(c=>marketCategory(c)===group);if(!defs.length)return;
+ html+='<section style="margin:14px 0"><h3 style="margin:0 0 8px">'+esc(group)+'</h3><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px">';
+ defs.forEach(def=>{
+  const co=db.companies[def.name],latest=latestReport(def.name),priceMove=co.priceHistory.length?co.priceHistory[co.priceHistory.length-1].changePct:null;
+  const selected=selectedMarketCompany===def.name;
+  html+='<button type="button" data-market-company="'+esc(def.name)+'" class="card" style="text-align:left;cursor:pointer;border:1px solid '+(selected?'var(--accent,#6ba8ff)':'var(--line,#ccc)')+';min-height:118px;color:inherit;background:var(--card,#fff)"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>'+def.icon+' '+esc(def.name)+'</b><span class="tiny">'+(co.needsAllocationReview?'Review needed':'Listed')+'</span></div><div style="font-size:1.25rem;font-weight:800;margin-top:10px">'+money(co.price)+' <span class="tiny" style="font-weight:500">/ share</span></div><div class="tiny" style="margin-top:4px">Market cap '+money(marketCap(co))+'</div><div class="tiny">'+(latest&&latest.revenueTracked?'Latest revenue '+money(latest.revenue):'Revenue report not tracked')+' · '+(priceMove===null?'No price change yet':pct(priceMove))+'</div></button>';
+ });
+ html+='</div></section>';
+});
+out.innerHTML=html;
+if(selectedMarketCompany)renderCompanyDetail(selectedMarketCompany);
 }
+function renderCompanyDetail(name){
+const panel=$("stockCompanyDetail"),def=companies.find(c=>c.name===name),co=db.companies[name];if(!panel||!def||!co)return;
+selectedMarketCompany=name;panel.style.display="block";
+const st=getState(),cash=Number((st.businessCash||{})[name]??def.cashSeed)||0,latest=latestReport(name),change=co.priceHistory.length?co.priceHistory[co.priceHistory.length-1].changePct:null;
+const holders=Object.entries(co.holdings||{}).filter(([k,v])=>(Number(v)||0)>0).map(([key,shares])=>({key,name:co.ownerNames&&co.ownerNames[key]?co.ownerNames[key]:ownerNameForKey(key,db),shares:Number(shares)})).sort((a,b)=>b.shares-a.shares);
+const history=db.transactions.filter(t=>t&&t.company===name).slice().reverse().slice(0,5);
+panel.innerHTML='<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap"><div><div class="tiny">'+esc(marketCategory(def))+'</div><h3 style="margin:4px 0">'+def.icon+' '+esc(name)+'</h3><p class="tiny">Public stock ownership is separate from the business ownership registry.</p></div><button type="button" data-market-close="1">Close profile</button></div>'+
+'<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Share Price</small><strong>'+money(co.price)+'</strong></div><div class="metric"><small>Market Cap</small><strong>'+money(marketCap(co))+'</strong></div><div class="metric"><small>Company Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Shares Held / Available</small><strong>'+sharesSold(co)+' / '+sharesAvailable(co)+'</strong></div><div class="metric"><small>Last Price Move</small><strong>'+(change===null?'—':pct(change))+'</strong></div><div class="metric"><small>Latest Revenue</small><strong>'+(latest&&latest.revenueTracked?money(latest.revenue):'Not tracked')+'</strong></div></div>'+
+(co.needsAllocationReview?'<p class="gold" style="margin-top:10px"><b>Trading paused:</b> historic shareholder allocation has not been confirmed. The system will not invent missing shareholders.</p>':'')+
+'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button type="button" class="goodbtn" data-market-action="buy">Buy Shares</button><button type="button" data-market-action="sell">Sell Shares</button><button type="button" data-market-action="holders">Shareholders</button><button type="button" data-market-action="reports">Company Reports</button><button type="button" data-market-action="history">Trade History</button></div>'+
+'<div id="stockCompanySubpanel"></div>';
+renderMarketTableCardsOnly();
+}
+function renderMarketTableCardsOnly(){
+const out=$("stockMarketTable");if(!out)return;
+out.querySelectorAll('[data-market-company]').forEach(btn=>{btn.style.outline=btn.getAttribute('data-market-company')===selectedMarketCompany?'2px solid var(--accent,#6ba8ff)':'';});
+}
+function showCompanySubpanel(mode){
+const out=$("stockCompanySubpanel"),name=selectedMarketCompany,co=db.companies[name];if(!out||!co)return;
+if(mode==='holders'){
+ const rows=Object.entries(co.holdings||{}).filter(([k,v])=>(Number(v)||0)>0).map(([key,shares])=>'<tr><td>'+esc(co.ownerNames&&co.ownerNames[key]?co.ownerNames[key]:ownerNameForKey(key,db))+'</td><td>'+Number(shares)+'</td><td>'+pct(Number(shares)/TOTAL_SHARES*100)+'</td><td>'+money(Number(shares)*co.price)+'</td></tr>').join('');
+ out.innerHTML='<h4>Shareholder Register</h4>'+(co.needsAllocationReview?'<p class="gold">Allocation review required; no missing holder data has been fabricated.</p>':'')+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Shareholder</th><th>Shares</th><th>Ownership</th><th>Current Value</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No recovered shareholder allocations recorded.</p>');
+}else if(mode==='reports'){
+ const rows=db.annualReports.filter(r=>r.company===name).slice().reverse().map(r=>'<tr><td>Season '+r.season+'</td><td>'+(r.revenueTracked?money(r.revenue):'Not tracked')+'</td><td>'+(r.revenueGrowthPct==null?'—':pct(r.revenueGrowthPct))+'</td><td>'+pct(r.priceChangePct)+(r.baseline?' (baseline)':'')+'</td><td>'+money(r.priceAfter)+'</td></tr>').join('');
+ out.innerHTML='<h4>Company Reports</h4>'+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Season</th><th>Revenue</th><th>Revenue Growth</th><th>Price Move</th><th>Closing Price</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No annual reports recorded for this company yet.</p>');
+}else if(mode==='history'){
+ const rows=db.transactions.filter(t=>t&&t.company===name).slice().reverse().map(t=>'<tr><td>'+esc(t.at?new Date(t.at).toLocaleString():'—')+'</td><td>'+esc(t.action||'Share trade')+'</td><td>'+Number(t.shares||0)+'</td><td>'+money(t.price)+'</td><td>'+money(t.total)+'</td><td>'+esc(t.buyer||'—')+'</td><td>'+esc(t.seller||'—')+'</td></tr>').join('');
+ out.innerHTML='<h4>Full Trade History</h4>'+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Action</th><th>Shares</th><th>Price</th><th>Total</th><th>Buyer</th><th>Seller / Reserve</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No stock trades recorded yet.</p>');
+}else if(mode==='buy'||mode==='sell'){
+ const action=$('stockTradingAction');if(action)action.value=mode==='buy'?'buyReserve':'sellCitizen';
+ const company=$('stockTradingCompany');if(company)company.value=name;
+ updateTradeControls();
+ out.innerHTML='<p>Trade setup selected for <b>'+esc(name)+'</b>. Review the citizen, shares, counterparty and total in the Trade Shares panel below, then confirm the trade. Buying from reserve credits the company; citizen-to-citizen trades transfer cash between citizens.</p>';
+ const trade=$('stockTradingCitizen');if(trade)trade.scrollIntoView({behavior:'smooth',block:'center'});
+}
+}
+ 
 function renderCompanyOptions(){
 const companyOptions=companies.map(c=>'<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>').join("");
 ["stockTradingCompany","stockRegisterCompany"].forEach(id=>{const el=$(id);if(el){const current=el.value;el.innerHTML=companyOptions;if(current&&companies.some(c=>c.name===current))el.value=current;}});
@@ -5297,6 +5347,8 @@ function bind(){
 renderCompanyOptions();renderAll();
 ["stockTradingCitizen","stockTradingCompany","stockTradingAction","stockTradingCounterparty","stockTradingShares"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",()=>{if(id==="stockTradingCitizen"||id==="stockTradingAction"||id==="stockTradingCompany")updateTradeControls();else updateTradeQuote();});});
 const execute=$("stockExecuteTrade");if(execute)execute.addEventListener("click",transact);
+const marketRoot=$("stockMarketTable");if(marketRoot)marketRoot.addEventListener("click",event=>{const button=event.target.closest("[data-market-company]");if(button){renderCompanyDetail(button.getAttribute("data-market-company"));renderMarketTableCardsOnly();}});
+const detail=$("stockCompanyDetail");if(detail)detail.addEventListener("click",event=>{const close=event.target.closest("[data-market-close]");if(close){detail.style.display="none";selectedMarketCompany=null;renderMarketTable();return;}const action=event.target.closest("[data-market-action]");if(action)showCompanySubpanel(action.getAttribute("data-market-action"));});
 const register=$("stockRegisterCompany");if(register)register.addEventListener("change",renderRegister);
 const action=$("stockTradingAction");if(action)action.addEventListener("change",updateTradeControls);
 const citizen=$("stockTradingCitizen");if(citizen)citizen.addEventListener("change",updateTradeControls);
