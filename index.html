@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.39 -->
+<!-- CALVIN'S CITY — VERSION 4.24.40 -->
 <!-- Build identity: 4.24.39. Season 29 Game 0 all-account opening cash reconciliation; append-only business cash ledger and audit/correction controls. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.39 — TV Company Modal & Ownership View</title>
+<title>Calvin's City 4.24.40 — TV Company Modal & Ownership View</title>
 <style>
 #shareOwnershipLedgerNavigation.share-ledger-navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0;position:relative}
 #shareOwnershipLedgerNavigation button{display:block;width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.25;margin:0;touch-action:manipulation;pointer-events:auto;cursor:pointer}
@@ -4797,8 +4797,8 @@ window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger
 <button type="button" class="secondary" data-ledger-view="trades">Share Trades</button>
 <button type="button" class="secondary" data-ledger-view="ownership">Ownership Transfers</button>
 <button type="button" class="secondary" data-ledger-view="audit">Audit &amp; Reconciliation</button>
-<button type="button" class="secondary" data-ledger-view="businesscash">Business Cash Ledger</button>
-<button type="button" class="secondary" data-ledger-view="financial">Unified Financial Ledger</button>
+<button type="button" class="secondary" data-ledger-view="businesscash" onclick="window.renderShareOwnershipLedger('businesscash');return false;">Business Cash Ledger</button>
+<button type="button" class="secondary" data-ledger-view="financial" onclick="window.renderShareOwnershipLedger('financial');return false;">Unified Financial Ledger</button>
 <button type="button" class="secondary" data-ledger-view="cashaudit">Cash Audit &amp; Corrections</button>
 </nav><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
  
@@ -5884,8 +5884,8 @@ all.forEach(t=>{if(/share trade/i.test(String(t.type||""))||String(t.id||"").sta
 }});
 $("shareLedgerEventCount").textContent=String(all.length);$("shareLedgerTradeCount").textContent=String(trades.length);$("shareLedgerOwnershipCount").textContent=String(ownership.length);$("shareLedgerStatus").textContent=findings.length?"Review needed":"Checks passed";
 const rows=list=>list.length?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Company / Business</th><th>Buyer / New Owner</th><th>Seller / Old Owner</th><th>Shares / Stake</th><th>Amount</th><th>Cash check</th></tr></thead><tbody>'+list.map(t=>{const total=Number(t.total??t.price)||0;let check="Recorded";if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null){const ok=Math.abs(Number(t.buyerCashBefore)-total-Number(t.buyerCashAfter))<0.0001;check=ok?"Pass":"Mismatch";}return '<tr><td>'+esc(t.at?new Date(t.at).toLocaleString():(t.createdAt?new Date(t.createdAt).toLocaleString():"—"))+'</td><td>'+esc(t.type||"Ledger event")+'</td><td>'+esc(t.company||t.business||"—")+'</td><td>'+esc(t.buyer||t.buyerName||"—")+'</td><td>'+esc(t.seller||t.sellerName||"—")+'</td><td>'+(t.shares!=null?Number(t.shares)+" shares":(t.percentage!=null?pct(t.percentage):"—"))+'</td><td>'+money(total)+'</td><td>'+check+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="muted">No events recorded for this view yet. The ledger does not invent missing history.</p>';
-if(view==="businesscash"){renderBusinessCashLedger();return;}
-if(view==="financial"){renderUnifiedFinancialLedger();return;}
+if(view==="businesscash"){try{renderBusinessCashLedger();}catch(err){console.error("Business Cash Ledger render failed",err);out.innerHTML="<h3>Business &amp; Team Cash Ledger</h3><p class=\"gold\">The ledger view encountered an error while loading. Your records were not changed.</p><pre style=\"white-space:pre-wrap;overflow-wrap:anywhere\">"+esc(err&&err.message?err.message:String(err))+"</pre>";}return;}
+if(view==="financial"){try{renderUnifiedFinancialLedger();}catch(err){console.error("Unified Financial Ledger render failed",err);out.innerHTML="<h3>Unified Financial Transaction Ledger</h3><p class=\"gold\">The ledger view encountered an error while loading. Your records were not changed.</p><pre style=\"white-space:pre-wrap;overflow-wrap:anywhere\">"+esc(err&&err.message?err.message:String(err))+"</pre>";}return;}
 if(view==="cashaudit"){renderCashAudit();return;}
 if(view==="audit")out.innerHTML='<h3>Reconciliation Results</h3>'+(findings.length?'<ul>'+findings.map(f=>'<li class="gold">'+esc(f)+'</li>').join("")+'</ul>':'<p class="goodbtn" style="padding:10px;border-radius:8px">No discrepancies found by the current checks.</p>')+'<p class="tiny">These checks cover current share-supply arithmetic, recorded ownership totals, and cash arithmetic in available transaction records. They do not prove that every historical transaction was captured before this ledger existed.</p>';
 else if(view==="trades")out.innerHTML='<h3>Share Trades</h3>'+rows(trades);
