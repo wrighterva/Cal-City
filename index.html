@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.55 -->
-<!-- Build identity: 4.24.55. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.24.56. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.55</title>
+<title>Calvin's City 4.24.56</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -84,7 +84,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.24.55</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.24.56</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -4403,21 +4403,39 @@ const r=state.records.retiredPlayers||[],g=state.records.gameRecords||[];
   retired players, while live Citizen records supply current active totals.
   Merge by player name so each player appears only once. */
 const recordMap={};
-r.forEach(p=>{if(p&&p.name)recordMap[p.name]={...p};});
+/* 4.24.56: Permanent retired career records are authoritative. Never allow
+  stale/live citizen snapshots or roster entries to overwrite a retired
+  player's historical totals or remove them from the all-time lists. */
+r.forEach(p=>{if(p&&p.name)recordMap[p.name]={...p,status:"Retired"};});
 (state.citizens||[]).forEach(c=>{
  if(!c||!c.name)return;
  const existing=recordMap[c.name]||{};
- recordMap[c.name]={
-   ...existing,
-   ...c,
-   name:c.name,
-   careerPts:Number(c.careerPts??existing.careerPts??0)||0,
-   careerRebs:Number(c.careerRebs??existing.careerRebs??0)||0,
-   mvps:Number(c.mvps??existing.mvps??0)||0,
-   championships:Number(c.championships??existing.championships??0)||0,
-   champStreak:Number(c.champStreak??existing.champStreak??0)||0,
-   currentChampStreak:Number(c.currentChampStreak??existing.currentChampStreak??0)||0
- };
+ if(existing.status==="Retired" || (r||[]).some(p=>p&&p.name===c.name)){
+   recordMap[c.name]={
+     ...c,
+     ...existing,
+     name:c.name,
+     careerPts:Number(existing.careerPts??c.careerPts??0)||0,
+     careerRebs:Number(existing.careerRebs??c.careerRebs??0)||0,
+     mvps:Number(existing.mvps??c.mvps??0)||0,
+     championships:Number(existing.championships??c.championships??0)||0,
+     champStreak:Number(existing.champStreak??c.champStreak??0)||0,
+     currentChampStreak:Number(existing.currentChampStreak??c.currentChampStreak??0)||0,
+     status:"Retired"
+   };
+ } else {
+   recordMap[c.name]={
+     ...existing,
+     ...c,
+     name:c.name,
+     careerPts:Number(c.careerPts??existing.careerPts??0)||0,
+     careerRebs:Number(c.careerRebs??existing.careerRebs??0)||0,
+     mvps:Number(c.mvps??existing.mvps??0)||0,
+     championships:Number(c.championships??existing.championships??0)||0,
+     champStreak:Number(c.champStreak??existing.champStreak??0)||0,
+     currentChampStreak:Number(c.currentChampStreak??existing.currentChampStreak??0)||0
+   };
+ }
 });
 const recordPlayers=Object.values(recordMap);
 const a=document.getElementById("retiredCount"),b=document.getElementById("recordGameCount"),cc=document.getElementById("citizenCount");
@@ -4444,9 +4462,9 @@ return h+'</div>';
 function renderHallOfFamePanel(){
 /* 4.24.12: A player currently assigned to a team is active, not retired.
    Stale/test retirement rows must not place active roster players in HOF. */
-const activeRosterNames=new Set(Object.values(state.roster||{})
-  .filter(Boolean).map(v=>String(v).trim().toLowerCase()));
-const retiredAll=r.slice().filter(p=>p&&p.name&&!activeRosterNames.has(String(p.name).trim().toLowerCase()));
+/* Permanent retirement records take precedence over stale roster entries.
+   Retired players remain in Hall of Fame regardless of roster snapshots. */
+const retiredAll=r.slice().filter(p=>p&&p.name);
 const hof=retiredAll.filter(p=>(Number(p.careerPts)||0)>=500||(Number(p.careerRebs)||0)>=500)
   .sort((a,b)=>(Number(b.careerPts)||0)-(Number(a.careerPts)||0)||(Number(b.careerRebs)||0)-(Number(a.careerRebs)||0));
 const retiredNoHof=retiredAll.filter(p=>(Number(p.careerPts)||0)<500&&(Number(p.careerRebs)||0)<500)
