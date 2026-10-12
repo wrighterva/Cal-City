@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.28.73 -->
-<!-- Build identity: 4.28.73. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- CALVIN'S CITY — VERSION 4.28.74 -->
+<!-- Build identity: 4.28.74. Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
@@ -84,7 +84,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.73</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.74</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -377,13 +377,16 @@ requestAnimationFrame(function(){window.scrollTo(0,teamPageScrollY);});
 function openTeamPage(k){
 const t=TEAM_PAGE[k]; if(!t)return;
 const bridge=window.__calvinsCityBridge;
-const liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
-if(!liveState)return;
-const roster=liveState.roster||{};
-const contracts=liveState.contracts||{};
-const standings=(liveState.standings||{})[t.key]||{w:0,l:0,ptsFor:0,ptsAgainst:0};
-const citizens=Array.isArray(liveState.citizens)?liveState.citizens:[];
-const retired=Array.isArray(liveState.records&&liveState.records.retiredPlayers)?liveState.records.retiredPlayers:[];
+const liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():((typeof state!=="undefined"&&state)?state:null);
+/* 4.28.74: Never silently ignore a team-card tap if the live-state bridge
+  is temporarily unavailable. Keep the team page navigable with safe,
+  display-only fallback data; do not write fallback data to storage. */
+const pageState=liveState||{roster:{},contracts:{},standings:{},citizens:[],records:{retiredPlayers:[]},championshipAwards:[]};
+const roster=pageState.roster||{};
+const contracts=pageState.contracts||{};
+const standings=(pageState.standings||{})[t.key]||{w:0,l:0,ptsFor:0,ptsAgainst:0};
+const citizens=Array.isArray(pageState.citizens)?pageState.citizens:[];
+const retired=Array.isArray(pageState.records&&pageState.records.retiredPlayers)?pageState.records.retiredPlayers:[];
 const findCitizen=name=>citizens.find(c=>c&&c.name===name)||{};
 const findHistory=name=>retired.find(p=>p&&p.name===name)||{};
 const rows=["C","SG","PG"].map(pos=>{
@@ -413,12 +416,13 @@ const stockRecord=marketDB&&marketDB.companies?marketDB.companies[t.key]:null;
 const teamHolders=stockRecord?Object.entries(stockRecord.holdings||{}).filter(([key,n])=>Number(n)>0).map(([key,n])=>({name:(stockRecord.ownerNames&&stockRecord.ownerNames[key])||key.replace(/^LEGACY:/,"").replace(/\b\w/g,m=>m.toUpperCase()),shares:Number(n),stake:Number(n)/5})).sort((a,b)=>b.shares-a.shares):[];
 const stakePanel='<div class="card" data-public-share-stakes="'+t.key+'" style="margin:10px 0;padding:12px"><h3 style="margin:0 0 8px">📊 Public Share Stakes</h3><p class="team-note">Public stockholders own shares in this team; this is separate from team cash and business ownership.</p>'+(teamHolders.length?'<div class="team-table-wrap"><table class="team-table"><tr><th>Shareholder</th><th>Shares</th><th>Stake</th></tr>'+teamHolders.map(h=>'<tr><td>'+String(h.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</td><td>'+h.shares+'</td><td>'+h.stake.toFixed(2)+'%</td></tr>').join('')+'</table></div>':'<p class="team-note">No public shares are currently recorded as purchased.</p>')+'<p class="team-note">Shares available: '+(stockRecord?Math.max(0,500-teamHolders.reduce((sum,h)=>sum+h.shares,0)):500)+' / 500</p></div>';
 document.getElementById("teamPageBody").innerHTML=
-'<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+getLiveTeamCash(t.key)+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div><div class="team-stat"><small>🏆 Champs</small><strong>'+(HISTORICAL_CHAMPIONSHIPS.filter(row=>row[1]===t.key).length+(Array.isArray(liveState.championshipAwards)?liveState.championshipAwards.filter(a=>Number(a&&a.season||0)>28&&a.champion===t.key).length:0))+'</strong></div></div>'+stakePanel+rosterTable;
+'<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+getLiveTeamCash(t.key)+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div><div class="team-stat"><small>🏆 Champs</small><strong>'+(HISTORICAL_CHAMPIONSHIPS.filter(row=>row[1]===t.key).length+(Array.isArray(pageState.championshipAwards)?pageState.championshipAwards.filter(a=>Number(a&&a.season||0)>28&&a.champion===t.key).length:0))+'</strong></div></div>'+stakePanel+rosterTable;
  
 lockTeamPageScroll();
 document.getElementById("teamPageModal").classList.add("show");
 const saveTeamRoster=document.getElementById("saveTeamRoster");
 if(saveTeamRoster)saveTeamRoster.onclick=()=>{
+if(!liveState){const note=document.getElementById("teamRosterSaved");if(note)note.textContent="Team page opened in safe display mode; live data is unavailable, so changes were not saved.";return;}
 document.querySelectorAll(".team-player-name").forEach(input=>{
  const team=input.dataset.team,pos=input.dataset.pos,value=input.value.trim();
  if(value)liveState.roster[team+"_"+pos]=value;
