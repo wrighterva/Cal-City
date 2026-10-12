@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.28.74 -->
-<!-- Build identity: 4.28.74. Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- CALVIN'S CITY — VERSION 4.28.75 -->
+<!-- Build identity: 4.28.75. Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
@@ -84,7 +84,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.74</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.75</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -378,7 +378,7 @@ function openTeamPage(k){
 const t=TEAM_PAGE[k]; if(!t)return;
 const bridge=window.__calvinsCityBridge;
 const liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():((typeof state!=="undefined"&&state)?state:null);
-/* 4.28.74: Never silently ignore a team-card tap if the live-state bridge
+/* 4.28.75: Never silently ignore a team-card tap if the live-state bridge
   is temporarily unavailable. Keep the team page navigable with safe,
   display-only fallback data; do not write fallback data to storage. */
 const pageState=liveState||{roster:{},contracts:{},standings:{},citizens:[],records:{retiredPlayers:[]},championshipAwards:[]};
@@ -6762,4 +6762,50 @@ body.tv-broadcast-alert-open{overflow:hidden!important;touch-action:none}
 #tvCompanyDetailModal table{width:100%;border-collapse:collapse}
 #tvCompanyDetailModal th,#tvCompanyDetailModal td{padding:9px;border-bottom:1px solid #39465a;text-align:left}
 </style>
+\n<!-- 4.28.75: Independent mobile-safe team arena navigation and recovery. -->
+<script>
+(function(){
+"use strict";
+var names={lions:"Lions",rims:"Rims",dunks:"Dunks"};
+function showFallback(key,error){
+ var modal=document.getElementById("teamPageModal");
+ var title=document.getElementById("teamPageTitle");
+ var body=document.getElementById("teamPageBody");
+ if(!modal||!title||!body)return;
+ title.textContent=names[key]||"Team";
+ body.innerHTML='<p class="team-note">The team arena opened in recovery mode because its full details could not load.</p><p class="team-note">Your records and saved data have not been changed.</p>';
+ if(error)console.error("Team arena open error:",error);
+ modal.classList.add("show");
+}
+function open(key,event){
+ if(event){event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();}
+ try{
+   if(typeof window.openTeamPage==="function") window.openTeamPage(key);
+   else if(typeof openTeamPage==="function") openTeamPage(key);
+   else throw new Error("Team arena opener is unavailable.");
+   var modal=document.getElementById("teamPageModal");
+   if(!modal||!modal.classList.contains("show")) throw new Error("Team arena did not become visible.");
+ }catch(err){showFallback(key,err);}
+}
+function keyFor(card){
+ var match=(card.getAttribute("onclick")||"").match(/openTeamPage\(['"]([^'"]+)['"]\)/);
+ return match&&names[match[1]]?match[1]:null;
+}
+/* Capture touchend before older page-level touch handlers; prevent synthetic click duplication. */
+document.addEventListener("touchend",function(event){
+ var card=event.target&&event.target.closest?event.target.closest(".city-place-card"):null;
+ if(!card)return;
+ var key=keyFor(card);if(!key)return;
+ open(key,event);
+},{capture:true,passive:false});
+/* Independent click path for mouse, keyboard and accessibility input. */
+document.addEventListener("click",function(event){
+ var card=event.target&&event.target.closest?event.target.closest(".city-place-card"):null;
+ if(!card)return;
+ var key=keyFor(card);if(!key)return;
+ open(key,event);
+},{capture:true});
+})();
+</script>
+ 
 </body></html>
