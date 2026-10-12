@@ -1,14 +1,14 @@
 
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.28.65 -->
-<!-- Build identity: 4.28.65. Canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- CALVIN'S CITY — VERSION 4.28.67 -->
+<!-- Build identity: 4.28.67. Hardened stock-market and shareholder registry initialization; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.65</title>
+<title>Calvin's City 4.28.67</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -85,7 +85,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.65</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.66</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -412,7 +412,7 @@ const rosterTable='<h3>Roster &amp; Contracts</h3><div class="team-table-wrap"><
 const marketDB=(()=>{try{return JSON.parse(localStorage.getItem("calvins_city_stock_market_v1")||"null")}catch(e){return null}})();
 const stockRecord=marketDB&&marketDB.companies?marketDB.companies[t.key]:null;
 const teamHolders=stockRecord?Object.entries(stockRecord.holdings||{}).filter(([key,n])=>Number(n)>0).map(([key,n])=>({name:(stockRecord.ownerNames&&stockRecord.ownerNames[key])||key.replace(/^LEGACY:/,"").replace(/\b\w/g,m=>m.toUpperCase()),shares:Number(n),stake:Number(n)/5})).sort((a,b)=>b.shares-a.shares):[];
-const stakePanel='<div class="card" style="margin:10px 0;padding:12px"><h3 style="margin:0 0 8px">📊 Public Share Stakes</h3><p class="team-note">Public stockholders own shares in this team; this is separate from team cash and business ownership.</p>'+(teamHolders.length?'<div class="team-table-wrap"><table class="team-table"><tr><th>Shareholder</th><th>Shares</th><th>Stake</th></tr>'+teamHolders.map(h=>'<tr><td>'+String(h.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</td><td>'+h.shares+'</td><td>'+h.stake.toFixed(2)+'%</td></tr>').join('')+'</table></div>':'<p class="team-note">No public shares are currently recorded as purchased.</p>')+'<p class="team-note">Shares available: '+(stockRecord?Math.max(0,500-teamHolders.reduce((sum,h)=>sum+h.shares,0)):500)+' / 500</p></div>';
+const stakePanel='<div class="card" data-public-share-stakes="'+t.key+'" style="margin:10px 0;padding:12px"><h3 style="margin:0 0 8px">📊 Public Share Stakes</h3><p class="team-note">Public stockholders own shares in this team; this is separate from team cash and business ownership.</p>'+(teamHolders.length?'<div class="team-table-wrap"><table class="team-table"><tr><th>Shareholder</th><th>Shares</th><th>Stake</th></tr>'+teamHolders.map(h=>'<tr><td>'+String(h.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</td><td>'+h.shares+'</td><td>'+h.stake.toFixed(2)+'%</td></tr>').join('')+'</table></div>':'<p class="team-note">No public shares are currently recorded as purchased.</p>')+'<p class="team-note">Shares available: '+(stockRecord?Math.max(0,500-teamHolders.reduce((sum,h)=>sum+h.shares,0)):500)+' / 500</p></div>';
 document.getElementById("teamPageBody").innerHTML=
 '<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+getLiveTeamCash(t.key)+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div></div>'+stakePanel+rosterTable;
  
@@ -5585,6 +5585,28 @@ localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
 return db;
 }
 let db=loadDB();
+/* 4.28.67: Normalize stock-market records loaded from older saved builds before any UI renders.
+  This only supplies missing structural fields; it does not change cash, share balances, prices,
+  transactions, or historical records. */
+(function normalizeStockMarketRecordShape(){
+if(!db||!db.companies||typeof db.companies!=="object")return;
+companies.forEach(def=>{
+ let co=db.companies[def.name];
+ if(!co||typeof co!=="object"){
+  co={name:def.name,totalShares:TOTAL_SHARES,price:round4((Number((getState().businessCash||{})[def.name]??def.cashSeed)||0)/TOTAL_SHARES),holdings:{},ownerNames:{},holderPurchasePrices:{},priceHistory:[],needsAllocationReview:!def.known,allocationNote:"Company record was missing; initialized structurally without inventing holder allocations."};
+  db.companies[def.name]=co;
+ }
+ if(!co.name)co.name=def.name;
+ if(!Number.isFinite(Number(co.totalShares))||Number(co.totalShares)<=0)co.totalShares=TOTAL_SHARES;
+ if(!Number.isFinite(Number(co.price))||Number(co.price)<0)co.price=round4((Number(co.initialCashValue)||Number(def.cashSeed)||0)/TOTAL_SHARES);
+ if(!co.holdings||typeof co.holdings!=="object"||Array.isArray(co.holdings))co.holdings={};
+ if(!co.ownerNames||typeof co.ownerNames!=="object"||Array.isArray(co.ownerNames))co.ownerNames={};
+ if(!co.holderPurchasePrices||typeof co.holderPurchasePrices!=="object"||Array.isArray(co.holderPurchasePrices))co.holderPurchasePrices={};
+ if(!Array.isArray(co.priceHistory))co.priceHistory=[];
+});
+if(!Array.isArray(db.transactions))db.transactions=[];
+if(!Array.isArray(db.annualReports))db.annualReports=[];
+})();
 /* 4.28.65: One-time shareholder baseline restoration requested for app-wide testing.
   Back up the existing stock-market database first. Restore only the current ownership
   register to the user's supplied original allocations. Preserve company cash, prices,
@@ -5737,7 +5759,7 @@ if(selectedMarketCategory){
 const defs=companies.filter(c=>marketCategory(c)===selectedMarketCategory);
 let html='<button type="button" class="market-back" data-market-back="categories">← All market sections</button><h3 class="market-section-title">'+esc(selectedMarketCategory)+'</h3><p class="market-help">Choose a company to open its own screen.</p><div class="market-company-grid">';
 defs.forEach(def=>{
- const co=db.companies[def.name],latest=latestReport(def.name),priceMove=co.priceHistory.length?co.priceHistory[co.priceHistory.length-1].changePct:null;
+ const co=db.companies[def.name],latest=latestReport(def.name),priceMove=(Array.isArray(co.priceHistory)&&co.priceHistory.length)?co.priceHistory[co.priceHistory.length-1].changePct:null;
  html+='<button type="button" data-market-company="'+esc(def.name)+'" class="market-company-card"><div class="market-company-heading"><b>'+def.icon+' '+esc(def.name)+'</b><span class="market-status '+(co.needsAllocationReview?'review':'listed')+'">'+(co.needsAllocationReview?'Review needed':'Listed')+'</span></div><div class="market-share-price">'+money(co.price)+' <span>/ share</span></div><div class="market-card-meta">Market cap <b>'+money(marketCap(co))+'</b></div><div class="market-card-meta">'+(latest&&latest.revenueTracked?'Latest revenue '+money(latest.revenue):'Revenue report not tracked')+' · '+(priceMove===null?'No price change yet':pct(priceMove))+'</div><div class="market-open-hint">Open company profile →</div></button>';
 });
 html+='</div>';out.innerHTML=html;return;
@@ -5784,7 +5806,7 @@ window.__calCityChartPreviousOverflow=null;
 }
 function renderStockPriceChart(){
 const out=$("stockCompanySubpanel"),name=selectedMarketCompany,co=db.companies[name];if(!out||!co)return;
-const raw=(co.priceHistory||[]).slice().sort((a,b)=>(Number(a.season)||0)-(Number(b.season)||0));
+const raw=(Array.isArray(co.priceHistory)?co.priceHistory:[]).slice().sort((a,b)=>(Number(a.season)||0)-(Number(b.season)||0));
 const points=[];
 raw.forEach((r,i)=>{const p=Number(r.priceAfter);if(Number.isFinite(p)&&p>0)points.push({label:'Season '+(r.season??(i+1)),price:p,move:r.changePct==null?null:Number(r.changePct)});});
 if(!points.length){points.push({label:'Current',price:Number(co.price)||0,move:null});}
@@ -5891,11 +5913,23 @@ const tradeCard=$('stockTradeCard')||detachedStockTradeCard;if(tradeCard){detach
  
 function renderCompanyOptions(){
 const companyOptions=companies.map(c=>'<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>').join("");
-["stockTradingCompany","stockRegisterCompany"].forEach(id=>{const el=$(id);if(el){const current=el.value;el.innerHTML=companyOptions;if(current&&companies.some(c=>c.name===current))el.value=current;}});
+["stockTradingCompany","stockRegisterCompany"].forEach(id=>{
+const el=$(id);if(!el)return;
+const current=el.value;
+if(!el.options||el.options.length!==companies.length||Array.from(el.options).some((o,i)=>!companies[i]||o.value!==companies[i].name))el.innerHTML=companyOptions;
+if(current&&companies.some(c=>c.name===current))el.value=current;
+if(!el.value&&companies.length)el.value=companies[0].name;
+});
 const accountOptions=buildAccountOptions();
-["stockTradingCitizen","stockTradingCounterparty"].forEach(id=>{const el=$(id);if(!el)return;const current=el.value;el.innerHTML=accountOptions||'<option value="">No accounts available</option>';if(current&&Array.from(el.options).some(o=>o.value===current))el.value=current;});
-updateTradeControls();
+["stockTradingCitizen","stockTradingCounterparty"].forEach(id=>{
+const el=$(id);if(!el)return;
+const current=el.value;
+el.innerHTML=accountOptions||'<option value="">No accounts available</option>';
+if(current&&Array.from(el.options).some(o=>o.value===current))el.value=current;
+});
+try{updateTradeControls();}catch(err){console.error("Stock-market trade controls could not refresh.",err);}
 }
+ 
 function buildAccountOptions(excludeValue,companyName,holdersOnly){
 const list=[];
 const add=(item)=>{if(!list.some(x=>x.value===item.value))list.push(item);};
@@ -6014,53 +6048,37 @@ const st=getState();st.shareOwnershipLedger=Array.isArray(st.shareOwnershipLedge
 try{const raw=localStorage.getItem(SHARE_OWNERSHIP_LEDGER_KEY);if(raw){const saved=JSON.parse(raw);if(Array.isArray(saved)){const seen=new Set(st.shareOwnershipLedger.map(x=>String(x&&x.id||"")));saved.forEach(x=>{if(x&&x.id&&!seen.has(String(x.id))){st.shareOwnershipLedger.push(x);seen.add(String(x.id));}});}}}catch(e){console.warn("Share ledger recovery mirror could not be read.",e);}
 return st.shareOwnershipLedger;
 }
-/* 4.24.63: Keep shareholder lists/counts synchronized with completed share trades.
- A holder is present only while their resulting share count is positive. */
+/* 4.28.66: Refresh shareholder displays after a completed trade.
+  Ownership is already changed transactionally by updateHolding() in the canonical
+  stock-market database. This hook deliberately does NOT apply ownership deltas again;
+  it redraws views from that authoritative holdings map to avoid duplicate transfers. */
 window.syncShareholdersFromTrade=function(entry){
 try{
-if(!entry||!entry.company||!Number.isFinite(Number(entry.shares))||Number(entry.shares)<=0)return false;
-const status=String(entry.status||"completed").toLowerCase();
-if(["voided","reversed","failed","pending"].includes(status))return false;
-const dbObj=window.db||window.stockMarketDB||window.stockMarket;
-if(!dbObj)return false;
-const companies=dbObj.companies||dbObj.companyStocks||dbObj.stocks||{};
-const co=companies[entry.company]||Object.values(companies).find(x=>x&&String(x.name||x.company||"")===String(entry.company));
-if(!co)return false;
-const sharesField=Array.isArray(co.shareholders)?"shareholders":Array.isArray(co.holders)?"holders":null;
-if(!sharesField)return false;
-const holders=co[sharesField];
-const buyer=String(entry.buyer||entry.buyerName||"").trim();
-const seller=String(entry.seller||entry.sellerName||"").trim();
-const n=Number(entry.shares);
-const findHolder=name=>holders.findIndex(h=>String(typeof h==="string"?h:(h.name||h.citizen||h.owner||"")).trim().toLowerCase()===name.toLowerCase());
-const updateHolder=(name,delta)=>{
- if(!name)return;
- let idx=findHolder(name);
- if(idx<0&&delta>0){
-  holders.push(typeof holders[0]==="string"?name:{name,shares:0});
-  idx=holders.length-1;
- }
- if(idx<0)return;
- if(typeof holders[idx]==="string"){
-  if(delta<0&&n>0)holders.splice(idx,1);
-  return;
- }
- const key=Object.prototype.hasOwnProperty.call(holders[idx],"shares")?"shares":
-   (Object.prototype.hasOwnProperty.call(holders[idx],"shareCount")?"shareCount":"shares");
- holders[idx][key]=Math.max(0,(Number(holders[idx][key])||0)+delta);
- if(holders[idx][key]===0)holders.splice(idx,1);
-};
-const type=String(entry.type||"").toLowerCase();
-if(type==="market money buyback"){
- updateHolder(seller,-n);
-}else{
- if(String(entry.buyerType||"").toLowerCase()==="citizen")updateHolder(buyer,n);
- if(String(entry.sellerType||"").toLowerCase()==="citizen")updateHolder(seller,-n);
+if(!entry||!entry.company||!db.companies||!db.companies[entry.company])return false;
+const co=db.companies[entry.company];
+const teamPanel=document.querySelector('[data-public-share-stakes="'+String(entry.company).replace(/\\/g,"\\\\").replace(/"/g,'\\"')+'"]');
+if(teamPanel){
+ const holders=Object.entries(co.holdings||{}).filter(([key,n])=>Number(n)>0).map(([key,n])=>({name:co.ownerNames&&co.ownerNames[key]?co.ownerNames[key]:ownerNameForKey(key,db),shares:Number(n),stake:Number(n)/TOTAL_SHARES*100})).sort((a,b)=>b.shares-a.shares||a.name.localeCompare(b.name));
+ const held=holders.reduce((sum,h)=>sum+h.shares,0),available=Math.max(0,TOTAL_SHARES-held);
+ teamPanel.innerHTML='<h3 style="margin:0 0 8px">📊 Public Share Stakes</h3><p class="team-note">Public stockholders own shares in this team; this is separate from team cash and business ownership.</p>'+
+  (holders.length?'<div class="team-table-wrap"><table class="team-table"><tr><th>Shareholder</th><th>Shares</th><th>Stake</th></tr>'+holders.map(h=>'<tr><td>'+esc(h.name)+'</td><td>'+h.shares+'</td><td>'+h.stake.toFixed(2)+'%</td></tr>').join('')+'</table></div>':'<p class="team-note">No public shares are currently recorded as purchased.</p>')+
+  '<p class="team-note">Shares available: '+available+' / '+TOTAL_SHARES+'</p>';
 }
-try{if(typeof dbObj.save==="function")dbObj.save();}catch(e){}
-try{if(typeof window.renderAll==="function")window.renderAll();}catch(e){}
+/* Refresh the currently open register if it is showing this company. */
+if(selectedMarketCompany===entry.company){
+ const sub=$('stockCompanySubpanel');
+ if(sub&&sub.querySelector('h4')&&/Shareholder Register/i.test(sub.querySelector('h4').textContent))showCompanySubpanel('holders');
+ else {
+  const detail=$('stockCompanyDetail');
+  if(detail&&detail.style.display!=='none'){
+   const heldNode=Array.from(detail.querySelectorAll('.metric')).find(n=>/Shares Held \/ Available/i.test(n.textContent));
+   if(heldNode)heldNode.innerHTML='<small>Shares Held / Available</small><strong>'+sharesSold(co)+' / '+sharesAvailable(co)+'</strong>';
+  }
+ }
+}
+try{if(typeof window.renderAll==='function')window.renderAll();}catch(e){}
 return true;
-}catch(e){console.error("Shareholder sync failed:",e);return false;}
+}catch(e){console.error('Shareholder display refresh failed:',e);return false;}
 };
 /* 4.24.63: Cash mutation approval queue. Approval is transaction-specific and auditable.
  This queue records decisions; it does not disable cash-integrity enforcement globally. */
@@ -6540,19 +6558,26 @@ box.innerHTML='<div style="font-weight:800;margin-bottom:6px">Stock Assets · Cu
 });
 }
 function renderAll(){
-renderMarketMoney();renderMarketTable();renderReports();renderRegister();
+/* 4.28.67: Isolate UI renderers so one malformed legacy panel cannot blank the whole market. */
+try{renderCompanyOptions();}catch(err){console.error("Stock-market company options failed to render.",err);}
+try{renderMarketMoney();}catch(err){console.error("Market Money panel failed to render.",err);}
+try{renderMarketTable();}catch(err){console.error("Stock-market company list failed to render.",err);const out=$("stockMarketTable");if(out)out.innerHTML='<p class="muted">The market list could not render. Company records were preserved; refresh the page after checking the browser console.</p>';}
+try{renderReports();}catch(err){console.error("Stock-market reports failed to render.",err);}
+try{renderRegister();}catch(err){console.error("Shareholder register failed to render.",err);const out=$("stockShareholderRegister");if(out)out.innerHTML='<p class="muted">The register could not render. No ownership records were changed.</p>';}
 const latest=$("stockLatestReportSeason");if(latest)latest.textContent=db.lastProcessedSeason==null?"Not reported":"Season "+db.lastProcessedSeason;
 const count=$("stockCompanyCount");if(count)count.textContent=String(companies.length);
-updateTradeQuote();
-if($("citizenLedgerBody"))renderCitizenAssets();
+try{updateTradeQuote();}catch(err){console.error("Stock-market quote failed to render.",err);}
+if($("citizenLedgerBody")){try{renderCitizenAssets();}catch(err){console.error("Citizen stock assets failed to render.",err);}}
 }
 function bind(){
+const marketRootForBinding=$("stockMarketTable");if(marketRootForBinding&&marketRootForBinding.dataset.stockMarketBound==="1"){renderCompanyOptions();renderAll();return;}
+if(marketRootForBinding)marketRootForBinding.dataset.stockMarketBound="1";
 renderCompanyOptions();renderAll();
 ["stockTradingCitizen","stockTradingCompany","stockTradingAction","stockTradingCounterparty","stockTradingShares"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",()=>{if(id==="stockTradingCitizen"||id==="stockTradingAction"||id==="stockTradingCompany")updateTradeControls();else updateTradeQuote();});});
 const execute=$("stockExecuteTrade");if(execute)execute.addEventListener("click",transact);
 const marketRoot=$("stockMarketTable");if(marketRoot)marketRoot.addEventListener("click",event=>{const category=event.target.closest("[data-market-category]");if(category){selectedMarketCategory=category.getAttribute("data-market-category");selectedMarketCompany=null;const detail=$("stockCompanyDetail");if(detail)detail.style.display="none";renderMarketTable();return;}const back=event.target.closest("[data-market-back]");if(back){selectedMarketCompany=null;selectedMarketCategory=null;const detail=$("stockCompanyDetail");if(detail)detail.style.display="none";renderMarketTable();return;}const button=event.target.closest("[data-market-company]");if(button){renderCompanyDetail(button.getAttribute("data-market-company"));renderMarketTable();}});
 const detail=$("stockCompanyDetail");if(detail)detail.addEventListener("click",event=>{const close=event.target.closest("[data-market-close]");if(close){detail.style.display="none";selectedMarketCompany=null;renderMarketTable();return;}const action=event.target.closest("[data-market-action]");if(action)showCompanySubpanel(action.getAttribute("data-market-action"));});
-const register=$("stockRegisterCompany");if(register)register.addEventListener("change",renderRegister);
+const register=$("stockRegisterCompany");if(register&&!register.dataset.stockRegisterBound){register.addEventListener("change",renderRegister);register.dataset.stockRegisterBound="1";}
 const action=$("stockTradingAction");if(action)action.addEventListener("change",updateTradeControls);
 const citizen=$("stockTradingCitizen");if(citizen)citizen.addEventListener("change",updateTradeControls);
 const company=$("stockTradingCompany");if(company)company.addEventListener("change",updateTradeControls);
@@ -6594,6 +6619,14 @@ try{
 window.calvinsCityStockMarket={getDatabase:()=>JSON.parse(JSON.stringify(db)),renderCitizenAssets,render:renderAll,reverseTradeOwnership};
 document.addEventListener("DOMContentLoaded",bind);
 if(document.readyState!=="loading")bind();
+/* Retry once after DOM readiness in case the app's state bridge was installed late. */
+if(!window.__calvinsCityBridge||typeof window.__calvinsCityBridge.getState!=="function"){
+document.addEventListener("DOMContentLoaded",()=>{
+ try{const stockScript=Array.from(document.scripts).find(el=>el.textContent&&el.textContent.includes("4.24.6: User-provided shareholder registers and Team Arena public stake display"));
+  if(stockScript&&!window.__calCityStockMarketLateRetry){window.__calCityStockMarketLateRetry=true;const retry=document.createElement("script");retry.textContent=stockScript.textContent;document.body.appendChild(retry);retry.remove();}
+ }catch(err){console.error("Stock-market late initialization retry failed.",err);}
+},{once:true});
+}
 })();
 </script>
  
