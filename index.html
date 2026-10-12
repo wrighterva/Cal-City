@@ -1,15 +1,15 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.28.84 -->
+<!-- CALVIN'S CITY — VERSION 4.28.85 -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
-<!-- Build identity: 4.28.84. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.28.85. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.84</title>
+<title>Calvin's City 4.28.85</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -87,7 +87,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.84</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.85</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -800,79 +800,9 @@ try{
  }
 }catch(backupReadError){console.warn("Previous BETS backup could not be read; main ledger remains untouched:",backupReadError);}
 }
-/* 4.28.84: One-time Season 29 Game 0 restore after financial testing.
-  Back up the complete live state and BETS database first. Keep the 327 permanent
-  game-history rows, but reverse unsettled test stakes, remove test debt offerings,
-  restore known opening cash, and return the live basketball season to Game 0. */
-(function restoreSeason29OpeningAfterFinanceTest(){
-const version="4.28.84-finance-test-reset";
-if(state.season29FinanceTestResetVersion===version)return;
-if(!betsStorageWritable){console.error("Season 29 restore blocked: BETS database is not safely writable.");return;}
-const stateKey="calvins_city_v24",backupKey="calvins_city_pre_4_28_84_finance_test_reset";
-const rawState=localStorage.getItem(stateKey),rawBets=localStorage.getItem(BETS_STORAGE_KEY),rawMirror=localStorage.getItem(FINANCIAL_TRANSACTIONS_STORAGE_KEY);
-let backup;
-try{
-  backup={createdAt:new Date().toISOString(),reason:"Before Season 29 Game 0 restore; includes state, BETS, and financial mirror",stateRaw:rawState,betsRaw:rawBets,financialMirrorRaw:rawMirror};
-  localStorage.setItem(backupKey,JSON.stringify(backup));
-  const verify=JSON.parse(localStorage.getItem(backupKey)||"null");
-  if(!verify||verify.stateRaw!==rawState||verify.betsRaw!==rawBets||verify.financialMirrorRaw!==rawMirror)throw new Error("Backup verification failed");
-}catch(e){console.error("Season 29 restore blocked because backup could not be verified.",e);return;}
-const openingPlayers={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
-const businessOpening={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
-const teamOpening={Lions:4430,Rims:4470,Dunks:4450};
-const before={season:state.year,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0,citizens:{},teamCash:{...(state.teamCash||{})},businessCash:{...(state.businessCash||{})},bets:betsDatabase.bets.length,debtIssues:(betsDatabase.sportsBetsDebtIssues||[]).length};
-// Refund only unsettled test wagers to citizens who are not being reset to a known player baseline.
-(betsDatabase.bets||[]).forEach(b=>{
-  if(!b||["win","loss","push","settled"].includes(String(b.status||"").toLowerCase()))return;
-  const c=(state.citizens||[]).find(x=>x&&String(x.id)===String(b.citizenId));
-  if(c && Number.isFinite(Number(c.cash)))c.cash=Math.round((Number(c.cash)+(Number(b.stake)||0))*100)/100;
-});
-// Return principal from any still-held test debt portions to non-player citizen holders.
-(betsDatabase.sportsBetsDebtIssues||[]).forEach(issue=>(issue&&Array.isArray(issue.holders)?issue.holders:[]).forEach(h=>{
-  if(!h||h.status!=="holding"||h.buyerKind!=="citizen")return;
-  const c=(state.citizens||[]).find(x=>x&&String(x.id)===String(h.buyerRef||h.buyerId));
-  if(c && Number.isFinite(Number(c.cash)))c.cash=Math.round((Number(c.cash)+(Number(h.principal)||0))*100)/100;
-}));
-state.year=29;state.defendingChampion=HISTORICAL_LAST_CHAMPION;state.seasonPhase="regular";state.regularGameIndex=0;
-state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};state.seasonPlayed=false;
-state.offseasonOpen=false;state.offseasonFinalized=false;state.offseasonDecisions={};state.verifiedOffseasonDecisions={};state.openRosterSpots={};
-state.lastSeason=null;state.lastGame=null;state.contractYearsAdvancedForSeason=null;
-state.teamCash={...teamOpening};state.businessCash={...(state.businessCash||{}),...businessOpening};
-state.records=state.records||{retiredPlayers:[],gameRecords:[]};
-state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
-state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
-state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
-Object.entries(openingPlayers).forEach(([name,cash])=>{
-  let c=(state.citizens||[]).find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
-  if(!c){c={id:"C"+String((state.citizens||[]).length+1).padStart(3,"0"),name,status:"Active Player",cash:0,contracts:[],shoeDeals:[],businesses:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};state.citizens.push(c);}
-  before.citizens[name]={cash:c.cash};c.cash=cash;c.season29OpeningCash=cash;c.season29OpeningCashInitialized=true;c.startingContractCash=cash;c.startingContractAlreadyPaid=true;c.status="Active Player";
-  const slot=({Wall:"Lions_C",Diggs:"Lions_SG",Kap:"Lions_PG",Nadler:"Rims_C",Holly:"Rims_SG",CJ:"Rims_PG",Vico:"Dunks_C",Pat:"Dunks_SG",Bic:"Dunks_PG"})[name];
-  c.currentTeam=slot.split("_")[0];c.position=slot.split("_")[1];
-});
-// Opening contracts are baseline data, not new cash transactions.
-state.season29OpeningRestoreVersion="4.28.84-pending";state.season29FullBaselineRestoreVersion="pending-4.28.84";
-state.season29AllAccountOpeningCashReconciledVersion="4.24.26";state.season29FreshStartVersion=version;state.season29FinanceTestResetVersion=version;
-state.season29FinanceTestResetAudit={version,at:new Date().toISOString(),status:"Applied",backupKey,reason:"Restored Season 29 Game 0 opening state after test; permanent historical game rows in BETS preserved; test wagers and debt offerings removed.",before,after:{season:29,gamesPlayed:0,teamCash:{...state.teamCash},businessCash:{...state.businessCash},playerCash:Object.fromEntries(Object.entries(openingPlayers).map(([n,v])=>[n,v])),permanentBetsGameRows:betsDatabase.games.length}};
-// Keep permanent game results and sequence IDs; clear only test wagers, debt offers, and test-only finance accrual rows.
-betsDatabase.bets=[];betsDatabase.sportsBetsDebtIssues=[];betsDatabase.sportsBetsCashTransactions=[];betsDatabase.sportsBetsInterestAccruals=[];betsDatabase.sportsBetsLiabilities=[];
-state.sportsBetsDebtLiabilities=[];
-try{
-  localStorage.setItem(stateKey,JSON.stringify(state));
-  localStorage.setItem(BETS_STORAGE_KEY,JSON.stringify(betsDatabase));
-  // Update the previous-copy backup too so startup merge cannot resurrect test wagers/debt.
-  localStorage.setItem(BETS_BACKUP_KEY,JSON.stringify(betsDatabase));
-  if(typeof rawMirror==="string" && rawMirror){
-    try{const mirror=JSON.parse(rawMirror);if(Array.isArray(mirror)){const filtered=mirror.filter(x=>!x||!(/Sports Bet|Sports Bets Debt/i.test(String(x.type||"")+" "+String(x.description||""))));localStorage.setItem(FINANCIAL_TRANSACTIONS_STORAGE_KEY,JSON.stringify(filtered));}}catch(_){/* keep original mirror if format is not recognized */}
-  }
-}catch(e){
-  console.error("Season 29 reset save failed; recovery snapshot remains at "+backupKey,e);
-  try{if(rawState!==null)localStorage.setItem(stateKey,rawState);if(rawBets!==null)localStorage.setItem(BETS_STORAGE_KEY,rawBets);if(rawMirror!==null)localStorage.setItem(FINANCIAL_TRANSACTIONS_STORAGE_KEY,rawMirror);}catch(rollbackError){console.error("Reset rollback was incomplete; use recovery snapshot",rollbackError);}
-  return;
-}
-console.info("Season 29 Game 0 restored. Permanent BETS game results preserved:",betsDatabase.games.length);
-})();
+/* 4.28.85: Removed the automatic finance-test reset routine that interfered with app navigation. Season 29 cash/game reset already performed in the prior copy is not repeated on startup. */
  
-// v4.28.84: game-start confirmation gates automatic citizen bets before the next game.
+// v4.28.85: game-start confirmation gates automatic citizen bets before the next game.
 function sbRound(v){return Math.round((Number(v)||0)*100)/100;}
 function sbEsc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function sbMoney(v){return "$"+sbRound(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+"M";}
@@ -1124,13 +1054,13 @@ sbGameStartConfirmationOpen=true;if(status)status.textContent="";yes.disabled=fa
 }
 function sbCloseDoneBettingModal(){const modal=document.getElementById("betsDoneBettingModal");if(modal)modal.style.display="none";sbGameStartConfirmationOpen=false;}
 const sbDoneYes=document.getElementById("betsDoneBettingYes"),sbDoneNo=document.getElementById("betsDoneBettingNo");
-/* 4.28.84: Keep the done-betting dialog outside nested cards so stacking/overflow
+/* 4.28.85: Keep the done-betting dialog outside nested cards so stacking/overflow
   contexts cannot cover it or make its controls untappable on mobile browsers. */
 (function sbPortalDoneBettingModal(){
 const modal=document.getElementById("betsDoneBettingModal");
 if(modal&&modal.parentElement!==document.body)document.body.appendChild(modal);
 })();
-/* 4.28.84: Capture the Next Game click before other page handlers. This makes the
+/* 4.28.85: Capture the Next Game click before other page handlers. This makes the
   confirmation path reliable on touch browsers and prevents a second game-start. */
 (function sbBindNextGameCapture(){
 const btn=document.getElementById("playNextGame");if(!btn||btn.dataset.sbCaptureBound==="1")return;
