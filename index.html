@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.28.92 -->
+<!-- CALVIN'S CITY — VERSION 4.28.93 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
@@ -11,7 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.92</title>
+<title>Calvin's City 4.28.93</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -89,7 +89,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.92</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.93</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1483,9 +1483,9 @@ message.textContent="Bet saved. It will settle automatically when "+draft.teamA+
  
 // Legacy practice-bet handler retained for backward compatibility; live button is rebound to real-money betting.
 const betsPlaceButton=document.getElementById("betsPlaceBet");
-if(betsPlaceButton)betsPlaceButton.addEventListener("click",requestConfirmPracticeBet);
+if(betsPlaceButton)betsPlaceButton.addEventListener("click",()=>requestConfirmPracticeBet());
 const betsConfirmYes=document.getElementById("betsConfirmYes");
-if(betsConfirmYes)betsConfirmYes.addEventListener("click",confirmPracticeBet);
+if(betsConfirmYes)betsConfirmYes.addEventListener("click",()=>confirmPracticeBet());
 const betsConfirmNo=document.getElementById("betsConfirmNo");
 if(betsConfirmNo)betsConfirmNo.addEventListener("click",closeBetsConfirmModal);
 const betsConfirmModal=document.getElementById("betsConfirmModal");
