@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.28.68 -->
-<!-- Build identity: 4.28.68. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- CALVIN'S CITY — VERSION 4.28.69 -->
+<!-- Build identity: 4.28.69. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.68</title>
+<title>Calvin's City 4.28.69</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -659,7 +659,7 @@ const season29ResetBlockedByBackup=!season29RestoreBackupReady;
  This runs once for this build. It preserves Seasons 1–28 and retired-player
  history, captures Season 29+ game records above for BETS import, restores the
  approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.28.68" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
+if(state.season29FreshStartVersion!=="4.28.69" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
 state.year=29;
 state.defendingChampion=HISTORICAL_LAST_CHAMPION;
 state.seasonPhase="regular";
@@ -682,9 +682,9 @@ state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.r
 state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
 state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
 /* Force the existing, well-tested Season 29 opening baseline migration to run. */
-state.season29OpeningRestoreVersion="4.28.68-pending";
-state.season29FullBaselineRestoreVersion="pending-4.28.68";
-state.season29FreshStartVersion="4.28.68";
+state.season29OpeningRestoreVersion="4.28.69-pending";
+state.season29FullBaselineRestoreVersion="pending-4.28.69";
+state.season29FreshStartVersion="4.28.69";
 try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
 catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
 }
@@ -1337,7 +1337,7 @@ record.owners.forEach(owner=>{
 record.owners=record.owners.filter(o=>o&&o.citizenId&&Number(o.percentage)>0);
 });
 state.businessOwnershipRegistry=registry;
-/* 4.28.68: Restore original business ownership stakes for a clean Season 29 test run.
+/* 4.28.69: Restore original business ownership stakes for a clean Season 29 test run.
   A verified snapshot is saved first. Existing ownership transactions/offers are preserved
   as audit history; cash and financial ledgers are not rewritten by this ownership reset. */
 const ownershipResetMarker="season29OriginalBusinessOwnershipReset_4_28_68";
@@ -4196,7 +4196,7 @@ const historyText=contractHistory.map(x=>(x.action||"Contract")+' '+(x.team||'')
 const ledgerStatus=(c.status==="Retired")?"Retired":(c.currentTeam?((c.status||"Active Player")+' • '+c.currentTeam+(c.position?' • '+c.position:'')):"Free Agent");
 const playerLedgerId='playerLedger_'+String(c.id||c.name).replace(/[^a-z0-9_-]/gi,'_');
 const cashTraceId='cashTrace_'+String(c.id||c.name).replace(/[^a-z0-9_-]/gi,'_');
-h+='<div class="citizen-card" data-citizen-id="'+ownershipEscapeHTML(c.id||'')+'"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b data-citizen-cash="'+ownershipEscapeHTML(c.id||'')+'">'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Titles in a Row <b>'+(c.currentChampStreak||0)+'</b></span></div>'+ownershipAssetsHtml+'<div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'<button type="button" class="player-ledger-btn" data-player-ledger="'+playerLedgerId+'">Player Ledger</button><div id="'+playerLedgerId+'" class="player-ledger-panel"></div><button type="button" class="player-ledger-btn" data-cash-trace="'+cashTraceId+'">Trace Cash Sources</button><div id="'+cashTraceId+'" class="player-ledger-panel"></div></div>';
+h+='<div class="citizen-card" data-citizen-id="'+ownershipEscapeHTML(c.id||'')+'"><div class="citizen-head"><b>'+c.name+'</b><span class="badge">'+c.id+'</span></div><div class="citizen-meta">'+ledgerStatus+'</div><div class="citizen-grid"><span>Cash <b data-citizen-cash="'+ownershipEscapeHTML(c.id||'')+'">'+cash+'</b></span><span>Contract <b>'+contractText+'</b></span><span>PTS <b>'+(c.careerPts||0)+'</b></span><span>REB <b>'+(c.careerRebs||0)+'</b></span><span>MVPs <b>'+(Number(c.mvps)||0)+'</b></span><span>Titles <b>'+(Number(c.championships)||0)+'</b></span><span>Titles in a Row <b>'+(Number(c.champStreak)||0)+'</b></span></div>'+ownershipAssetsHtml+'<div class="citizen-business">Businesses: <b>'+biz+'</b></div>'+(historyText?'<div class="citizen-business">Contract History: <b>'+historyText+'</b></div>':'')+'<button type="button" class="player-ledger-btn" data-player-ledger="'+playerLedgerId+'">Player Ledger</button><div id="'+playerLedgerId+'" class="player-ledger-panel"></div><button type="button" class="player-ledger-btn" data-cash-trace="'+cashTraceId+'">Trace Cash Sources</button><div id="'+cashTraceId+'" class="player-ledger-panel"></div></div>';
 });
 out.innerHTML=h;
 /* 4.24.1: Show stock-share holdings separately from business ownership assets. */
@@ -5604,7 +5604,7 @@ localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
 return db;
 }
 let db=loadDB();
-/* 4.28.68: Normalize stock-market records loaded from older saved builds before any UI renders.
+/* 4.28.69: Normalize stock-market records loaded from older saved builds before any UI renders.
   This only supplies missing structural fields; it does not change cash, share balances, prices,
   transactions, or historical records. */
 (function normalizeStockMarketRecordShape(){
@@ -6488,7 +6488,7 @@ if(typeof window.recordShareOwnershipLedger==="function")window.recordShareOwner
 const citizenCashNodes=document.querySelectorAll("[data-citizen-cash]");
 [buyer,seller].filter(Boolean).forEach(person=>{if(person.kind!=="citizen")return;citizenCashNodes.forEach(node=>{if(String(node.getAttribute("data-citizen-cash"))===String(person.id))node.textContent=money(person.getCash());});});
 renderAll();
-// 4.28.68: Refresh open market detail and shareholder registry immediately after a successful trade.
+// 4.28.69: Refresh open market detail and shareholder registry immediately after a successful trade.
 try{if(selectedMarketCompany)renderCompanyDetail(selectedMarketCompany);if(typeof renderRegister==="function")renderRegister();if(typeof renderCitizenAssets==="function"&&$("citizenLedgerBody"))renderCitizenAssets();}catch(refreshError){console.warn("Post-trade share-count refresh had a display-only issue; transaction remains committed.",refreshError);}
 const message=$("stockTradeMessage");
 if(message)message.textContent="Trade completed: "+buyer.name+" purchased "+count+" "+company+" share"+(count===1?"":"s")+" for "+money(total)+(seller?" from "+seller.name:". Proceeds credited to "+company+" cash.");
@@ -6579,7 +6579,7 @@ box.innerHTML='<div style="font-weight:800;margin-bottom:6px">Stock Assets · Cu
 });
 }
 function renderAll(){
-/* 4.28.68: Isolate UI renderers so one malformed legacy panel cannot blank the whole market. */
+/* 4.28.69: Isolate UI renderers so one malformed legacy panel cannot blank the whole market. */
 try{renderCompanyOptions();}catch(err){console.error("Stock-market company options failed to render.",err);}
 try{renderMarketMoney();}catch(err){console.error("Market Money panel failed to render.",err);}
 try{renderMarketTable();}catch(err){console.error("Stock-market company list failed to render.",err);const out=$("stockMarketTable");if(out)out.innerHTML='<p class="muted">The market list could not render. Company records were preserved; refresh the page after checking the browser console.</p>';}
