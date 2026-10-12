@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- 4.28.90: Season 29 opening cash and market baseline recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
+<!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.28.89 -->
+<!-- CALVIN'S CITY — VERSION 4.28.90 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
@@ -11,7 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.89</title>
+<title>Calvin's City 4.28.90</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -89,7 +89,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.89</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.90</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -842,6 +842,11 @@ function sbCommitCashTx(tx){
 ensureBetsFinanceCollections();if(betsDatabase.sportsBetsCashTransactions.some(x=>x&&x.id===tx.id))return {ok:true,duplicate:true};
 const issuer=sbGetAccount("business","Sports Bets Company");if(!issuer)return {ok:false,error:"Sports Bets Company cash account is unavailable."};
 const beforeState=JSON.stringify(state),beforeDb=JSON.stringify(betsDatabase),beforeMirror=sbFinancialMirrorRaw();
+// 4.28.90: Sports Bets transactions are authorized, paired cash movements.
+// Suppress the generic direct-cash mutation alarm only while this atomic transaction
+// is being applied; the citizen and company still receive their explicit ledger rows.
+const priorCashTraceSuppression=window.__suppressCitizenCashTrace;
+window.__suppressCitizenCashTrace=true;
 try{
  tx.createdAt=new Date().toISOString();
  const issuerBefore=issuer.get();issuer.set(issuerBefore+Number(tx.companyDelta||0));
@@ -854,6 +859,7 @@ try{
  betsDatabase.sportsBetsCashTransactions.push({...tx});
  if(!sbSaveState())throw new Error("The main financial state could not be saved.");
  if(!saveBetsDatabase())throw new Error("The BETS ledger could not be saved.");
+ window.__suppressCitizenCashTrace=priorCashTraceSuppression;
  return {ok:true};
 }catch(e){
  try{state=JSON.parse(beforeState);}catch(_){}
@@ -861,6 +867,7 @@ try{
  // If either localStorage write partially succeeded, restore both pre-transaction copies.
  try{localStorage.setItem("calvins_city_v24",beforeState);sbRestoreFinancialMirror(beforeMirror);}catch(_){}
  try{localStorage.setItem(BETS_STORAGE_KEY,beforeDb);}catch(_){}
+ window.__suppressCitizenCashTrace=priorCashTraceSuppression;
  console.error("Sports Bets cash transaction rolled back:",e);
  return {ok:false,error:String(e&&e.message||e)};
 }
@@ -3111,54 +3118,6 @@ importExistingRecordedGamesToBets();
 ensureTeamCash();
 syncSeason29StartingLedger();
 syncCitizenLedger();
-/* 4.28.90: Restore the complete Season 29 Game 0 cash baseline exactly once.
-  Only runs before a live game. Keeps historical seasons, business ownership,
-  shareholder holdings, completed trades, and prior ledger entries intact. */
-(function restoreSeason29OpeningCashBaseline42890(){
-const marker="season29SystemWideOpeningCashResetVersion";
-const atOpening=Number(state.year)===29 && state.seasonPlayed!==true &&
-  Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 &&
-  String(state.seasonPhase||"regular")==="regular";
-if(!atOpening || state[marker]==="4.28.90")return;
-const cashTargets={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
-state.playerLedgerTransactions=Array.isArray(state.playerLedgerTransactions)?state.playerLedgerTransactions:[];
-Object.entries(cashTargets).forEach(([name,target])=>{
-  const citizen=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
-  if(!citizen)return;
-  const before=Number(citizen.cash)||0;
-  if(Math.abs(before-target)>0.0001){
-    const id="S29-OPEN-CASH-42890-"+String(citizen.id||name).replace(/[^a-z0-9_-]/gi,"");
-    if(!state.playerLedgerTransactions.some(t=>t&&String(t.id)===id)){
-      state.playerLedgerTransactions.push({id,at:new Date().toISOString(),season:29,gameCount:0,player:name,citizenId:citizen.id||null,amount:Math.round((target-before)*100)/100,type:"Season 29 Opening Cash Reset",reason:"One-time restoration of the approved Season 29 opening cash baseline; prior ledger entries retained.",payer:"System opening reset",recipient:name,source:"season29-opening-reset-v4.28.90",balanceBefore:before,balanceAfter:target,status:"approved",approvalStatus:"approved"});
-    }
-  }
-  citizen.cash=target;
-  citizen.status=(name==="Wall"||name==="Diggs"||name==="Kap"||name==="Holly"||name==="Vico"||name==="Bic")?"Active Player":(citizen.status||"Free Agent");
-  if(name==="Wall"||name==="Diggs"||name==="Kap")citizen.currentTeam="Lions";
-  citizen.season29OpeningCash=target;citizen.season29OpeningCashInitialized=true;
-});
-const teamTargets={Lions:4430,Rims:4470,Dunks:4450};
-const businessTargets={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
-state.teamCash=state.teamCash&&typeof state.teamCash==="object"?state.teamCash:{};
-state.businessCash=state.businessCash&&typeof state.businessCash==="object"?state.businessCash:{};
-state.teamCashLedger=Array.isArray(state.teamCashLedger)?state.teamCashLedger:[];
-state.businessCashLedger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];
-const resetAccount=(kind,name,target)=>{
-  const obj=kind==="team"?state.teamCash:state.businessCash;
-  const ledger=kind==="team"?state.teamCashLedger:state.businessCashLedger;
-  const before=Number(obj[name]??target);
-  if(Math.abs(before-target)>0.0001){
-    const id="S29-OPEN-CASH-42890-"+kind+"-"+name.replace(/[^a-z0-9_-]/gi,"");
-    if(!ledger.some(e=>e&&String(e.id)===id))ledger.push({id,season:29,type:"Season 29 Opening Cash Reset",amount:Math.round((target-before)*100)/100,before,after:target,reason:"One-time restoration of approved Season 29 opening cash baseline; prior ledger entries retained.",source:"season29-opening-reset-v4.28.90",createdAt:new Date().toISOString(),accountType:kind});
-  }
-  obj[name]=target;
-};
-Object.entries(teamTargets).forEach(([n,v])=>resetAccount("team",n,v));
-Object.entries(businessTargets).forEach(([n,v])=>resetAccount("business",n,v));
-state[marker]="4.28.90";
-state.season29SystemWideOpeningCashResetAudit={at:new Date().toISOString(),season:29,gameCount:0,status:"completed",citizenCashTargets:cashTargets,teamCashTargets:teamTargets,businessCashTargets:businessTargets,priorLedgerEntriesPreserved:true,historicalSeasonsPreserved:true};
-save();
-})();
 /* 4.22.3: Repair B. Hall's opening cash after citizen-ledger reconciliation.
 Hall's New Balance ownership is separate business data and remains untouched.
 Run only at Season 29 Game 0; do not change his cash after play begins. */
@@ -6174,33 +6133,6 @@ mm.balance=3000;
 mm.interestRate=0.75;mm.gamesSinceBuyback=0;mm.lastInterestGameKey=null;
 mm.season29OpeningReset={at:new Date().toISOString(),season:29,gameCount:0,startingReserve:3000,voidedBuybackAmount:round4(restored),restoredShares,transactionsVoided:candidates.length};
 db[marker]=true;db[marker+"At"]=new Date().toISOString();
-saveDB(db);
-})();
-/* 4.28.90: Reconcile the market to the same Season 29 opening cash baseline.
-  Preserve share ownership and all transaction/history records; reset only
-  current company cash valuations and the Market Money reserve. */
-(function restoreSeason29MarketCashBaseline42890(){
-const marker="season29SystemWideCashReset_4_28_90";
-const st=getState();
-const atOpening=Number(st&&st.year)===29 && st.seasonPlayed!==true &&
-  Array.isArray(st.gamesPlayed) && st.gamesPlayed.length===0 &&
-  String(st.seasonPhase||"regular")==="regular";
-if(!atOpening||db[marker]===true)return;
-const before={companies:{},marketMoney:Number(db.marketMoney&&db.marketMoney.balance)||0};
-companies.forEach(def=>{
-  const co=db.companies&&db.companies[def.name];if(!co)return;
-  const target=Number(def.cashSeed)||0;
-  before.companies[def.name]={cashValue:Number(co.initialCashValue)||0,price:Number(co.price)||0};
-  co.initialCashValue=target;
-  co.price=round4(target/TOTAL_SHARES);
-});
-db.marketMoney=db.marketMoney&&typeof db.marketMoney==="object"?db.marketMoney:{transactions:[]};
-db.marketMoney.balance=3000;
-db.marketMoney.interestRate=0.75;
-db.marketMoney.gamesSinceBuyback=0;
-db.marketMoney.lastInterestGameKey=null;
-db[marker]=true;
-db[marker+"Audit"]={at:new Date().toISOString(),season:29,gameCount:0,status:"completed",reason:"Restore company cash values and stock prices to the approved opening baseline; reset Market Money reserve to 3000M.",before,after:{companies:Object.fromEntries(companies.map(def=>[def.name,{cashValue:Number(db.companies[def.name]&&db.companies[def.name].initialCashValue)||0,price:Number(db.companies[def.name]&&db.companies[def.name].price)||0}])),marketMoney:3000},shareholdingsChanged:false,transactionsDeleted:false,priceHistoryDeleted:false};
 saveDB(db);
 })();
 /* 4.24.28: At the untouched Season 29 opening, reconcile stale persisted stock
