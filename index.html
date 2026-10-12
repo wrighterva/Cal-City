@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.28.90 -->
+<!-- CALVIN'S CITY — VERSION 4.28.91 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
@@ -11,7 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.90</title>
+<title>Calvin's City 4.28.91</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -89,7 +89,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.90</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.91</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -839,36 +839,59 @@ if(account.kind==="business"){
 }
 }
 function sbCommitCashTx(tx){
-ensureBetsFinanceCollections();if(betsDatabase.sportsBetsCashTransactions.some(x=>x&&x.id===tx.id))return {ok:true,duplicate:true};
-const issuer=sbGetAccount("business","Sports Bets Company");if(!issuer)return {ok:false,error:"Sports Bets Company cash account is unavailable."};
+ensureBetsFinanceCollections();
+if(betsDatabase.sportsBetsCashTransactions.some(x=>x&&x.id===tx.id))return {ok:true,duplicate:true};
+const issuer=sbGetAccount("business","Sports Bets Company");
+if(!issuer)return {ok:false,error:"Sports Bets Company cash account is unavailable."};
 const beforeState=JSON.stringify(state),beforeDb=JSON.stringify(betsDatabase),beforeMirror=sbFinancialMirrorRaw();
-// 4.28.90: Sports Bets transactions are authorized, paired cash movements.
-// Suppress the generic direct-cash mutation alarm only while this atomic transaction
-// is being applied; the citizen and company still receive their explicit ledger rows.
 const priorCashTraceSuppression=window.__suppressCitizenCashTrace;
-window.__suppressCitizenCashTrace=true;
+const priorAuditBusy=window.__cashIntegrityAuditBusy;
 try{
  tx.createdAt=new Date().toISOString();
- const issuerBefore=issuer.get();issuer.set(issuerBefore+Number(tx.companyDelta||0));
- sbLedgerMove(issuer,tx.id+"-COMPANY",Number(tx.companyDelta||0),tx.companyType||tx.type,tx.companyReason||tx.reason,issuerBefore,issuer.get(),{sportsBetsTransactionId:tx.id});
+ // Resolve both accounts and validate the paired movement before mutating either balance.
+ const companyBefore=issuer.get(),companyDelta=Number(tx.companyDelta||0);
+ if(!Number.isFinite(companyBefore)||!Number.isFinite(companyDelta))throw new Error("Sports Bets Company cash validation failed.");
+ let other=null,otherBefore=null,otherDelta=0;
  if(tx.counterpartyKind&&tx.counterpartyRef!=null&&Number(tx.counterpartyDelta||0)!==0){
-  const other=sbGetAccount(tx.counterpartyKind,tx.counterpartyRef);if(!other)throw new Error("Counterparty account is unavailable.");
-  const otherBefore=other.get();other.set(otherBefore+Number(tx.counterpartyDelta));
-  sbLedgerMove(other,tx.id+"-OTHER",Number(tx.counterpartyDelta),tx.counterpartyType||tx.type,tx.counterpartyReason||tx.reason,otherBefore,other.get(),{sportsBetsTransactionId:tx.id});
+  other=sbGetAccount(tx.counterpartyKind,tx.counterpartyRef);
+  if(!other)throw new Error("Citizen/business counterparty account is unavailable.");
+  otherBefore=other.get();otherDelta=Number(tx.counterpartyDelta);
+  if(!Number.isFinite(otherBefore)||!Number.isFinite(otherDelta))throw new Error("Counterparty cash validation failed.");
+  if(otherBefore+otherDelta < -0.000001)throw new Error("Counterparty does not have enough cash for this transaction.");
  }
- betsDatabase.sportsBetsCashTransactions.push({...tx});
+ // The cash-integrity watcher must not mistake this authorized paired transfer for an
+ // unexplained edit. The normal citizen/company ledger entries below remain mandatory.
+ window.__suppressCitizenCashTrace=true;
+ window.__cashIntegrityAuditBusy=true;
+ issuer.set(sbRound(companyBefore+companyDelta));
+ if(other)other.set(sbRound(otherBefore+otherDelta));
+ 
+ // Verify the live account objects really changed before recording the transaction.
+ if(Math.abs(issuer.get()-sbRound(companyBefore+companyDelta))>0.000001)throw new Error("Sports Bets Company cash did not update.");
+ if(other&&Math.abs(other.get()-sbRound(otherBefore+otherDelta))>0.000001)throw new Error("Citizen cash did not update; transaction cancelled.");
+ 
+ sbLedgerMove(issuer,tx.id+"-COMPANY",companyDelta,tx.companyType||tx.type,tx.companyReason||tx.reason,companyBefore,issuer.get(),{sportsBetsTransactionId:tx.id});
+ if(other){
+  sbLedgerMove(other,tx.id+"-OTHER",otherDelta,tx.counterpartyType||tx.type,tx.counterpartyReason||tx.reason,otherBefore,other.get(),{sportsBetsTransactionId:tx.id});
+ }
+ betsDatabase.sportsBetsCashTransactions.push({...tx,companyBefore:sbRound(companyBefore),companyAfter:issuer.get(),counterpartyBefore:otherBefore==null?null:sbRound(otherBefore),counterpartyAfter:other?other.get():null,cashMovement:true});
  if(!sbSaveState())throw new Error("The main financial state could not be saved.");
+ // Re-check after save/sync so a sync routine cannot silently restore the citizen's
+ // previous balance while leaving the company credit recorded.
+ if(Math.abs(issuer.get()-sbRound(companyBefore+companyDelta))>0.000001)throw new Error("Sports Bets Company balance changed during save.");
+ if(other&&Math.abs(other.get()-sbRound(otherBefore+otherDelta))>0.000001)throw new Error("Citizen balance changed during save.");
  if(!saveBetsDatabase())throw new Error("The BETS ledger could not be saved.");
  window.__suppressCitizenCashTrace=priorCashTraceSuppression;
+ window.__cashIntegrityAuditBusy=priorAuditBusy;
  return {ok:true};
 }catch(e){
  try{state=JSON.parse(beforeState);}catch(_){}
  try{betsDatabase=JSON.parse(beforeDb);}catch(_){}
- // If either localStorage write partially succeeded, restore both pre-transaction copies.
  try{localStorage.setItem("calvins_city_v24",beforeState);sbRestoreFinancialMirror(beforeMirror);}catch(_){}
  try{localStorage.setItem(BETS_STORAGE_KEY,beforeDb);}catch(_){}
  window.__suppressCitizenCashTrace=priorCashTraceSuppression;
- console.error("Sports Bets cash transaction rolled back:",e);
+ window.__cashIntegrityAuditBusy=priorAuditBusy;
+ console.error("Sports Bets paired cash transaction rolled back:",e);
  return {ok:false,error:String(e&&e.message||e)};
 }
 }
