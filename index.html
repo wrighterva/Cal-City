@@ -1,6 +1,7 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.28.77 -->
+<!-- CALVIN'S CITY — VERSION 4.28.78 -->
+<!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
 <!-- Build identity: 4.28.77. Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
@@ -4270,11 +4271,19 @@ if(decision==="rejected" && /share trade|market money buyback/i.test(String(entr
   const stNow=typeof getState==="function"?getState():state;
   const buyerName=String(original.buyer||original.buyerName||"");
   const sellerName=String(original.seller||original.sellerName||"");
-  const buyer=(stNow.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===buyerName.trim().toLowerCase());
-  const seller=(stNow.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===sellerName.trim().toLowerCase());
+  const normName=v=>String(v||"").trim().toLowerCase();
+  const buyerCitizen=(stNow.citizens||[]).find(c=>c&&normName(c.name)===normName(buyerName));
+  const sellerCitizen=(stNow.citizens||[]).find(c=>c&&normName(c.name)===normName(sellerName));
+  stNow.businessCash=stNow.businessCash||{};
+  const findBusinessCashKey=name=>Object.keys(stNow.businessCash).find(k=>normName(k)===normName(name));
+  const buyerBusinessKey=findBusinessCashKey(buyerName),sellerBusinessKey=findBusinessCashKey(sellerName);
+  const buyerAccount=buyerCitizen?{kind:"citizen",ref:buyerCitizen}:buyerBusinessKey?{kind:"business",key:buyerBusinessKey}:null;
+  const sellerAccount=sellerCitizen?{kind:"citizen",ref:sellerCitizen}:sellerBusinessKey?{kind:"business",key:sellerBusinessKey}:null;
+  const readCash=account=>account?(account.kind==="citizen"?Number(account.ref.cash):Number(stNow.businessCash[account.key])):NaN;
+  const writeCash=(account,value)=>{if(account.kind==="citizen")account.ref.cash=value;else stNow.businessCash[account.key]=value;};
   const amt=Number(original.total??original.price)||0;
   const shareCount=Number(original.shares)||0;
-  if(!buyer||!seller||!Number.isFinite(amt)||amt<=0||shareCount<=0){
+  if(!buyerAccount||!sellerAccount||!Number.isFinite(amt)||amt<=0||shareCount<=0){
    entry.approvalStatus="pending";
    alert("Rejection requires manual reconciliation: the original buyer, seller, amount, or share count could not be safely verified. No reversal was applied.");
   }else{
@@ -4292,13 +4301,13 @@ if(decision==="rejected" && /share trade|market money buyback/i.test(String(entr
     }else{
      /* Cash is only corrected when its current balance exactly matches the recorded post-trade balance.
         A cash-integrity restoration or any intervening cash movement makes it ineligible for auto-correction. */
-     const buyerCash=Number(buyer.cash),sellerCash=Number(seller.cash);
+     const buyerCash=readCash(buyerAccount),sellerCash=readCash(sellerAccount);
      const buyerPost=Number(original.buyerCashAfter),sellerPost=Number(original.sellerCashAfter);
      const buyerPre=Number(original.buyerCashBefore),sellerPre=Number(original.sellerCashBefore);
      const buyerMatches=Number.isFinite(buyerCash)&&Number.isFinite(buyerPost)&&Number.isFinite(buyerPre)&&Math.abs(buyerCash-buyerPost)<0.0001;
      const sellerMatches=Number.isFinite(sellerCash)&&Number.isFinite(sellerPost)&&Number.isFinite(sellerPre)&&Math.abs(sellerCash-sellerPost)<0.0001;
-     if(buyerMatches)buyer.cash=buyerPre;
-     if(sellerMatches)seller.cash=sellerPre;
+     if(buyerMatches)writeCash(buyerAccount,buyerPre);
+     if(sellerMatches)writeCash(sellerAccount,sellerPre);
      original.status="voided";original.voidedByRejection=true;original.voidedAt=entry.approvalAt;original.voidedReason=note||"Rejected from Player Ledger";
      original.reversalId="REV-"+String(original.id);
      const reversal={...original,id:original.reversalId,originalTransactionId:String(original.id),type:"Share Trade Reversal",status:"completed",at:entry.approvalAt,voidsTransactionId:String(original.id),cashCorrected:{buyer:buyerMatches,seller:sellerMatches},ownershipRestored:true,ownershipReversal:ownershipResult};
