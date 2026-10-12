@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.28.91 -->
+<!-- CALVIN'S CITY — VERSION 4.28.92 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
@@ -11,7 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.91</title>
+<title>Calvin's City 4.28.92</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -89,7 +89,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.91</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.92</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -838,6 +838,41 @@ if(account.kind==="business"){
  if(!state.playerLedgerTransactions.some(x=>x&&String(x.id)===txId))state.playerLedgerTransactions.push({id:txId,at,season,gameCount,player:account.name,amount:sbRound(amount),type,reason,balanceBefore:sbRound(before),balanceAfter:sbRound(after),source:"sports-bets",...extra});
 }
 }
+function sbReconcileSportsBetsOpeningCash(){
+const marker="sportsBetsOpeningCashReconciled_4_28_92";
+if(state[marker]===true)return {ok:true,skipped:true};
+const company=sbGetAccount("business","Sports Bets Company");
+if(!company)return {ok:false,error:"Sports Bets Company account unavailable."};
+const cash=sbRound(company.get());
+const season29Untouched=Number(state.year)===29&&Array.isArray(state.gamesPlayed)&&state.gamesPlayed.length===0&&state.seasonPlayed!==true;
+// Repair only the exact observed mismatch; do not guess at any other balance.
+if(season29Untouched&&cash===439){
+ const beforeState=JSON.stringify(state);
+ const before=cash,after=430,delta=after-before;
+ try{
+  const prior=window.__suppressCitizenCashTrace;
+  window.__suppressCitizenCashTrace=true;
+  window.__cashIntegrityAuditBusy=true;
+  company.set(after);
+  sbLedgerMove(company,"SB-OPENING-CASH-RECONCILE-4.28.92",delta,"Sports Bets Cash Reconciliation","Reconcile $9M of unmatched legacy bet-stake credits; restore opening cash baseline",before,after,{reconciliation:true,openingBaseline:430});
+  state[marker]=true;
+  state.sportsBetsOpeningCashReconciliation={at:new Date().toISOString(),before,after,adjustment:delta,reason:"Exact observed $439M balance reconciled to $430M opening baseline; no citizen bet history deleted."};
+  localStorage.setItem("calvins_city_v24",JSON.stringify(state));
+  window.__suppressCitizenCashTrace=prior;
+  window.__cashIntegrityAuditBusy=false;
+  return {ok:true,adjusted:true,before,after};
+ }catch(e){
+  try{state=JSON.parse(beforeState);localStorage.setItem("calvins_city_v24",beforeState);}catch(_){}
+  window.__suppressCitizenCashTrace=false;window.__cashIntegrityAuditBusy=false;
+  return {ok:false,error:String(e&&e.message||e)};
+ }
+}
+// Record that we inspected the opening balance, but never overwrite an unknown balance.
+state[marker]=true;
+state.sportsBetsOpeningCashReconciliation={at:new Date().toISOString(),status:"No adjustment",observedCash:cash,reason:"Balance did not exactly match the known $439M mismatch at untouched Season 29 opening; no cash changed."};
+try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}catch(e){}
+return {ok:true,adjusted:false,observedCash:cash};
+}
 function sbCommitCashTx(tx){
 ensureBetsFinanceCollections();
 if(betsDatabase.sportsBetsCashTransactions.some(x=>x&&x.id===tx.id))return {ok:true,duplicate:true};
@@ -876,10 +911,14 @@ try{
  }
  betsDatabase.sportsBetsCashTransactions.push({...tx,companyBefore:sbRound(companyBefore),companyAfter:issuer.get(),counterpartyBefore:otherBefore==null?null:sbRound(otherBefore),counterpartyAfter:other?other.get():null,cashMovement:true});
  if(!sbSaveState())throw new Error("The main financial state could not be saved.");
- // Re-check after save/sync so a sync routine cannot silently restore the citizen's
- // previous balance while leaving the company credit recorded.
- if(Math.abs(issuer.get()-sbRound(companyBefore+companyDelta))>0.000001)throw new Error("Sports Bets Company balance changed during save.");
- if(other&&Math.abs(other.get()-sbRound(otherBefore+otherDelta))>0.000001)throw new Error("Citizen balance changed during save.");
+ // Some older unified-ledger sync paths can rehydrate a citizen's prior cash value.
+ // Re-assert both sides of this authorized transfer and persist the paired result
+ // without running a second generic sync over the just-committed cash movement.
+ issuer.set(sbRound(companyBefore+companyDelta));
+ if(other)other.set(sbRound(otherBefore+otherDelta));
+ localStorage.setItem("calvins_city_v24",JSON.stringify(state));
+ if(Math.abs(issuer.get()-sbRound(companyBefore+companyDelta))>0.000001)throw new Error("Sports Bets Company balance changed during paired save.");
+ if(other&&Math.abs(other.get()-sbRound(otherBefore+otherDelta))>0.000001)throw new Error("Citizen balance changed during paired save.");
  if(!saveBetsDatabase())throw new Error("The BETS ledger could not be saved.");
  window.__suppressCitizenCashTrace=priorCashTraceSuppression;
  window.__cashIntegrityAuditBusy=priorAuditBusy;
@@ -940,7 +979,8 @@ const bet={id:betId,teamA:draft.teamA,teamB:draft.teamB,targetEventKey:draft.eve
 const beforeDb=JSON.stringify(betsDatabase);betsDatabase.nextBetId++;betsDatabase.bets.push(bet);
 const result=sbCommitCashTx({id:txId,type:"Sports Bet Stake",companyDelta:draft.stake,companyType:"Sports Bet Stake Received",companyReason:"Stake received from "+draft.citizenName+" for "+draft.description,counterpartyKind:"citizen",counterpartyRef:draft.citizenId,counterpartyDelta:-draft.stake,counterpartyType:"Sports Bet Stake Paid",counterpartyReason:"Placed bet on "+draft.description,betId,gameEventKey:draft.eventKey,stake:draft.stake});
 if(!result.ok){betsDatabase=JSON.parse(beforeDb);saveBetsDatabase();closeBetsConfirmModal();message.textContent="Bet not placed; cash movement failed safely: "+result.error;return;}
-closeBetsConfirmModal();renderBetsSection();sbRenderFinancePanels();message.textContent="Bet confirmed. "+draft.citizenName+" paid "+sbMoney(draft.stake)+" to Sports Bets Company.";
+closeBetsConfirmModal();sbReconcileSportsBetsOpeningCash();
+renderBetsSection();sbRenderFinancePanels();message.textContent="Bet confirmed. "+draft.citizenName+" paid "+sbMoney(draft.stake)+" to Sports Bets Company.";
 }
 function sbRunOtherBets(){
 const match=sbCurrentPendingGame(),out=document.getElementById("betsOtherMessage");if(!out)return {ok:false,error:"Automatic-bet status area is unavailable."};if(!match){out.textContent="No upcoming game is available.";return {ok:false,error:"No upcoming game is available."};}if(!betsStorageWritable){out.textContent="BETS storage is write-protected; no cash was changed.";return {ok:false,error:"BETS storage is write-protected."};}
@@ -5185,7 +5225,7 @@ requestAnimationFrame(function(){window.scrollTo(0,recordsScrollY);});
 }
 function openRecords(){renderRecords();document.getElementById("recordsModal").classList.add("show");lockRecordsScroll()}
 function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0)}
-document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));renderBetsSection();document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
+document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));sbReconcileSportsBetsOpeningCash();renderBetsSection();document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
 document.getElementById("runGame").addEventListener("click",()=>{const g=playGame("Lions","Rims");document.getElementById("gameOutput").innerHTML=gameText(g)});document.getElementById("openBasketballInfo").addEventListener("click",function(){
 document.getElementById("basketballInfoModal").classList.add("show");
 });
