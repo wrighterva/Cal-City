@@ -1,15 +1,15 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.28.80 -->
+<!-- CALVIN'S CITY — VERSION 4.28.81 -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
-<!-- Build identity: 4.28.77. Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.28.81. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.80</title>
+<title>Calvin's City 4.28.81</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -87,7 +87,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.80</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.81</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -268,12 +268,19 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  <p id="betsConfirmDetails">Confirm this wager.</p>
  <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:10px"><button type="button" class="goodbtn" id="betsConfirmYes">Confirm Bet</button><button type="button" id="betsConfirmNo">Cancel</button></div>
 </div></div>
+<div id="betsDoneBettingModal" role="dialog" aria-modal="true" aria-labelledby="betsDoneBettingTitle" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:18px">
+ <div class="card" style="width:min(100%,420px);max-width:420px;margin:auto;box-shadow:0 18px 60px rgba(0,0,0,.35)">
+   <h3 id="betsDoneBettingTitle">Are you done betting?</h3>
+   <p id="betsDoneBettingDetails">If you choose Yes, the system will place automatic bets for eligible citizens you did not manually bet for, then the game will play. Choose No to return to betting.</p>
+   <p id="betsDoneBettingStatus" class="tiny" aria-live="polite"></p>
+   <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:10px"><button type="button" class="goodbtn" id="betsDoneBettingYes">Yes</button><button type="button" id="betsDoneBettingNo">No</button></div>
+ </div>
+</div>
 </div>
 <div class="card">
 <h3>Other Bets</h3>
-<p class="tiny">Create automatic $1M wagers for eligible citizens who have not been manually assigned a wager for this game. This is an explicit action, not automatic on page load. Automatic wagers use real citizen/company cash and the same limits as manual wagers.</p>
-<button type="button" id="betsRunOther" class="secondary">Run Other Bets for This Game</button>
-<p id="betsOtherMessage" class="tiny" aria-live="polite"></p>
+<p class="tiny">Automatic $1M wagers are placed when you confirm you are done betting before a game. Any citizen you manually bet for is excluded from automatic wagers for that game. Automatic wagers use real citizen/company cash and the same limits as manual wagers.</p>
+<p id="betsOtherMessage" class="tiny" aria-live="polite">Automatic citizen wagers run at game confirmation.</p>
 <div id="betsOtherHistory"><p class="muted">No automatic wagers yet.</p></div>
 </div>
 <div class="card">
@@ -783,7 +790,7 @@ try{
  }
 }catch(backupReadError){console.warn("Previous BETS backup could not be read; main ledger remains untouched:",backupReadError);}
 }
-// v4.28.80 Sports Bets real-cash, per-game interest and debt market.
+// v4.28.81: game-start confirmation gates automatic citizen bets before the next game.
 function sbRound(v){return Math.round((Number(v)||0)*100)/100;}
 function sbEsc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function sbMoney(v){return "$"+sbRound(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+"M";}
@@ -892,9 +899,9 @@ if(!result.ok){betsDatabase=JSON.parse(beforeDb);saveBetsDatabase();closeBetsCon
 closeBetsConfirmModal();renderBetsSection();sbRenderFinancePanels();message.textContent="Bet confirmed. "+draft.citizenName+" paid "+sbMoney(draft.stake)+" to Sports Bets Company.";
 }
 function sbRunOtherBets(){
-const match=sbCurrentPendingGame(),out=document.getElementById("betsOtherMessage");if(!out)return;if(!match){out.textContent="No upcoming game is available.";return;}if(!betsStorageWritable){out.textContent="BETS storage is write-protected; no cash was changed.";return;}
+const match=sbCurrentPendingGame(),out=document.getElementById("betsOtherMessage");if(!out)return {ok:false,error:"Automatic-bet status area is unavailable."};if(!match){out.textContent="No upcoming game is available.";return {ok:false,error:"No upcoming game is available."};}if(!betsStorageWritable){out.textContent="BETS storage is write-protected; no cash was changed.";return {ok:false,error:"BETS storage is write-protected."};}
 const eventKey=match.eventKey||betsCurrentEventKey(match),citizens=(Array.isArray(state.citizens)?state.citizens:[]).filter(c=>c&&c.id!=null&&Number(c.cash)>=10).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
-let made=0,skipped=0;const markets=["moneyline","spread","total"],company=sbGetAccount("business","Sports Bets Company");
+let made=0,skipped=0,fatalError=null;const markets=["moneyline","spread","total"],company=sbGetAccount("business","Sports Bets Company");
 for(const c of citizens){
  if(sbEventHasManualCitizen(eventKey,c.id)||betsDatabase.bets.some(b=>b&&b.targetEventKey===eventKey&&String(b.citizenId)===String(c.id)&&b.placedBy==="automatic")) {skipped++;continue;}
  const stake=1,limit=sbRound(Number(c.cash)*0.01),used=sbGetStakeUsed(c.id,eventKey);if(stake>limit-used+0.000001||Number(c.cash)<stake||!company||sbPendingExposure()+2*stake>Number(company.cash)+stake+0.000001){skipped++;continue;}
@@ -907,9 +914,12 @@ for(const c of citizens){
  const bet={id:betId,teamA:match.teamA,teamB:match.teamB,targetEventKey:eventKey,market,selection,stake,spread:lines.favorite?(lines.favorite===match.teamA?-lines.spread:lines.spread):0,total:lines.total,status:"pending",net:0,payout:0,placedAt:new Date().toISOString(),description,citizenId:String(c.id),citizenName:String(c.name),placedBy:"automatic",betType:"automatic",cashStakeReserved:true,cashTransactionId:txId,currency:"M"};
  betsDatabase.nextBetId++;betsDatabase.bets.push(bet);
  const result=sbCommitCashTx({id:txId,type:"Automatic Sports Bet Stake",companyDelta:stake,companyType:"Sports Bet Stake Received",companyReason:"Automatic stake from "+c.name+" for "+description,counterpartyKind:"citizen",counterpartyRef:String(c.id),counterpartyDelta:-stake,counterpartyType:"Automatic Sports Bet Stake Paid",counterpartyReason:"Automatic wager on "+description,betId,gameEventKey:eventKey,stake});
- if(result.ok)made++;else{betsDatabase=JSON.parse(beforeDb);skipped++;break;}
+ if(result.ok)made++;else{betsDatabase=JSON.parse(beforeDb);skipped++;fatalError=result.error||"Automatic wager transaction failed.";break;}
 }
-renderBetsSection();sbRenderFinancePanels();out.textContent="Other Bets complete: "+made+" automatic $1M wager(s) placed; "+skipped+" citizen(s) skipped (manual assignment, existing automatic wager, cash, or limit).";
+renderBetsSection();sbRenderFinancePanels();
+if(fatalError){out.textContent="Automatic betting stopped because a transaction failed: "+fatalError+". The game has not started; review the ledger before retrying.";return {ok:false,made,skipped,error:fatalError};}
+out.textContent="Automatic betting complete: "+made+" $1M wager(s) placed; "+skipped+" citizen(s) skipped (manual assignment, existing automatic wager, cash, or limit).";
+return {ok:true,made,skipped};
 }
 function sbSettleBetCash(bet,outcome,row){
 if(!bet.cashStakeReserved||!bet.citizenId)return {ok:true,practice:true};
@@ -1020,7 +1030,26 @@ sbRenderFinancePanels();return row;
 };
 const sbOldRenderBetsSection=renderBetsSection;
 renderBetsSection=function(){sbOldRenderBetsSection();sbRenderFinancePanels();};
-const sbRunOtherButton=document.getElementById("betsRunOther");if(sbRunOtherButton)sbRunOtherButton.addEventListener("click",sbRunOtherBets);
+let sbGameStartConfirmationOpen=false,sbGameStartProcessing=false;
+function sbRequestPlayNextGame(){
+if(sbGameStartProcessing)return;
+const match=sbCurrentPendingGame();
+if(!match){playNextGame();return;}
+const modal=document.getElementById("betsDoneBettingModal"),status=document.getElementById("betsDoneBettingStatus"),yes=document.getElementById("betsDoneBettingYes");
+if(!modal||!yes){alert("Betting confirmation is unavailable. The game was not started.");return;}
+if(sbGameStartConfirmationOpen){modal.style.display="flex";return;}
+sbGameStartConfirmationOpen=true;if(status)status.textContent="";yes.disabled=false;yes.textContent="Yes";modal.style.display="flex";
+}
+function sbCloseDoneBettingModal(){const modal=document.getElementById("betsDoneBettingModal");if(modal)modal.style.display="none";sbGameStartConfirmationOpen=false;}
+const sbDoneYes=document.getElementById("betsDoneBettingYes"),sbDoneNo=document.getElementById("betsDoneBettingNo");
+if(sbDoneNo)sbDoneNo.addEventListener("click",function(){if(sbGameStartProcessing)return;sbCloseDoneBettingModal();const status=document.getElementById("betsDoneBettingStatus");if(status)status.textContent="";document.getElementById("betsCitizen")?.focus();});
+if(sbDoneYes)sbDoneYes.addEventListener("click",function(){
+if(sbGameStartProcessing)return;sbGameStartProcessing=true;sbDoneYes.disabled=true;sbDoneYes.textContent="Working…";
+const status=document.getElementById("betsDoneBettingStatus");if(status)status.textContent="Placing automatic citizen wagers and saving the ledger…";
+const result=sbRunOtherBets();
+if(!result||!result.ok){sbGameStartProcessing=false;sbDoneYes.disabled=false;sbDoneYes.textContent="Yes";if(status)status.textContent="The game is paused because automatic betting could not be completed safely. Review the BETS status and try again.";return;}
+sbCloseDoneBettingModal();sbGameStartProcessing=false;playNextGame();
+});
 const sbIssueButton=document.getElementById("betsDebtIssue");if(sbIssueButton)sbIssueButton.addEventListener("click",sbIssueDebt);
 const sbBuyButton=document.getElementById("betsDebtBuy");if(sbBuyButton)sbBuyButton.addEventListener("click",sbBuyDebt);
 ensureBetsFinanceCollections();
@@ -5113,7 +5142,7 @@ if(typeof window.continueToOffseasonFromShoePopup==="function"){
  alert("The offseason bridge did not initialize. Please refresh the page and report this message.");
 }
 });
-document.getElementById("playNextGame").addEventListener("click",playNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
+document.getElementById("playNextGame").addEventListener("click",sbRequestPlayNextGame);document.getElementById("openOffseason").addEventListener("click",openOffseason);document.getElementById("finalizeOffseason").addEventListener("click",finalizeOffseason);
 /* 4.18.6: Audit direct citizen.cash changes in either direction.
 Records before/after, signed delta, and code location for investigation.
 This is an audit/flagging layer, not a hard-block on unauthorized changes. */
