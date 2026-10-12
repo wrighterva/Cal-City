@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.55 -->
-<!-- Build identity: 4.24.57. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.24.58. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.57</title>
+<title>Calvin's City 4.24.58</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -84,7 +84,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.24.57</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.24.58</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -5872,11 +5872,82 @@ const st=getState();st.shareOwnershipLedger=Array.isArray(st.shareOwnershipLedge
 try{const raw=localStorage.getItem(SHARE_OWNERSHIP_LEDGER_KEY);if(raw){const saved=JSON.parse(raw);if(Array.isArray(saved)){const seen=new Set(st.shareOwnershipLedger.map(x=>String(x&&x.id||"")));saved.forEach(x=>{if(x&&x.id&&!seen.has(String(x.id))){st.shareOwnershipLedger.push(x);seen.add(String(x.id));}});}}}catch(e){console.warn("Share ledger recovery mirror could not be read.",e);}
 return st.shareOwnershipLedger;
 }
+/* 4.24.58: Keep shareholder lists/counts synchronized with completed share trades.
+  A holder is present only while their resulting share count is positive. */
+window.syncShareholdersFromTrade=function(entry){
+try{
+ if(!entry||!entry.company||!Number.isFinite(Number(entry.shares))||Number(entry.shares)<=0)return false;
+ const status=String(entry.status||"completed").toLowerCase();
+ if(["voided","reversed","failed","pending"].includes(status))return false;
+ const dbObj=window.db||window.stockMarketDB||window.stockMarket;
+ if(!dbObj)return false;
+ const companies=dbObj.companies||dbObj.companyStocks||dbObj.stocks||{};
+ const co=companies[entry.company]||Object.values(companies).find(x=>x&&String(x.name||x.company||"")===String(entry.company));
+ if(!co)return false;
+ const sharesField=Array.isArray(co.shareholders)?"shareholders":Array.isArray(co.holders)?"holders":null;
+ if(!sharesField)return false;
+ const holders=co[sharesField];
+ const buyer=String(entry.buyer||entry.buyerName||"").trim();
+ const seller=String(entry.seller||entry.sellerName||"").trim();
+ const n=Number(entry.shares);
+ const findHolder=name=>holders.findIndex(h=>String(typeof h==="string"?h:(h.name||h.citizen||h.owner||"")).trim().toLowerCase()===name.toLowerCase());
+ const updateHolder=(name,delta)=>{
+  if(!name)return;
+  let idx=findHolder(name);
+  if(idx<0&&delta>0){
+   holders.push(typeof holders[0]==="string"?name:{name,shares:0});
+   idx=holders.length-1;
+  }
+  if(idx<0)return;
+  if(typeof holders[idx]==="string"){
+   if(delta<0&&n>0)holders.splice(idx,1);
+   return;
+  }
+  const key=Object.prototype.hasOwnProperty.call(holders[idx],"shares")?"shares":
+    (Object.prototype.hasOwnProperty.call(holders[idx],"shareCount")?"shareCount":"shares");
+  holders[idx][key]=Math.max(0,(Number(holders[idx][key])||0)+delta);
+  if(holders[idx][key]===0)holders.splice(idx,1);
+ };
+ const type=String(entry.type||"").toLowerCase();
+ if(type==="market money buyback"){
+  updateHolder(seller,-n);
+ }else{
+  if(String(entry.buyerType||"").toLowerCase()==="citizen")updateHolder(buyer,n);
+  if(String(entry.sellerType||"").toLowerCase()==="citizen")updateHolder(seller,-n);
+ }
+ try{if(typeof dbObj.save==="function")dbObj.save();}catch(e){}
+ try{if(typeof window.renderAll==="function")window.renderAll();}catch(e){}
+ return true;
+}catch(e){console.error("Shareholder sync failed:",e);return false;}
+};
+/* 4.24.58: Cash mutation approval queue. Approval is transaction-specific and auditable.
+  This queue records decisions; it does not disable cash-integrity enforcement globally. */
+window.CAL_CITY_CASH_APPROVAL_KEY="calvins_city_cash_approval_queue_v1";
+window.getCashApprovalQueue=function(){
+try{return JSON.parse(localStorage.getItem(window.CAL_CITY_CASH_APPROVAL_KEY)||"[]");}catch(e){return [];}
+};
+window.queueCashMutationForApproval=function(item){
+if(!item||!item.id)return false;
+const q=window.getCashApprovalQueue();
+if(q.some(x=>x&&String(x.id)===String(item.id)))return false;
+q.push({...item,status:"pending_approval",queuedAt:new Date().toISOString()});
+try{localStorage.setItem(window.CAL_CITY_CASH_APPROVAL_KEY,JSON.stringify(q));return true;}catch(e){return false;}
+};
+window.decideCashMutationApproval=function(id,decision,note){
+if(!["approved","rejected","pending"].includes(String(decision)))return false;
+const q=window.getCashApprovalQueue(),idx=q.findIndex(x=>x&&String(x.id)===String(id));
+if(idx<0)return false;
+q[idx]={...q[idx],status:decision==="pending"?"pending_approval":decision,decisionNote:String(note||""),decidedAt:new Date().toISOString()};
+try{localStorage.setItem(window.CAL_CITY_CASH_APPROVAL_KEY,JSON.stringify(q));}catch(e){return false;}
+try{const st=typeof getState==="function"?getState():null;if(st){st.cashMutationApprovalQueue=q; if(typeof save==="function")save();}}catch(e){}
+return true;
+};
 window.recordShareOwnershipLedger=function(entry){
 if(!entry||!entry.id)return false;
 const st=getState(),ledger=getShareOwnershipLedger();
 if(ledger.some(x=>x&&String(x.id)===String(entry.id)))return false;
 const copy={...entry,ledgerRecordedAt:new Date().toISOString()};ledger.push(copy);
+try{window.syncShareholdersFromTrade(copy);}catch(e){console.error("Shareholder sync hook failed.",e);}
  
 /* 4.24.57: mirror completed share-trade cash effects into each citizen's Player Ledger.
    The Share & Ownership Ledger remains the master trade record. Player entries reference
