@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.55 -->
-<!-- Build identity: 4.24.56. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.24.57. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.56</title>
+<title>Calvin's City 4.24.57</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -84,7 +84,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.24.56</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.24.57</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -5877,6 +5877,44 @@ if(!entry||!entry.id)return false;
 const st=getState(),ledger=getShareOwnershipLedger();
 if(ledger.some(x=>x&&String(x.id)===String(entry.id)))return false;
 const copy={...entry,ledgerRecordedAt:new Date().toISOString()};ledger.push(copy);
+ 
+/* 4.24.57: mirror completed share-trade cash effects into each citizen's Player Ledger.
+   The Share & Ownership Ledger remains the master trade record. Player entries reference
+   that same transaction ID and are idempotent, so refreshing/replaying cannot duplicate them. */
+try{
+ const isCompleted=!["voided","reversed","failed","pending"].includes(String(entry.status||"").toLowerCase());
+ const isCashShareEvent=/share trade|market money buyback/i.test(String(entry.type||""));
+ if(isCompleted&&isCashShareEvent&&String(entry.type||"").toLowerCase()!=="market money buyback reversal"){
+  st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
+  const addPlayerEntry=(role,name,id,amount,before,after,reason)=>{
+   if(!name||!Number.isFinite(Number(amount))||Math.abs(Number(amount))<0.0000001)return;
+   const pid="PLT-"+String(entry.id)+"-"+role;
+   if(st.playerLedgerTransactions.some(x=>x&&String(x.id)===pid))return;
+   st.playerLedgerTransactions.push({
+    id:pid,at:entry.at||new Date().toISOString(),season:Number(entry.season||st.year)||29,
+    gameCount:Number(entry.gameCount)||0,player:String(name),citizenId:id==null?null:String(id),
+    amount:Number(amount),type:String(entry.type||"Share Trade"),
+    reason,source:"Share & Ownership Ledger",transactionId:String(entry.id),
+    balanceBefore:before==null?null:Number(before),balanceAfter:after==null?null:Number(after)
+   });
+  };
+  const buyerIsCitizen=String(entry.buyerType||"").toLowerCase()==="citizen";
+  const sellerIsCitizen=String(entry.sellerType||"").toLowerCase()==="citizen";
+  const isBuyback=String(entry.type||"").toLowerCase()==="market money buyback";
+  if(isBuyback){
+   /* Buyback handler already writes its citizen Player Ledger entry. */
+  }else{
+   if(buyerIsCitizen&&entry.buyerCashBefore!=null&&entry.buyerCashAfter!=null){
+    addPlayerEntry("BUYER",entry.buyer,entry.buyerId,Number(entry.buyerCashAfter)-Number(entry.buyerCashBefore),entry.buyerCashBefore,entry.buyerCashAfter,
+     "Bought "+Number(entry.shares||0)+" share(s) of "+String(entry.company||"company")+" from "+String(entry.seller||"the market"));
+   }
+   if(sellerIsCitizen&&entry.sellerCashBefore!=null&&entry.sellerCashAfter!=null){
+    addPlayerEntry("SELLER",entry.seller,entry.sellerId,Number(entry.sellerCashAfter)-Number(entry.sellerCashBefore),entry.sellerCashBefore,entry.sellerCashAfter,
+     "Sold "+Number(entry.shares||0)+" share(s) of "+String(entry.company||"company")+" to "+String(entry.buyer||"the market"));
+   }
+  }
+ }
+}catch(e){console.error("Share transaction Player Ledger mirror failed.",e);}
 try{localStorage.setItem(SHARE_OWNERSHIP_LEDGER_KEY,JSON.stringify(ledger));}catch(e){console.error("Share ledger recovery mirror save failed.",e);}
 try{bridge.save();}catch(e){console.error("Share ledger state save failed.",e);}
 return true;
