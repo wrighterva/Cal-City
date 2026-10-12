@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.24.55 -->
-<!-- Build identity: 4.24.62. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- CALVIN'S CITY — VERSION 4.24.63 -->
+<!-- Build identity: 4.24.63. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.62</title>
+<title>Calvin's City 4.24.63</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -84,7 +84,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.24.62</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.24.63</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -4227,8 +4227,62 @@ panel.querySelectorAll('[data-approve-cash-tx]').forEach(btn=>btn.addEventListen
  const entry=tx.find(x=>String(x.id||"")===String(id));
  if(!entry){alert("Transaction not found. No change made.");return;}
  entry.approvalStatus=decision;entry.approvalAt=new Date().toISOString();entry.approvalNote=note;
- /* Keep approval decisions in both the player ledger and the persistent cash approval queue.
-    This is an audit decision only; it does not retroactively change balances or bypass cash integrity. */
+ /* 4.24.63: Rejection of a linked stock share trade requests a guarded reversal.
+    Do not mutate cash or ownership if the original stock transaction cannot be located,
+    or if it has already been voided/reversed. */
+ if(decision==="rejected" && /share trade|market money buyback/i.test(String(entry.type||""))){
+  const linkedId=String(entry.transactionId||entry.stockTransactionId||entry.id||"");
+  const stockDb=window.calvinsCityStockMarketDB||window.stockMarketDB||window.stockMarketDb||null;
+  const stockTxs=stockDb&&Array.isArray(stockDb.transactions)?stockDb.transactions:null;
+  const original=stockTxs&&stockTxs.find(x=>x&&String(x.id)===linkedId);
+  if(!original){
+   entry.approvalStatus="pending";
+   alert("Rejection saved as pending review, but no matching original stock transaction was found. No cash or shares were changed. The Share Trades record must be linked before a safe reversal can run.");
+  }else if(["voided","reversed"].includes(String(original.status||"").toLowerCase())||original.voidedByRejection===true){
+   entry.approvalStatus="rejected";
+   entry.approvalNote=(note?note+" | ":"")+"Original transaction was already voided/reversed; no duplicate correction applied.";
+  }else{
+   const stNow=typeof getState==="function"?getState():state;
+   const buyerName=String(original.buyer||original.buyerName||"");
+   const sellerName=String(original.seller||original.sellerName||"");
+   const buyer=(stNow.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===buyerName.trim().toLowerCase());
+   const seller=(stNow.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===sellerName.trim().toLowerCase());
+   const amt=Number(original.total??original.price)||0;
+   const shareCount=Number(original.shares)||0;
+   if(!buyer||!seller||!Number.isFinite(amt)||amt<=0||shareCount<=0){
+    entry.approvalStatus="pending";
+    alert("Rejection requires manual reconciliation: the original buyer, seller, amount, or share count could not be safely verified. No reversal was applied.");
+   }else{
+    /* Cash is only corrected when the original trade's recorded post-balance still matches.
+       If an integrity monitor has already restored a balance, leave it untouched. */
+    const buyerCash=Number(buyer.cash),sellerCash=Number(seller.cash);
+    const buyerPost=Number(original.buyerCashAfter),sellerPost=Number(original.sellerCashAfter);
+    const buyerPre=Number(original.buyerCashBefore),sellerPre=Number(original.sellerCashBefore);
+    const buyerMatches=Number.isFinite(buyerCash)&&Number.isFinite(buyerPost)&&Math.abs(buyerCash-buyerPost)<0.0001;
+    const sellerMatches=Number.isFinite(sellerCash)&&Number.isFinite(sellerPost)&&Math.abs(sellerCash-sellerPost)<0.0001;
+    if(buyerMatches)buyer.cash=buyerPre;
+    if(sellerMatches)seller.cash=sellerPre;
+    original.status="voided";original.voidedByRejection=true;original.voidedAt=entry.approvalAt;original.voidedReason=note||"Rejected from Player Ledger";
+    original.reversalId="REV-"+String(original.id);
+    const reversal={...original,id:original.reversalId,originalTransactionId:String(original.id),type:"Share Trade Reversal",status:"completed",at:entry.approvalAt,voidsTransactionId:String(original.id),cashCorrected:{buyer:buyerMatches,seller:sellerMatches},sharesRestored:true};
+    if(Array.isArray(stockDb.transactions))stockDb.transactions.push(reversal);
+    if(Array.isArray(stNow.stockMarketCashLedger))stNow.stockMarketCashLedger.push({...reversal});
+    const ledger=Array.isArray(stNow.shareOwnershipLedger)?stNow.shareOwnershipLedger:[];
+    const master=ledger.find(x=>x&&String(x.id)===String(original.id));
+    if(master){master.status="voided";master.voidedByRejection=true;master.voidedAt=entry.approvalAt;master.reversalId=reversal.id;}
+    if(Array.isArray(stNow.playerLedgerTransactions)){
+     stNow.playerLedgerTransactions.filter(x=>x&&(String(x.transactionId||"")===String(original.id)||String(x.id||"").startsWith(String(original.id)))).forEach(x=>{x.status="voided";x.voidedAt=entry.approvalAt;x.reversalId=reversal.id;});
+    }
+    entry.status="voided";entry.reversalId=reversal.id;
+    try{localStorage.setItem("calvins_city_share_ownership_ledger_v1",JSON.stringify(ledger));}catch(e){}
+    try{if(stockDb&&typeof stockDb.save==="function")stockDb.save();}catch(e){}
+    try{if(typeof saveDB==="function")saveDB(stockDb);}catch(e){}
+    /* Force shareholder counts to be rebuilt by normal rendering from stock DB holdings.
+       If the app has no compatible live stock DB reference, the record remains voided and the mismatch is visible for audit. */
+   }
+  }
+ }
+ /* Keep approval decisions in both the player ledger and the persistent cash approval queue. */
  state.cashMutationApprovalQueue=Array.isArray(state.cashMutationApprovalQueue)?state.cashMutationApprovalQueue:[];
  const queueId="PLAYER-TX-"+String(id);
  let q=state.cashMutationApprovalQueue.find(x=>x&&String(x.id)===queueId);
@@ -5897,7 +5951,7 @@ const st=getState();st.shareOwnershipLedger=Array.isArray(st.shareOwnershipLedge
 try{const raw=localStorage.getItem(SHARE_OWNERSHIP_LEDGER_KEY);if(raw){const saved=JSON.parse(raw);if(Array.isArray(saved)){const seen=new Set(st.shareOwnershipLedger.map(x=>String(x&&x.id||"")));saved.forEach(x=>{if(x&&x.id&&!seen.has(String(x.id))){st.shareOwnershipLedger.push(x);seen.add(String(x.id));}});}}}catch(e){console.warn("Share ledger recovery mirror could not be read.",e);}
 return st.shareOwnershipLedger;
 }
-/* 4.24.62: Keep shareholder lists/counts synchronized with completed share trades.
+/* 4.24.63: Keep shareholder lists/counts synchronized with completed share trades.
   A holder is present only while their resulting share count is positive. */
 window.syncShareholdersFromTrade=function(entry){
 try{
@@ -5945,7 +5999,7 @@ try{
  return true;
 }catch(e){console.error("Shareholder sync failed:",e);return false;}
 };
-/* 4.24.62: Cash mutation approval queue. Approval is transaction-specific and auditable.
+/* 4.24.63: Cash mutation approval queue. Approval is transaction-specific and auditable.
   This queue records decisions; it does not disable cash-integrity enforcement globally. */
 window.CAL_CITY_CASH_APPROVAL_KEY="calvins_city_cash_approval_queue_v1";
 window.getCashApprovalQueue=function(){
@@ -6291,7 +6345,7 @@ const at=new Date().toISOString(),id="STK-"+Date.now()+"-"+Math.random().toStrin
 const buyerBefore=buyer.getCash(),sellerBefore=seller?seller.getCash():null,companyDef=companies.find(c=>c.name===company),companyIsArenaTeam=!!(companyDef&&companyDef.category==="Basketball Teams"),companyCashBefore=(Number(companyIsArenaTeam?(st.teamCash||{})[company]:(st.businessCash||{})[company])||Number(co.initialCashValue)||0);
 const snapshot=JSON.stringify(db);
 try{
- /* 4.24.62: Mark the cash writes as part of this authorized, identified trade
+ /* 4.24.63: Mark the cash writes as part of this authorized, identified trade
     BEFORE touching citizen.cash. The cash-integrity setter otherwise records
     legitimate debits/credits as UNVERIFIED because it runs before the trade
     ledger record is appended. Errors still roll the transaction back below. */
