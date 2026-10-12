@@ -1,15 +1,15 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 4.28.81 -->
+<!-- CALVIN'S CITY — VERSION 4.28.82 -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
-<!-- Build identity: 4.28.81. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.28.82. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.81</title>
+<title>Calvin's City 4.28.82</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -87,7 +87,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.81</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.82</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -294,14 +294,24 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="card">
 <h3>Sports Bets Company Debt</h3>
 <p class="tiny">Sports Bets Company can issue debt to raise cash. Citizens and businesses may buy portions of an issuance; basketball teams and Sports Bets Company itself cannot buy. At payoff, each holder receives principal plus a one-time 0.25% interest payment on the principal they purchased. The debt register tracks each owner, ownership percentage, principal, interest and payout.</p>
+<section class="card" style="margin-top:12px">
+<h4>Issue Debt Features</h4>
+<p class="tiny">Create a debt offering. Issuance proceeds are received only as eligible buyers purchase portions.</p>
 <div class="grid">
 <div><label for="betsDebtIssueAmount">New debt issuance ($M)</label><input id="betsDebtIssueAmount" type="number" min="0.01" step="0.01" value="100"></div>
 <div style="display:flex;align-items:end"><button type="button" class="goodbtn" id="betsDebtIssue">Issue Debt</button></div>
+</div>
+</section>
+<section class="card" style="margin-top:12px">
+<h4>Buy Debt Features</h4>
+<p class="tiny">Select an open issuance and an eligible citizen or business, then choose the amount to purchase. View ownership, expected payoff, outstanding debt, and repayment controls below.</p>
+<div class="grid">
 <div><label for="betsDebtIssueSelect">Open issuance</label><select id="betsDebtIssueSelect"><option value="">No open debt</option></select></div>
 <div><label for="betsDebtBuyer">Buyer (citizen or business)</label><select id="betsDebtBuyer"><option value="">Choose buyer</option></select></div>
 <div><label for="betsDebtBuyAmount">Amount to buy ($M)</label><input id="betsDebtBuyAmount" type="number" min="0.01" step="0.01" value="10"></div>
 <div style="display:flex;align-items:end"><button type="button" id="betsDebtBuy">Buy Debt</button></div>
 </div>
+</section>
 <p id="betsDebtMessage" class="tiny" aria-live="polite"></p>
 <div id="betsDebtSummary"></div>
 <div id="betsDebtOwnership"></div>
@@ -790,7 +800,7 @@ try{
  }
 }catch(backupReadError){console.warn("Previous BETS backup could not be read; main ledger remains untouched:",backupReadError);}
 }
-// v4.28.81: game-start confirmation gates automatic citizen bets before the next game.
+// v4.28.82: game-start confirmation gates automatic citizen bets before the next game.
 function sbRound(v){return Math.round((Number(v)||0)*100)/100;}
 function sbEsc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function sbMoney(v){return "$"+sbRound(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+"M";}
