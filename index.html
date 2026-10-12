@@ -1,13 +1,13 @@
 <!DOCTYPE html>
  
 <!-- CALVIN'S CITY — VERSION 4.24.55 -->
-<!-- Build identity: 4.24.61. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.24.62. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.24.61</title>
+<title>Calvin's City 4.24.62</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -84,7 +84,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.24.61</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.24.62</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -4217,7 +4217,7 @@ const decision=String(t.approvalStatus||"pending").toLowerCase();
 const isPending=decision==="pending"||decision==="pending_approval"||!t.approvalStatus;
 const txid=String(t.id||"");
 const statusLabel=decision==="approved"?"APPROVED":decision==="rejected"?"REJECTED":"PENDING REVIEW";
-const controls=isPending?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="player-ledger-btn" data-approve-cash-tx="'+String(txid).replace(/&/g,"&amp;").replace(/\\\"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'" data-approval-decision="approved">Approve transaction</button><button type="button" class="player-ledger-btn" data-approve-cash-tx="'+String(txid).replace(/&/g,"&amp;").replace(/\\\"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'" data-approval-decision="rejected">Reject transaction</button></div>':'<p class="tiny"><b>Decision:</b> '+statusLabel+' · '+String(t.approvalAt?new Date(t.approvalAt).toLocaleString():"")+(t.approvalNote?' · '+String(t.approvalNote):'')+'</p>';
+const controls=isPending?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="player-ledger-btn" style="background:#238636!important;border:1px solid #2ea043!important;color:#fff!important" data-approve-cash-tx="'+String(txid).replace(/&/g,"&amp;").replace(/\\\"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'" data-approval-decision="approved">Approve transaction</button><button type="button" class="player-ledger-btn" style="background:#b42318!important;border:1px solid #f04438!important;color:#fff!important" data-approve-cash-tx="'+String(txid).replace(/&/g,"&amp;").replace(/\\\"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'" data-approval-decision="rejected">Reject transaction</button></div>':'<p class="tiny"><b>Decision:</b> '+statusLabel+' · '+String(t.approvalAt?new Date(t.approvalAt).toLocaleString():"")+(t.approvalNote?' · '+String(t.approvalNote):'')+'</p>';
 return '<div class="ledger-entry"><b>'+String(t.type||"Transaction")+' · '+(Number(t.amount)>=0?'+':'')+'$'+(Number(t.amount)||0)+'M</b><br>'+String(t.reason||"Reason not recorded")+' · '+new Date(t.at).toLocaleString()+'<br>Source: '+String(t.source||"Not recorded")+' · Balance '+(t.balanceBefore==null?'?':'$'+t.balanceBefore+'M')+' → '+(t.balanceAfter==null?'?':'$'+t.balanceAfter+'M')+'<br><b>Approval status:</b> '+statusLabel+controls+'</div>';
 }).join("")||'<p class="tiny">No instrumented transaction events for this player yet. Tracking starts with supported financial actions; older cash changes cannot be reconstructed reliably.</p>';
 panel.innerHTML='<h4 style="margin:0 0 8px">'+name+' — Financial Activity</h4><p><b>Current cash:</b> '+(c.cash==null?'Not recorded':'$'+Number(c.cash)+'M')+'</p><h4>Active Contract</h4>'+(liveHtml||'<p class="tiny">No active team contract found for this player.</p>')+'<h4>Contract History</h4>'+contracts+'<h4>Shoe Deals</h4>'+shoes+'<h4>Recorded Transactions ('+tx.length+')</h4>'+events;
@@ -5897,7 +5897,7 @@ const st=getState();st.shareOwnershipLedger=Array.isArray(st.shareOwnershipLedge
 try{const raw=localStorage.getItem(SHARE_OWNERSHIP_LEDGER_KEY);if(raw){const saved=JSON.parse(raw);if(Array.isArray(saved)){const seen=new Set(st.shareOwnershipLedger.map(x=>String(x&&x.id||"")));saved.forEach(x=>{if(x&&x.id&&!seen.has(String(x.id))){st.shareOwnershipLedger.push(x);seen.add(String(x.id));}});}}}catch(e){console.warn("Share ledger recovery mirror could not be read.",e);}
 return st.shareOwnershipLedger;
 }
-/* 4.24.61: Keep shareholder lists/counts synchronized with completed share trades.
+/* 4.24.62: Keep shareholder lists/counts synchronized with completed share trades.
   A holder is present only while their resulting share count is positive. */
 window.syncShareholdersFromTrade=function(entry){
 try{
@@ -5945,7 +5945,7 @@ try{
  return true;
 }catch(e){console.error("Shareholder sync failed:",e);return false;}
 };
-/* 4.24.61: Cash mutation approval queue. Approval is transaction-specific and auditable.
+/* 4.24.62: Cash mutation approval queue. Approval is transaction-specific and auditable.
   This queue records decisions; it does not disable cash-integrity enforcement globally. */
 window.CAL_CITY_CASH_APPROVAL_KEY="calvins_city_cash_approval_queue_v1";
 window.getCashApprovalQueue=function(){
@@ -6291,7 +6291,7 @@ const at=new Date().toISOString(),id="STK-"+Date.now()+"-"+Math.random().toStrin
 const buyerBefore=buyer.getCash(),sellerBefore=seller?seller.getCash():null,companyDef=companies.find(c=>c.name===company),companyIsArenaTeam=!!(companyDef&&companyDef.category==="Basketball Teams"),companyCashBefore=(Number(companyIsArenaTeam?(st.teamCash||{})[company]:(st.businessCash||{})[company])||Number(co.initialCashValue)||0);
 const snapshot=JSON.stringify(db);
 try{
- /* 4.24.61: Mark the cash writes as part of this authorized, identified trade
+ /* 4.24.62: Mark the cash writes as part of this authorized, identified trade
     BEFORE touching citizen.cash. The cash-integrity setter otherwise records
     legitimate debits/credits as UNVERIFIED because it runs before the trade
     ledger record is appended. Errors still roll the transaction back below. */
