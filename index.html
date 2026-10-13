@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.28.94 -->
+<!-- CALVIN'S CITY — VERSION 4.28.95 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
-<!-- Build identity: 4.28.94. Debt purchase ledger/cash atomic verification. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.28.95. Debt purchase ledger/cash atomic verification. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
@@ -1096,6 +1096,9 @@ try{
  window.__suppressCitizenCashTrace=priorTrace;window.__cashIntegrityAuditBusy=priorAudit;
  const latest=sbGetAccount(buyer.kind,buyer.ref);
  sbRenderFinancePanels();
+ if(buyer.kind==="citizen" && document.getElementById("citizenLedgerModal")?.classList.contains("show")){
+  try{renderCitizenLedger();}catch(ledgerRefreshError){console.error("Citizen Ledger refresh after debt purchase failed",ledgerRefreshError);}
+ }
  msg.textContent=buyer.name+" purchased "+sbMoney(amount)+" ("+holder.ownershipPct.toFixed(2)+"%) of issuance "+issue.id+". Buyer cash: "+sbMoney(latest?latest.get():before-amount)+". Sports Bets Company received "+sbMoney(amount)+". Both ledger entries verified.";
 }catch(e){
  try{state=JSON.parse(oldState);betsDatabase=JSON.parse(oldDb);localStorage.setItem("calvins_city_v24",oldState);sbRestoreFinancialMirror(oldMirror);localStorage.setItem(BETS_STORAGE_KEY,oldDb);}catch(rollbackError){console.error("Debt purchase rollback incomplete",rollbackError);}
@@ -2891,7 +2894,7 @@ Run only while Season 29 is at game zero. This deliberately overrides stale
 test balances and live contract records after all older migrations have run.
 Starting contract amounts are already reflected in opening cash; do not pay
 them again or derive cash from contract history. */
-if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
+if(!citizenLedgerHasSportsBetsCashActivity && Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const opening={
 Lions_C:{name:"Wall",team:"Lions",position:"C",cash:787,value:787,teamValue:497,years:2,rookie:false,shoe:{company:"Reebok",value:290,years:2}},
 Lions_SG:{name:"Diggs",team:"Lions",position:"SG",cash:0,value:0,teamValue:0,years:2,rookie:true},
@@ -4503,6 +4506,10 @@ if(corrected){
  
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
+/* 4.28.95: Once a recorded Sports Bets cash transaction exists, never reapply
+  the untouched-Season-29 opening cash baseline during a later ledger render.
+  The baseline is not allowed to overwrite a verified post-opening debit/credit. */
+const citizenLedgerHasSportsBetsCashActivity=(Array.isArray(state.playerLedgerTransactions)?state.playerLedgerTransactions:[]).some(t=>t&&(/sports-bets/i.test(String(t.source||""))||/sports bets debt purchase|sports bet stake/i.test(String(t.type||""))));
 ensureBusinessOwnershipRegistry();
 /* 4.17.119: Capture the loaded state BEFORE the existing Ledger opening-cash
 reconciliation changes anything. This is diagnostic only: it does not pay,
@@ -4608,7 +4615,7 @@ correction: it only matches the exact diagnostic signature and approved
 starting-contract cash. It does not reset games, alter contracts, pay money,
 or touch Seasons 1–28. */
 if(state.season29LedgerCashRepairVersion!=="4.17.123" &&
-Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 &&
+!citizenLedgerHasSportsBetsCashActivity && Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 &&
 state.seasonPhase==="regular" && !state.seasonPlayed &&
 !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const fixes={Holly:{bad:450,baseline:350},Kap:{bad:750,baseline:450},Bic:{bad:633,baseline:533}};
@@ -4647,7 +4654,7 @@ immediately before the ledger rows and diagnostics read state. This is an openin
 baseline restoration, not a payment. It runs only before any Season 29 game exists.
 Preserve all historical records and never change team/game results. */
 let season29FinalCashRepaired=false;
-if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 && state.seasonPhase==="regular" &&
+if(!citizenLedgerHasSportsBetsCashActivity && Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 && state.seasonPhase==="regular" &&
 !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const finalOpeningCash={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
 Object.entries(finalOpeningCash).forEach(([name,amount])=>{
