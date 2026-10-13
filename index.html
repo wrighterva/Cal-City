@@ -87,7 +87,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 @media (max-width:760px){.offseason-roster-grid{grid-template-columns:1fr}.offseason-slot{padding:10px}.offseason-slot-head{align-items:flex-start}.offseason-contract{max-width:55%;line-height:1.25}.offseason-action-row{grid-template-columns:minmax(0,1fr) auto}.offseason-verify-wrap .verify-decision{min-width:76px}.offseason-save{min-height:42px}}
  
-/* 4.29.6: Debt dialog is placed above every business modal layer. */
+/* 4.29.7: Debt dialog is placed above every business modal layer. */
 .sports-bets-debt-overlay{position:fixed!important;inset:0!important;z-index:2147483647!important;display:none;align-items:center;justify-content:center;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(0,0,0,.78);overflow:hidden}
 .sports-bets-debt-dialog{width:min(100%,680px);max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);max-height:calc(100vh - 24px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#1b2635;border:1px solid #526176;border-radius:18px;padding:clamp(12px,3.5vw,22px);color:#f3f6fb;box-shadow:0 18px 60px rgba(0,0,0,.45)}
 .sports-bets-debt-header{display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;position:sticky;top:calc(-1 * clamp(12px,3.5vw,22px));z-index:5;background:#1b2635;padding:4px 0 10px;margin:0 0 8px;border-bottom:1px solid #344255}
@@ -101,7 +101,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.6</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.7</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1257,8 +1257,13 @@ const result=sbRunOtherBets();
 if(!result||!result.ok){sbGameStartProcessing=false;sbDoneYes.disabled=false;sbDoneYes.textContent="Yes";if(status)status.textContent="The game is paused because automatic betting could not be completed safely. Review the BETS status and try again.";return;}
 sbCloseDoneBettingModal();sbGameStartProcessing=false;playNextGame();
 });
-const sbIssueButton=document.getElementById("betsDebtIssue");if(sbIssueButton)sbIssueButton.addEventListener("click",sbIssueDebt);
-const sbBuyButton=document.getElementById("betsDebtBuy");if(sbBuyButton)sbBuyButton.addEventListener("click",sbBuyDebt);
+/* 4.29.7: Debt controls use delegated handlers because the popup is portaled to body and can be re-rendered. */
+document.addEventListener("click",function(event){
+const issueBtn=event.target&&event.target.closest?event.target.closest("#betsDebtIssue"):null;
+if(issueBtn){event.preventDefault();event.stopPropagation();try{sbIssueDebt();}catch(error){console.error("Debt issuance failed",error);const msg=document.getElementById("betsDebtMessage");if(msg)msg.textContent="Issue Debt failed: "+String(error&&error.message||error); }return;}
+const buyBtn=event.target&&event.target.closest?event.target.closest("#betsDebtBuy"):null;
+if(buyBtn){event.preventDefault();event.stopPropagation();try{sbBuyDebt();}catch(error){console.error("Debt purchase failed",error);const msg=document.getElementById("betsDebtMessage");if(msg)msg.textContent="Buy Debt failed: "+String(error&&error.message||error); }}
+},true);
 ensureBetsFinanceCollections();
 function renderBetsStorageStatus(message){
 const out=document.getElementById("betsStorageStatus");
@@ -7417,4 +7422,4 @@ open(key,event);
 })();
 </script>
  
-</body></html> 
+</body></html>
