@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.18: disable startup resets; preserve season and repair Markets rendering. -->
+<!-- CALVIN'S CITY — VERSION 4.29.19: disable startup resets; preserve season and repair Markets rendering. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.18</title>
+<title>Calvin's City 4.29.19</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -635,7 +635,7 @@ season29ResetBlockedByStaging=true;
 console.error("Season 29 reset blocked because game records could not be safely staged for BETS import:",stagingError);
 }
 }
-/* 4.29.18 SAFETY: No startup routine may reset the live Season 29 state.
+/* 4.29.19 SAFETY: No startup routine may reset the live Season 29 state.
   Market repairs must not change the season, played games, contracts, cash,
   permanent records, or BETS history. Existing saved state remains authoritative. */
 /* 4.19.1: BETS is a permanent append-oriented ledger, independent of the season state.
@@ -662,7 +662,7 @@ console.error("Season 29 restore blocked: backup could not be saved and verified
 }
 const season29ResetBlockedByBackup=!season29RestoreBackupReady;
  
-/* 4.29.18 SAFETY: Removed automatic fresh-start mutation. The recovery snapshot
+/* 4.29.19 SAFETY: Removed automatic fresh-start mutation. The recovery snapshot
   above is retained, but page startup must never reset the season or accounts. */
  
 const BETS_STORAGE_KEY="calvins_city_bets_v1";
@@ -737,7 +737,7 @@ if(previousRaw!==null){
 }catch(backupReadError){console.warn("Previous BETS backup could not be read; main ledger remains untouched:",backupReadError);}
 }
  
-/* 4.29.18 SAFETY: Legacy startup reset routines were removed above.
+/* 4.29.19 SAFETY: Legacy startup reset routines were removed above.
   Saved state and permanent records must remain unchanged during page load. */
  
 // v4.28.85: game-start confirmation gates automatic citizen bets before the next game.
@@ -2440,85 +2440,8 @@ This runs once for the 4.17.105 build. It restores every live-game setting
 to the beginning of Season 29 while preserving permanent historical
 Records for Seasons 1–28. */
 const season29Marker=String(state.season29StartingPointVersion||"");
-/* 4.17.105: Reset the LIVE game state to the beginning of Season 29 once for
-this build so testing starts from the correct active season. Permanent
-Records, Hall of Fame data, game history, and historical retired players
-are preserved. Later gameplay is not reset again after this marker saves. */
-if(season29Marker!=="4.17.105" && !(season29Marker.startsWith("4.17.") && Number(season29Marker.split(".").pop())<58)){
-state.year=29;
-state.defendingChampion=HISTORICAL_LAST_CHAMPION;
-state.seasonPhase="regular";
-state.regularGameIndex=0;
-state.standings=freshStandings();
-state.gamesPlayed=[];
-state.playoff={bye:null,semifinal:null,championship:null};
-state.seasonPlayed=false;
-state.offseasonOpen=false;
-state.offseasonFinalized=false;
-state.offseasonDecisions={};
-state.verifiedOffseasonDecisions={};
-state.lastSeason=null;
-state.lastGame=null;
-state.contractYearsAdvancedForSeason=null;
+/* 4.29.19 SAFETY: Disabled legacy automatic Season 29 reset migration. */
  
-/* Keep only permanent historical game records from Seasons 1–28. */
-state.records=state.records||{retiredPlayers:[],gameRecords:[]};
-state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
-state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[])
-.filter(g=>Number(g&&g.year||0)<=28);
- 
-/* Restore the exact Lions Season 29 starting roster/contracts. */
-state.roster={Lions_C:"Wall",Lions_SG:"Diggs",Lions_PG:"Kap"};
-state.contracts={
-Lions_C:{value:787,years:2,rookie:false,totalPackage:787,teamValue:497,paymentModel:"starting-balance",totalPaid:787,paymentsMade:2,contractYears:2,contractStartSeason:null,
-  history:[{year:29,team:"Lions",value:787,years:2,rookie:false,totalPackage:787,teamValue:497}]},
-Lions_SG:{value:0,years:2,rookie:true,totalPackage:0,teamValue:0,paymentModel:"starting-balance",totalPaid:0,paymentsMade:2,contractYears:2,contractStartSeason:null,
-  history:[{year:29,team:"Lions",value:0,years:2,rookie:true,totalPackage:0,teamValue:0}]},
-Lions_PG:{value:450,years:2,rookie:false,totalPackage:450,teamValue:450,paymentModel:"starting-balance",totalPaid:450,paymentsMade:2,contractYears:2,contractStartSeason:null,
-  history:[{year:29,team:"Lions",value:450,years:2,rookie:false,totalPackage:450,teamValue:450}]}
-};
- 
-/* Restore the known Season 29 opening player information. */
-const openingPlayers={
-Wall:{cash:787,position:"C",careerPts:568,careerRebs:549,mvps:1,championships:2,
-  shoeDeals:[{company:"Reebok",years:2,value:290,includedInContract:true,startYear:29}]},
-Diggs:{cash:0,position:"SG",careerPts:83,careerRebs:80,mvps:0,championships:0,shoeDeals:[]},
-Kap:{cash:450,position:"PG",careerPts:278,careerRebs:243,mvps:0,championships:1,shoeDeals:[]}
-};
-Object.entries(openingPlayers).forEach(([name,p])=>{
-let citizen=state.citizens.find(x=>x&&x.name===name);
-if(!citizen){
-  const id="C"+String(state.citizens.length+1).padStart(3,"0");
-  citizen={id,name,status:"Active Player",position:p.position,currentTeam:"Lions",
-    cash:p.cash,debt:0,careerPts:p.careerPts,careerRebs:p.careerRebs,mvps:p.mvps,
-    championships:p.championships,champStreak:0,currentChampStreak:0,
-    businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
-  state.citizens.push(citizen);
-}
-citizen.status="Active Player";
-citizen.position=p.position;
-citizen.currentTeam="Lions";
-citizen.cash=p.cash;
-citizen.careerPts=p.careerPts;
-citizen.careerRebs=p.careerRebs;
-citizen.mvps=p.mvps;
-citizen.championships=p.championships;
-citizen.champStreak=0;
-citizen.currentChampStreak=0;
-citizen.contracts=[]; /* starting contract is not Citizen Ledger history */
-citizen.shoeDeals=p.shoeDeals;
-citizen.season29OpeningCashInitialized=true;
-citizen.season29OpeningCash=p.cash;
-});
- 
-state.season29StartingPointVersion="4.17.105";
-/* 4.17.105: The Season 29 reset above restores the Lions baseline.
- Re-apply the complete Arena opening roster immediately afterward so
- Rims and Dunks are present in the same live roster/contract database. */
-seedInitialArenaRosters();
-syncCitizenLedger();
-save();
-}
  
 /* 4.17.105: Connect the five known shoe deals to their actual players.
 This migration records existing deals only; it does not pay them or alter player cash. */
@@ -6145,9 +6068,9 @@ if(!Array.isArray(co.priceHistory))co.priceHistory=[];
 if(!Array.isArray(db.transactions))db.transactions=[];
 if(!Array.isArray(db.annualReports))db.annualReports=[];
 })();
-/* 4.29.18 SAFETY: Disabled the testing-only shareholder baseline reset.
+/* 4.29.19 SAFETY: Disabled the testing-only shareholder baseline reset.
   Current share ownership is user data and must not be overwritten on startup. */
-/* 4.29.18 SAFETY: Disabled the Season 29 test buyback rollback.
+/* 4.29.19 SAFETY: Disabled the Season 29 test buyback rollback.
   Startup must not reset Market Money, reverse share trades, or rewrite ownership.
   Existing transactions remain available for review and recovery. */
 /* 4.24.28: At the untouched Season 29 opening, reconcile stale persisted stock
@@ -7283,7 +7206,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.16",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.19",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -7303,9 +7226,29 @@ try{
  localStorage.setItem(recoveryKey,JSON.stringify(current));
  const verify=JSON.parse(localStorage.getItem(recoveryKey)||"null");if(!verify||verify.format!==PREFIX||verify.entryCount!==current.entryCount)throw new Error("Could not verify the recovery snapshot. Import cancelled.");
  const before={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&relevantKey(k))before[k]=localStorage.getItem(k);}
- try{for(const k of Object.keys(parsed.entries))localStorage.setItem(k,parsed.entries[k]);}
- catch(writeError){for(const k of Object.keys(before)){try{localStorage.setItem(k,before[k]);}catch(_){}}throw new Error("Import could not be fully written. Existing keys were restored where possible. Recovery snapshot: "+recoveryKey);}
- if(status())status().textContent="Backup restored and recovery snapshot verified. Reloading to load the restored data…";
+ try{
+  for(const k of Object.keys(parsed.entries))localStorage.setItem(k,parsed.entries[k]);
+  /* Verify the actual stored values before reloading; do not report success based only on writes. */
+  for(const k of Object.keys(parsed.entries)){
+   if(localStorage.getItem(k)!==parsed.entries[k])throw new Error("Stored value verification failed for "+k);
+  }
+  const mainRaw=localStorage.getItem("calvins_city_v24");
+  if(!mainRaw)throw new Error("Main game state is missing after restore.");
+  const main=JSON.parse(mainRaw);
+  if(Number(main.year)!==29 || !Array.isArray(main.gamesPlayed) || main.gamesPlayed.length<1)
+   throw new Error("The restored main state does not contain the expected played Season 29 games.");
+  const betsRaw=localStorage.getItem("calvins_city_bets_v1");
+  if(betsRaw){
+   const bets=JSON.parse(betsRaw);
+   if(!Array.isArray(bets.games) || bets.games.length<1)throw new Error("Betting history verification failed.");
+  }
+ }catch(writeError){
+  /* Restore every pre-import matching key and remove newly introduced matching keys. */
+  for(const k of Object.keys(parsed.entries)){if(!(k in before)){try{localStorage.removeItem(k)}catch(_){}}}
+  for(const k of Object.keys(before)){try{localStorage.setItem(k,before[k])}catch(_){}}
+  throw new Error("Import verification failed; previous matching storage was restored where possible. Recovery snapshot: "+recoveryKey+". Details: "+writeError.message);
+ }
+ if(status())status().textContent="Backup values verified, including played Season 29 games and betting history. Reloading…";
  setTimeout(()=>location.reload(),250);
 }catch(e){if(status())status().textContent="Import failed: "+e.message;console.error("Calvin’s City import failed",e);}finally{file.value="";}
 });
