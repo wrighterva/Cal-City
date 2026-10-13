@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.28.99 -->
+<!-- CALVIN'S CITY — VERSION 4.29.0 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
@@ -803,23 +803,23 @@ try{
 }catch(backupReadError){console.warn("Previous BETS backup could not be read; main ledger remains untouched:",backupReadError);}
 }
  
-/* 4.28.99: Explicit one-time Season 29 Game 0 restore after debt-purchase testing.
+/* 4.29.0: Explicit one-time Season 29 Game 0 restore after debt-purchase and TV-contract testing.
   Keep permanent historical game results and Seasons 1–28. Restore the approved
   opening cash baselines, return cash held in test debt purchases to buyers, set
   Sports Bets Company to $430M, and remove test-only debt/wager/finance activity.
   A verified recovery snapshot is mandatory before any change. */
 (function restoreSeason29OpeningAfterDebtTest(){
- const version="4.28.99-debt-test-reset";
+ const version="4.29.0-season29-debt-tv-contract-reset";
  if(state.season29FinanceTestResetVersion===version)return;
  if(!betsStorageWritable){console.error("Season 29 restore blocked: BETS database is not safely writable.");return;}
  const stateKey="calvins_city_v24", betsKey=BETS_STORAGE_KEY,
-       backupKey="calvins_city_pre_4_28_99_debt_test_reset",
+       backupKey="calvins_city_pre_4_29_0_debt_tv_contract_reset",
        mirrorKey="calvins_city_financial_transactions_v1";
  const rawState=localStorage.getItem(stateKey),rawBets=localStorage.getItem(betsKey),
        rawMirror=localStorage.getItem(mirrorKey);
  try{
    const backup={createdAt:new Date().toISOString(),
-     reason:"Before Season 29 Game 0 restore and Sports Bets debt-test cleanup",
+     reason:"Before Season 29 Game 0 restore, Sports Bets debt-test cleanup, and TV broadcasting contract reset",
      stateRaw:rawState,betsRaw:rawBets,financialMirrorRaw:rawMirror};
    localStorage.setItem(backupKey,JSON.stringify(backup));
    const verify=JSON.parse(localStorage.getItem(backupKey)||"null");
@@ -849,6 +849,9 @@ try{
  state.verifiedOffseasonDecisions={};state.openRosterSpots={};state.lastSeason=null;state.lastGame=null;
  state.contractYearsAdvancedForSeason=null;
  state.teamCash={...teamOpening};state.businessCash={...(state.businessCash||{}),...businessOpening};
+ // Reset all Season 29 TV broadcasting contracts because their test payments did not reliably reach team cash.
+ // Team/business opening cash is restored above; remove the matching contract-payment ledger rows only.
+ state.tvBroadcastingDeals=[];
  state.records=state.records||{retiredPlayers:[],gameRecords:[]};
  state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
  state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
@@ -865,21 +868,21 @@ try{
    c.currentTeam=playerSlots[name][0];c.position=playerSlots[name][1];
  });
  
- const testFinance=/sports bets debt purchase|sports bets debt proceeds|sports bets debt repayment|sports bets debt cleared|sports bets cash interest|sports bet stake|sports bet settlement|sports bets cash reconciliation/i;
+ const testFinance=/sports bets debt purchase|sports bets debt proceeds|sports bets debt repayment|sports bets debt cleared|sports bets cash interest|sports bet stake|sports bet settlement|sports bets cash reconciliation|tv broadcasting deal payment/i;
  ["playerLedgerTransactions","businessCashLedger","teamCashLedger"].forEach(key=>{
    if(Array.isArray(state[key]))state[key]=state[key].filter(x=>!x||!testFinance.test(String(x.type||"")+" "+String(x.reason||"")+" "+String(x.description||"")));
  });
- state.season29OpeningRestoreVersion="4.28.99-pending";
- state.season29FullBaselineRestoreVersion="pending-4.28.99";
+ state.season29OpeningRestoreVersion="4.29.0-pending";
+ state.season29FullBaselineRestoreVersion="pending-4.29.0";
  state.season29AllAccountOpeningCashReconciledVersion="4.24.26";
  state.season29FreshStartVersion=version;state.season29FinanceTestResetVersion=version;
  state.sportsBetsDebtLiabilities=[];
  state.season29FinanceTestResetAudit={version,at:new Date().toISOString(),status:"Applied",
-   backupKey,reason:"Restored Season 29 Game 0 and opening cash; reset Sports Bets to $430M; cleared test debt and wager activity while preserving permanent game history.",
+   backupKey,reason:"Restored Season 29 Game 0 and opening cash; reset Sports Bets to $430M; cleared test debt, wagers, and TV broadcasting contracts/payments while preserving permanent game history.",
    before,after:{season:29,gamesPlayed:0,sportsBetsCash:430,teamCash:{...state.teamCash},
      businessCash:{...state.businessCash},playerCash:{...openingPlayers},permanentGameRows:(betsDatabase.games||[]).length}};
  
- // Clear only test finance records; preserve permanent game-results rows and their IDs.
+ // Clear only test finance records and Season 29 TV contract/payment test rows; preserve permanent game-results rows and their IDs.
  betsDatabase.bets=[];betsDatabase.sportsBetsDebtIssues=[];
  betsDatabase.sportsBetsCashTransactions=[];betsDatabase.sportsBetsInterestAccruals=[];
  betsDatabase.sportsBetsLiabilities=[];
