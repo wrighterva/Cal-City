@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.11: retired-cash synchronization fix. -->
+<!-- CALVIN'S CITY — VERSION 4.29.12: retired-cash synchronization fix. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
 <!-- CALVIN'S CITY — VERSION 4.29.3 -->
@@ -102,7 +102,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.11</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.12</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -897,6 +897,59 @@ try{
  }
 })();
 
+
+/* 4.29.12: Explicit Season 29 Game 0 recovery after cash/debt debugging.
+  Creates a verified snapshot, restores known opening balances, cancels test debt/wagers,
+  and preserves permanent Seasons 1–28 game history. */
+(function restoreSeason29AfterCashDebtTesting(){
+ const version="4.29.12-season29-cash-debt-test-reset";
+ if(state.season29FinanceTestResetVersion===version)return;
+ if(!betsStorageWritable){console.error("Season 29 restore blocked: BETS database is not safely writable.");return;}
+ const stateKey="calvins_city_v24",betsKey=BETS_STORAGE_KEY,mirrorKey="calvins_city_financial_transactions_v1";
+ const backupKey="calvins_city_pre_4_29_12_cash_debt_reset";
+ const rawState=localStorage.getItem(stateKey),rawBets=localStorage.getItem(betsKey),rawMirror=localStorage.getItem(mirrorKey);
+ try{
+   const snapshot={createdAt:new Date().toISOString(),reason:"Before Season 29 Game 0 reset after cash and Sports Bets debt testing",stateRaw:rawState,betsRaw:rawBets,financialMirrorRaw:rawMirror};
+   localStorage.setItem(backupKey,JSON.stringify(snapshot));
+   const check=JSON.parse(localStorage.getItem(backupKey)||"null");
+   if(!check||check.stateRaw!==rawState||check.betsRaw!==rawBets||check.financialMirrorRaw!==rawMirror)throw new Error("Recovery snapshot verification failed");
+ }catch(e){console.error("Season 29 reset blocked: recovery snapshot could not be verified.",e);return;}
+ const openingPlayers={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
+ const openingBusinesses={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+ const openingTeams={Lions:4430,Rims:4470,Dunks:4450};
+ const testFinance=/sports bets debt purchase|sports bets debt proceeds|sports bets debt repayment|sports bets debt cleared|sports bets cash interest|sports bet stake|sports bet settlement|sports bets cash reconciliation|sports bet payout|sports bets debt/i;
+ try{
+   state.year=29;state.defendingChampion=HISTORICAL_LAST_CHAMPION;state.seasonPhase="regular";state.regularGameIndex=0;
+   state.standings=freshStandings();state.gamesPlayed=[];state.playoff={bye:null,semifinal:null,championship:null};
+   state.seasonPlayed=false;state.offseasonOpen=false;state.offseasonFinalized=false;state.offseasonDecisions={};
+   state.verifiedOffseasonDecisions={};state.openRosterSpots={};state.lastSeason=null;state.lastGame=null;state.contractYearsAdvancedForSeason=null;
+   state.teamCash={...openingTeams};state.businessCash={...(state.businessCash||{}),...openingBusinesses};state.tvBroadcastingDeals=[];
+   state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+   state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
+   state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
+   state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
+   const slots={Wall:["Lions","C"],Diggs:["Lions","SG"],Kap:["Lions","PG"],Nadler:["Rims","C"],Holly:["Rims","SG"],CJ:["Rims","PG"],Vico:["Dunks","C"],Pat:["Dunks","SG"],Bic:["Dunks","PG"]};
+   state.citizens=Array.isArray(state.citizens)?state.citizens:[];
+   Object.entries(openingPlayers).forEach(([name,cash])=>{
+     let c=state.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
+     if(!c){c={id:"C"+String(state.citizens.length+1).padStart(3,"0"),name,status:"Active Player",cash:0,contracts:[],shoeDeals:[],businesses:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};state.citizens.push(c);}
+     c.cash=cash;c.season29OpeningCash=cash;c.season29OpeningCashInitialized=true;c.startingContractCash=cash;c.startingContractAlreadyPaid=true;c.status="Active Player";c.currentTeam=slots[name][0];c.position=slots[name][1];
+   });
+   /* Reese's pre-test balance is directly established by the cash-source trace: $160M. */
+   const reese=state.citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="reese");
+   if(reese){reese.cash=160;reese.season29OpeningCash=160;reese.season29OpeningCashInitialized=true;}
+   ["playerLedgerTransactions","businessCashLedger","teamCashLedger"].forEach(key=>{if(Array.isArray(state[key]))state[key]=state[key].filter(x=>!x||!testFinance.test(String(x.type||"")+" "+String(x.reason||"")+" "+String(x.description||"")));});
+   state.sportsBetsDebtLiabilities=[];
+   state.season29FinanceTestResetVersion=version;state.season29FreshStartVersion=version;
+   state.season29FinanceTestResetAudit={version,at:new Date().toISOString(),status:"Applied",backupKey,reason:"Restored Season 29 Game 0, opening team/business/player cash, Reese's verified $160M pre-test cash, Sports Bets Company $430M; canceled test debt and wagers; preserved permanent game history.",after:{season:29,gamesPlayed:0,sportsBetsCash:430,teamCash:{...openingTeams},businessCash:{...openingBusinesses},playerCash:{...openingPlayers},reeseCash:reese?reese.cash:null}};
+   betsDatabase.bets=[];betsDatabase.sportsBetsDebtIssues=[];betsDatabase.sportsBetsCashTransactions=[];betsDatabase.sportsBetsInterestAccruals=[];betsDatabase.sportsBetsLiabilities=[];
+   localStorage.setItem(stateKey,JSON.stringify(state));localStorage.setItem(betsKey,JSON.stringify(betsDatabase));localStorage.setItem(BETS_BACKUP_KEY,JSON.stringify(betsDatabase));
+   if(typeof rawMirror==="string"&&rawMirror){try{const mirror=JSON.parse(rawMirror);if(Array.isArray(mirror))localStorage.setItem(mirrorKey,JSON.stringify(mirror.filter(x=>!x||!testFinance.test(String(x.type||"")+" "+String(x.description||"")+" "+String(x.reason||"")))));}catch(_){/* keep unrecognized mirror intact; snapshot is available */}}
+ }catch(e){
+   console.error("Season 29 reset failed; restoring saved copies.",e);
+   try{if(rawState!==null)localStorage.setItem(stateKey,rawState);if(rawBets!==null)localStorage.setItem(betsKey,rawBets);if(rawMirror!==null)localStorage.setItem(mirrorKey,rawMirror);}catch(rollbackError){console.error("Reset rollback incomplete; recovery snapshot remains at "+backupKey,rollbackError);}
+ }
+})();
 
 // v4.28.85: game-start confirmation gates automatic citizen bets before the next game.
 function sbRound(v){return Math.round((Number(v)||0)*100)/100;}
