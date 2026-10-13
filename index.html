@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.29.0 -->
+<!-- CALVIN'S CITY — VERSION 4.29.1 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
+<!-- 4.29.1: Moves Sports Bets Company Debt controls into the Sports Bets Company ownership marketplace behind a Company Debt tab beside Total Ownership; debt records and transaction logic remain unchanged. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
 <!-- Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
@@ -11,7 +12,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.98</title>
+<title>Calvin's City 4.29.1</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -293,31 +294,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div id="betsSlipHistory"><p class="muted">No manually placed bets yet.</p></div>
 <button type="button" id="betsHistoryToggle" style="display:none;margin:10px 0">View Full Betting History</button>
 </div>
-<div class="card">
-<h3>Sports Bets Company Debt</h3>
-<p class="tiny">Sports Bets Company can issue debt to raise cash. Citizens and businesses may buy portions of an issuance; basketball teams and Sports Bets Company itself cannot buy. At payoff, each holder receives principal plus a one-time 0.25% interest payment on the principal they purchased. The debt register tracks each owner, ownership percentage, principal, interest and payout.</p>
-<section class="card" style="margin-top:12px">
-<h4>Issue Debt Features</h4>
-<p class="tiny">Create a debt offering. Issuance proceeds are received only as eligible buyers purchase portions.</p>
-<div class="grid">
-<div><label for="betsDebtIssueAmount">New debt issuance ($M)</label><input id="betsDebtIssueAmount" type="number" min="0.01" step="0.01" value="100"></div>
-<div style="display:flex;align-items:end"><button type="button" class="goodbtn" id="betsDebtIssue">Issue Debt</button></div>
-</div>
-</section>
-<section class="card" style="margin-top:12px">
-<h4>Buy Debt Features</h4>
-<p class="tiny">Select an open issuance and an eligible citizen or business, then choose the amount to purchase. View ownership, expected payoff, outstanding debt, and repayment controls below.</p>
-<div class="grid">
-<div><label for="betsDebtIssueSelect">Open issuance</label><select id="betsDebtIssueSelect"><option value="">No open debt</option></select></div>
-<div><label for="betsDebtBuyer">Buyer (citizen or business)</label><select id="betsDebtBuyer"><option value="">Choose buyer</option></select></div>
-<div><label for="betsDebtBuyAmount">Amount to buy ($M)</label><input id="betsDebtBuyAmount" type="number" min="0.01" step="0.01" value="10"></div>
-<div style="display:flex;align-items:end"><button type="button" id="betsDebtBuy">Buy Debt</button></div>
-</div>
-</section>
-<p id="betsDebtMessage" class="tiny" aria-live="polite"></p>
-<div id="betsDebtSummary"></div>
-<div id="betsDebtOwnership"></div>
-</div>
+ 
 <div class="card">
 <h3>Permanent Game Results</h3>
 <p class="tiny">Each completed season game is saved here immediately. These records are stored separately from the basketball season data and survive Season 29 resets and normal game resets.</p>
@@ -5749,6 +5726,31 @@ if(document.readyState!=="loading")bindShoeCompanyModal();
 <div><label for="ownershipBusinessSelect">Business</label><select id="ownershipBusinessSelect" style="width:100%"></select></div>
 </div>
 <div id="ownershipBusinessSummary" class="log" style="margin-top:12px"></div>
+<div id="sportsBetsDebtPanel" style="display:none;margin-top:12px"><div class="card">
+<h3>Sports Bets Company Debt</h3>
+<p class="tiny">Sports Bets Company can issue debt to raise cash. Citizens and businesses may buy portions of an issuance; basketball teams and Sports Bets Company itself cannot buy. At payoff, each holder receives principal plus a one-time 0.25% interest payment on the principal they purchased. The debt register tracks each owner, ownership percentage, principal, interest and payout.</p>
+<section class="card" style="margin-top:12px">
+<h4>Issue Debt Features</h4>
+<p class="tiny">Create a debt offering. Issuance proceeds are received only as eligible buyers purchase portions.</p>
+<div class="grid">
+<div><label for="betsDebtIssueAmount">New debt issuance ($M)</label><input id="betsDebtIssueAmount" type="number" min="0.01" step="0.01" value="100"></div>
+<div style="display:flex;align-items:end"><button type="button" class="goodbtn" id="betsDebtIssue">Issue Debt</button></div>
+</div>
+</section>
+<section class="card" style="margin-top:12px">
+<h4>Buy Debt Features</h4>
+<p class="tiny">Select an open issuance and an eligible citizen or business, then choose the amount to purchase. View ownership, expected payoff, outstanding debt, and repayment controls below.</p>
+<div class="grid">
+<div><label for="betsDebtIssueSelect">Open issuance</label><select id="betsDebtIssueSelect"><option value="">No open debt</option></select></div>
+<div><label for="betsDebtBuyer">Buyer (citizen or business)</label><select id="betsDebtBuyer"><option value="">Choose buyer</option></select></div>
+<div><label for="betsDebtBuyAmount">Amount to buy ($M)</label><input id="betsDebtBuyAmount" type="number" min="0.01" step="0.01" value="10"></div>
+<div style="display:flex;align-items:end"><button type="button" id="betsDebtBuy">Buy Debt</button></div>
+</div>
+</section>
+<p id="betsDebtMessage" class="tiny" aria-live="polite"></p>
+<div id="betsDebtSummary"></div>
+<div id="betsDebtOwnership"></div>
+</div></div>
 <div class="card" style="margin:12px 0">
 <h3>Offer a stake for sale</h3>
 <p class="tiny">Choose a percentage you own and have available. The stake is reserved while the offer is active. The price is based on the current valuation when a buyer accepts.</p>
@@ -5876,7 +5878,7 @@ if(!record){summary.innerHTML='<p class="muted">Business record unavailable.</p>
 const cash=st.businessCash&&st.businessCash[business]!=null?Number(st.businessCash[business]):Number(businessCashSeed[business])||0;
 const owners=(record.owners||[]).filter(o=>Number(o.percentage)>0);
 const total=owners.reduce((sum,o)=>sum+(Number(o.percentage)||0),0);
-let html='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px"><div class="metric"><small>Business Valuation</small><strong>'+money(record.valuation)+'</strong></div><div class="metric"><small>Business Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Total Ownership</small><strong>'+pct(total)+'</strong></div></div>';
+let html='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px"><div class="metric"><small>Business Valuation</small><strong>'+money(record.valuation)+'</strong></div><div class="metric"><small>Business Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small style="display:flex;align-items:center;justify-content:space-between;gap:6px"><span>Total Ownership</span>'+(business==='Sports Bets Company'?'<button type="button" id="sportsBetsDebtTab" aria-controls="sportsBetsDebtPanel" aria-expanded="false" style="width:auto;margin:0;padding:5px 9px;font-size:12px;border-radius:8px">Company Debt</button>':'')+'</small><strong>'+pct(total)+'</strong></div></div>';
 html+='<h3>Current Ownership</h3><div style="overflow-x:auto"><table><thead><tr><th>Owner</th><th>Stake</th><th>Stake Value</th><th>Available to Offer</th></tr></thead><tbody>';
 owners.forEach(owner=>{
 const stake=Number(owner.percentage)||0,available=availablePercent(business,owner);
@@ -5884,6 +5886,10 @@ html+='<tr><td>'+esc(ownerName(owner))+(String(owner.citizenId)===String(actingI
 });
 html+='</tbody></table></div><p class="tiny">Ownership totals should equal 100%. Current business cash is displayed separately and is not changed by stake resales.</p>';
 summary.innerHTML=html;
+const debtPanel=document.getElementById("sportsBetsDebtPanel");
+if(debtPanel){debtPanel.style.display="none";}
+const debtTab=document.getElementById("sportsBetsDebtTab");
+if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;const opening=panel.style.display==="none";panel.style.display=opening?"block":"none";debtTab.setAttribute("aria-expanded",opening?"true":"false");if(opening&&typeof sbRenderFinancePanels==="function")sbRenderFinancePanels();});}
  
 const offers=activeOffers(business);
 let offerHtml='<h3>Stakes Offered for Sale</h3>';
