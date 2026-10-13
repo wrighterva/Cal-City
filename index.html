@@ -87,8 +87,8 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 @media (max-width:760px){.offseason-roster-grid{grid-template-columns:1fr}.offseason-slot{padding:10px}.offseason-slot-head{align-items:flex-start}.offseason-contract{max-width:55%;line-height:1.25}.offseason-action-row{grid-template-columns:minmax(0,1fr) auto}.offseason-verify-wrap .verify-decision{min-width:76px}.offseason-save{min-height:42px}}
  
-/* 4.29.5: Debt dialog is portaled to body and has isolated responsive styling. */
-.sports-bets-debt-overlay{position:fixed!important;inset:0!important;z-index:20000!important;display:none;align-items:center;justify-content:center;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(0,0,0,.78);overflow:hidden}
+/* 4.29.6: Debt dialog is placed above every business modal layer. */
+.sports-bets-debt-overlay{position:fixed!important;inset:0!important;z-index:2147483647!important;display:none;align-items:center;justify-content:center;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(0,0,0,.78);overflow:hidden}
 .sports-bets-debt-dialog{width:min(100%,680px);max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);max-height:calc(100vh - 24px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#1b2635;border:1px solid #526176;border-radius:18px;padding:clamp(12px,3.5vw,22px);color:#f3f6fb;box-shadow:0 18px 60px rgba(0,0,0,.45)}
 .sports-bets-debt-header{display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;position:sticky;top:calc(-1 * clamp(12px,3.5vw,22px));z-index:5;background:#1b2635;padding:4px 0 10px;margin:0 0 8px;border-bottom:1px solid #344255}
 .sports-bets-debt-header h3{flex:1;min-width:0;margin:0!important;font-size:clamp(18px,4.5vw,24px)!important;line-height:1.2;overflow-wrap:anywhere}
@@ -101,7 +101,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.93</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.6</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -5901,7 +5901,7 @@ const debtPanel=document.getElementById("sportsBetsDebtPanel");
 if(debtPanel){if(debtPanel.parentElement!==document.body)document.body.appendChild(debtPanel);debtPanel.style.display="none";}
 const debtTab=document.getElementById("sportsBetsDebtTab");
 const debtClose=document.getElementById("sportsBetsDebtClose");
-if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;panel.style.display="flex";debtTab.setAttribute("aria-expanded","true");if(typeof sbRenderFinancePanels==="function")sbRenderFinancePanels();});}
+if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;/* Portal directly under body and force top layer over marketplace dialog. */if(panel.parentElement!==document.body)document.body.appendChild(panel);panel.style.zIndex="2147483647";panel.style.display="flex";debtTab.setAttribute("aria-expanded","true");if(typeof sbRenderFinancePanels==="function")sbRenderFinancePanels();});}
 if(debtClose){debtClose.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(panel)panel.style.display="none";const tab=document.getElementById("sportsBetsDebtTab");if(tab)tab.setAttribute("aria-expanded","false");});}
 if(debtPanel){debtPanel.addEventListener("click",e=>{if(e.target===debtPanel){debtPanel.style.display="none";const tab=document.getElementById("sportsBetsDebtTab");if(tab)tab.setAttribute("aria-expanded","false");}});}
  
