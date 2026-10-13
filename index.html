@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.29.2 -->
+<!-- CALVIN'S CITY — VERSION 4.29.3 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
-<!-- 4.29.2: Places Company Debt in its own metric box beside Total Ownership in the Sports Bets Company ownership marketplace; debt records and transaction logic remain unchanged. -->
+<!-- 4.29.3: Opens Sports Bets Company Debt in a fixed popup with close control; debt records and transaction logic remain unchanged. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
 <!-- Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
@@ -5726,8 +5726,8 @@ if(document.readyState!=="loading")bindShoeCompanyModal();
 <div><label for="ownershipBusinessSelect">Business</label><select id="ownershipBusinessSelect" style="width:100%"></select></div>
 </div>
 <div id="ownershipBusinessSummary" class="log" style="margin-top:12px"></div>
-<div id="sportsBetsDebtPanel" style="display:none;margin-top:12px"><div class="card">
-<h3>Sports Bets Company Debt</h3>
+<div id="sportsBetsDebtPanel" role="dialog" aria-modal="true" aria-labelledby="sportsBetsDebtTitle" style="display:none;position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.78);padding:18px 12px;overflow-y:auto;box-sizing:border-box"><div class="card" style="max-width:900px;width:100%;margin:18px auto;max-height:none;box-sizing:border-box">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h3 id="sportsBetsDebtTitle">Sports Bets Company Debt</h3><button type="button" id="sportsBetsDebtClose" class="secondary" aria-label="Close debt window">Close ✕</button></div>
 <p class="tiny">Sports Bets Company can issue debt to raise cash. Citizens and businesses may buy portions of an issuance; basketball teams and Sports Bets Company itself cannot buy. At payoff, each holder receives principal plus a one-time 0.25% interest payment on the principal they purchased. The debt register tracks each owner, ownership percentage, principal, interest and payout.</p>
 <section class="card" style="margin-top:12px">
 <h4>Issue Debt Features</h4>
@@ -5889,7 +5889,10 @@ summary.innerHTML=html;
 const debtPanel=document.getElementById("sportsBetsDebtPanel");
 if(debtPanel){debtPanel.style.display="none";}
 const debtTab=document.getElementById("sportsBetsDebtTab");
-if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;const opening=panel.style.display==="none";panel.style.display=opening?"block":"none";debtTab.setAttribute("aria-expanded",opening?"true":"false");if(opening&&typeof sbRenderFinancePanels==="function")sbRenderFinancePanels();});}
+const debtClose=document.getElementById("sportsBetsDebtClose");
+if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;panel.style.display="block";debtTab.setAttribute("aria-expanded","true");if(typeof sbRenderFinancePanels==="function")sbRenderFinancePanels();});}
+if(debtClose){debtClose.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(panel)panel.style.display="none";const tab=document.getElementById("sportsBetsDebtTab");if(tab)tab.setAttribute("aria-expanded","false");});}
+if(debtPanel){debtPanel.addEventListener("click",e=>{if(e.target===debtPanel){debtPanel.style.display="none";const tab=document.getElementById("sportsBetsDebtTab");if(tab)tab.setAttribute("aria-expanded","false");}});}
  
 const offers=activeOffers(business);
 let offerHtml='<h3>Stakes Offered for Sale</h3>';
