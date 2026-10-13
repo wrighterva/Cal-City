@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.14: shoe-deal countdown for all citizens. -->
-<!-- CALVIN'S CITY — VERSION 4.29.14: retired-cash sync and shoe-deal countdown fix. -->
+<!-- CALVIN'S CITY — VERSION 4.29.15: team and Sports Bets company reports. -->
+<!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
 <!-- CALVIN'S CITY — VERSION 4.29.3 -->
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.14</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.15</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -6595,7 +6595,7 @@ const rows=Object.entries(co.holdings||{}).filter(([k,v])=>(Number(v)||0)>0).map
 out.innerHTML='<h4>Shareholder Register</h4>'+(co.needsAllocationReview?'<p class="gold">Allocation review required; no missing holder data has been fabricated.</p>':'')+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Shareholder</th><th>Shares</th><th>Ownership</th><th>Current Value</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No recovered shareholder allocations recorded.</p>');
 }else if(mode==='reports'){
 const rows=db.annualReports.filter(r=>r.company===name).slice().reverse().map(r=>'<tr><td>Season '+r.season+'</td><td>'+(r.revenueTracked?money(r.revenue):'Not tracked')+'</td><td>'+(r.revenueGrowthPct==null?'—':pct(r.revenueGrowthPct))+'</td><td>'+pct(r.priceChangePct)+(r.baseline?' (baseline)':'')+'</td><td>'+money(r.priceAfter)+'</td></tr>').join('');
-out.innerHTML='<h4>Company Reports</h4>'+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Season</th><th>Revenue</th><th>Revenue Growth</th><th>Price Move</th><th>Closing Price</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No annual reports recorded for this company yet.</p>');
+out.innerHTML='<h4>Company Reports</h4>'+(name==='Sports Bets Company'?'<p class="tiny">Sports Bets revenue is reported as recorded stakes received minus recorded settlement payouts/refunds. Debt proceeds and share trades are excluded.</p>':'')+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Season</th><th>Revenue</th><th>Revenue Growth</th><th>Price Move</th><th>Closing Price</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No annual reports recorded for this company yet.</p>');
 }else if(mode==='history'){
 const rows=db.transactions.filter(t=>t&&t.company===name).slice().reverse().map(t=>'<tr><td>'+esc(t.at?new Date(t.at).toLocaleString():'—')+'</td><td>'+esc(t.action||'Share trade')+'</td><td>'+Number(t.shares||0)+'</td><td>'+money(t.price)+'</td><td>'+money(t.total)+'</td><td>'+esc(t.buyer||'—')+'</td><td>'+esc(t.seller||'—')+'</td></tr>').join('');
 out.innerHTML='<h4>Full Trade History</h4>'+(rows?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Action</th><th>Shares</th><th>Price</th><th>Total</th><th>Buyer</th><th>Seller / Reserve</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">No stock trades recorded yet.</p>');
@@ -7234,19 +7234,38 @@ console.error("Stock trade failed:",err);alert("The trade could not be completed
 }
 }
 function revenueForSeason(st,company,season){
-/* 4.29.14: Stock-listed basketball teams report revenue from their own Team Cash Ledger.
-  Businesses continue to report from Business Cash Ledger. Count positive entries explicitly
-  labeled as revenue; exclude opening-balance resets, contract transfers, and award payouts. */
+/* 4.29.15: Report team ticket revenue and Sports Bets net betting earnings.
+  Team reports use positive Ticket Revenue entries. Ordinary businesses use their
+  positive revenue entries. Sports Bets uses stakes retained from losing bets minus
+  payouts/refunds, based only on recorded sportsbook cash ledger entries. Debt proceeds,
+  share trades, opening balances, and cash interest are not operating revenue. */
 const companyDef=companies.find(c=>String(c.name||"")===String(company));
 const isTeam=!!(companyDef&&companyDef.category==="Basketball Teams");
 const entries=isTeam
 ? (Array.isArray(st.teamCashLedger)?st.teamCashLedger:[])
 : (Array.isArray(st.businessCashLedger)?st.businessCashLedger:[]);
-const matching=entries.filter(e=>{
+const relevant=entries.filter(e=>{
 if(!e||Number(e.season)!==Number(season))return false;
-const account=String(isTeam?(e.team||e.account||""):(e.company||""));
-return account===String(company)&&/revenue/i.test(String(e.type||""))&&Number(e.amount)>0;
+const account=String(isTeam?(e.team||e.account||""):(e.company||e.account||""));
+return account===String(company);
 });
+if(company==="Sports Bets Company"){
+const betEntries=relevant.filter(e=>{
+ const type=String(e.type||"");
+ return /Sports Bet Stake Received|Automatic Sports Bet Stake Received/i.test(type)
+   || /Sports Bet Settlement Payout/i.test(type);
+});
+if(!betEntries.length)return {tracked:false,revenue:0,entries:0};
+// Stakes received are positive operating inflows; payouts/refunds are negative.
+const net=round4(betEntries.reduce((sum,e)=>{
+ const type=String(e.type||"");
+ const amount=Number(e.amount)||0;
+ if(/Sports Bet Settlement Payout/i.test(type))return sum-Math.abs(amount);
+ return sum+Math.max(0,amount);
+},0));
+return {tracked:true,revenue:Math.max(0,net),entries:betEntries.length,metric:"Net betting earnings"};
+}
+const matching=relevant.filter(e=>/revenue/i.test(String(e.type||""))&&Number(e.amount)>0);
 if(!matching.length)return {tracked:false,revenue:0,entries:0};
 return {tracked:true,revenue:round4(matching.reduce((sum,e)=>sum+Math.max(0,Number(e.amount)||0),0)),entries:matching.length};
 }
