@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- CALVIN'S CITY — VERSION 4.29.11: retired-cash synchronization fix. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
 <!-- CALVIN'S CITY — VERSION 4.29.3 -->
@@ -101,7 +102,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.10</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.11</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -3142,12 +3143,12 @@ if(p){
  c.currentTeam=null;
  c.position=null;
 }
-if(!team&&p&&p.retirementCash!=null)c.cash=p.retirementCash;
+/* 4.29.11: retirementCash is a historical snapshot, not a live balance. Do not overwrite current citizen cash during ledger sync; ensureCitizen seeds new citizen records from retirementCash when needed. */
 if(!p&&team&&c.cash==null)c.cash=0;
 c.businesses=citizenBusinessSummary(name);
 }
 if(c){
-if(!team&&p&&p.retirementCash!=null)c.cash=p.retirementCash;
+/* 4.29.11: retirementCash is a historical snapshot, not a live balance. Do not overwrite current citizen cash during ledger sync; ensureCitizen seeds new citizen records from retirementCash when needed. */
 if(!p&&team&&c.cash==null)c.cash=0;
 c.businesses=citizenBusinessSummary(name);
 }
