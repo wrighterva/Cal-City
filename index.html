@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.17: market refresh + disable unsafe startup resets; preserve existing data. -->
+<!-- CALVIN'S CITY — VERSION 4.29.18: disable startup resets; preserve season and repair Markets rendering. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.17</title>
+<title>Calvin's City 4.29.18</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -635,35 +635,9 @@ season29ResetBlockedByStaging=true;
 console.error("Season 29 reset blocked because game records could not be safely staged for BETS import:",stagingError);
 }
 }
-/* 4.17.121: One-time Season 29 test-game reset.
-The Rims–Lions game was intentionally played to test the ledger. Return the
-live season to the Season 29 opening state so more features can be tested
-from game zero. Preserve permanent Seasons 1–28 records and the separate
-BETS database. The full Season 29 baseline migration below restores opening
-player stats/contracts/cash after this reset. */
-if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length>0 && state.season29TestGameResetVersion!=="4.17.121" && !season29ResetBlockedByStaging){
-state.gamesPlayed=[];
-state.regularGameIndex=0;
-state.standings=freshStandings();
-state.playoff={bye:null,semifinal:null,championship:null};
-state.seasonPhase="regular";
-state.seasonPlayed=false;
-state.offseasonOpen=false;
-state.offseasonFinalized=false;
-state.offseasonDecisions={};
-state.verifiedOffseasonDecisions={};
-state.openRosterSpots={};
-state.lastSeason=null;
-state.lastGame=null;
-state.contractYearsAdvancedForSeason=null;
-state.records=state.records||{retiredPlayers:[],gameRecords:[]};
-state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
-state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
-// Re-run the established full Season 29 opening baseline migration below.
-state.season29FullBaselineRestoreVersion="pending-4.17.121";
-state.season29TestGameResetVersion="4.17.121";
-try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}catch(e){console.error("Season 29 test reset save failed:",e);}
-}
+/* 4.29.18 SAFETY: No startup routine may reset the live Season 29 state.
+  Market repairs must not change the season, played games, contracts, cash,
+  permanent records, or BETS history. Existing saved state remains authoritative. */
 /* 4.19.1: BETS is a permanent append-oriented ledger, independent of the season state.
 Never delete or season-filter this database. Normal saves merge concurrent/older
 in-memory copies with the current browser copy and refuse malformed saved data. */
@@ -688,39 +662,8 @@ console.error("Season 29 restore blocked: backup could not be saved and verified
 }
 const season29ResetBlockedByBackup=!season29RestoreBackupReady;
  
-/* 4.19.9: Return the LIVE basketball season to the beginning of Season 29.
-This runs once for this build. It preserves Seasons 1–28 and retired-player
-history, captures Season 29+ game records above for BETS import, restores the
-approved team cash baseline, and deliberately never clears the BETS database. */
-if(state.season29FreshStartVersion!=="4.28.69" && !season29ResetBlockedByStaging && !season29ResetBlockedByBackup){
-state.year=29;
-state.defendingChampion=HISTORICAL_LAST_CHAMPION;
-state.seasonPhase="regular";
-state.regularGameIndex=0;
-state.standings=freshStandings();
-state.gamesPlayed=[];
-state.playoff={bye:null,semifinal:null,championship:null};
-state.seasonPlayed=false;
-state.offseasonOpen=false;
-state.offseasonFinalized=false;
-state.offseasonDecisions={};
-state.verifiedOffseasonDecisions={};
-state.openRosterSpots={};
-state.lastSeason=null;
-state.lastGame=null;
-state.contractYearsAdvancedForSeason=null;
-state.teamCash={Lions:4430,Rims:4470,Dunks:4450};
-state.records=state.records||{retiredPlayers:[],gameRecords:[]};
-state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
-state.records.gameRecords=(Array.isArray(state.records.gameRecords)?state.records.gameRecords:[]).filter(g=>Number(g&&g.year||0)<=28);
-state.championshipAwards=(Array.isArray(state.championshipAwards)?state.championshipAwards:[]).filter(a=>Number(a&&a.season||0)<=28);
-/* Force the existing, well-tested Season 29 opening baseline migration to run. */
-state.season29OpeningRestoreVersion="4.28.69-pending";
-state.season29FullBaselineRestoreVersion="pending-4.28.69";
-state.season29FreshStartVersion="4.28.69";
-try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}
-catch(resetSaveError){console.error("Season 29 fresh-start state could not be saved:",resetSaveError);}
-}
+/* 4.29.18 SAFETY: Removed automatic fresh-start mutation. The recovery snapshot
+  above is retained, but page startup must never reset the season or accounts. */
  
 const BETS_STORAGE_KEY="calvins_city_bets_v1";
 const BETS_BACKUP_KEY="calvins_city_bets_backup_v1";
@@ -794,9 +737,8 @@ if(previousRaw!==null){
 }catch(backupReadError){console.warn("Previous BETS backup could not be read; main ledger remains untouched:",backupReadError);}
 }
  
-/* 4.29.17 SAFETY FIX: Removed legacy startup reset routines (4.29.0 and 4.29.12).
-  Those routines could repeatedly reset Season 29 and clear BETS on page load.
-  Existing state and permanent records are loaded normally and are not reset here. */
+/* 4.29.18 SAFETY: Legacy startup reset routines were removed above.
+  Saved state and permanent records must remain unchanged during page load. */
  
 // v4.28.85: game-start confirmation gates automatic citizen bets before the next game.
 function sbRound(v){return Math.round((Number(v)||0)*100)/100;}
@@ -6203,96 +6145,11 @@ if(!Array.isArray(co.priceHistory))co.priceHistory=[];
 if(!Array.isArray(db.transactions))db.transactions=[];
 if(!Array.isArray(db.annualReports))db.annualReports=[];
 })();
-/* 4.28.65: One-time shareholder baseline restoration requested for app-wide testing.
-Back up the existing stock-market database first. Restore only the current ownership
-register to the user's supplied original allocations. Preserve company cash, prices,
-Market Money balance, all trade/history records, basketball history, contracts, bets,
-and all other storage. This is not a game/season reset and never changes citizen cash. */
-(function restoreOriginalShareholderBaselineForTesting(){
-const marker="shareholderBaselineReset_4_28_68";
-if(db[marker]===true)return;
-const backupKey="calvins_city_pre_shareholder_baseline_reset_backup_4_28_68";
-try{
-const existing=localStorage.getItem(backupKey);
-if(!existing){
-const payload={backupType:"Calvin's City Pre-Shareholder-Baseline Reset",createdAt:new Date().toISOString(),sourceStorageKey:STORAGE_KEY,database:JSON.parse(JSON.stringify(db)),scope:"stock-market database only; original cash, prices, trades and histories included"};
-localStorage.setItem(backupKey,JSON.stringify(payload));
-}
-const verifiedBackup=JSON.parse(localStorage.getItem(backupKey)||"null");
-if(!verifiedBackup||!verifiedBackup.database||!verifiedBackup.database.companies)throw new Error("Pre-reset backup could not be verified; ownership reset cancelled.");
-}catch(e){console.error("Shareholder baseline reset cancelled because backup failed.",e);return;}
-const before={};
-const baseline={};
-companies.forEach(def=>{
-const co=db.companies&&db.companies[def.name];
-if(!co||!def.known||!Array.isArray(def.initialHoldings))return;
-const holdings={},ownerNames={},holderPurchasePrices={};
-def.initialHoldings.forEach(([name,shares])=>{
-const count=Number(shares)||0;
-if(count<=0)return;
-const key=ownerKeyFromName(name);
-holdings[key]=(Number(holdings[key])||0)+count;
-ownerNames[key]=name;
-if(def.initialPrices&&def.initialPrices[name]!=null)holderPurchasePrices[key]=Number(def.initialPrices[name]);
-});
-const allocated=Object.values(holdings).reduce((sum,n)=>sum+Math.max(0,Number(n)||0),0);
-if(allocated>TOTAL_SHARES)throw new Error("Baseline allocation exceeds 500 authorized shares for "+def.name+"; reset cancelled.");
-before[def.name]={holders:Object.keys(co.holdings||{}).length,shares:sharesSoldForReset(co.holdings)};
-co.holdings=holdings;co.ownerNames=ownerNames;co.holderPurchasePrices=holderPurchasePrices;
-co.needsAllocationReview=false;
-co.allocationNote="Original user-provided shareholder baseline restored for testing; unused shares remain available in reserve.";
-baseline[def.name]={holders:Object.keys(holdings).length,shares:allocated,available:TOTAL_SHARES-allocated};
-});
-db[marker]=true;
-db[marker+"At"]=new Date().toISOString();
-db[marker+"Audit"]={status:"completed",reason:"Restore original shareholder allocations before fixing shareholder-list synchronization.",before,baseline,cashChanged:false,companyCashChanged:false,pricesChanged:false,marketMoneyChanged:false,tradeHistoryDeleted:false,tradeHistoryRewritten:false,seasonChanged:false,backupKey};
-saveDB(db);
-function sharesSoldForReset(holdings){return Object.values(holdings||{}).reduce((sum,n)=>sum+Math.max(0,Number(n)||0),0);}
-})();
-/* 4.24.53: One-time rollback of the uncredited Season 29 S. Oliver Market Sell.
-Keep the original transaction as an audit record, restore the reserve and share,
-and do not fabricate a citizen cash credit. The user asked for Season 29 Game 0. */
-(function rollbackUncreditedSOliverBuybackForSeason29Reset(){
-const marker="season29SOliverBuybackRollback_4_24_53";
-if(db[marker]===true)return;
-const st=getState();
-const mm=db.marketMoney;
-if(!mm)return;
-const normName=v=>String(v||"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");
-const candidates=(Array.isArray(mm.transactions)?mm.transactions:[]).filter(tx=>
-tx&&tx.type==="Market Money Buyback"&&tx.status==="completed"&&
-normName(tx.citizen||tx.player)==="soliver"&&Number(tx.season||29)===29&&
-tx.voidedBySeason29Reset!==true&&Number(tx.total)>0&&tx.company
-);
-let restored=0,restoredShares=0;
-candidates.forEach(tx=>{
-const co=db.companies&&db.companies[tx.company];
-const shares=Math.max(1,Math.floor(Number(tx.shares)||1));
-const amount=Number(tx.total);
-const citizenId=String(tx.citizenId||"");
-const citizen=(Array.isArray(st.citizens)?st.citizens:[]).find(c=>c&&String(c.id)===citizenId)||
- (Array.isArray(st.citizens)?st.citizens:[]).find(c=>normName(c.name)==="soliver");
-if(!co||!Number.isFinite(amount)||amount<=0||!citizen)return;
-const key=String(citizen.id||citizenId);
-const current=Number(co.holdings&&co.holdings[key])||0;
-co.holdings=co.holdings||{};co.ownerNames=co.ownerNames||{};
-co.holdings[key]=round4(current+shares);co.ownerNames[key]=String(citizen.name||"S. Oliver");
-mm.balance=round4((Number(mm.balance)||0)+amount);
-tx.status="voided";tx.voidedBySeason29Reset=true;tx.voidedAt=new Date().toISOString();
-tx.voidReason="Season 29 test rollback: Market Sell deducted reserve but did not credit S. Oliver; sale reversed to restore opening state.";
-const mirror=(Array.isArray(db.transactions)?db.transactions:[]).find(x=>x&&String(x.id)===String(tx.id));
-if(mirror){mirror.status="voided";mirror.voidedBySeason29Reset=true;mirror.voidedAt=tx.voidedAt;mirror.voidReason=tx.voidReason;}
-restored+=amount;restoredShares+=shares;
-if(typeof window.recordShareOwnershipLedger==="function"){
- try{window.recordShareOwnershipLedger({id:"MMR-RESET-"+String(tx.id),at:tx.voidedAt,season:29,gameCount:0,type:"Market Money Buyback Reversal",company:tx.company,shares,amount,reserveBefore:round4(Number(mm.balance)-amount),reserveAfter:mm.balance,citizenId:String(citizen.id||citizenId),citizen:String(citizen.name||"S. Oliver"),source:"Season 29 opening reset",reversesTransactionId:String(tx.id),status:"completed",reason:tx.voidReason});}catch(e){console.warn("Buyback reversal ledger mirror could not be written",e);}
-}
-});
-mm.balance=3000;
-mm.interestRate=0.75;mm.gamesSinceBuyback=0;mm.lastInterestGameKey=null;
-mm.season29OpeningReset={at:new Date().toISOString(),season:29,gameCount:0,startingReserve:3000,voidedBuybackAmount:round4(restored),restoredShares,transactionsVoided:candidates.length};
-db[marker]=true;db[marker+"At"]=new Date().toISOString();
-saveDB(db);
-})();
+/* 4.29.18 SAFETY: Disabled the testing-only shareholder baseline reset.
+  Current share ownership is user data and must not be overwritten on startup. */
+/* 4.29.18 SAFETY: Disabled the Season 29 test buyback rollback.
+  Startup must not reset Market Money, reverse share trades, or rewrite ownership.
+  Existing transactions remain available for review and recovery. */
 /* 4.24.28: At the untouched Season 29 opening, reconcile stale persisted stock
 prices to the agreed starting formula: current company/team cash ÷ 500 shares.
 This changes current prices only; it preserves shareholder holdings, completed
