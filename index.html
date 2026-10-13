@@ -3,7 +3,7 @@
  
 <!-- CALVIN'S CITY — VERSION 4.29.3 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
-<!-- 4.29.4: Responsive Sports Bets debt popup sized to fit mobile and desktop viewports. -->
+<!-- 4.29.5: Corrected debt popup layout, header, and viewport sizing. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
 <!-- Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
@@ -86,6 +86,17 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
  
 @media (max-width:760px){.offseason-roster-grid{grid-template-columns:1fr}.offseason-slot{padding:10px}.offseason-slot-head{align-items:flex-start}.offseason-contract{max-width:55%;line-height:1.25}.offseason-action-row{grid-template-columns:minmax(0,1fr) auto}.offseason-verify-wrap .verify-decision{min-width:76px}.offseason-save{min-height:42px}}
+ 
+/* 4.29.5: Debt dialog is portaled to body and has isolated responsive styling. */
+.sports-bets-debt-overlay{position:fixed!important;inset:0!important;z-index:20000!important;display:none;align-items:center;justify-content:center;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(0,0,0,.78);overflow:hidden}
+.sports-bets-debt-dialog{width:min(100%,680px);max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);max-height:calc(100vh - 24px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#1b2635;border:1px solid #526176;border-radius:18px;padding:clamp(12px,3.5vw,22px);color:#f3f6fb;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+.sports-bets-debt-header{display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;position:sticky;top:calc(-1 * clamp(12px,3.5vw,22px));z-index:5;background:#1b2635;padding:4px 0 10px;margin:0 0 8px;border-bottom:1px solid #344255}
+.sports-bets-debt-header h3{flex:1;min-width:0;margin:0!important;font-size:clamp(18px,4.5vw,24px)!important;line-height:1.2;overflow-wrap:anywhere}
+.sports-bets-debt-header button#sportsBetsDebtClose{display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;margin:0!important;padding:8px 12px!important;font-size:14px!important;line-height:1.2;white-space:nowrap;border-radius:9px}
+.sports-bets-debt-dialog>.card{padding:clamp(12px,3vw,18px);margin:12px 0;border-radius:14px}
+.sports-bets-debt-dialog .grid{gap:10px}
+@media(max-width:480px){.sports-bets-debt-overlay{padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))}.sports-bets-debt-dialog{width:100%;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);padding:12px;border-radius:15px}.sports-bets-debt-header{top:-12px;padding-top:2px}.sports-bets-debt-header h3{font-size:19px!important}.sports-bets-debt-header button#sportsBetsDebtClose{padding:8px 10px!important}.sports-bets-debt-dialog .grid{grid-template-columns:minmax(0,1fr)!important}}
+ 
 </style>
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
@@ -5726,8 +5737,8 @@ if(document.readyState!=="loading")bindShoeCompanyModal();
 <div><label for="ownershipBusinessSelect">Business</label><select id="ownershipBusinessSelect" style="width:100%"></select></div>
 </div>
 <div id="ownershipBusinessSummary" class="log" style="margin-top:12px"></div>
-<div id="sportsBetsDebtPanel" role="dialog" aria-modal="true" aria-labelledby="sportsBetsDebtTitle" style="display:none;position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.78);padding: max(8px, env(safe-area-inset-top)) 10px max(8px, env(safe-area-inset-bottom));overflow:hidden;box-sizing:border-box;align-items:center;justify-content:center"><div class="card" style="width:100%;max-width:760px;max-height:calc(100vh - 24px);max-height:calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));margin:0 auto;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;padding:clamp(12px,3vw,22px);border-radius:18px">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:-1px;background:inherit;z-index:2"><h3 id="sportsBetsDebtTitle" style="margin:0;font-size:clamp(18px,4vw,24px)">Sports Bets Company Debt</h3><button type="button" id="sportsBetsDebtClose" class="secondary" aria-label="Close debt window" style="flex-shrink:0;white-space:nowrap">Close ✕</button></div>
+<div id="sportsBetsDebtPanel" class="sports-bets-debt-overlay" role="dialog" aria-modal="true" aria-labelledby="sportsBetsDebtTitle" style="display:none"><div class="sports-bets-debt-dialog">
+<div class="sports-bets-debt-header"><h3 id="sportsBetsDebtTitle">Sports Bets Company Debt</h3><button type="button" id="sportsBetsDebtClose" class="secondary" aria-label="Close debt window">Close ✕</button></div>
 <p class="tiny">Sports Bets Company can issue debt to raise cash. Citizens and businesses may buy portions of an issuance; basketball teams and Sports Bets Company itself cannot buy. At payoff, each holder receives principal plus a one-time 0.25% interest payment on the principal they purchased. The debt register tracks each owner, ownership percentage, principal, interest and payout.</p>
 <section class="card" style="margin-top:12px">
 <h4>Issue Debt Features</h4>
@@ -5887,7 +5898,7 @@ html+='<tr><td>'+esc(ownerName(owner))+(String(owner.citizenId)===String(actingI
 html+='</tbody></table></div><p class="tiny">Ownership totals should equal 100%. Current business cash is displayed separately and is not changed by stake resales.</p>';
 summary.innerHTML=html;
 const debtPanel=document.getElementById("sportsBetsDebtPanel");
-if(debtPanel){debtPanel.style.display="none";}
+if(debtPanel){if(debtPanel.parentElement!==document.body)document.body.appendChild(debtPanel);debtPanel.style.display="none";}
 const debtTab=document.getElementById("sportsBetsDebtTab");
 const debtClose=document.getElementById("sportsBetsDebtClose");
 if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;panel.style.display="flex";debtTab.setAttribute("aria-expanded","true");if(typeof sbRenderFinancePanels==="function")sbRenderFinancePanels();});}
@@ -7406,4 +7417,4 @@ open(key,event);
 })();
 </script>
  
-</body></html> 
+</body></html>
