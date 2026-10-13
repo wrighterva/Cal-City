@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.12: retired-cash synchronization fix. -->
+<!-- CALVIN'S CITY — VERSION 4.29.13: team annual stock revenue reporting. -->
+<!-- CALVIN'S CITY — VERSION 4.29.13: retired-cash synchronization fix. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
 <!-- CALVIN'S CITY — VERSION 4.29.3 -->
@@ -102,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.12</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.13</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -7228,8 +7229,19 @@ console.error("Stock trade failed:",err);alert("The trade could not be completed
 }
 }
 function revenueForSeason(st,company,season){
-const entries=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
-const matching=entries.filter(e=>e&&String(e.company||"")===company&&Number(e.season)===Number(season)&&/revenue/i.test(String(e.type||"")));
+/* 4.29.13: Stock-listed basketball teams report revenue from their own Team Cash Ledger.
+  Businesses continue to report from Business Cash Ledger. Count positive entries explicitly
+  labeled as revenue; exclude opening-balance resets, contract transfers, and award payouts. */
+const companyDef=companies.find(c=>String(c.name||"")===String(company));
+const isTeam=!!(companyDef&&companyDef.category==="Basketball Teams");
+const entries=isTeam
+? (Array.isArray(st.teamCashLedger)?st.teamCashLedger:[])
+: (Array.isArray(st.businessCashLedger)?st.businessCashLedger:[]);
+const matching=entries.filter(e=>{
+if(!e||Number(e.season)!==Number(season))return false;
+const account=String(isTeam?(e.team||e.account||""):(e.company||""));
+return account===String(company)&&/revenue/i.test(String(e.type||""))&&Number(e.amount)>0;
+});
 if(!matching.length)return {tracked:false,revenue:0,entries:0};
 return {tracked:true,revenue:round4(matching.reduce((sum,e)=>sum+Math.max(0,Number(e.amount)||0),0)),entries:matching.length};
 }
