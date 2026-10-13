@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.15: team and Sports Bets company reports. -->
+<!-- CALVIN'S CITY — VERSION 4.29.16: homepage Import / Export backup feature. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -103,11 +103,12 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.15</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.16</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
-<div class="card"><h2>📚 Record & History</h2><p>Permanent history plus the Citizen Ledger. Every person gets one identity that connects basketball, cash, businesses and future financial systems.</p><div class="grid"><div class="metric"><small>Citizens</small><strong id="citizenCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button><button id="openCitizenLedgerHome" class="secondary">👤 Open Citizen Ledger</button><button id="openShareOwnershipLedgerHome" class="secondary">📒 Open Share &amp; Ownership Ledger</button></div></section>
+<div class="card"><h2>📚 Record & History</h2><p>Permanent history plus the Citizen Ledger. Every person gets one identity that connects basketball, cash, businesses and future financial systems.</p><div class="grid"><div class="metric"><small>Citizens</small><strong id="citizenCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button><button id="openCitizenLedgerHome" class="secondary">👤 Open Citizen Ledger</button><button id="openShareOwnershipLedgerHome" class="secondary">📒 Open Share &amp; Ownership Ledger</button></div>
+<div class="card" id="importExportHomeCard"><h2>💾 Import / Export</h2><p>Save a backup of Calvin’s City to your iPhone Files app, or restore a previously exported backup.</p><div class="grid"><div class="metric"><small>Backup contents</small><strong>Game + Records</strong></div><div class="metric"><small>Format</small><strong>JSON</strong></div></div><button type="button" id="exportCityBackup" class="goodbtn">⬇️ Export All Data</button><button type="button" id="chooseCityBackup" class="secondary">⬆️ Import Backup</button><input type="file" id="cityBackupFile" accept=".json,application/json" style="display:none"><p id="cityBackupStatus" class="tiny" role="status" aria-live="polite">Export creates a downloadable backup of this browser’s Calvin’s City local storage. Import validates the file and saves a recovery snapshot before restoring.</p></div></section>
  
 <section id="city" class="screen">
 <div class="card city-hub">
@@ -7563,6 +7564,49 @@ if(!card)return;
 var key=keyFor(card);if(!key)return;
 open(key,event);
 },{capture:true});
+})();
+</script>
+ 
+ 
+<script>
+/* 4.29.16 — Homepage Import / Export. LocalStorage backup is additive and does not run at startup. */
+(function(){
+"use strict";
+const PREFIX="CALVINS_CITY_FULL_BACKUP_V1";
+const status=()=>document.getElementById("cityBackupStatus");
+const relevantKey=k=>/calvins_city|calvin.?s.?city|city.*bets|bets.*city/i.test(k);
+function capture(){
+ const entries={};
+ for(let i=0;i<localStorage.length;i++){
+  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
+ }
+ if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
+ return {format:PREFIX,formatVersion:1,appVersion:"4.29.16",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+}
+function download(blob,name){
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+const exp=document.getElementById("exportCityBackup"), choose=document.getElementById("chooseCityBackup"), file=document.getElementById("cityBackupFile");
+if(exp)exp.addEventListener("click",()=>{try{const backup=capture();const json=JSON.stringify(backup,null,2);const date=new Date().toISOString().slice(0,10);download(new Blob([json],{type:"application/json;charset=utf-8"}),"Calvins_City_Backup_"+date+".json");if(status())status().textContent="Backup prepared: "+backup.entryCount+" saved-data entries. On iPhone, use the download/share options to save the JSON file in Files.";}catch(e){if(status())status().textContent="Export failed: "+e.message;console.error("Calvin’s City export failed",e);}});
+if(choose&&file)choose.addEventListener("click",()=>file.click());
+if(file)file.addEventListener("change",async()=>{
+ const selected=file.files&&file.files[0]; if(!selected)return;
+ try{
+  if(selected.size>100*1024*1024)throw new Error("File is larger than the 100 MB safety limit.");
+  const parsed=JSON.parse(await selected.text());
+  if(!parsed||parsed.format!==PREFIX||parsed.formatVersion!==1||!parsed.entries||typeof parsed.entries!=="object"||Array.isArray(parsed.entries))throw new Error("This is not a supported Calvin’s City backup file.");
+  const keys=Object.keys(parsed.entries);if(!keys.length||keys.some(k=>!relevantKey(k)||typeof parsed.entries[k]!=="string"))throw new Error("Backup contents failed validation. No data was changed.");
+  if(!confirm("Restore this Calvin’s City backup from "+(parsed.exportedAt||"an unknown date")+"?\n\nA recovery copy of the current Calvin’s City browser data will be saved first. The selected backup will replace matching Calvin’s City storage keys. This may roll the game back to the backup date."))return;
+  const current=capture();const recoveryKey="calvins_city_pre_import_recovery_"+Date.now();
+  localStorage.setItem(recoveryKey,JSON.stringify(current));
+  const verify=JSON.parse(localStorage.getItem(recoveryKey)||"null");if(!verify||verify.format!==PREFIX||verify.entryCount!==current.entryCount)throw new Error("Could not verify the recovery snapshot. Import cancelled.");
+  const before={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&relevantKey(k))before[k]=localStorage.getItem(k);}
+  try{for(const k of Object.keys(parsed.entries))localStorage.setItem(k,parsed.entries[k]);}
+  catch(writeError){for(const k of Object.keys(before)){try{localStorage.setItem(k,before[k]);}catch(_){}}throw new Error("Import could not be fully written. Existing keys were restored where possible. Recovery snapshot: "+recoveryKey);}
+  if(status())status().textContent="Backup restored and recovery snapshot verified. Reloading to load the restored data…";
+  setTimeout(()=>location.reload(),250);
+ }catch(e){if(status())status().textContent="Import failed: "+e.message;console.error("Calvin’s City import failed",e);}finally{file.value="";}
+});
 })();
 </script>
  
