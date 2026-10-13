@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.28.97 -->
+<!-- CALVIN'S CITY — VERSION 4.28.98 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
@@ -11,7 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.97</title>
+<title>Calvin's City 4.28.98</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -1061,26 +1061,13 @@ if(!issue||!buyer){msg.textContent="Choose an open debt issuance and an eligible
 const kind=buyer.kind,ref=buyer.ref,account=sbGetAccount(kind,ref);if(!account){msg.textContent="Buyer account unavailable.";return;}
 const issueBefore=JSON.stringify(issue),oldDb=JSON.stringify(betsDatabase),oldState=JSON.stringify(state),oldMirror=sbFinancialMirrorRaw(),txId="SB-DEBT-BUY-"+issue.id+"-"+(issue.holders.length+1)+"-"+Date.now().toString(36),before=account.get();
 try{
- account.set(before-amount);
- /* 4.28.97: Citizen Ledger displays one canonical row per normalized name.
-    Older saves can contain duplicate citizen records with the same name but
-    different IDs/cash. Keep those duplicate rows aligned after this explicit
-    cash transaction so the ledger row cannot show a stale balance while the
-    Sports Bets buyer dropdown shows the updated account. This does not create
-    additional transactions or change any historical game records. */
- if(kind==="citizen"){
-  const purchasedCitizen=sbCitizenById(ref),normalizedBuyerName=String(buyer.name||"").trim().toLowerCase();
-  (Array.isArray(state.citizens)?state.citizens:[]).forEach(c=>{
-   if(c&&String(c.name||"").trim().toLowerCase()===normalizedBuyerName)c.cash=account.get();
-  });
- }
- const holder={id:txId+"-HOLDER",buyerId:buyer.id,buyerKind:kind,buyerRef:ref,buyerName:buyer.name,principal:amount,ownershipPct:sbRound(amount/Number(issue.principal)*100),interestAtRepayment:sbRound(amount*Number(issue.rate)),expectedPayoutAtRepayment:sbRound(amount+amount*Number(issue.rate)),purchasedAt:new Date().toISOString(),status:"holding"};
+ account.set(before-amount);const holder={id:txId+"-HOLDER",buyerId:buyer.id,buyerKind:kind,buyerRef:ref,buyerName:buyer.name,principal:amount,ownershipPct:sbRound(amount/Number(issue.principal)*100),interestAtRepayment:sbRound(amount*Number(issue.rate)),expectedPayoutAtRepayment:sbRound(amount+amount*Number(issue.rate)),purchasedAt:new Date().toISOString(),status:"holding"};
  issue.holders.push(holder);issue.soldPrincipal=sbRound(Number(issue.soldPrincipal)+amount);issue.remainingPrincipal=sbRound(Number(issue.principal)-Number(issue.soldPrincipal));if(issue.remainingPrincipal<0.005)issue.remainingPrincipal=0;if(issue.remainingPrincipal===0)issue.status="fully-sold";
  const company=sbGetAccount("business","Sports Bets Company"),companyBefore=company.get();company.set(companyBefore+amount);
  sbLedgerMove(account,txId+"-BUYER",-amount,"Sports Bets Debt Purchase","Purchased "+sbMoney(amount)+" principal in issuance "+issue.id,before,account.get(),{debtIssueId:issue.id,ownershipPct:holder.ownershipPct});sbLedgerMove(company,txId+"-COMPANY",amount,"Sports Bets Debt Proceeds","Debt proceeds from "+buyer.name+" for issuance "+issue.id,companyBefore,company.get(),{debtIssueId:issue.id,buyerId:buyer.id});
  state.sportsBetsDebtLiabilities=Array.isArray(state.sportsBetsDebtLiabilities)?state.sportsBetsDebtLiabilities:[];if(!state.sportsBetsDebtLiabilities.some(x=>x&&x.id===issue.id))state.sportsBetsDebtLiabilities.push({id:issue.id,principal:issue.principal,soldPrincipal:issue.soldPrincipal,remainingPrincipal:issue.soldPrincipal,rate:issue.rate,status:issue.status});else{const l=state.sportsBetsDebtLiabilities.find(x=>x&&x.id===issue.id);l.soldPrincipal=issue.soldPrincipal;l.remainingPrincipal=issue.soldPrincipal;l.status=issue.status;}
  betsDatabase.sportsBetsCashTransactions.push({id:txId,type:"Sports Bets Debt Purchase",debtIssueId:issue.id,buyerId:buyer.id,buyerName:buyer.name,principal:amount,companyBefore,companyAfter:company.get(),createdAt:new Date().toISOString()});
- if(!sbSaveState())throw new Error("Main financial state could not be saved.");if(!saveBetsDatabase())throw new Error("BETS ledger could not be saved.");sbRenderFinancePanels();if(kind==="citizen"&&document.getElementById("citizenLedgerModal")?.classList.contains("show")){try{renderCitizenLedger();}catch(ledgerRefreshError){console.error("Citizen Ledger refresh after debt purchase failed",ledgerRefreshError);}}msg.textContent=buyer.name+" purchased "+sbMoney(amount)+" ("+holder.ownershipPct.toFixed(2)+"%) of issuance "+issue.id+". Expected payoff: "+sbMoney(holder.expectedPayoutAtRepayment)+".";
+ if(!sbSaveState())throw new Error("Main financial state could not be saved.");if(!saveBetsDatabase())throw new Error("BETS ledger could not be saved.");sbRenderFinancePanels();msg.textContent=buyer.name+" purchased "+sbMoney(amount)+" ("+holder.ownershipPct.toFixed(2)+"%) of issuance "+issue.id+". Expected payoff: "+sbMoney(holder.expectedPayoutAtRepayment)+".";
 }catch(e){try{state=JSON.parse(oldState);betsDatabase=JSON.parse(oldDb);localStorage.setItem("calvins_city_v24",oldState);sbRestoreFinancialMirror(oldMirror);localStorage.setItem(BETS_STORAGE_KEY,oldDb);}catch(_){}msg.textContent="Debt purchase rolled back: "+String(e&&e.message||e);}
 }
 function sbRepayDebt(issueId){
@@ -4484,6 +4471,11 @@ if(corrected){
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
 ensureBusinessOwnershipRegistry();
+/* 4.28.98: A recorded Sports Bets debt purchase is real cash activity.
+  Do not overwrite the buyer's post-purchase balance with Season 29 opening
+  cash when the Citizen Ledger renders. This guard does not create a second
+  transaction or alter the Sports Bets credit. */
+const citizenLedgerHasSportsBetsCashActivity=(Array.isArray(state.playerLedgerTransactions)?state.playerLedgerTransactions:[]).some(t=>t&&(/sports-bets/i.test(String(t.source||""))||/sports bets debt purchase/i.test(String(t.type||""))));
 /* 4.17.119: Capture the loaded state BEFORE the existing Ledger opening-cash
 reconciliation changes anything. This is diagnostic only: it does not pay,
 reset, delete, or otherwise mutate financial records. */
@@ -4546,7 +4538,7 @@ state.citizens=mergedCitizens;
 /* 4.17.118: Authoritative Season 29 opening data is applied immediately
 before every Ledger render, after saved-state loading and old migrations.
 These are starting balances, not new payments; never sum contract history. */
-if(Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
+if(!citizenLedgerHasSportsBetsCashActivity && Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const opening={
 Lions_C:{name:"Wall",cash:787,value:787,years:2,teamValue:497,rookie:false},
 Lions_SG:{name:"Diggs",cash:0,value:0,years:2,teamValue:0,rookie:true},
@@ -4627,7 +4619,7 @@ immediately before the ledger rows and diagnostics read state. This is an openin
 baseline restoration, not a payment. It runs only before any Season 29 game exists.
 Preserve all historical records and never change team/game results. */
 let season29FinalCashRepaired=false;
-if(Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 && state.seasonPhase==="regular" &&
+if(!citizenLedgerHasSportsBetsCashActivity && Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 && state.seasonPhase==="regular" &&
 !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const finalOpeningCash={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
 Object.entries(finalOpeningCash).forEach(([name,amount])=>{
