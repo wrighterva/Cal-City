@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.20: disable startup resets; preserve season and repair Markets rendering. -->
+<!-- CALVIN'S CITY — VERSION 4.29.21: disable startup resets; preserve season and repair Markets rendering. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -7038,7 +7038,7 @@ open(key,event);
  
  
 <script>
-/* 4.29.16 — Homepage Import / Export. LocalStorage backup is additive and does not run at startup. */
+/* 4.29.21 — Quota-safe import. Recovery snapshot stays in memory to avoid duplicating localStorage usage. */
 (function(){
 "use strict";
 const PREFIX="CALVINS_CITY_FULL_BACKUP_V1";
@@ -7050,7 +7050,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.20",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.21",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -7066,10 +7066,10 @@ try{
  if(!parsed||parsed.format!==PREFIX||parsed.formatVersion!==1||!parsed.entries||typeof parsed.entries!=="object"||Array.isArray(parsed.entries))throw new Error("This is not a supported Calvin’s City backup file.");
  const keys=Object.keys(parsed.entries);if(!keys.length||keys.some(k=>!relevantKey(k)||typeof parsed.entries[k]!=="string"))throw new Error("Backup contents failed validation. No data was changed.");
  if(!confirm("Restore this Calvin’s City backup from "+(parsed.exportedAt||"an unknown date")+"?\n\nA recovery copy of the current Calvin’s City browser data will be saved first. The selected backup will replace matching Calvin’s City storage keys. This may roll the game back to the backup date."))return;
- const current=capture();const recoveryKey="calvins_city_pre_import_recovery_"+Date.now();
- localStorage.setItem(recoveryKey,JSON.stringify(current));
- const verify=JSON.parse(localStorage.getItem(recoveryKey)||"null");if(!verify||verify.format!==PREFIX||verify.entryCount!==current.entryCount)throw new Error("Could not verify the recovery snapshot. Import cancelled.");
- const before={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&relevantKey(k))before[k]=localStorage.getItem(k);}
+ /* 4.29.21: Keep the pre-import recovery copy in memory, not localStorage.
+    Duplicating the entire database under a recovery key can itself exceed iOS Safari's quota. */
+ const current=capture();
+ const before={...current.entries};
  try{
   for(const k of Object.keys(parsed.entries))localStorage.setItem(k,parsed.entries[k]);
   /* Verify the actual stored values before reloading; do not report success based only on writes. */
@@ -7087,10 +7087,11 @@ try{
    if(!Array.isArray(bets.games) || bets.games.length<1)throw new Error("Betting history verification failed.");
   }
  }catch(writeError){
-  /* Restore every pre-import matching key and remove newly introduced matching keys. */
+  /* Roll back in-memory snapshot: remove newly introduced keys first to free quota,
+     then restore previous matching values. Existing values are replaced, not duplicated. */
   for(const k of Object.keys(parsed.entries)){if(!(k in before)){try{localStorage.removeItem(k)}catch(_){}}}
-  for(const k of Object.keys(before)){try{localStorage.setItem(k,before[k])}catch(_){}}
-  throw new Error("Import verification failed; previous matching storage was restored where possible. Recovery snapshot: "+recoveryKey+". Details: "+writeError.message);
+  for(const k of Object.keys(before)){try{localStorage.setItem(k,before[k])}catch(rollbackError){console.error("Rollback write failed for",k,rollbackError);}}
+  throw new Error("Import failed and rollback was attempted using the in-memory recovery copy. Details: "+writeError.message);
  }
  if(status())status().textContent="Backup values verified, including played Season 29 games and betting history. Reloading…";
  setTimeout(()=>location.reload(),250);
