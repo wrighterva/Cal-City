@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
-<!-- CALVIN'S CITY — VERSION 4.28.93 -->
+<!-- CALVIN'S CITY — VERSION 4.28.94 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
-<!-- Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
+<!-- Build identity: 4.28.94. Debt purchase ledger/cash atomic verification. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.28.93</title>
+<title>Calvin's City 4.28.94</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -89,7 +89,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.28.93</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.28.94</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1056,19 +1056,52 @@ document.getElementById("betsDebtIssueAmount").value="";sbRenderFinancePanels();
 }
 function sbBuyDebt(){
 const issueId=document.getElementById("betsDebtIssueSelect")?.value,buyerId=document.getElementById("betsDebtBuyer")?.value,amount=sbRound(Number(document.getElementById("betsDebtBuyAmount")?.value)),msg=document.getElementById("betsDebtMessage");if(!msg)return;
-ensureBetsFinanceCollections();const issue=betsDatabase.sportsBetsDebtIssues.find(x=>x&&x.id===issueId&&x.status==="open"),buyer=sbAccountOptions().find(x=>x.id===buyerId);
-if(!issue||!buyer){msg.textContent="Choose an open debt issuance and an eligible citizen or business buyer.";return;}if(!Number.isFinite(amount)||amount<=0){msg.textContent="Enter an amount greater than $0M.";return;}if(amount>Number(issue.remainingPrincipal)+0.000001){msg.textContent="Only "+sbMoney(issue.remainingPrincipal)+" remains unsold in this issuance.";return;}if(buyer.cash+0.000001<amount){msg.textContent="Buyer has insufficient cash.";return;}
-const kind=buyer.kind,ref=buyer.ref,account=sbGetAccount(kind,ref);if(!account){msg.textContent="Buyer account unavailable.";return;}
-const issueBefore=JSON.stringify(issue),oldDb=JSON.stringify(betsDatabase),oldState=JSON.stringify(state),oldMirror=sbFinancialMirrorRaw(),txId="SB-DEBT-BUY-"+issue.id+"-"+(issue.holders.length+1)+"-"+Date.now().toString(36),before=account.get();
+if(!betsStorageWritable){msg.textContent="BETS storage is write-protected; debt purchase blocked.";return;}
+ensureBetsFinanceCollections();
+const issue=betsDatabase.sportsBetsDebtIssues.find(x=>x&&x.id===issueId&&["open","fully-sold"].includes(x.status)&&Number(x.remainingPrincipal)>0);
+const buyer=sbAccountOptions().find(x=>x.id===buyerId);
+if(!issue||!buyer){msg.textContent="Choose an open debt issuance and an eligible citizen or business buyer.";return;}
+if(!Number.isFinite(amount)||amount<=0){msg.textContent="Enter an amount greater than $0M.";return;}
+if(amount>Number(issue.remainingPrincipal)+0.000001){msg.textContent="Only "+sbMoney(issue.remainingPrincipal)+" remains unsold in this issuance.";return;}
+const account=sbGetAccount(buyer.kind,buyer.ref),company=sbGetAccount("business","Sports Bets Company");
+if(!account||!company){msg.textContent="Buyer or Sports Bets Company cash account unavailable.";return;}
+const before=sbRound(account.get()),companyBefore=sbRound(company.get());
+if(!Number.isFinite(before)||!Number.isFinite(companyBefore)){msg.textContent="Cash validation failed; no purchase was made.";return;}
+if(before+0.000001<amount){msg.textContent="Buyer has insufficient current cash. Current balance: "+sbMoney(before)+".";sbRenderFinancePanels();return;}
+const txId="SB-DEBT-BUY-"+issue.id+"-"+(issue.holders||[]).length+"-"+Date.now().toString(36);
+if(betsDatabase.sportsBetsCashTransactions.some(x=>x&&x.id===txId)){msg.textContent="Duplicate debt purchase blocked.";return;}
+const oldState=JSON.stringify(state),oldDb=JSON.stringify(betsDatabase),oldMirror=sbFinancialMirrorRaw();
+const priorTrace=window.__suppressCitizenCashTrace,priorAudit=window.__cashIntegrityAuditBusy;
 try{
- account.set(before-amount);const holder={id:txId+"-HOLDER",buyerId:buyer.id,buyerKind:kind,buyerRef:ref,buyerName:buyer.name,principal:amount,ownershipPct:sbRound(amount/Number(issue.principal)*100),interestAtRepayment:sbRound(amount*Number(issue.rate)),expectedPayoutAtRepayment:sbRound(amount+amount*Number(issue.rate)),purchasedAt:new Date().toISOString(),status:"holding"};
- issue.holders.push(holder);issue.soldPrincipal=sbRound(Number(issue.soldPrincipal)+amount);issue.remainingPrincipal=sbRound(Number(issue.principal)-Number(issue.soldPrincipal));if(issue.remainingPrincipal<0.005)issue.remainingPrincipal=0;if(issue.remainingPrincipal===0)issue.status="fully-sold";
- const company=sbGetAccount("business","Sports Bets Company"),companyBefore=company.get();company.set(companyBefore+amount);
- sbLedgerMove(account,txId+"-BUYER",-amount,"Sports Bets Debt Purchase","Purchased "+sbMoney(amount)+" principal in issuance "+issue.id,before,account.get(),{debtIssueId:issue.id,ownershipPct:holder.ownershipPct});sbLedgerMove(company,txId+"-COMPANY",amount,"Sports Bets Debt Proceeds","Debt proceeds from "+buyer.name+" for issuance "+issue.id,companyBefore,company.get(),{debtIssueId:issue.id,buyerId:buyer.id});
- state.sportsBetsDebtLiabilities=Array.isArray(state.sportsBetsDebtLiabilities)?state.sportsBetsDebtLiabilities:[];if(!state.sportsBetsDebtLiabilities.some(x=>x&&x.id===issue.id))state.sportsBetsDebtLiabilities.push({id:issue.id,principal:issue.principal,soldPrincipal:issue.soldPrincipal,remainingPrincipal:issue.soldPrincipal,rate:issue.rate,status:issue.status});else{const l=state.sportsBetsDebtLiabilities.find(x=>x&&x.id===issue.id);l.soldPrincipal=issue.soldPrincipal;l.remainingPrincipal=issue.soldPrincipal;l.status=issue.status;}
- betsDatabase.sportsBetsCashTransactions.push({id:txId,type:"Sports Bets Debt Purchase",debtIssueId:issue.id,buyerId:buyer.id,buyerName:buyer.name,principal:amount,companyBefore,companyAfter:company.get(),createdAt:new Date().toISOString()});
- if(!sbSaveState())throw new Error("Main financial state could not be saved.");if(!saveBetsDatabase())throw new Error("BETS ledger could not be saved.");sbRenderFinancePanels();msg.textContent=buyer.name+" purchased "+sbMoney(amount)+" ("+holder.ownershipPct.toFixed(2)+"%) of issuance "+issue.id+". Expected payoff: "+sbMoney(holder.expectedPayoutAtRepayment)+".";
-}catch(e){try{state=JSON.parse(oldState);betsDatabase=JSON.parse(oldDb);localStorage.setItem("calvins_city_v24",oldState);sbRestoreFinancialMirror(oldMirror);localStorage.setItem(BETS_STORAGE_KEY,oldDb);}catch(_){}msg.textContent="Debt purchase rolled back: "+String(e&&e.message||e);}
+ const holder={id:txId+"-HOLDER",buyerId:buyer.id,buyerKind:buyer.kind,buyerRef:buyer.ref,buyerName:buyer.name,principal:amount,ownershipPct:sbRound(amount/Number(issue.principal)*100),interestAtRepayment:sbRound(amount*Number(issue.rate)),expectedPayoutAtRepayment:sbRound(amount+amount*Number(issue.rate)),purchasedAt:new Date().toISOString(),status:"holding"};
+ window.__suppressCitizenCashTrace=true;window.__cashIntegrityAuditBusy=true;
+ account.set(before-amount);company.set(companyBefore+amount);
+ if(Math.abs(account.get()-sbRound(before-amount))>0.000001||Math.abs(company.get()-sbRound(companyBefore+amount))>0.000001)throw new Error("Buyer or company cash did not update correctly.");
+ issue.holders=Array.isArray(issue.holders)?issue.holders:[];issue.holders.push(holder);
+ issue.soldPrincipal=sbRound(Number(issue.soldPrincipal)+amount);issue.remainingPrincipal=sbRound(Number(issue.principal)-Number(issue.soldPrincipal));
+ if(issue.remainingPrincipal<0.005)issue.remainingPrincipal=0;if(issue.remainingPrincipal===0)issue.status="fully-sold";
+ sbLedgerMove(account,txId+"-BUYER",-amount,"Sports Bets Debt Purchase","Purchased "+sbMoney(amount)+" principal in issuance "+issue.id,before,account.get(),{debtIssueId:issue.id,ownershipPct:holder.ownershipPct,transactionId:txId});
+ sbLedgerMove(company,txId+"-COMPANY",amount,"Sports Bets Debt Proceeds","Debt proceeds from "+buyer.name+" for issuance "+issue.id,companyBefore,company.get(),{debtIssueId:issue.id,buyerId:buyer.id,transactionId:txId});
+ state.sportsBetsDebtLiabilities=Array.isArray(state.sportsBetsDebtLiabilities)?state.sportsBetsDebtLiabilities:[];
+ const liability=state.sportsBetsDebtLiabilities.find(x=>x&&x.id===issue.id);
+ if(!liability)state.sportsBetsDebtLiabilities.push({id:issue.id,principal:issue.principal,soldPrincipal:issue.soldPrincipal,remainingPrincipal:issue.remainingPrincipal,rate:issue.rate,status:issue.status});
+ else{liability.soldPrincipal=issue.soldPrincipal;liability.remainingPrincipal=issue.remainingPrincipal;liability.status=issue.status;}
+ betsDatabase.sportsBetsCashTransactions.push({id:txId,type:"Sports Bets Debt Purchase",debtIssueId:issue.id,buyerId:buyer.id,buyerName:buyer.name,buyerKind:buyer.kind,buyerRef:buyer.ref,principal:amount,buyerBefore:before,buyerAfter:account.get(),companyBefore,companyAfter:company.get(),createdAt:new Date().toISOString(),cashMovement:true});
+ if(!sbSaveState())throw new Error("Main financial state could not be saved.");
+ // Unified-ledger synchronization can rehydrate stale cash. Reassert and persist both sides.
+ account.set(sbRound(before-amount));company.set(sbRound(companyBefore+amount));
+ localStorage.setItem("calvins_city_v24",JSON.stringify(state));
+ if(Math.abs(account.get()-sbRound(before-amount))>0.000001||Math.abs(company.get()-sbRound(companyBefore+amount))>0.000001)throw new Error("Cash balances changed during save verification.");
+ if(!saveBetsDatabase())throw new Error("BETS debt ownership register could not be saved.");
+ window.__suppressCitizenCashTrace=priorTrace;window.__cashIntegrityAuditBusy=priorAudit;
+ const latest=sbGetAccount(buyer.kind,buyer.ref);
+ sbRenderFinancePanels();
+ msg.textContent=buyer.name+" purchased "+sbMoney(amount)+" ("+holder.ownershipPct.toFixed(2)+"%) of issuance "+issue.id+". Buyer cash: "+sbMoney(latest?latest.get():before-amount)+". Sports Bets Company received "+sbMoney(amount)+". Both ledger entries verified.";
+}catch(e){
+ try{state=JSON.parse(oldState);betsDatabase=JSON.parse(oldDb);localStorage.setItem("calvins_city_v24",oldState);sbRestoreFinancialMirror(oldMirror);localStorage.setItem(BETS_STORAGE_KEY,oldDb);}catch(rollbackError){console.error("Debt purchase rollback incomplete",rollbackError);}
+ window.__suppressCitizenCashTrace=priorTrace;window.__cashIntegrityAuditBusy=priorAudit;
+ sbRenderFinancePanels();msg.textContent="Debt purchase failed and was rolled back: "+String(e&&e.message||e);
+}
 }
 function sbRepayDebt(issueId){
 ensureBetsFinanceCollections();const issue=betsDatabase.sportsBetsDebtIssues.find(x=>x&&x.id===issueId&&["open","fully-sold"].includes(x.status)),msg=document.getElementById("betsDebtMessage");if(!issue||!msg)return;
