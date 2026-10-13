@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.21: disable startup resets; preserve season and repair Markets rendering. -->
+<!-- CALVIN'S CITY — VERSION 4.29.22: disable startup resets; preserve season and repair Markets rendering. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -6716,7 +6716,20 @@ const entries=isTeam
 : (Array.isArray(st.businessCashLedger)?st.businessCashLedger:[]);
 const relevant=entries.filter(e=>{
 if(!e||Number(e.season)!==Number(season))return false;
-const account=String(isTeam?(e.team||e.account||""):(e.company||e.account||""));
+if(isTeam){
+ const type=String(e.type||"");
+ if(!/ticket revenue/i.test(type))return false;
+ // Ticket Revenue rows store the teams in winner/loser, not team/account.
+ const reason=String(e.reason||"");
+ const winner=String(e.winner||"");
+ const loser=String(e.loser||"");
+ const account=String(e.team||e.account||"");
+ if(account===String(company))return true;
+ if(winner===String(company)&&/winner ticket revenue share/i.test(reason))return true;
+ if(loser===String(company)&&/loser ticket revenue share/i.test(reason))return true;
+ return false;
+}
+const account=String(e.company||e.account||"");
 return account===String(company);
 });
 if(company==="Sports Bets Company"){
@@ -6739,6 +6752,25 @@ const matching=relevant.filter(e=>/revenue/i.test(String(e.type||""))&&Number(e.
 if(!matching.length)return {tracked:false,revenue:0,entries:0};
 return {tracked:true,revenue:round4(matching.reduce((sum,e)=>sum+Math.max(0,Number(e.amount)||0),0)),entries:matching.length};
 }
+function repairUntrackedTeamReports(st,season){
+// Repair reports created by older builds that failed to associate ticket rows with teams.
+// This is a reporting-only correction: it does not adjust share prices or cash balances.
+const year=Number(season);
+let changed=false;
+companies.filter(c=>c.category==="Basketball Teams").forEach(def=>{
+const rev=revenueForSeason(st,def.name,year);
+if(!rev.tracked)return;
+const report=db.annualReports.find(r=>Number(r.season)===year&&r.company===def.name);
+if(!report||report.revenueTracked)return;
+report.revenueTracked=true;report.revenue=rev.revenue;report.revenueEntries=rev.entries;
+report.previousRevenue=null;report.revenueGrowthPct=null;report.priceChangePct=0;report.baseline=true;
+const co=db.companies[def.name];
+if(co){const hist=(co.priceHistory||[]).find(h=>Number(h.season)===year);if(hist){hist.revenue=rev.revenue;hist.revenueTracked=true;hist.changePct=0;hist.priceBefore=hist.priceAfter;}}
+changed=true;
+});
+if(changed)saveDB(db);
+return changed;
+}
 function priceAdjustment(previous,current){
 if(previous<=0)return current>0?5:0;
 const growth=((current-previous)/previous)*100;
@@ -6750,7 +6782,7 @@ return 0;
 }
 window.processStockMarketSeasonReport=function(season){
 const st=getState(),year=Number(season)||Number(st.year)||29;
-if(Number(db.lastProcessedSeason)===year)return false;
+if(Number(db.lastProcessedSeason)===year){repairUntrackedTeamReports(st,year);renderAll();return false;}
 const reportBatch=[];
 companies.forEach(def=>{
 const co=db.companies[def.name],rev=revenueForSeason(st,def.name,year);
@@ -7050,7 +7082,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.21",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.22",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
