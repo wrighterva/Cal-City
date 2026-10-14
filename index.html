@@ -783,6 +783,70 @@ if(previousRaw!==null){
 }catch(backupReadError){console.warn("Previous BETS backup could not be read; main ledger remains untouched:",backupReadError);}
 }
  
+/* 4.29.38 storage-quota repair:
+  Reclaim only provably redundant copies. Never remove a BETS record, the main
+  state, or permanent game history. The primary BETS key is authoritative after
+  its full schema is validated and the backup has already been merged in memory.
+  If the full restore snapshot contains older BETS copies that are complete
+  subsets of the current primary database, compact only those nested duplicate
+  copies while preserving the snapshot's state and all other fields. */
+(function reclaimRedundantBetsStorage(){
+const MAIN_KEY="calvins_city_v24";
+const FINANCIAL_KEY="calvins_city_financial_transactions_v1";
+try{
+  const mainRaw=localStorage.getItem(MAIN_KEY);
+  const mainState=mainRaw?JSON.parse(mainRaw):null;
+  const primaryRaw=localStorage.getItem(BETS_STORAGE_KEY);
+  const primary=primaryRaw?JSON.parse(primaryRaw):null;
+  const snapshotRaw=localStorage.getItem(SEASON29_RESTORE_BACKUP_KEY);
+  const snapshot=snapshotRaw?JSON.parse(snapshotRaw):null;
+  const validDb=db=>!!(db&&typeof db==="object"&&Array.isArray(db.games)&&Array.isArray(db.bets)&&
+    Array.isArray(db.sportsBetsInterestAccruals)&&Array.isArray(db.sportsBetsDebtIssues)&&
+    Array.isArray(db.sportsBetsCashTransactions));
+  const isSuperset=(newer,older)=>{
+    if(!validDb(newer)||!validDb(older))return false;
+    const fields=[["games","id"],["bets","id"],["sportsBetsInterestAccruals","gameId"],["sportsBetsDebtIssues","id"],["sportsBetsCashTransactions","id"]];
+    return fields.every(([field,key])=>{
+      const newerIds=new Set(newer[field].filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
+      return older[field].filter(x=>x&&x[key]!=null).every(x=>newerIds.has(String(x[key])));
+    });
+  };
+  const snapshotHasUsableState=!!(snapshot&&snapshot.state&&snapshot.createdAt&&
+    snapshot.state.records&&Array.isArray(snapshot.state.records.gameRecords));
+  if(!mainState||!Array.isArray(mainState.citizens)||!validDb(primary)||!snapshotHasUsableState)return;
+  const backupRaw=localStorage.getItem(BETS_BACKUP_KEY);
+  if(backupRaw!==null){
+    let backup=null;try{backup=JSON.parse(backupRaw);}catch(_){}
+    if(validDb(backup)&&primaryRaw===backupRaw){
+      localStorage.removeItem(BETS_BACKUP_KEY);
+      console.info("4.29.38 storage repair: removed exact duplicate BETS backup after validating primary database and recovery snapshot.");
+    }
+  }
+  const snapPrimary=typeof snapshot.betsRaw==="string"?JSON.parse(snapshot.betsRaw):null;
+  const snapBackup=typeof snapshot.betsBackupRaw==="string"?JSON.parse(snapshot.betsBackupRaw):null;
+  const primaryCoversSnapshotCopies=
+    (!snapPrimary||isSuperset(primary,snapPrimary))&&(!snapBackup||isSuperset(primary,snapBackup));
+  if(primaryCoversSnapshotCopies&&(typeof snapshot.betsRaw==="string"||typeof snapshot.betsBackupRaw==="string")){
+    delete snapshot.betsRaw;
+    delete snapshot.betsBackupRaw;
+    snapshot.storageQuotaCompaction={
+      version:"4.29.38",
+      at:new Date().toISOString(),
+      note:"Nested BETS copies removed only after validation that the current primary BETS database contains every identified record. Snapshot state, permanent records, and pending-import copy were retained."
+    };
+    const compacted=JSON.stringify(snapshot);
+    localStorage.setItem(SEASON29_RESTORE_BACKUP_KEY,compacted);
+    if(localStorage.getItem(SEASON29_RESTORE_BACKUP_KEY)!==compacted)throw new Error("Compacted recovery snapshot verification failed.");
+    console.info("4.29.38 storage repair: compacted only nested BETS duplicates in recovery snapshot; retained snapshot state and permanent records.");
+  }
+  /* The financial mirror is intentionally not deleted here: it is a separate
+     recovery surface. Primary-state writes and BETS writes now avoid creating
+     another full duplicate backup when that backup has been reclaimed. */
+}catch(storageRepairError){
+  console.warn("4.29.38 storage repair skipped or partially completed safely; saved records were not intentionally deleted.",storageRepairError);
+}
+})();
+ 
 /* 4.29.20 SAFETY: Legacy startup reset routines were removed above.
   Saved state and permanent records must remain unchanged during page load. */
  
@@ -1267,20 +1331,28 @@ localStorage.setItem(BETS_STORAGE_KEY,serialized);
 if(localStorage.getItem(BETS_STORAGE_KEY)!==serialized)throw new Error("Primary BETS database write could not be verified.");
 betsRawSavedAtLoad=serialized;
  
-let backupUpdated=false;
+let backupUpdated=false,backupPresent=false;
 try{
-  const priorBackupRaw=localStorage.getItem(BETS_BACKUP_KEY);let priorBackupDb=null;
-  if(priorBackupRaw!==null){try{priorBackupDb=JSON.parse(priorBackupRaw);}catch(e){}}
-  const backupUnion=isValidBetsDatabase(priorBackupDb)?mergeBetsDatabases(betsDatabase,priorBackupDb):betsDatabase;
-  const backupSerialized=JSON.stringify(backupUnion);
-  localStorage.setItem(BETS_BACKUP_KEY,backupSerialized);
-  backupUpdated=localStorage.getItem(BETS_BACKUP_KEY)===backupSerialized;
+  const priorBackupRaw=localStorage.getItem(BETS_BACKUP_KEY);
+  backupPresent=priorBackupRaw!==null;
+  /* Keep a recovery copy current only when one already exists. Do not recreate
+     a full duplicate automatically after safe quota reclamation; users can
+     export a separate BETS backup on demand. */
+  if(backupPresent){
+    let priorBackupDb=null;try{priorBackupDb=JSON.parse(priorBackupRaw);}catch(e){}
+    const backupUnion=isValidBetsDatabase(priorBackupDb)?mergeBetsDatabases(betsDatabase,priorBackupDb):betsDatabase;
+    const backupSerialized=JSON.stringify(backupUnion);
+    localStorage.setItem(BETS_BACKUP_KEY,backupSerialized);
+    backupUpdated=localStorage.getItem(BETS_BACKUP_KEY)===backupSerialized;
+  }
 }catch(backupError){
   console.warn("BETS primary database saved, but recovery-copy refresh failed; existing recovery copy was left in place.",backupError);
 }
 betsStorageMessage=backupUpdated
   ?"BETS ledger saved and verified; recovery copy refreshed."
-  :"BETS ledger saved and verified. WARNING: recovery copy could not be refreshed because browser storage may be full; export a BETS backup.";
+  :backupPresent
+    ?"BETS ledger saved and verified. WARNING: recovery copy could not be refreshed because browser storage may be full; export a BETS backup."
+    :"BETS ledger saved and verified. Redundant in-browser backup omitted to protect storage space; use Export BETS Backup to save a separate copy.";
 renderBetsStorageStatus();return true;
 }catch(e){
 betsStorageMessage="WARNING: BETS could not save to browser storage. Download a backup before leaving this page.";
