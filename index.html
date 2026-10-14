@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.0.5: one-time Lions career-stat repair. -->
+<!-- CALVIN'S CITY — VERSION 5.0.6: one-time Lions career-stat repair. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.0.5</title>
+<title>Calvin's City 5.0.6</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.0.5</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.0.6</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -2185,7 +2185,7 @@ if(c.arenaRosterSeeded!==true){
 }
 seedInitialArenaRosters();
  
-/* VERSION 5.0.5: Lions career-stat repair after startup synchronization.
+/* VERSION 5.0.6: Lions career-stat repair after startup synchronization.
   This migration changes ONLY the six basketball career-total fields below
   and its own version marker. It does not touch cash, contracts, bets, shares,
   MVPs, championships, rosters, or game/history records. */
@@ -5486,7 +5486,7 @@ warning.style.display=window.__calvinsCitySaveError?"block":"none";
 window.addEventListener("error",function(){setTimeout(showCitySaveWarning,0);});
 document.addEventListener("DOMContentLoaded",showCitySaveWarning);
  
-/* VERSION 5.0.5: FINAL startup reconciliation for Lions career totals.
+/* VERSION 5.0.6: FINAL startup reconciliation for Lions career totals.
   Earlier repairs ran before later startup synchronization and could be
   overwritten. Run this after the app's startup routines have completed.
   Only the three named citizens' career points/rebounds and this migration
@@ -5506,11 +5506,11 @@ const rows=Object.keys(targets).map(name=>({
 }));
 if(rows.some(r=>!r.citizen)){
   window.__lionsStatsRepairDiagnostic={
-    version:"5.0.5",status:"skipped",
+    version:"5.0.6",status:"skipped",
     reason:"One or more target citizens were not present at final startup repair.",
     found:rows.map(r=>({name:r.name,found:!!r.citizen}))
   };
-  console.error("Calvin's City 5.0.5 final Lions repair skipped.",window.__lionsStatsRepairDiagnostic);
+  console.error("Calvin's City 5.0.6 final Lions repair skipped.",window.__lionsStatsRepairDiagnostic);
 }else{
   const before=rows.map(r=>({
     name:r.name,points:r.citizen.careerPts,rebounds:r.citizen.careerRebs
@@ -5538,16 +5538,26 @@ if(rows.some(r=>!r.citizen)){
     return t&&Number(r.points)===t.points&&Number(r.rebounds)===t.rebounds;
   });
   window.__lionsStatsRepairDiagnostic={
-    version:"5.0.5",
+    version:"5.0.6",
     status:verified&&persisted?"saved-and-verified":verified?"memory-updated-storage-not-verified":"verification-failed",
     season:state.year,saved,before,
     players:rows.map(r=>({name:r.name,points:r.citizen.careerPts,rebounds:r.citizen.careerRebs})),
     stored
   };
-  console.info("Calvin's City 5.0.5 final Lions career totals diagnostic",window.__lionsStatsRepairDiagnostic);
+  console.info("Calvin's City 5.0.6 final Lions career totals diagnostic",window.__lionsStatsRepairDiagnostic);
   try{if(typeof render==="function")render();}catch(err){console.error("Lions totals render refresh failed.",err);}
 }
 })();
+ 
+/* VERSION 5.0.6: Refresh the offseason player dropdown after startup stats
+  reconciliation. The dropdown labels are generated when buildContractBoard()
+  runs, so refreshing only the team page leaves previously rendered option
+  text stale. This changes no stats or saved records. */
+try{
+ if(typeof buildContractBoard==="function")buildContractBoard();
+}catch(err){
+ console.error("Player dropdown refresh failed.",err);
+}
  
 })();
  
