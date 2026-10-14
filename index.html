@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.27: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
+<!-- CALVIN'S CITY — VERSION 4.29.28: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.27</title>
+<title>Calvin's City 4.29.28</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -889,7 +889,7 @@ if(sbAccountOptions().some(a=>a.id===old))sel.value=old;
 function sbCurrentPendingGame(){return typeof betsNextMatchup==="function"?betsNextMatchup():null;}
 function sbEventHasManualCitizen(eventKey,citizenId){return betsDatabase.bets.some(b=>b&&b.targetEventKey===eventKey&&b.placedBy==="manual"&&String(b.citizenId)===String(citizenId));}
 function sbGetStakeUsed(citizenId,eventKey){return betsDatabase.bets.filter(b=>b&&b.targetEventKey===eventKey&&String(b.citizenId)===String(citizenId)&&b.cashStakeReserved===true).reduce((n,b)=>n+(Number(b.stake)||0),0);}
-/* 4.29.27: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
+/* 4.29.28: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
   Reconcile only from a matching immutable settlement row; never move cash during this repair. */
 function sbSettlementForBet(bet){
 if(!bet)return null;
@@ -7177,7 +7177,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.27",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.28",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -7206,8 +7206,10 @@ try{
   const mainRaw=localStorage.getItem("calvins_city_v24");
   if(!mainRaw)throw new Error("Main game state is missing after restore.");
   const main=JSON.parse(mainRaw);
-  if(Number(main.year)!==29 || !Array.isArray(main.gamesPlayed) || main.gamesPlayed.length<1)
-   throw new Error("The restored main state does not contain the expected played Season 29 games.");
+  /* Accept Season 29 and later: backups can legitimately be in a later season.
+     Preserve the backup's actual year; never force it back to Season 29. */
+  if(!Number.isFinite(Number(main.year)) || Number(main.year)<29 || !Array.isArray(main.gamesPlayed) || main.gamesPlayed.length<1)
+   throw new Error("The restored main state must contain a valid season (29 or later) and at least one played game.");
   const betsRaw=localStorage.getItem("calvins_city_bets_v1");
   if(betsRaw){
    const bets=JSON.parse(betsRaw);
