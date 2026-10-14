@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.22: disable startup resets; preserve season and repair Markets rendering. -->
+<!-- CALVIN'S CITY — VERSION 4.29.23: disable startup resets; preserve season and repair Markets rendering. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -1896,7 +1896,7 @@ c.careerRebs=Number(p.careerRebs)||0;
 c.mvps=Number(p.mvps)||0;
 c.championships=Number(p.championships)||0;
 c.shoeDeals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
-if(name==="Wall" && !c.shoeDeals.some(d=>d&&d.company==="Reebok"&&Number(d.years)===2&&Number(d.value)===290)){
+if(name==="Wall" && !c.shoeDeals.some(d=>d&&d.company==="Reebok"&&Number(d.value)===290&&Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)>0)){
   c.shoeDeals.push({company:"Reebok",years:2,value:290,includedInContract:true,startYear:state.year});
 }
 c.contracts=Array.isArray(c.contracts)?c.contracts:[];
@@ -2424,6 +2424,49 @@ return Array.from(chosen.values());
 (state.citizens||[]).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=dedupeShoeDealList(c.shoeDeals);});
 Object.values(state.contracts||{}).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=dedupeShoeDealList(c.shoeDeals);});
 state.shoeDealDuplicateCleanupVersion="4.17.108";
+save();
+}
+ 
+/* 4.29.23: Repair duplicate active shoe deals after offseason verification.
+The legacy Wall initializer checked for an exact 2-year deal, so when the
+legitimate deal advanced to 1 year it could append a second 2-year record.
+For same-player records with the same company, value, and start season, keep
+the record that has already been advanced for the current season; otherwise
+prefer the most recently advanced record, then the most complete term data.
+This changes only duplicate live deal entries, not cash, payments, contracts,
+share ownership, or permanent game history. */
+if(state.shoeDealDuplicateCleanupVersion!=="4.29.23"){
+const currentShoeSeason=Number(state.year)||0;
+function repairDuplicateShoeDeals(list){
+ if(!Array.isArray(list))return list;
+ const groups=new Map(), output=[];
+ list.forEach((deal,index)=>{
+  if(!deal||!deal.company){output.push(deal);return;}
+  const start=deal.startYear==null?"unknown":String(deal.startYear);
+  const key=[String(deal.company),Number(deal.value)||0,start].join("|");
+  if(!groups.has(key))groups.set(key,[]);
+  groups.get(key).push({deal,index});
+ });
+ groups.forEach(group=>{
+  group.sort((a,b)=>{
+   const advancedA=Number(a.deal.lastAdvancedSeason)===currentShoeSeason?1:0;
+   const advancedB=Number(b.deal.lastAdvancedSeason)===currentShoeSeason?1:0;
+   if(advancedA!==advancedB)return advancedB-advancedA;
+   const hasAdvanceA=Number.isFinite(Number(a.deal.lastAdvancedSeason))?1:0;
+   const hasAdvanceB=Number.isFinite(Number(b.deal.lastAdvancedSeason))?1:0;
+   if(hasAdvanceA!==hasAdvanceB)return hasAdvanceB-hasAdvanceA;
+   const remA=Number(a.deal.yearsRemaining!=null?a.deal.yearsRemaining:a.deal.years)||0;
+   const remB=Number(b.deal.yearsRemaining!=null?b.deal.yearsRemaining:b.deal.years)||0;
+   if(remA!==remB)return remA-remB;
+   return a.index-b.index;
+  });
+  output.push(group[0].deal);
+ });
+ return output;
+}
+(state.citizens||[]).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=repairDuplicateShoeDeals(c.shoeDeals);});
+Object.values(state.contracts||{}).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=repairDuplicateShoeDeals(c.shoeDeals);});
+state.shoeDealDuplicateCleanupVersion="4.29.23";
 save();
 }
  
@@ -7082,7 +7125,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.22",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.23",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
