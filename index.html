@@ -7432,11 +7432,31 @@ try{
     Duplicating the entire database under a recovery key can itself exceed iOS Safari's quota. */
  const current=capture();
  const before={...current.entries};
+ /* Storage-aware restore: when the selected backup contains an exact duplicate
+    BETS backup, do not write that second 500KB+ copy into Safari storage.
+    The full duplicate remains in the user's downloaded JSON recovery file;
+    the primary BETS database is restored and verified. */
+ const restoreEntries={...parsed.entries};
+ const primaryBets=restoreEntries["calvins_city_bets_v1"];
+ const backupBets=restoreEntries["calvins_city_bets_backup_v1"];
+ const omittedRedundantKeys=new Set();
+ if(typeof primaryBets==="string"&&primaryBets===backupBets){
+   delete restoreEntries["calvins_city_bets_backup_v1"];
+   omittedRedundantKeys.add("calvins_city_bets_backup_v1");
+ }
+ /* If the existing browser backup is byte-for-byte identical to its existing
+    primary, remove that redundant copy before replacing the larger state.
+    The pre-import copy remains in memory for rollback during this operation. */
  try{
-  for(const k of Object.keys(parsed.entries))localStorage.setItem(k,parsed.entries[k]);
+   const livePrimary=localStorage.getItem("calvins_city_bets_v1");
+   const liveBackup=localStorage.getItem("calvins_city_bets_backup_v1");
+   if(livePrimary!==null&&livePrimary===liveBackup)localStorage.removeItem("calvins_city_bets_backup_v1");
+ }catch(cleanupError){console.warn("Could not reclaim exact duplicate BETS backup before import:",cleanupError);}
+ try{
+  for(const k of Object.keys(restoreEntries))localStorage.setItem(k,restoreEntries[k]);
   /* Verify the actual stored values before reloading; do not report success based only on writes. */
-  for(const k of Object.keys(parsed.entries)){
-   if(localStorage.getItem(k)!==parsed.entries[k])throw new Error("Stored value verification failed for "+k);
+  for(const k of Object.keys(restoreEntries)){
+   if(localStorage.getItem(k)!==restoreEntries[k])throw new Error("Stored value verification failed for "+k);
   }
   const mainRaw=localStorage.getItem("calvins_city_v24");
   if(!mainRaw)throw new Error("Main game state is missing after restore.");
@@ -7453,7 +7473,7 @@ try{
  }catch(writeError){
   /* Roll back in-memory snapshot: remove newly introduced keys first to free quota,
      then restore previous matching values. Existing values are replaced, not duplicated. */
-  for(const k of Object.keys(parsed.entries)){if(!(k in before)){try{localStorage.removeItem(k)}catch(_){}}}
+  for(const k of Object.keys(restoreEntries)){if(!(k in before)){try{localStorage.removeItem(k)}catch(_){}}}
   for(const k of Object.keys(before)){try{localStorage.setItem(k,before[k])}catch(rollbackError){console.error("Rollback write failed for",k,rollbackError);}}
   throw new Error("Import failed and rollback was attempted using the in-memory recovery copy. Details: "+writeError.message);
  }
