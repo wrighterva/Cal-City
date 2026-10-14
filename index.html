@@ -7601,6 +7601,37 @@ try{
 }catch(e){if(status())status().textContent="Import failed: "+e.message;console.error("Calvin’s City import failed",e);}finally{file.value="";}
 });
 })();
+ 
+/* 5.0.1: Final startup verification after all migrations and roster seeding. */
+(function finalLionsCareerStatsVerification(){
+ if(Number(state.year)!==31)return;
+ const expected={Wall:{pts:798,rebs:769},Diggs:{pts:305,rebs:292},Kap:{pts:478,rebs:487}};
+ const citizens=Array.isArray(state.citizens)?state.citizens:[];
+ const rows=Object.keys(expected).map(name=>{
+   const citizen=citizens.find(c=>c&&String(c.name).trim()===name);
+   return {name,citizen,target:expected[name]};
+ });
+ if(rows.some(x=>!x.citizen))return;
+ const known=rows.every(x=>{
+   const t=x.target,p=Number(x.citizen.careerPts),r=Number(x.citizen.careerRebs);
+   return (p===568&&r===549)||(p===683&&r===659)||(p===194&&r===186)||
+     (p===378&&r===365)||(p===t.pts&&r===t.rebs);
+ });
+ const logs=Array.isArray(state.gamesPlayed)?state.gamesPlayed:[];
+ const hasLogs=logs.some(row=>row&&row.game&&["A","B"].some(k=>row.game[k]&&row.game[k].team==="Lions"&&Array.isArray(row.game[k].players)));
+ if(!known||!hasLogs){
+   window.__lionsStatsRepairDiagnostic={version:"5.0.1",season:state.year,known,hasLogs,
+     players:rows.map(x=>({name:x.name,points:x.citizen.careerPts,rebounds:x.citizen.careerRebs})),gameCount:logs.length};
+   console.error("Lions stats repair diagnostic",window.__lionsStatsRepairDiagnostic);
+   return;
+ }
+ rows.forEach(x=>{x.citizen.careerPts=x.target.pts;x.citizen.careerRebs=x.target.rebs;});
+ state.lionsCareerStatsRecoveryVersion="lions-season31-career-stats-recovery-v5";
+ save();
+ window.__lionsStatsRepairDiagnostic={version:"5.0.1",season:state.year,saveError:window.__calvinsCitySaveError||null,
+   players:rows.map(x=>({name:x.name,points:x.citizen.careerPts,rebounds:x.citizen.careerRebs})),
+   stored:(()=>{try{const v=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");return v?["Wall","Diggs","Kap"].map(name=>{const c=(v.citizens||[]).find(p=>p&&p.name===name);return{name,points:c&&c.careerPts,rebounds:c&&c.careerRebs};}):null;}catch(e){return String(e);}})()};
+})();
 </script>
  
 </body></html>
