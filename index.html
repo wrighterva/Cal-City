@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.26: atomic, idempotent offseason contract verification with split team/shoe payments; preserve saved season. -->
+<!-- CALVIN'S CITY — VERSION 4.29.27: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.26</title>
+<title>Calvin's City 4.29.27</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -889,7 +889,41 @@ if(sbAccountOptions().some(a=>a.id===old))sel.value=old;
 function sbCurrentPendingGame(){return typeof betsNextMatchup==="function"?betsNextMatchup():null;}
 function sbEventHasManualCitizen(eventKey,citizenId){return betsDatabase.bets.some(b=>b&&b.targetEventKey===eventKey&&b.placedBy==="manual"&&String(b.citizenId)===String(citizenId));}
 function sbGetStakeUsed(citizenId,eventKey){return betsDatabase.bets.filter(b=>b&&b.targetEventKey===eventKey&&String(b.citizenId)===String(citizenId)&&b.cashStakeReserved===true).reduce((n,b)=>n+(Number(b.stake)||0),0);}
-function sbPendingExposure(){return betsDatabase.bets.filter(b=>b&&b.status==="pending"&&b.cashStakeReserved===true).reduce((n,b)=>n+2*(Number(b.stake)||0),0);}
+/* 4.29.27: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
+  Reconcile only from a matching immutable settlement row; never move cash during this repair. */
+function sbSettlementForBet(bet){
+if(!bet)return null;
+const txId=String(bet.cashSettlementTransactionId||("SB-SETTLE-"+String(bet.id||"")));
+const rows=Array.isArray(betsDatabase.sportsBetsCashTransactions)?betsDatabase.sportsBetsCashTransactions:[];
+return rows.find(x=>x&&String(x.id)===txId&&String(x.betId||"")===String(bet.id||""))||null;
+}
+function sbReconcileSettledBetStatuses(){
+if(!betsDatabase||!Array.isArray(betsDatabase.bets))return {changed:0,ok:true};
+let changed=0;
+betsDatabase.bets.forEach(b=>{
+ if(!b||b.status!=="pending"||b.cashStakeReserved!==true)return;
+ const tx=sbSettlementForBet(b);if(!tx)return;
+ const outcome=String(tx.outcome||"").toLowerCase();
+ if(!["win","loss","push"].includes(outcome))return;
+ b.status=outcome;
+ b.cashSettlementTransactionId=String(tx.id);
+ b.cashPayout=Number.isFinite(Number(tx.payout))?Number(tx.payout):0;
+ b.payout=b.cashPayout;
+ b.net=sbRound(b.cashPayout-(Number(b.stake)||0));
+ if(tx.gameId!=null)b.gameId=tx.gameId;
+ if(tx.createdAt)b.settledAt=b.settledAt||tx.createdAt;
+ delete b.settlementError;delete b.settlementBlockedAt;
+ changed++;
+});
+if(changed&&betsStorageWritable){
+ if(!saveBetsDatabase())return {changed,ok:false,error:"Recovered settlement status could not be saved."};
+}
+return {changed,ok:true};
+}
+function sbPendingExposure(){
+sbReconcileSettledBetStatuses();
+return betsDatabase.bets.filter(b=>b&&b.status==="pending"&&b.cashStakeReserved===true&&!sbSettlementForBet(b)).reduce((n,b)=>n+2*(Number(b.stake)||0),0);
+}
 function sbRequestRealBet(){
 const match=sbCurrentPendingGame(),citizenId=document.getElementById("betsCitizen")?.value,marketEl=document.getElementById("betsMarket"),selectionEl=document.getElementById("betsSelection"),stakeEl=document.getElementById("betsStake"),message=document.getElementById("betsBetMessage");
 if(!message)return;if(!betsStorageWritable){message.textContent="BETS storage is write-protected; no cash was changed.";return;}
@@ -951,7 +985,7 @@ if(!bet.cashStakeReserved||!bet.citizenId)return {ok:true,practice:true};
 const citizen=sbCitizenById(bet.citizenId),company=sbGetAccount("business","Sports Bets Company");if(!citizen||!company)return {ok:false,error:"Citizen or Sports Bets Company account unavailable."};
 const payout=outcome==="win"?2*Number(bet.stake||0):outcome==="push"?Number(bet.stake||0):0;
 if(payout>company.get()+0.000001)return {ok:false,error:"Sports Bets Company cannot cover this payout. Bet remains pending for review."};
-const txId="SB-SETTLE-"+bet.id;if(betsDatabase.sportsBetsCashTransactions.some(x=>x&&x.id===txId)){bet.cashSettlementTransactionId=txId;bet.cashPayout=Number(bet.cashPayout)||0;return {ok:true,duplicate:true};}
+const txId="SB-SETTLE-"+bet.id;const priorSettlement=betsDatabase.sportsBetsCashTransactions.find(x=>x&&String(x.id)===txId&&String(x.betId||"")===String(bet.id));if(priorSettlement){bet.cashSettlementTransactionId=txId;bet.cashPayout=Number.isFinite(Number(priorSettlement.payout))?Number(priorSettlement.payout):0;const priorOutcome=String(priorSettlement.outcome||outcome).toLowerCase();if(["win","loss","push"].includes(priorOutcome))bet.status=priorOutcome;bet.payout=bet.cashPayout;bet.net=sbRound(bet.cashPayout-(Number(bet.stake)||0));bet.gameId=bet.gameId||priorSettlement.gameId;bet.settledAt=bet.settledAt||priorSettlement.createdAt;return {ok:true,duplicate:true,recovered:true};}
 // A losing wager legitimately pays $0. Record it in BETS without creating zero-dollar
 // cash mutations that can be routed to the generic cash approval queue.
 if(payout===0){
@@ -1026,6 +1060,7 @@ if(!sbSaveState())throw new Error("Main financial state could not be saved.");if
 }catch(e){try{state=JSON.parse(oldState);betsDatabase=JSON.parse(oldDb);localStorage.setItem("calvins_city_v24",oldState);sbRestoreFinancialMirror(oldMirror);localStorage.setItem(BETS_STORAGE_KEY,oldDb);}catch(_){}msg.textContent="Debt payoff failed and was rolled back: "+String(e&&e.message||e);}
 }
 function sbRenderFinancePanels(){
+sbReconcileSettledBetStatuses();
 ensureBetsFinanceCollections();sbRenderCitizenPicker();sbDebtBuyerOptions();
 const issueSel=document.getElementById("betsDebtIssueSelect"),old=issueSel&&issueSel.value;if(issueSel){const open=betsDatabase.sportsBetsDebtIssues.filter(x=>x&&["open","fully-sold"].includes(x.status));issueSel.innerHTML=open.length?open.map(x=>'<option value="'+sbEsc(x.id)+'">'+sbEsc(x.id)+' — '+sbMoney(x.principal)+' issued, '+sbMoney(x.remainingPrincipal)+' unsold</option>').join(""):'<option value="">No open debt</option>';if(open.some(x=>x.id===old))issueSel.value=old;}
 const summary=document.getElementById("betsDebtSummary"),owners=document.getElementById("betsDebtOwnership");if(summary){const issues=betsDatabase.sportsBetsDebtIssues,open=issues.filter(x=>x&&["open","fully-sold"].includes(x.status)),outstanding=open.reduce((n,x)=>n+(Number(x.soldPrincipal)||0),0);summary.innerHTML='<div class="grid"><div class="metric"><small>Open Issuances</small><strong>'+open.length+'</strong></div><div class="metric"><small>Debt Outstanding</small><strong>'+sbMoney(outstanding)+'</strong></div><div class="metric"><small>Company Cash</small><strong>'+sbMoney(state.businessCash&&state.businessCash["Sports Bets Company"])+'</strong></div><div class="metric"><small>Cash Interest / Game</small><strong>2.00%</strong></div></div>';}
@@ -1504,6 +1539,7 @@ let showAllBetsGameHistory=false;
 const betsGameHistoryToggle=document.getElementById("betsGameHistoryToggle");
 if(betsGameHistoryToggle)betsGameHistoryToggle.addEventListener("click",function(){showAllBetsGameHistory=!showAllBetsGameHistory;renderBetsSection();});
 function renderBetsSection(){
+sbReconcileSettledBetStatuses();
 const count=document.getElementById("betsGameCount");
 const avg=document.getElementById("betsAverageMargin");
 const teamOut=document.getElementById("betsTeamStats");
@@ -7141,7 +7177,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.26",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.27",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
