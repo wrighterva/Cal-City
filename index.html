@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.37</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.38</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -6654,7 +6654,8 @@ function renderCashAudit(){
 const st=getState(),out=$("shareOwnershipLedgerBody");if(!out)return;
 const accounts=cashAccountCatalog(),entries=cashLedgerEntries(),findings=[];
 accounts.forEach(a=>{
-const related=entries.filter(e=>e._cashKind===a.kind&&e._cashAccount===a.name);
+/* Voided entries remain visible in the append-only history but are excluded from live balance-chain math. */
+const related=entries.filter(e=>e._cashKind===a.kind&&e._cashAccount===a.name&&!(["voided","reversed"].includes(String(e.status||"").toLowerCase())||e.voidedBySelfPurchaseRepair===true));
 const currentSeason=related.filter(e=>Number(e.season)===(Number(st.year)||29));
 const ordered=currentSeason.slice().sort((x,y)=>String(x.createdAt||x.at||"").localeCompare(String(y.createdAt||y.at||"")));
 const last=ordered.length?ordered[ordered.length-1]:null;
@@ -6670,7 +6671,7 @@ const btn=$("voidUnsupportedCashButton");if(btn)btn.addEventListener("click",voi
 }
 function renderShareOwnershipLedger(view){
 const st=getState(),ledger=getShareOwnershipLedger(),out=$("shareOwnershipLedgerBody");if(!out)return;
-const stockTx=(db.transactions||[]).map(t=>{const marketBuyback=String(t.type||"").toLowerCase().includes("market money buyback")||String(t.action||"")==="sellMarketMoney";return {...t,id:t.id,at:t.at||t.createdAt,season:t.season,type:t.status==="void"||t.status==="reversed"?"Share Trade (Voided/Reversed)":"Share Trade",company:t.company||t.business,buyer:marketBuyback?(t.buyer||"Market Money"):(t.buyer||t.buyerName||t.newOwner||t.buyerAccountName),buyerType:marketBuyback?(t.buyerType||"market-money"):(t.buyerType||t.buyerAccountType),buyerId:t.buyerId||t.buyerAccountId,seller:marketBuyback?(t.seller||t.citizen||t.citizenName):(t.seller||t.sellerName||t.oldOwner||t.sellerAccountName),sellerType:marketBuyback?(t.sellerType||"citizen"):(t.sellerType||t.sellerAccountType),sellerId:t.sellerId||t.sellerAccountId,shares:t.shares??t.count,price:t.price,total:t.total??t.amount,buyerCashBefore:t.buyerCashBefore,buyerCashAfter:t.buyerCashAfter,sellerCashBefore:t.sellerCashBefore,sellerCashAfter:t.sellerCashAfter,reservePurchase:t.reservePurchase||marketBuyback};});
+const stockTx=(db.transactions||[]).map(t=>{const marketBuyback=String(t.type||"").toLowerCase().includes("market money buyback")||String(t.action||"")==="sellMarketMoney";return {...t,id:t.id,at:t.at||t.createdAt,season:t.season,type:t.status==="void"||t.status==="voided"||t.status==="reversed"?"Share Trade (Voided/Reversed)":(String(t.type||"")==="Share Trade Reversal"?"Share Trade Reversal":"Share Trade"),company:t.company||t.business,buyer:marketBuyback?(t.buyer||"Market Money"):(t.buyer||t.buyerName||t.newOwner||t.buyerAccountName),buyerType:marketBuyback?(t.buyerType||"market-money"):(t.buyerType||t.buyerAccountType),buyerId:t.buyerId||t.buyerAccountId,seller:marketBuyback?(t.seller||t.citizen||t.citizenName):(t.seller||t.sellerName||t.oldOwner||t.sellerAccountName),sellerType:marketBuyback?(t.sellerType||"citizen"):(t.sellerType||t.sellerAccountType),sellerId:t.sellerId||t.sellerAccountId,shares:t.shares??t.count,price:t.price,total:t.total??t.amount,buyerCashBefore:t.buyerCashBefore,buyerCashAfter:t.buyerCashAfter,sellerCashBefore:t.sellerCashBefore,sellerCashAfter:t.sellerCashAfter,reservePurchase:t.reservePurchase||marketBuyback};});
 const reg=st.businessOwnershipRegistry||{};const ownTx=(Array.isArray(reg.transactions)?reg.transactions:[]).map(t=>({...t,type:"Ownership Transfer",company:t.business,buyer:t.buyerName,seller:t.sellerName,shares:null,total:t.price}));
 const allById=new Map();ledger.concat(stockTx,ownTx).forEach(t=>{if(t&&t.id)allById.set(String(t.id),t);});const all=Array.from(allById.values()).sort((a,b)=>String(b.at||b.createdAt||"").localeCompare(String(a.at||a.createdAt||"")));
 const trades=all.filter(t=>/share trade/i.test(String(t.type||""))||String(t.id||"").startsWith("STK-"));
@@ -6682,7 +6683,7 @@ if(Math.abs(held+available-authorized)>0.0001)findings.push("Share supply mismat
 if(co.needsAllocationReview)findings.push(co.name+" is paused for historical shareholder-allocation review.");
 });
 Object.entries(reg.businesses||{}).forEach(([name,record])=>{const total=(record.owners||[]).reduce((sum,o)=>sum+(Number(o.percentage)||0),0);if(Math.abs(total-100)>0.05)findings.push(name+" ownership totals "+total.toFixed(4)+"%, not 100%.");});
-all.forEach(t=>{if(/share trade/i.test(String(t.type||""))||String(t.id||"").startsWith("STK-")){
+all.forEach(t=>{if(["voided","reversed"].includes(String(t.status||"").toLowerCase())||t.voidedBySelfPurchaseRepair===true)return;if(/share trade/i.test(String(t.type||""))||String(t.id||"").startsWith("STK-")){
 const total=Number(t.total)||0;if(t.buyerCashBefore!=null&&t.buyerCashAfter!=null){const selfReserve=!!t.reservePurchase&&String(t.buyerId||"")==="BUSINESS:"+String(t.company||"");const expectedBuyer=Number(t.buyerCashBefore)-(selfReserve?0:total);if(Math.abs(expectedBuyer-Number(t.buyerCashAfter))>0.0001)findings.push("Buyer cash math mismatch in "+t.id+".");}
 if(t.sellerCashBefore!=null&&t.sellerCashAfter!=null&&Math.abs((Number(t.sellerCashBefore)+total)-Number(t.sellerCashAfter))>0.0001)findings.push("Seller cash math mismatch in "+t.id+".");
 }else if(/ownership transfer/i.test(String(t.type||""))||String(t.id||"").startsWith("BOT-")){
@@ -7103,6 +7104,60 @@ saveDB(db);
 return {ok:true,company:canonical.company,shares:n,buyerKey,sellerKey,heldShares:held,availableShares:Math.max(0,TOTAL_SHARES-held)};
 }catch(err){return {ok:false,reason:String(err&&err.message||err)};}
 }
+/* 4.29.38 repair: void the one confirmed invalid Sports Bets self-purchase.
+  Narrow fingerprint + idempotent marker; no cash debit, no game/season reset,
+  no deletion of original history. Original records are retained and linked to reversals. */
+function repairInvalidSportsBetsSelfPurchase(){
+const targetId="STK-1791956025234-tgrm1",reverseId="REV-"+targetId;
+const original=(db.transactions||[]).find(t=>t&&String(t.id)===targetId);
+if(!original)return {ok:false,skipped:true,reason:"target transaction not present"};
+if(original.selfPurchaseRepairV1===true||["voided","reversed"].includes(String(original.status||"").toLowerCase()))return {ok:true,already:true};
+const valid=original.company==="Sports Bets Company"&&original.action==="buyReserve"&&original.reservePurchase===true&&String(original.buyerId)==="BUSINESS:Sports Bets Company"&&Number(original.shares)===60&&Math.abs(Number(original.total)-54.18)<0.0001&&Math.abs(Number(original.buyerCashBefore)-566.59)<0.0001&&Math.abs(Number(original.buyerCashAfter)-566.59)<0.0001;
+if(!valid)return {ok:false,skipped:true,reason:"transaction does not match the confirmed invalid trade fingerprint"};
+const co=db.companies&&db.companies["Sports Bets Company"];
+if(!co||!co.holdings||Math.abs((Number(co.holdings["BUSINESS:Sports Bets Company"])||0)-60)>0.0001)return {ok:false,skipped:true,reason:"company holding is not exactly the 60 shares expected; no changes applied"};
+if((db.transactions||[]).some(t=>t&&String(t.id)===reverseId))return {ok:false,skipped:true,reason:"reversal record already exists; manual review required"};
+const st=bridge.getState();if(!st||typeof st!=="object")return {ok:false,skipped:true,reason:"saved game state unavailable"};
+const beforeDb=JSON.stringify(db),beforeState=JSON.stringify(st),beforeMirror=localStorage.getItem(SHARE_OWNERSHIP_LEDGER_KEY);
+try{
+ const at=new Date().toISOString(),actualCash=Number((st.businessCash||{})["Sports Bets Company"]);
+ /* Restore the 60 shares to the available reserve by removing only this buyer's invalid holding. */
+ delete co.holdings["BUSINESS:Sports Bets Company"];
+ if(co.ownerNames)delete co.ownerNames["BUSINESS:Sports Bets Company"];
+ original.status="voided";original.voidedBySelfPurchaseRepair=true;original.selfPurchaseRepairV1=true;original.voidedAt=at;original.voidedReason="Invalid self-purchase of newly issued shares; no cash moved. Original record retained for audit.";original.reversalId=reverseId;
+ const reversal={id:reverseId,at,season:Number(original.season)||Number(st.year)||29,type:"Share Trade Reversal",company:"Sports Bets Company",shares:60,price:Number(original.price)||0,total:0,originalTotal:54.18,action:"voidInvalidSelfPurchase",reservePurchase:false,buyerId:"BUSINESS:Sports Bets Company",buyer:"Sports Bets Company",buyerType:"business",sellerId:null,seller:"Sports Bets Company Market Reserve",sellerType:"market-reserve",buyerCashBefore:actualCash,buyerCashAfter:actualCash,cashDirection:"no cash movement",status:"completed",voidsTransactionId:targetId,ownershipRestored:true,reason:"Invalid self-purchase voided; 60 shares returned to reserve. No cash debit or credit applied."};
+ db.transactions.push(reversal);
+ db.invalidSportsBetsSelfPurchaseRepairV1={status:"applied",at,originalTransactionId:targetId,reversalId:reverseId,sharesReturned:60,cashChanged:false};
+ saveDB(db);
+ st.stockMarketCashLedger=Array.isArray(st.stockMarketCashLedger)?st.stockMarketCashLedger:[];
+ const cashOriginal=st.stockMarketCashLedger.find(t=>t&&String(t.id)===targetId);if(cashOriginal){cashOriginal.status="voided";cashOriginal.voidedBySelfPurchaseRepair=true;cashOriginal.reversalId=reverseId;}
+ st.stockMarketCashLedger.push({...reversal});
+ st.shareOwnershipLedger=Array.isArray(st.shareOwnershipLedger)?st.shareOwnershipLedger:[];
+ const stateOriginal=st.shareOwnershipLedger.find(t=>t&&String(t.id)===targetId);if(stateOriginal){stateOriginal.status="voided";stateOriginal.voidedBySelfPurchaseRepair=true;stateOriginal.voidedAt=at;stateOriginal.reversalId=reverseId;stateOriginal.voidedReason=original.voidedReason;}
+ if(!st.shareOwnershipLedger.some(t=>t&&String(t.id)===reverseId))st.shareOwnershipLedger.push({...reversal});
+ let ledger=[];try{const raw=localStorage.getItem(SHARE_OWNERSHIP_LEDGER_KEY);ledger=raw?JSON.parse(raw):[];}catch(e){ledger=[];}if(!Array.isArray(ledger))ledger=[];
+ const mirrorOriginal=ledger.find(t=>t&&String(t.id)===targetId);if(mirrorOriginal){mirrorOriginal.status="voided";mirrorOriginal.voidedBySelfPurchaseRepair=true;mirrorOriginal.voidedAt=at;mirrorOriginal.reversalId=reverseId;mirrorOriginal.voidedReason=original.voidedReason;}
+ if(!ledger.some(t=>t&&String(t.id)===reverseId))ledger.push({...reversal});
+ localStorage.setItem(SHARE_OWNERSHIP_LEDGER_KEY,JSON.stringify(ledger));
+ /* Mark misleading cash-ledger rows voided; preserve their original amounts and balances as audit history. */
+ st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
+ st.businessCashLedger.forEach(e=>{if(e&&((String(e.id)===targetId+"-ISSUE")||(String(e.id)===targetId+"-BUYER"))){e.status="voided";e.voidedBySelfPurchaseRepair=true;e.voidedAt=at;e.reversalId=reverseId;e.reason=String(e.reason||"")+" [VOIDED: invalid self-purchase; no cash moved; original details retained]";}});
+ st.financialTransactions=Array.isArray(st.financialTransactions)?st.financialTransactions:[];
+ st.financialTransactions.forEach(e=>{if(e&&(String(e.source_entry_id||"")===targetId+"-ISSUE"||String(e.source_entry_id||"")===targetId+"-BUYER")){e.status="voided";e.voidedBySelfPurchaseRepair=true;e.voidedAt=at;e.reversalId=reverseId;}});
+ if(!st.businessCashLedger.some(e=>e&&String(e.id)===targetId+"-CASH-VOID"))st.businessCashLedger.push({id:targetId+"-CASH-VOID",season:Number(st.year)||29,type:"Stock Trade Void — No Cash Movement",company:"Sports Bets Company",amount:0,before:Number.isFinite(actualCash)?actualCash:null,after:Number.isFinite(actualCash)?actualCash:null,reason:"Audit checkpoint after voiding invalid self-purchase; actual company cash left unchanged.",createdAt:at,accountType:"business",status:"completed",stockTransactionId:targetId,reversalId:reverseId});
+ if(typeof bridge.save==="function")bridge.save();else localStorage.setItem("calvins_city_v24",JSON.stringify(st));
+ try{localStorage.setItem(SHARE_OWNERSHIP_LEDGER_KEY,JSON.stringify(ledger));}catch(e){}
+ return {ok:true,sharesReturned:60,cashChanged:false,reversalId:reverseId};
+}catch(err){
+ try{db=JSON.parse(beforeDb);saveDB(db);}catch(e){}
+ try{const restored=JSON.parse(beforeState);if(typeof bridge.setState==="function")bridge.setState(restored);else localStorage.setItem("calvins_city_v24",beforeState);}catch(e){}
+ try{if(beforeMirror===null)localStorage.removeItem(SHARE_OWNERSHIP_LEDGER_KEY);else localStorage.setItem(SHARE_OWNERSHIP_LEDGER_KEY,beforeMirror);}catch(e){}
+ console.error("Sports Bets self-purchase repair failed; inspect saved state before retrying.",err);
+ return {ok:false,reason:String(err&&err.message||err)};
+}
+}
+const sportsBetsRepairResult=repairInvalidSportsBetsSelfPurchase();
+if(sportsBetsRepairResult&&sportsBetsRepairResult.ok&&!sportsBetsRepairResult.already){try{if(typeof bridge.save==="function")bridge.save();}catch(e){}console.info("Sports Bets invalid self-purchase voided; 60 shares returned to reserve; cash unchanged.");}
 window.calvinsCityStockMarket={getDatabase:()=>JSON.parse(JSON.stringify(db)),renderCitizenAssets,render:renderAll,reverseTradeOwnership};
 document.addEventListener("DOMContentLoaded",bind);
 if(document.readyState!=="loading")bind();
@@ -7285,7 +7340,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.37",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.38",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
