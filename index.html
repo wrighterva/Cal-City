@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.1.0: targeted retired-player shoe-deal reconciliation, based on working 5.0.9. -->
+<!-- CALVIN'S CITY — VERSION 5.1.1: fix retired shoe-deal status without breaking business-tab navigation; based on working 5.0.9. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.1.0</title>
+<title>Calvin's City 5.1.1</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.1.0</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.1.1</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -4204,33 +4204,15 @@ function closeContractVerifyModal(){pendingContractVerification=null;const modal
  On iOS, reading the form again after closing the modal can lose or change the
  selected decision/deal. The confirmed snapshot is authoritative for this save. */
 function confirmContractVerification(){const pending=pendingContractVerification;if(!pending)return;const confirmed={...pending};window.closeContractVerifyModal();verifyOffseasonDecision(confirmed.team,confirmed.pos,confirmed);}
+/* 5.1.1: End a retired player's shoe deals without deleting the historical records. */
 function endRetiredPlayerShoeDeals(playerName,citizenOverride){
-const name=String(playerName||"").trim();
-if(!name)return false;
+const name=String(playerName||"").trim(); if(!name)return false;
 const citizen=citizenOverride||(Array.isArray(state.citizens)?state.citizens:[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
 if(!citizen)return false;
-const now=new Date().toISOString();
-const endYear=Number(state.year)||29;
-let changed=false;
+const endYear=Number(state.year)||29, now=new Date().toISOString(); let changed=false;
 citizen.shoeDeals=Array.isArray(citizen.shoeDeals)?citizen.shoeDeals:[];
-citizen.shoeDeals.forEach(deal=>{
- if(!deal)return;
- const remaining=Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)||0;
- if(remaining>0 || deal.status==="active"){
-  deal.originalYears=Number(deal.originalYears||deal.years||deal.yearsRemaining)||remaining;
-  deal.yearsRemaining=0; deal.years=0; deal.endYear=endYear;
-  deal.status="ended"; deal.endedBecause="player-retired"; deal.endedAt=now;
-  changed=true;
- }
-});
-if(Array.isArray(state.shoeDealContracts))state.shoeDealContracts.forEach(deal=>{
- if(!deal||String(deal.player||"").trim().toLowerCase()!==name.toLowerCase())return;
- if(deal.status==="active" || Number(deal.yearsRemaining||0)>0){
-  deal.status="ended"; deal.yearsRemaining=0; deal.endYear=endYear;
-  deal.endedBecause="player-retired"; deal.endedAt=now; changed=true;
- }
-});
-if(changed)save();
+citizen.shoeDeals.forEach(deal=>{if(!deal)return;const remaining=Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)||0;if(remaining>0||String(deal.status||"").toLowerCase()==="active"){deal.originalYears=Number(deal.originalYears||deal.years||deal.yearsRemaining)||remaining;deal.yearsRemaining=0;deal.years=0;deal.endYear=endYear;deal.status="ended";deal.endedBecause="player-retired";deal.endedAt=now;changed=true;}});
+if(Array.isArray(state.shoeDealContracts))state.shoeDealContracts.forEach(deal=>{if(!deal||String(deal.player||"").trim().toLowerCase()!==name.toLowerCase())return;if(String(deal.status||"").toLowerCase()==="active"||Number(deal.yearsRemaining||0)>0){deal.status="ended";deal.yearsRemaining=0;deal.endYear=endYear;deal.endedBecause="player-retired";deal.endedAt=now;changed=true;}});
 return changed;
 }
 function verifyOffseasonDecision(team,pos,confirmed){
@@ -5793,15 +5775,7 @@ if(!details||!modal)return;
 const bridge=window.__calvinsCityBridge;
 if(bridge&&typeof bridge.ensureBusinessOwnershipRegistry==="function")bridge.ensureBusinessOwnershipRegistry();
 const liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
-/* 5.1.0: targeted repair runs only when a shoe-company page is opened.
-  This reconciles already-retired players without adding startup work. */
-if(liveState&&Array.isArray(liveState.citizens)){
-let reconciled=false;
-liveState.citizens.forEach(c=>{if(c&&String(c.status||"").toLowerCase()==="retired"){
-  if(endRetiredPlayerShoeDeals(c.name,c))reconciled=true;
-}});
-if(reconciled&&bridge&&typeof bridge.save==="function")bridge.save();
-}
+/* 5.1.1: Business-tab rendering must not call functions scoped to another script. */
 const liveCash=liveState&&liveState.businessCash&&liveState.businessCash[company]!=null?Number(liveState.businessCash[company]):Number(details.cash);
 const ownershipRecord=liveState&&liveState.businessOwnershipRegistry&&liveState.businessOwnershipRegistry.businesses?liveState.businessOwnershipRegistry.businesses[company]:null;
 const liveOwners=ownershipRecord&&Array.isArray(ownershipRecord.owners)?ownershipRecord.owners.map(owner=>({name:(liveState.citizens||[]).find(c=>c&&String(c.id)===String(owner.citizenId))?.name||owner.name||"Unknown owner",percentage:Number(owner.percentage)||0})):details.owners.map(([name,percentage])=>({name,percentage}));
@@ -7650,7 +7624,7 @@ for(let i=0;i<localStorage.length;i++){
 const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"5.1.0",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"5.1.1",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -7790,4 +7764,4 @@ setTimeout(()=>location.reload(),250);
  
 </script>
  
-</body></html> 
+</body></html>
