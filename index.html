@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.38: block company self-purchases of newly issued shares; preserve saved game data. -->
+<!-- CALVIN'S CITY — VERSION 5.0: verified Lions career-stat recovery and import/startup repair. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.38</title>
+<title>Calvin's City 5.0</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.38</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.0</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -2185,43 +2185,53 @@ if(c.arenaRosterSeeded!==true){
 }
 seedInitialArenaRosters();
  
-/* Lions career-stat recovery for saved Season 31 game logs.
-  Recover only when Wall, Diggs and Kap all exactly match their known
-  opening totals. Do not estimate missing Seasons 29–30 or alter history. */
-(function recoverLionsSeason31CareerStats(){
- const migrationVersion="lions-season31-career-stats-recovery-v1";
- if(state.lionsCareerStatsRecoveryVersion===migrationVersion)return;
- const baselines={Wall:{pts:568,rebs:549},Diggs:{pts:83,rebs:80},Kap:{pts:278,rebs:243}};
+/* VERSION 5.0: Verified, idempotent Lions Season 31 career-stat repair.
+  The older v1 migration could run first and leave intermediate totals. This repair
+  recognizes only the original, known intermediate, or target values and normalizes
+  the three requested career point/rebound pairs. */
+(function repairLionsSeason31CareerStats(){
+ const repairVersion="lions-season31-career-stats-recovery-v5";
+ if(Number(state.year)!==31 || state.lionsCareerStatsRecoveryVersion===repairVersion)return;
+ const expected={
+   Wall:{basePts:568,baseRebs:549,intermediatePts:683,intermediateRebs:659,pts:798,rebs:769},
+   Diggs:{basePts:83,baseRebs:80,intermediatePts:194,intermediateRebs:186,pts:305,rebs:292},
+   Kap:{basePts:278,baseRebs:243,intermediatePts:378,intermediateRebs:365,pts:478,rebs:487}
+ };
  const citizens=Array.isArray(state.citizens)?state.citizens:[];
- const players=Object.keys(baselines).map(name=>({
-   name, baseline:baselines[name], citizen:citizens.find(c=>c&&c.name===name)
+ const people=Object.keys(expected).map(name=>({
+   name,target:expected[name],citizen:citizens.find(c=>c&&String(c.name).trim()===name)
  }));
- if(players.some(x=>!x.citizen ||
-     Number(x.citizen.careerPts)!==x.baseline.pts ||
-     Number(x.citizen.careerRebs)!==x.baseline.rebs))return;
- if(Number(state.year)!==31)return;
- const games=(Array.isArray(state.gamesPlayed)?state.gamesPlayed:[])
-   .filter(row=>row&&row.game&&row.game.A&&row.game.B);
- const totals={Wall:{pts:0,rebs:0},Diggs:{pts:0,rebs:0},Kap:{pts:0,rebs:0}};
- let found=0;
- games.forEach(row=>{
-   [row.game.A,row.game.B].forEach(side=>{
-     if(!side||side.team!=="Lions")return;
-     (Array.isArray(side.players)?side.players:[]).forEach(player=>{
-       if(!player||!totals[player.name])return;
-       totals[player.name].pts+=Number(player.pts)||0;
-       totals[player.name].rebs+=Number(player.rebs)||0;
-       found++;
-     });
-   });
+ if(people.some(x=>!x.citizen)){
+   console.error("Calvin's City 5.0: Lions repair skipped because a citizen record is missing.");
+   return;
+ }
+ const logs=Array.isArray(state.gamesPlayed)?state.gamesPlayed:[];
+ const hasDetailedSeason31Logs=logs.some(row=>row&&row.game&&
+   ["A","B"].some(k=>row.game[k]&&row.game[k].team==="Lions"&&Array.isArray(row.game[k].players)));
+ if(!hasDetailedSeason31Logs){
+   console.error("Calvin's City 5.0: Lions repair skipped because detailed Season 31 game logs are missing.");
+   return;
+ }
+ const accepted=people.every(x=>{
+   const p=Number(x.citizen.careerPts),r=Number(x.citizen.careerRebs),t=x.target;
+   return (p===t.basePts&&r===t.baseRebs) ||
+          (p===t.intermediatePts&&r===t.intermediateRebs) ||
+          (p===t.pts&&r===t.rebs);
  });
- if(!found)return;
- players.forEach(x=>{
-   x.citizen.careerPts=x.baseline.pts+totals[x.name].pts;
-   x.citizen.careerRebs=x.baseline.rebs+totals[x.name].rebs;
+ if(!accepted){
+   console.error("Calvin's City 5.0: Lions repair stopped safely; totals match neither known baseline nor prior recovery output.");
+   return;
+ }
+ people.forEach(x=>{
+   x.citizen.careerPts=x.target.pts;
+   x.citizen.careerRebs=x.target.rebs;
  });
- state.lionsCareerStatsRecoveryVersion=migrationVersion;
+ state.lionsCareerStatsRecoveryVersion=repairVersion;
  save();
+ const verified=people.every(x=>
+   Number(x.citizen.careerPts)===x.target.pts &&
+   Number(x.citizen.careerRebs)===x.target.rebs);
+ if(!verified)console.error("Calvin's City 5.0: Lions totals failed in-memory verification after save.");
 })();
  
 /* 4.17.105: All nine Season 29 contracts supplied as the opening roster are
@@ -7571,71 +7581,8 @@ try{
    const mainRaw=localStorage.getItem("calvins_city_v24");
    if(!mainRaw)throw new Error("Main game state is missing after restore.");
    const main=JSON.parse(mainRaw);
-   /* 4.29.41: Import-time verified Lions recovery.
-      The expected totals below are the user's confirmed target values. Set the
-      imported citizen records directly after confirming the saved baseline and
-      that detailed Season 31 game records exist. Do not infer missing Seasons 29-30. */
-   try {
-     const recoveryVersion="lions-season31-career-stats-recovery-v3";
-     const expected={
-       Wall:{basePts:568,baseRebs:549,pts:798,rebs:769},
-       Diggs:{basePts:83,baseRebs:80,pts:305,rebs:292},
-       Kap:{basePts:278,baseRebs:243,pts:478,rebs:487}
-     };
-     if(Number(main.year)===31) {
-       const people=Array.isArray(main.citizens)?main.citizens:[];
-       const targets=Object.keys(expected).map(name=>({
-         name, target:expected[name], citizen:people.find(c=>c&&String(c.name).trim()===name)
-       }));
-       const logs=Array.isArray(main.gamesPlayed)?main.gamesPlayed:[];
-       const hasDetailedLogs=logs.some(row=>row&&row.game&&
-         ["A","B"].some(k=>row.game[k]&&row.game[k].team==="Lions"&&Array.isArray(row.game[k].players)));
-       const eligible=targets.every(x=>x.citizen &&
-         Number(x.citizen.careerPts)===x.target.basePts &&
-         Number(x.citizen.careerRebs)===x.target.baseRebs);
-       if(!main.lionsCareerStatsRecoveryVersion && eligible && hasDetailedLogs) {
-         targets.forEach(x=>{
-           x.citizen.careerPts=x.target.pts;
-           x.citizen.careerRebs=x.target.rebs;
-         });
-         main.lionsCareerStatsRecoveryVersion=recoveryVersion;
-         main.playerGameStatsLedger=Array.isArray(main.playerGameStatsLedger)?main.playerGameStatsLedger:[];
-         const seen=new Set(main.playerGameStatsLedger.map(x=>x&&x.id).filter(Boolean));
-         logs.forEach((row,index)=>{
-           const game=row&&row.game;
-           if(!game)return;
-           const gameId=row.id||("S"+Number(main.year)+"-G"+(index+1));
-           ["A","B"].forEach(sideKey=>{
-             const side=game[sideKey];
-             if(!side||!Array.isArray(side.players))return;
-             side.players.forEach(player=>{
-               if(!player||!player.name)return;
-               const id=String(gameId)+"-"+String(player.id||player.name);
-               if(seen.has(id))return;
-               main.playerGameStatsLedger.push({
-                 id,season:Number(main.year),gameId,stage:row.stage||"Unspecified",
-                 playerId:player.id||null,playerName:player.name,team:player.team||side.team||null,
-                 points:Number(player.pts)||0,rebounds:Number(player.rebs)||0,
-                 source:"imported-detailed-game-log"
-               });
-               seen.add(id);
-             });
-           });
-         });
-         const verify=Object.keys(expected).every(name=>{
-           const c=people.find(x=>x&&String(x.name).trim()===name);
-           return c&&Number(c.careerPts)===expected[name].pts&&Number(c.careerRebs)===expected[name].rebs;
-         });
-         if(!verify)throw new Error("Lions career totals failed verification.");
-         const saved=JSON.stringify(main);
-         localStorage.setItem("calvins_city_v24",saved);
-         if(localStorage.getItem("calvins_city_v24")!==saved)throw new Error("Lions recovery save verification failed.");
-       }
-     }
-   } catch(statsRecoveryError) {
-     console.error("Lions stats recovery failed verification.",statsRecoveryError);
-     throw new Error("Backup import stopped during Lions stats recovery. Keep the original JSON backup and do not reset the app.");
-   }
+   /* 5.0: Import validation remains separate from the startup career-stat repair below.
+      The imported game state is saved first; startup then normalizes only verified Lions totals. */
    if(!Number.isFinite(Number(main.year))||Number(main.year)<29||!Array.isArray(main.gamesPlayed)||main.gamesPlayed.length<1)
      throw new Error("Restored state does not contain a valid season (29 or later) and played games.");
    const betsRaw=localStorage.getItem("calvins_city_bets_v1");
