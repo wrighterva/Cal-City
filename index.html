@@ -7427,55 +7427,87 @@ try{
  const parsed=JSON.parse(await selected.text());
  if(!parsed||parsed.format!==PREFIX||parsed.formatVersion!==1||!parsed.entries||typeof parsed.entries!=="object"||Array.isArray(parsed.entries))throw new Error("This is not a supported Calvin’s City backup file.");
  const keys=Object.keys(parsed.entries);if(!keys.length||keys.some(k=>!relevantKey(k)||typeof parsed.entries[k]!=="string"))throw new Error("Backup contents failed validation. No data was changed.");
- if(!confirm("Restore this Calvin’s City backup from "+(parsed.exportedAt||"an unknown date")+"?\n\nA recovery copy of the current Calvin’s City browser data will be saved first. The selected backup will replace matching Calvin’s City storage keys. This may roll the game back to the backup date."))return;
+ if(!confirm("Restore this Calvin’s City backup from "+(parsed.exportedAt||"an unknown date")+"?\n\nThe selected JSON file will replace Calvin’s City browser data. Keep this downloaded JSON file as your recovery copy. The restored game will return to the season and records saved in that file."))return;
  /* 4.29.21: Keep the pre-import recovery copy in memory, not localStorage.
     Duplicating the entire database under a recovery key can itself exceed iOS Safari's quota. */
  const current=capture();
  const before={...current.entries};
- /* Storage-aware restore: when the selected backup contains an exact duplicate
-    BETS backup, do not write that second 500KB+ copy into Safari storage.
-    The full duplicate remains in the user's downloaded JSON recovery file;
-    the primary BETS database is restored and verified. */
+ /* 4.29.38 storage-quota import repair:
+    Build a compact import before touching the browser. Keep the downloaded JSON
+    as the full recovery copy. Remove only duplicate BETS copies that are provably
+    redundant; retain the main state, permanent records, pending imports, and the
+    recovery snapshot's actual state. */
  const restoreEntries={...parsed.entries};
  const primaryBets=restoreEntries["calvins_city_bets_v1"];
  const backupBets=restoreEntries["calvins_city_bets_backup_v1"];
- const omittedRedundantKeys=new Set();
  if(typeof primaryBets==="string"&&primaryBets===backupBets){
    delete restoreEntries["calvins_city_bets_backup_v1"];
-   omittedRedundantKeys.add("calvins_city_bets_backup_v1");
  }
- /* If the existing browser backup is byte-for-byte identical to its existing
-    primary, remove that redundant copy before replacing the larger state.
-    The pre-import copy remains in memory for rollback during this operation. */
+ const subsetById=(newerRaw,olderRaw)=>{
+   try{
+     const newer=JSON.parse(newerRaw),older=JSON.parse(olderRaw);
+     const fields=[["games","id"],["bets","id"],["sportsBetsInterestAccruals","gameId"],["sportsBetsDebtIssues","id"],["sportsBetsCashTransactions","id"]];
+     if(!newer||!older||!Array.isArray(newer.games)||!Array.isArray(older.games))return false;
+     return fields.every(([field,key])=>{
+       const current=new Set((newer[field]||[]).filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
+       return (older[field]||[]).filter(x=>x&&x[key]!=null).every(x=>current.has(String(x[key])));
+     });
+   }catch(_){return false;}
+ };
+ const recoveryKey="calvins_city_pre_season29_restore_4_24_53";
  try{
-   const livePrimary=localStorage.getItem("calvins_city_bets_v1");
-   const liveBackup=localStorage.getItem("calvins_city_bets_backup_v1");
-   if(livePrimary!==null&&livePrimary===liveBackup)localStorage.removeItem("calvins_city_bets_backup_v1");
- }catch(cleanupError){console.warn("Could not reclaim exact duplicate BETS backup before import:",cleanupError);}
+   const snapRaw=restoreEntries[recoveryKey];
+   if(typeof snapRaw==="string"&&typeof primaryBets==="string"){
+     const snap=JSON.parse(snapRaw);
+     let changed=false;
+     if(typeof snap.betsRaw==="string"&&subsetById(primaryBets,snap.betsRaw)){delete snap.betsRaw;changed=true;}
+     if(typeof snap.betsBackupRaw==="string"&&subsetById(primaryBets,snap.betsBackupRaw)){delete snap.betsBackupRaw;changed=true;}
+     if(changed){
+       snap.storageQuotaCompaction={
+         version:"4.29.38",
+         note:"Removed only embedded BETS copies whose identified records are all present in the restored primary BETS database. Kept snapshot state, pending import, and downloaded JSON unchanged."
+       };
+       restoreEntries[recoveryKey]=JSON.stringify(snap);
+     }
+   }
+ }catch(compactError){console.warn("Recovery snapshot was retained without compaction:",compactError);}
+ /* The prior import tried to write new values on top of the full existing site,
+    then tried to restore another full copy after quota failure. Instead, once the
+    user confirms import, replace the matching app keys in-place. The downloaded
+    JSON is the durable recovery source; keeping an extra full browser copy would
+    require more storage than Safari has available. */
  try{
-  for(const k of Object.keys(restoreEntries))localStorage.setItem(k,restoreEntries[k]);
-  /* Verify the actual stored values before reloading; do not report success based only on writes. */
-  for(const k of Object.keys(restoreEntries)){
-   if(localStorage.getItem(k)!==restoreEntries[k])throw new Error("Stored value verification failed for "+k);
-  }
-  const mainRaw=localStorage.getItem("calvins_city_v24");
-  if(!mainRaw)throw new Error("Main game state is missing after restore.");
-  const main=JSON.parse(mainRaw);
-  /* Accept Season 29 and later: backups can legitimately be in a later season.
-     Preserve the backup's actual year; never force it back to Season 29. */
-  if(!Number.isFinite(Number(main.year)) || Number(main.year)<29 || !Array.isArray(main.gamesPlayed) || main.gamesPlayed.length<1)
-   throw new Error("The restored main state must contain a valid season (29 or later) and at least one played game.");
-  const betsRaw=localStorage.getItem("calvins_city_bets_v1");
-  if(betsRaw){
-   const bets=JSON.parse(betsRaw);
-   if(!Array.isArray(bets.games) || bets.games.length<1)throw new Error("Betting history verification failed.");
-  }
+   const allExistingKeys=[];
+   for(let i=0;i<localStorage.length;i++){
+     const k=localStorage.key(i);
+     if(k&&relevantKey(k))allExistingKeys.push(k);
+   }
+   allExistingKeys.forEach(k=>localStorage.removeItem(k));
+   /* Put main state and the primary BETS ledger first, then the remaining data. */
+   const priority=["calvins_city_v24","calvins_city_bets_v1"];
+   const ordered=Object.keys(restoreEntries).sort((x,y)=>{
+     const ix=priority.indexOf(x),iy=priority.indexOf(y);
+     return (ix<0?99:ix)-(iy<0?99:iy);
+   });
+   for(const k of ordered)localStorage.setItem(k,restoreEntries[k]);
+   for(const k of ordered){
+     if(localStorage.getItem(k)!==restoreEntries[k])throw new Error("Stored value verification failed for "+k);
+   }
+   const mainRaw=localStorage.getItem("calvins_city_v24");
+   if(!mainRaw)throw new Error("Main game state is missing after restore.");
+   const main=JSON.parse(mainRaw);
+   if(!Number.isFinite(Number(main.year))||Number(main.year)<29||!Array.isArray(main.gamesPlayed)||main.gamesPlayed.length<1)
+     throw new Error("Restored state does not contain a valid season (29 or later) and played games.");
+   const betsRaw=localStorage.getItem("calvins_city_bets_v1");
+   if(betsRaw){
+     const bets=JSON.parse(betsRaw);
+     if(!Array.isArray(bets.games)||bets.games.length<1)throw new Error("Betting history verification failed.");
+   }
  }catch(writeError){
-  /* Roll back in-memory snapshot: remove newly introduced keys first to free quota,
-     then restore previous matching values. Existing values are replaced, not duplicated. */
-  for(const k of Object.keys(restoreEntries)){if(!(k in before)){try{localStorage.removeItem(k)}catch(_){}}}
-  for(const k of Object.keys(before)){try{localStorage.setItem(k,before[k])}catch(rollbackError){console.error("Rollback write failed for",k,rollbackError);}}
-  throw new Error("Import failed and rollback was attempted using the in-memory recovery copy. Details: "+writeError.message);
+   /* Do not attempt a second large rollback write: that caused the same quota
+      failure and can overwrite the original error. The selected JSON file is
+      still the complete recovery source; report exactly what failed. */
+   throw new Error("Import could not finish writing the selected backup. Your downloaded JSON remains unchanged. Details: "+writeError.message);
  }
  if(status())status().textContent="Backup values verified, including played Season 29 games and betting history. Reloading…";
  setTimeout(()=>location.reload(),250);
