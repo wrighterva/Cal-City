@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.31: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
+<!-- CALVIN'S CITY — VERSION 4.29.32: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.31</title>
+<title>Calvin's City 4.29.32</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.31</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.32</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -747,7 +747,7 @@ function sbMoney(v){return "$"+sbRound(v).toLocaleString("en-US",{minimumFractio
 function sbFinancialMirrorRaw(){try{return localStorage.getItem("calvins_city_financial_transactions_v1");}catch(e){return null;}}
 function sbRestoreFinancialMirror(raw){try{if(raw===null)localStorage.removeItem("calvins_city_financial_transactions_v1");else localStorage.setItem("calvins_city_financial_transactions_v1",raw);}catch(e){console.error("Sports Bets financial mirror rollback failed",e);}}
 function sbSaveState(){
-/* 4.29.31: Sports Bets transactions must not invoke the generic unified-ledger
+/* 4.29.32: Sports Bets transactions must not invoke the generic unified-ledger
    synchronizer mid-transaction. That synchronizer can enlarge/rewrite the main
    state before the paired BETS transaction is committed, causing a verified
    first write to fail on the redundant second write and rolling back automatic
@@ -763,7 +763,9 @@ try{
  window.__calvinsCitySportsBetsSaveError=null;
  return true;
 }catch(e){
- window.__calvinsCitySportsBetsSaveError=String(e&&e.message||e);
+ window.__calvinsCitySportsBetsSaveError=String(e&&e.name?e.name+": ":"") + String(e&&e.message||e) +
+  " [state bytes="+(typeof stateRaw==="string"?stateRaw.length:"not serialized")+
+  "; storage keys="+(function(){try{return localStorage.length;}catch(_){return "unreadable";}})()+"]";
  console.error("Sports Bets main state save failed:",e);
  return false;
 }
@@ -865,7 +867,10 @@ if(other){
 // Snapshot the exact paired ledger rows before any save/sync hook can normalize state.
 const pairedLedgerRows=(state.playerLedgerTransactions||[]).filter(x=>x&&String(x.sportsBetsTransactionId||"")===String(tx.id)).map(x=>({...x}));
 betsDatabase.sportsBetsCashTransactions.push({...tx,companyBefore:sbRound(companyBefore),companyAfter:issuer.get(),counterpartyBefore:otherBefore==null?null:sbRound(otherBefore),counterpartyAfter:other?other.get():null,cashMovement:true});
-if(!sbSaveState())throw new Error("The main financial state could not be saved.");
+if(!sbSaveState()){
+ const detail=String(window.__calvinsCitySportsBetsSaveError||"No low-level save error was recorded.");
+ throw new Error("The main financial state could not be saved. Diagnostic: "+detail);
+}
 // Re-attach paired rows by stable IDs after the unified ledger save; never create duplicates.
 state.playerLedgerTransactions=Array.isArray(state.playerLedgerTransactions)?state.playerLedgerTransactions:[];
 pairedLedgerRows.forEach(row=>{if(!state.playerLedgerTransactions.some(x=>x&&String(x.id)===String(row.id)))state.playerLedgerTransactions.push(row);});
@@ -906,7 +911,7 @@ if(sbAccountOptions().some(a=>a.id===old))sel.value=old;
 function sbCurrentPendingGame(){return typeof betsNextMatchup==="function"?betsNextMatchup():null;}
 function sbEventHasManualCitizen(eventKey,citizenId){return betsDatabase.bets.some(b=>b&&b.targetEventKey===eventKey&&b.placedBy==="manual"&&String(b.citizenId)===String(citizenId));}
 function sbGetStakeUsed(citizenId,eventKey){return betsDatabase.bets.filter(b=>b&&b.targetEventKey===eventKey&&String(b.citizenId)===String(citizenId)&&b.cashStakeReserved===true).reduce((n,b)=>n+(Number(b.stake)||0),0);}
-/* 4.29.31: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
+/* 4.29.32: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
   Reconcile only from a matching immutable settlement row; never move cash during this repair. */
 function sbSettlementForBet(bet){
 if(!bet)return null;
@@ -993,7 +998,11 @@ const result=sbCommitCashTx({id:txId,type:"Automatic Sports Bet Stake",companyDe
 if(result.ok)made++;else{betsDatabase=JSON.parse(beforeDb);skipped++;fatalError=result.error||"Automatic wager transaction failed.";break;}
 }
 renderBetsSection();sbRenderFinancePanels();
-if(fatalError){out.textContent="Automatic betting stopped because a transaction failed: "+fatalError+". The game has not started; review the ledger before retrying.";return {ok:false,made,skipped,error:fatalError};}
+if(fatalError){
+console.error("Calvin's City automatic betting transaction failed (4.29.32):",fatalError,window.__calvinsCitySportsBetsSaveError||null);
+out.textContent="Automatic betting stopped because a transaction failed: "+fatalError+". The game has not started; no further bets were attempted. Copy or screenshot this full message for diagnosis.";
+return {ok:false,made,skipped,error:fatalError,saveError:window.__calvinsCitySportsBetsSaveError||null};
+}
 out.textContent="Automatic betting complete: "+made+" $1M wager(s) placed; "+skipped+" citizen(s) skipped (manual assignment, existing automatic wager, cash, or limit).";
 return {ok:true,made,skipped};
 }
@@ -7200,7 +7209,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.31",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.32",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
