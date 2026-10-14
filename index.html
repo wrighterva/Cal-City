@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.24: disable startup resets; preserve season and repair Markets rendering. -->
+<!-- CALVIN'S CITY — VERSION 4.29.26: atomic, idempotent offseason contract verification with split team/shoe payments; preserve saved season. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.20</title>
+<title>Calvin's City 4.29.26</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -3950,7 +3950,7 @@ const creatingNewReplacement=!!(openSpot&&replacementSelect&&replacementSelect.v
 const isRookieReplacement=!!(openSpot&&creatingNewReplacement);
 if(isRookieReplacement){years=3;salary=0;}
 if((decision==="Resign"||decision==="Replace") &&
-(!y||(!y.value&&!isRookieReplacement)||!sal||(sal.value===""&&!isRookieReplacement)||!Number.isFinite(salary))){
+((!confirmed&&(!y||(!y.value&&!isRookieReplacement)||!sal||(sal.value===""&&!isRookieReplacement)))||!Number.isFinite(salary))){
 alert(name+" needs a valid "+(decision==="Replace"?"replacement":"re-sign")+" team contract before it can be verified.");return;
 }
 if((decision==="Resign"||decision==="Replace") && shoeCompany && (!Number.isFinite(shoeValue)||shoeValue<=0)){
@@ -3971,6 +3971,7 @@ const citizen=ensureCitizen(name,{status:"Active Player",position:pos,currentTea
 const contract=state.contracts[k]||{value:0,years:0};
 ensureTeamCash();
 state.businessCash=state.businessCash||{Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
+if((decision==="Resign"||decision==="Replace") && salary>(Number(state.teamCash[team])||0)){alert(team+" does not have enough team cash to pay this $"+salary+"M team contract.");return;}
 if((decision==="Resign"||decision==="Replace") && shoeCompany && (Number(state.businessCash[shoeCompany])||0)<shoeValue){alert(shoeCompany+" does not have enough business cash to pay this $"+shoeValue+"M shoe deal.");return;}
 if(openSpot&&citizen&&citizen.status==="Retired"){alert(name+" is retired and cannot be used as a replacement.");return;}
 if(openSpot&&Object.entries(state.roster||{}).some(([key,n])=>key!==k&&n===name)){alert(name+" is already assigned to another roster spot.");return;}
@@ -3978,20 +3979,26 @@ if(decision==="Resign"||decision==="Replace"){
 const action=decision==="Replace"?"Replacement Signing":"Re-sign";
 const totalPackage=Math.round((salary+shoeValue)*100)/100;
 const annualValue=years?Math.round((totalPackage/years)*100)/100:0;
+const contractPaymentId="OFFSEASON-CONTRACT-S"+(Number(state.year)||29)+"-"+String(k).replace(/[^a-z0-9]/gi,"-")+"-"+String(name).replace(/[^a-z0-9]/gi,"-");
+state.contractVerificationPayments=Array.isArray(state.contractVerificationPayments)?state.contractVerificationPayments:[];
+if(state.contractVerificationPayments.some(p=>p&&p.id===contractPaymentId)){alert("This contract payment is already recorded. No additional cash was moved; reopen the offseason board to reconcile the verification lock.");return;}
+/* Keep this transaction atomic in localStorage: appendCashLedgerEntry() saves immediately, which could persist the team charge before the shoe payment/deal and final verified state. Append the ledger row directly and save once at the end. */
 if(citizen&&totalPackage>0){citizen.cash=(Number(citizen.cash)||0)+totalPackage;}
-if(salary>0){const teamCashBefore=Number(state.teamCash[team])||0;const teamCashAfter=Math.max(0,Math.round((teamCashBefore-salary)*100)/100);state.teamCash[team]=teamCashAfter;appendCashLedgerEntry("team",team,{type:"Player Contract Payment",amount:Math.round((teamCashAfter-teamCashBefore)*100)/100,before:teamCashBefore,after:teamCashAfter,reason:"Team salary paid for player contract; decision: "+decision,player:name,source:"offseason contract verification"});}
-if(shoeCompany&&shoeValue>0){const cashBefore=Number(state.businessCash[shoeCompany])||0;const cashAfter=Math.max(0,Math.round((cashBefore-shoeValue)*100)/100);state.businessCash[shoeCompany]=cashAfter;state.businessCashLedger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];state.businessCashLedger.push({id:"shoe-deal-payment-"+Date.now()+"-"+String(shoeCompany).replace(/[^a-z0-9]/gi,"-"),season:Number(state.year)||29,type:"Shoe Deal Payment",company:shoeCompany,amount:Math.round((cashAfter-cashBefore)*100)/100,before:cashBefore,after:cashAfter,reason:"Cash paid for player shoe deal; decision: "+decision,createdAt:new Date().toISOString(),accountType:"business"});}
+if(salary>0){const teamCashBefore=Number(state.teamCash[team])||0;const teamCashAfter=Math.round((teamCashBefore-salary)*100)/100;state.teamCash[team]=teamCashAfter;state.teamCashLedger=Array.isArray(state.teamCashLedger)?state.teamCashLedger:[];state.teamCashLedger.push({id:contractPaymentId+"-TEAM-PAYMENT",contractId:contractPaymentId,season:Number(state.year)||29,type:"Player Contract Payment",amount:Math.round((teamCashAfter-teamCashBefore)*100)/100,before:teamCashBefore,after:teamCashAfter,reason:"Team salary paid for player contract; decision: "+decision,player:name,source:"offseason contract verification",team,accountType:"team",createdAt:new Date().toISOString()});}
+if(shoeCompany&&shoeValue>0){const cashBefore=Number(state.businessCash[shoeCompany])||0;const cashAfter=Math.round((cashBefore-shoeValue)*100)/100;state.businessCash[shoeCompany]=cashAfter;state.businessCashLedger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];const shoeDealId="SHOE-DEAL-S"+(Number(state.year)||29)+"-"+String(team)+"-"+String(pos)+"-"+String(name).replace(/[^a-z0-9]/gi,"-")+"-"+String(shoeCompany).replace(/[^a-z0-9]/gi,"-");state.businessCashLedger=state.businessCashLedger.filter(e=>!(e&&e.id===contractPaymentId+"-SHOE-PAYMENT"));state.businessCashLedger.push({id:contractPaymentId+"-SHOE-PAYMENT",contractId:contractPaymentId,shoeDealId,season:Number(state.year)||29,type:"Shoe Deal Payment",company:shoeCompany,player:name,team,position:pos,years,contractValue:shoeValue,amount:Math.round((cashAfter-cashBefore)*100)/100,before:cashBefore,after:cashAfter,reason:"Cash paid for player shoe deal; decision: "+decision,createdAt:new Date().toISOString(),accountType:"business"});state.shoeDealContracts=Array.isArray(state.shoeDealContracts)?state.shoeDealContracts:[];state.shoeDealContracts=state.shoeDealContracts.filter(d=>!(d&&d.id===shoeDealId));state.shoeDealContracts.push({id:shoeDealId,contractId:contractPaymentId,season:Number(state.year)||29,player:name,team,position:pos,company:shoeCompany,years,contractValue:shoeValue,status:"active",startYear:Number(state.year)||29,yearsRemaining:years,paidInFull:true,paidAt:new Date().toISOString()});}
 if(citizen){
  citizen.shoeDeals=Array.isArray(citizen.shoeDeals)?citizen.shoeDeals:[];
  citizen.shoeDeals.forEach(deal=>{if(deal&&Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)>0){if(!deal.originalYears)deal.originalYears=Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)||0;deal.yearsRemaining=0;deal.years=0;deal.endYear=Number(state.year)||0;}});
- if(shoeCompany)citizen.shoeDeals.push({company:shoeCompany,years:years,yearsRemaining:years,originalYears:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true});
+ if(shoeCompany)citizen.shoeDeals.push({company:shoeCompany,years:years,yearsRemaining:years,originalYears:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true,contractId:contractPaymentId});
 }
-setActivePlayerContract(k,team,name,{value:totalPackage,years:years,rookie:isRookieReplacement,totalPackage:totalPackage,teamValue:salary,annualValue,totalPaid:totalPackage,paymentsMade:years,contractYears:years,contractStartSeason:Number(state.year)||0,contractRecordYear:Number(state.year),paymentModel:"upfront-total",upfrontPaid:true,upfrontPaidSeason:Number(state.year),shoeDeals:shoeCompany?[{company:shoeCompany,years:years,yearsRemaining:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true}]:[]},{recordHistory:true,action,cashAdded:totalPackage});
-state.contracts[k].shoeDeals=shoeCompany?[{company:shoeCompany,years:years,yearsRemaining:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true}]:[];
+setActivePlayerContract(k,team,name,{value:salary,years:years,rookie:isRookieReplacement,totalPackage:totalPackage,teamValue:salary,annualValue:years?Math.round((salary/years)*100)/100:0,totalPaid:totalPackage,paymentsMade:years,contractYears:years,contractStartSeason:Number(state.year)||0,contractRecordYear:Number(state.year),paymentModel:"upfront-total",upfrontPaid:true,upfrontPaidSeason:Number(state.year),shoeDeals:shoeCompany?[{company:shoeCompany,years:years,yearsRemaining:years,originalYears:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true}]:[]},{recordHistory:true,action,cashAdded:totalPackage});
+state.contracts[k].shoeDeals=shoeCompany?[{company:shoeCompany,years:years,yearsRemaining:years,value:shoeValue,startYear:Number(state.year)||0,includedInContract:true,contractId:contractPaymentId}]:[];
+state.contracts[k].contractId=contractPaymentId;
+if(decision==="Resign"||decision==="Replace")state.contractVerificationPayments.push({id:contractPaymentId,season:Number(state.year)||29,team,position:pos,player:name,decision,years,teamAmount:salary,shoeCompany:shoeCompany||null,shoeAmount:shoeCompany?shoeValue:0,combinedAmount:totalPackage,createdAt:new Date().toISOString()});
 state.roster[k]=name;
 if(citizen){citizen.status="Active Player";citizen.currentTeam=team;citizen.position=pos;}
 const paidRecord=citizen&&Array.isArray(citizen.contracts)?citizen.contracts.slice().reverse().find(x=>x&&x.team===team&&Number(x.year)===Number(state.year)&&x.current===true):null;
-if(paidRecord){paidRecord.cashPaid=true;paidRecord.cashAdded=totalPackage;paidRecord.action=action;paidRecord.current=true;paidRecord.annualValue=annualValue;paidRecord.totalPaid=totalPackage;paidRecord.paymentsMade=years;paidRecord.contractYears=years;paidRecord.contractStartSeason=Number(state.year)+1;paidRecord.paymentModel="upfront-total";paidRecord.upfrontPaid=true;paidRecord.upfrontPaidSeason=Number(state.year);paidRecord.totalPackage=totalPackage;paidRecord.value=totalPackage;paidRecord.teamValue=salary;paidRecord.shoeDeals=state.contracts[k].shoeDeals;}
+if(paidRecord){paidRecord.contractId=contractPaymentId;paidRecord.cashPaid=true;paidRecord.cashAdded=totalPackage;paidRecord.action=action;paidRecord.current=true;paidRecord.annualValue=annualValue;paidRecord.totalPaid=totalPackage;paidRecord.paymentsMade=years;paidRecord.contractYears=years;paidRecord.contractStartSeason=Number(state.year)+1;paidRecord.paymentModel="upfront-total";paidRecord.upfrontPaid=true;paidRecord.upfrontPaidSeason=Number(state.year);paidRecord.totalPackage=totalPackage;paidRecord.value=totalPackage;paidRecord.teamValue=salary;paidRecord.shoeDeals=state.contracts[k].shoeDeals;}
 if(openSpot){
  delete state.openRosterSpots[k];
  /* 4.17.105: A verified replacement supersedes the retired/released
@@ -4045,7 +4052,10 @@ delete state.offseasonDecisions[k];
 This guarantees the Offseason card visibly changes to VERIFIED / LOCKED even
 if a later Ledger/Arena synchronization takes additional time. */
 buildContractBoard();
-syncActivePlayerContracts();syncCitizenLedger();save();buildRosterInputs();buildContractBoard();renderFreeAgentMarket();
+syncActivePlayerContracts();syncCitizenLedger();syncUnifiedFinancialLedger();
+const contractSaveSucceeded=save();
+if(contractSaveSucceeded===false){alert("Contract verification could not be saved to this device. No live-site or backup data was changed. Do not continue to the next season; check available browser storage and retry after reopening the offseason.");return;}
+buildRosterInputs();buildContractBoard();renderFreeAgentMarket();
 const notice=document.getElementById("contractNamesSaved");
 if(notice)notice.textContent=decision==="Retire"?name+" has been retired. The roster spot is open — add a replacement player before the next season.":decision==="Release"?name+" has been released. The roster spot is open — add a replacement player before the next season.":decision==="Replace"?name+" has been signed as the replacement, added to the Citizen Ledger, updated in the Arena and paid upfront in full.":decision==="Resign"?name+" has been re-signed, added to the Citizen Ledger, updated in the Arena and contract total $"+Number(state.contracts[k]&&state.contracts[k].value||0)+"M; paid upfront in full.":name+"'s existing contract has been kept with "+Number(state.contracts[k]&&state.contracts[k].years||0)+" year(s) remaining. No new contract was created.";
 }
@@ -7131,7 +7141,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.24",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.26",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
