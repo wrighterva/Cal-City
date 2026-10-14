@@ -7571,6 +7571,73 @@ try{
    const mainRaw=localStorage.getItem("calvins_city_v24");
    if(!mainRaw)throw new Error("Main game state is missing after restore.");
    const main=JSON.parse(mainRaw);
+   /* 4.29.40: Apply the Lions recovery to the imported payload itself before reload.
+      Importing a JSON backup happens after the page's startup migrations have run,
+      so a startup-only recovery would otherwise not execute on the newly imported state. */
+   try {
+     const migrationVersion="lions-season31-career-stats-recovery-v2";
+     const baselines={Wall:{pts:568,rebs:549},Diggs:{pts:83,rebs:80},Kap:{pts:278,rebs:243}};
+     if(!main.lionsCareerStatsRecoveryVersion && Number(main.year)===31) {
+       const people=Array.isArray(main.citizens)?main.citizens:[];
+       const targets=Object.keys(baselines).map(name=>({
+         name, baseline:baselines[name], citizen:people.find(c=>c&&c.name===name)
+       }));
+       const eligible=targets.every(x=>x.citizen &&
+         Number(x.citizen.careerPts)===x.baseline.pts &&
+         Number(x.citizen.careerRebs)===x.baseline.rebs);
+       if(eligible) {
+         const totals={Wall:{pts:0,rebs:0},Diggs:{pts:0,rebs:0},Kap:{pts:0,rebs:0}};
+         let entries=0;
+         (Array.isArray(main.gamesPlayed)?main.gamesPlayed:[]).forEach(row=>{
+           const game=row&&row.game;
+           if(!game)return;
+           ["A","B"].forEach(sideKey=>{
+             const side=game[sideKey];
+             if(!side || side.team!=="Lions" || !Array.isArray(side.players))return;
+             side.players.forEach(player=>{
+               if(!player || !totals[player.name])return;
+               totals[player.name].pts+=Number(player.pts)||0;
+               totals[player.name].rebs+=Number(player.rebs)||0;
+               entries++;
+             });
+           });
+         });
+         if(entries>0) {
+           targets.forEach(x=>{
+             x.citizen.careerPts=x.baseline.pts+totals[x.name].pts;
+             x.citizen.careerRebs=x.baseline.rebs+totals[x.name].rebs;
+           });
+           main.lionsCareerStatsRecoveryVersion=migrationVersion;
+           main.playerGameStatsLedger=Array.isArray(main.playerGameStatsLedger)?main.playerGameStatsLedger:[];
+           const seen=new Set(main.playerGameStatsLedger.map(x=>x&&x.id).filter(Boolean));
+           (Array.isArray(main.gamesPlayed)?main.gamesPlayed:[]).forEach((row,index)=>{
+             const game=row&&row.game;
+             if(!game)return;
+             const gameId=row.id||("S"+Number(main.year)+"-G"+(index+1));
+             ["A","B"].forEach(sideKey=>{
+               const side=game[sideKey];
+               if(!side||!Array.isArray(side.players))return;
+               side.players.forEach(player=>{
+                 if(!player||!player.name)return;
+                 const id=String(gameId)+"-"+String(player.id||player.name);
+                 if(seen.has(id))return;
+                 main.playerGameStatsLedger.push({
+                   id,season:Number(main.year),gameId,stage:row.stage||"Unspecified",
+                   playerId:player.id||null,playerName:player.name,team:player.team||side.team||null,
+                   points:Number(player.pts)||0,rebounds:Number(player.rebs)||0,
+                   source:"imported-detailed-game-log"
+                 });
+                 seen.add(id);
+               });
+             });
+           });
+           localStorage.setItem("calvins_city_v24",JSON.stringify(main));
+         }
+       }
+     }
+   } catch(statsRecoveryError) {
+     console.warn("Lions stats recovery did not apply; imported game data remains available for review.",statsRecoveryError);
+   }
    if(!Number.isFinite(Number(main.year))||Number(main.year)<29||!Array.isArray(main.gamesPlayed)||main.gamesPlayed.length<1)
      throw new Error("Restored state does not contain a valid season (29 or later) and played games.");
    const betsRaw=localStorage.getItem("calvins_city_bets_v1");
