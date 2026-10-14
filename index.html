@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.33: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
+<!-- CALVIN'S CITY — VERSION 4.29.34: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.33</title>
+<title>Calvin's City 4.29.34</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 4.29.33</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 4.29.34</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -747,7 +747,7 @@ function sbMoney(v){return "$"+sbRound(v).toLocaleString("en-US",{minimumFractio
 function sbFinancialMirrorRaw(){try{return localStorage.getItem("calvins_city_financial_transactions_v1");}catch(e){return null;}}
 function sbRestoreFinancialMirror(raw){try{if(raw===null)localStorage.removeItem("calvins_city_financial_transactions_v1");else localStorage.setItem("calvins_city_financial_transactions_v1",raw);}catch(e){console.error("Sports Bets financial mirror rollback failed",e);}}
 function sbSaveState(){
-/* 4.29.33: Sports Bets transactions must not invoke the generic unified-ledger
+/* 4.29.34: Sports Bets transactions must not invoke the generic unified-ledger
    synchronizer mid-transaction. That synchronizer can enlarge/rewrite the main
    state before the paired BETS transaction is committed, causing a verified
    first write to fail on the redundant second write and rolling back automatic
@@ -917,7 +917,7 @@ if(sbAccountOptions().some(a=>a.id===old))sel.value=old;
 function sbCurrentPendingGame(){return typeof betsNextMatchup==="function"?betsNextMatchup():null;}
 function sbEventHasManualCitizen(eventKey,citizenId){return betsDatabase.bets.some(b=>b&&b.targetEventKey===eventKey&&b.placedBy==="manual"&&String(b.citizenId)===String(citizenId));}
 function sbGetStakeUsed(citizenId,eventKey){return betsDatabase.bets.filter(b=>b&&b.targetEventKey===eventKey&&String(b.citizenId)===String(citizenId)&&b.cashStakeReserved===true).reduce((n,b)=>n+(Number(b.stake)||0),0);}
-/* 4.29.33: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
+/* 4.29.34: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
   Reconcile only from a matching immutable settlement row; never move cash during this repair. */
 function sbSettlementForBet(bet){
 if(!bet)return null;
@@ -1005,7 +1005,7 @@ if(result.ok)made++;else{betsDatabase=JSON.parse(beforeDb);skipped++;fatalError=
 }
 renderBetsSection();sbRenderFinancePanels();
 if(fatalError){
-console.error("Calvin's City automatic betting transaction failed (4.29.33):",fatalError,window.__calvinsCitySportsBetsSaveError||null);
+console.error("Calvin's City automatic betting transaction failed (4.29.34):",fatalError,window.__calvinsCitySportsBetsSaveError||null);
 out.textContent="Automatic betting stopped because a transaction failed: "+fatalError+". The game has not started; no further bets were attempted. This message includes BETS storage status and size diagnostics.";
 return {ok:false,made,skipped,error:fatalError,saveError:window.__calvinsCitySportsBetsSaveError||null};
 }
@@ -1202,22 +1202,35 @@ if(currentRaw!==null){
     try{if(!localStorage.getItem(BETS_BACKUP_KEY))localStorage.setItem(BETS_BACKUP_KEY,currentRaw);}catch(backupError){}
     renderBetsStorageStatus();return false;
   }
-  // Keep every record from both copies; a stale tab must not replace a larger ledger.
+  // Merge stale-tab records before committing the authoritative primary copy.
   betsDatabase=mergeBetsDatabases(betsDatabase,currentDb);
 }
-// Refresh the recovery copy with the union of the live and prior backup ledgers.
-// This means an empty/stale main key can never make the backup shrink.
+betsDatabase.schemaVersion=BETS_SCHEMA_VERSION;
+const serialized=JSON.stringify(betsDatabase);
+ 
+/* 4.29.34: Commit and verify the authoritative BETS database FIRST.
+   Previously the full recovery copy (another ~400 KB) was rewritten first.
+   On constrained Safari/localStorage quotas that could consume the remaining
+   space and make the actual BETS database write fail. A recovery-copy failure
+   must never invalidate a successful primary write. */
+localStorage.setItem(BETS_STORAGE_KEY,serialized);
+if(localStorage.getItem(BETS_STORAGE_KEY)!==serialized)throw new Error("Primary BETS database write could not be verified.");
+betsRawSavedAtLoad=serialized;
+ 
+let backupUpdated=false;
 try{
   const priorBackupRaw=localStorage.getItem(BETS_BACKUP_KEY);let priorBackupDb=null;
   if(priorBackupRaw!==null){try{priorBackupDb=JSON.parse(priorBackupRaw);}catch(e){}}
   const backupUnion=isValidBetsDatabase(priorBackupDb)?mergeBetsDatabases(betsDatabase,priorBackupDb):betsDatabase;
-  localStorage.setItem(BETS_BACKUP_KEY,JSON.stringify(backupUnion));
-}catch(backupError){console.warn("Could not refresh BETS recovery backup:",backupError);}
-betsDatabase.schemaVersion=BETS_SCHEMA_VERSION;
-const serialized=JSON.stringify(betsDatabase);
-localStorage.setItem(BETS_STORAGE_KEY,serialized);
-betsRawSavedAtLoad=serialized;
-betsStorageMessage="BETS ledger saved. Game and bet history is retained across season resets; previous-copy backup maintained when browser storage permits.";
+  const backupSerialized=JSON.stringify(backupUnion);
+  localStorage.setItem(BETS_BACKUP_KEY,backupSerialized);
+  backupUpdated=localStorage.getItem(BETS_BACKUP_KEY)===backupSerialized;
+}catch(backupError){
+  console.warn("BETS primary database saved, but recovery-copy refresh failed; existing recovery copy was left in place.",backupError);
+}
+betsStorageMessage=backupUpdated
+  ?"BETS ledger saved and verified; recovery copy refreshed."
+  :"BETS ledger saved and verified. WARNING: recovery copy could not be refreshed because browser storage may be full; export a BETS backup.";
 renderBetsStorageStatus();return true;
 }catch(e){
 betsStorageMessage="WARNING: BETS could not save to browser storage. Download a backup before leaving this page.";
@@ -7215,7 +7228,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.33",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.34",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
