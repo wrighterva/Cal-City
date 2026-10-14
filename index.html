@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.28: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
+<!-- CALVIN'S CITY — VERSION 4.29.29: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.28</title>
+<title>Calvin's City 4.29.29</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -889,7 +889,7 @@ if(sbAccountOptions().some(a=>a.id===old))sel.value=old;
 function sbCurrentPendingGame(){return typeof betsNextMatchup==="function"?betsNextMatchup():null;}
 function sbEventHasManualCitizen(eventKey,citizenId){return betsDatabase.bets.some(b=>b&&b.targetEventKey===eventKey&&b.placedBy==="manual"&&String(b.citizenId)===String(citizenId));}
 function sbGetStakeUsed(citizenId,eventKey){return betsDatabase.bets.filter(b=>b&&b.targetEventKey===eventKey&&String(b.citizenId)===String(citizenId)&&b.cashStakeReserved===true).reduce((n,b)=>n+(Number(b.stake)||0),0);}
-/* 4.29.28: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
+/* 4.29.29: A saved settlement transaction is authoritative even if the bet-status save was interrupted.
   Reconcile only from a matching immutable settlement row; never move cash during this repair. */
 function sbSettlementForBet(bet){
 if(!bet)return null;
@@ -6869,8 +6869,14 @@ return changed;
 function priceAdjustment(previous,current){
 if(previous<=0)return current>0?5:0;
 const growth=((current-previous)/previous)*100;
+/* Asymmetric fixed tiers: reward growth conservatively to reduce pump-and-dump swings,
+  while applying progressively stronger penalties to material revenue declines. */
+if(growth>=20)return 7;
 if(growth>=10)return 5;
 if(growth>=1)return 2;
+if(growth<=-40)return -20;
+if(growth<=-30)return -15;
+if(growth<=-20)return -10;
 if(growth<=-10)return -5;
 if(growth<=-1)return -2;
 return 0;
@@ -6906,7 +6912,7 @@ const out=$("stockAnnualReports");if(!out)return;
 if(!db.annualReports.length){out.innerHTML='<p class="muted">Annual reports appear after a season is completed.</p>';return;}
 const latestSeason=Math.max(...db.annualReports.map(r=>Number(r.season)||0));
 const reports=db.annualReports.filter(r=>Number(r.season)===latestSeason);
-out.innerHTML='<h4>Season '+latestSeason+' Company Reports</h4><div style="overflow-x:auto"><table><thead><tr><th>Company</th><th>Annual revenue</th><th>Previous revenue</th><th>Revenue growth</th><th>Share price move</th><th>New price</th></tr></thead><tbody>'+reports.map(r=>'<tr><td>'+esc(r.company)+'</td><td>'+(r.revenueTracked?money(r.revenue):'<span class="muted">Not tracked</span>')+'</td><td>'+(r.previousRevenue==null?"—":money(r.previousRevenue))+'</td><td>'+(r.revenueGrowthPct==null?(r.baseline?"Baseline":"—"):pct(r.revenueGrowthPct))+'</td><td>'+pct(r.priceChangePct)+(r.baseline?" (baseline)":"")+'</td><td>'+money(r.priceAfter)+'</td></tr>').join("")+'</tbody></table></div><p class="tiny">Fixed tiers: revenue growth ≥10% → +5%; +1% to +9.99% → +2%; changes between −1% and +1% → 0%; decline −1% to −9.99% → −2%; decline ≥10% → −5%. The first recorded revenue report establishes a baseline and does not move price.</p>';
+out.innerHTML='<h4>Season '+latestSeason+' Company Reports</h4><div style="overflow-x:auto"><table><thead><tr><th>Company</th><th>Annual revenue</th><th>Previous revenue</th><th>Revenue growth</th><th>Share price move</th><th>New price</th></tr></thead><tbody>'+reports.map(r=>'<tr><td>'+esc(r.company)+'</td><td>'+(r.revenueTracked?money(r.revenue):'<span class="muted">Not tracked</span>')+'</td><td>'+(r.previousRevenue==null?"—":money(r.previousRevenue))+'</td><td>'+(r.revenueGrowthPct==null?(r.baseline?"Baseline":"—"):pct(r.revenueGrowthPct))+'</td><td>'+pct(r.priceChangePct)+(r.baseline?" (baseline)":"")+'</td><td>'+money(r.priceAfter)+'</td></tr>').join("")+'</tbody></table></div><p class="tiny">Asymmetric fixed tiers: growth ≥20% → +7%; growth 10% to 19.99% → +5%; growth 1% to 9.99% → +2%; changes between −1% and +1% → 0%; decline 1% to 9.99% → −2%; decline 10% to 19.99% → −5%; decline 20% to 29.99% → −10%; decline 30% to 39.99% → −15%; decline ≥40% → −20%. Upside is deliberately capped below major downside penalties to discourage pump-and-dump swings. The first recorded revenue report establishes a baseline and does not move price.</p>';
 }
 function renderRegister(){
 const sel=$("stockRegisterCompany"),out=$("stockShareholderRegister");if(!sel||!out)return;
@@ -7177,7 +7183,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.28",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.29",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
