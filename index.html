@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.0.8: one-time Lions career-stat repair. -->
+<!-- CALVIN'S CITY — VERSION 5.0.9: safe season display recovery, based on working 5.0.7. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.0.8</title>
+<title>Calvin's City 5.0.9</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.0.8</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.0.9</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -606,6 +606,39 @@ const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},openRosterSpots:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
+/* VERSION 5.0.9: Recover an invalid/missing season number without resetting game data.
+  This is intentionally based on the known-working 5.0.7 code. It does NOT include
+  the 5.0.8 retired-shoe startup routine that froze the app. A valid saved year is
+  never changed. If the saved year is invalid, use the best grounded season signal
+  from lastSeason/permanent records and current phase; default to Season 29 only if
+  no saved season evidence exists. */
+(function recoverSeasonNumberForDisplay(){
+const validYear=value=>Number.isInteger(Number(value))&&Number(value)>=1&&Number(value)<10000;
+const currentRaw=state&&state.year;
+if(validYear(currentRaw)){
+  state.year=Number(currentRaw);
+  window.__seasonDisplayRecovery={version:"5.0.9",status:"saved-season-valid",season:state.year};
+  return;
+}
+const last=state&&state.lastSeason&&typeof state.lastSeason==="object"?state.lastSeason:{};
+const candidates=[last.year,last.season,last.seasonNumber,last.yearNumber];
+let recovered=candidates.map(Number).find(validYear);
+if(!recovered){
+  const records=state&&state.records&&Array.isArray(state.records.gameRecords)?state.records.gameRecords:[];
+  const years=records.map(row=>Number(row&& (row.year??row.season))).filter(validYear);
+  if(years.length)recovered=Math.max(...years);
+}
+if(recovered){
+  const phase=String(state.seasonPhase||"").toLowerCase();
+  const lastSeasonPlayed=state.seasonPlayed===true||phase==="offseason"||phase==="semifinal"||phase==="championship";
+  const alreadyAdvanced=state.offseasonFinalized===true && !lastSeasonPlayed;
+  state.year=recovered+(alreadyAdvanced?1:0);
+}else{
+  state.year=29;
+}
+window.__seasonDisplayRecovery={version:"5.0.9",status:"recovered-invalid-season",previousValue:currentRaw,season:state.year,source:recovered?"saved season/history":"safe Season 29 fallback"};
+try{if(typeof save==="function")save();}catch(err){console.warn("Season display recovery could not persist; current page state remains repaired.",err);}
+})();
 /* 4.19.9: Capture completed Season 29+ permanent game records BEFORE any
 live-season reset filters them out. These actual results are imported into
 the independent BETS ledger later in startup. Only post-Season-28 records
@@ -2185,27 +2218,7 @@ if(c.arenaRosterSeeded!==true){
 }
 seedInitialArenaRosters();
  
-/* VERSION 5.0.8: Reconcile existing retired players' shoe deals once at startup.
-  Contract records are retained; only active status and remaining term are ended. */
-(function reconcileRetiredPlayersShoeDeals(){
- const marker="retired-player-shoe-deals-ended-v1";
- if(state.retiredPlayerShoeDealsEndedVersion===marker)return;
- const retiredNames=new Set();
- (Array.isArray(state.citizens)?state.citizens:[]).forEach(c=>{
-   if(c&&String(c.status||"").trim().toLowerCase()==="retired"&&c.name)retiredNames.add(String(c.name).trim());
- });
- (Array.isArray(state.records&&state.records.retiredPlayers)?state.records.retiredPlayers:[]).forEach(p=>{
-   if(p&&p.name)retiredNames.add(String(p.name).trim());
- });
- let endedCount=0;
- retiredNames.forEach(name=>{if(endPlayerShoeDeals(name,state.year))endedCount++;});
- state.retiredPlayerShoeDealsEndedVersion=marker;
- const saved=save();
- window.__retiredShoeDealRepairDiagnostic={version:"5.0.8",status:"completed",retiredPlayersChecked:retiredNames.size,playersWithDealsEnded:endedCount,saved};
- console.info("Calvin's City 5.0.8 retired shoe-deal reconciliation",window.__retiredShoeDealRepairDiagnostic);
-})();
- 
-/* VERSION 5.0.8: Lions career-stat repair after startup synchronization.
+/* VERSION 5.0.7: Lions career-stat repair after startup synchronization.
   This migration changes ONLY the six basketball career-total fields below
   and its own version marker. It does not touch cash, contracts, bets, shares,
   MVPs, championships, rosters, or game/history records. */
@@ -4306,47 +4319,7 @@ const leavingName=name;
 const leavingCitizen=decision==="Release"
 ?markPlayerAsFreeAgent(leavingName,team,pos)
 :ensureCitizen(leavingName,{status:"Active Player",position:pos,currentTeam:team,cash:0});
-/* VERSION 5.0.8: End shoe deals when a player retires, without deleting contract history. */
-function endPlayerShoeDeals(playerName, endedYear){
- const name=String(playerName||"").trim().toLowerCase();
- if(!name)return false;
- const year=Number(endedYear!=null?endedYear:state.year)||0;
- let changed=false;
- const citizens=Array.isArray(state.citizens)?state.citizens:[];
- citizens.forEach(c=>{
-   if(!c||String(c.name||"").trim().toLowerCase()!==name)return;
-   c.shoeDeals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
-   c.shoeDeals.forEach(deal=>{
-     if(!deal||!deal.company)return;
-     const isOpen=String(deal.status||"").toLowerCase()==="active" || Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)>0;
-     if(isOpen){
-       deal.status="ended";
-       deal.yearsRemaining=0;
-       deal.years=0;
-       deal.endYear=year;
-       deal.endedReason="player retired";
-       deal.endedAt=deal.endedAt||new Date().toISOString();
-       changed=true;
-     }
-   });
- });
- state.shoeDealContracts=Array.isArray(state.shoeDealContracts)?state.shoeDealContracts:[];
- state.shoeDealContracts.forEach(deal=>{
-   if(!deal||String(deal.player||"").trim().toLowerCase()!==name)return;
-   if(String(deal.status||"").toLowerCase()==="active" || Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)>0){
-     deal.status="ended";
-     deal.yearsRemaining=0;
-     deal.years=0;
-     deal.endYear=year;
-     deal.endedReason="player retired";
-     deal.endedAt=deal.endedAt||new Date().toISOString();
-     changed=true;
-   }
- });
- return changed;
-}
- 
-if(decision==="Retire"&&leavingCitizen){leavingCitizen.status="Retired";leavingCitizen.currentTeam=null;leavingCitizen.position=null;endPlayerShoeDeals(leavingName);}
+if(decision==="Retire"&&leavingCitizen){leavingCitizen.status="Retired";leavingCitizen.currentTeam=null;leavingCitizen.position=null;}
 const retired={name:leavingName,careerPts:Number(leavingCitizen&&leavingCitizen.careerPts||0),careerRebs:Number(leavingCitizen&&leavingCitizen.careerRebs||0),mvps:Number(leavingCitizen&&leavingCitizen.mvps||0),championships:Number(leavingCitizen&&leavingCitizen.championships||0),retirementCash:leavingCitizen&&leavingCitizen.cash!=null?Number(leavingCitizen.cash):null,champStreak:Number(leavingCitizen&&leavingCitizen.champStreak||0),currentChampStreak:Number(leavingCitizen&&leavingCitizen.currentChampStreak||0)};
 if(decision==="Retire"){
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
@@ -4498,7 +4471,7 @@ POSITIONS.forEach(p=>{
    else state.records.retiredPlayers.push(retired);
    delete state.roster[k];
    delete state.contracts[k];
-   if(citizen){citizen.status="Retired";endPlayerShoeDeals(name);}
+   if(citizen)citizen.status="Retired";
  }else{
    // KEEP: continue the existing contract. Do not create a new contract
    // record, do not move cash, and do not decrement again during the
@@ -5546,7 +5519,7 @@ warning.style.display=window.__calvinsCitySaveError?"block":"none";
 window.addEventListener("error",function(){setTimeout(showCitySaveWarning,0);});
 document.addEventListener("DOMContentLoaded",showCitySaveWarning);
  
-/* VERSION 5.0.8: FINAL startup reconciliation for Lions career totals.
+/* VERSION 5.0.7: FINAL startup reconciliation for Lions career totals.
   Earlier repairs ran before later startup synchronization and could be
   overwritten. Run this after the app's startup routines have completed.
   Only the three named citizens' career points/rebounds and this migration
@@ -5570,7 +5543,7 @@ if(rows.some(r=>!r.citizen)){
     reason:"One or more target citizens were not present at final startup repair.",
     found:rows.map(r=>({name:r.name,found:!!r.citizen}))
   };
-  console.error("Calvin's City 5.0.8 final Lions repair skipped.",window.__lionsStatsRepairDiagnostic);
+  console.error("Calvin's City 5.0.7 final Lions repair skipped.",window.__lionsStatsRepairDiagnostic);
 }else{
   const before=rows.map(r=>({
     name:r.name,points:r.citizen.careerPts,rebounds:r.citizen.careerRebs
@@ -5604,12 +5577,12 @@ if(rows.some(r=>!r.citizen)){
     players:rows.map(r=>({name:r.name,points:r.citizen.careerPts,rebounds:r.citizen.careerRebs})),
     stored
   };
-  console.info("Calvin's City 5.0.8 final Lions career totals diagnostic",window.__lionsStatsRepairDiagnostic);
+  console.info("Calvin's City 5.0.7 final Lions career totals diagnostic",window.__lionsStatsRepairDiagnostic);
   try{if(typeof render==="function")render();}catch(err){console.error("Lions totals render refresh failed.",err);}
 }
 })();
  
-/* VERSION 5.0.8: Refresh the offseason player dropdown after startup stats
+/* VERSION 5.0.7: Refresh the offseason player dropdown after startup stats
   reconciliation. The dropdown labels are generated when buildContractBoard()
   runs, so refreshing only the team page leaves previously rendered option
   text stale. This changes no stats or saved records. */
@@ -5619,7 +5592,7 @@ try{
  console.error("Player dropdown refresh failed.",err);
 }
  
-/* VERSION 5.0.8: Restore Wall's two historically earned MVPs.
+/* VERSION 5.0.7: Restore Wall's two historically earned MVPs.
   Wall won MVP in Years 27 and 31. Reconcile only his MVP career count in
   the citizen ledger and active Lions center roster record. Do not alter
   any championship history rows, points/rebounds, cash, contracts, bets,
@@ -5630,7 +5603,7 @@ try{
  const wall=(Array.isArray(state.citizens)?state.citizens:[])
    .find(c=>c&&String(c.name||"").trim().toLowerCase()==="wall");
  if(!wall){
-   window.__wallMvpRepairDiagnostic={version:"5.0.8",status:"skipped",reason:"Wall citizen record not found"};
+   window.__wallMvpRepairDiagnostic={version:"5.0.7",status:"skipped",reason:"Wall citizen record not found"};
    console.error("Wall MVP count repair skipped: Wall citizen record not found.",window.__wallMvpRepairDiagnostic);
  }else{
    const before={citizen:wall.mvps,roster:state.roster&&state.roster.Lions_C&&state.roster.Lions_C.mvps};
@@ -5641,8 +5614,8 @@ try{
    state.wallMvpCountRecoveryVersion=marker;
    const saved=save();
    const rosterValue=state.roster&&state.roster.Lions_C&&state.roster.Lions_C.mvps;
-   window.__wallMvpRepairDiagnostic={version:"5.0.8",status:Number(wall.mvps)===2?"updated":"verification-failed",before,after:{citizen:wall.mvps,roster:rosterValue},saved};
-   console.info("Calvin's City 5.0.8 Wall MVP count repair",window.__wallMvpRepairDiagnostic);
+   window.__wallMvpRepairDiagnostic={version:"5.0.7",status:Number(wall.mvps)===2?"updated":"verification-failed",before,after:{citizen:wall.mvps,roster:rosterValue},saved};
+   console.info("Calvin's City 5.0.7 Wall MVP count repair",window.__wallMvpRepairDiagnostic);
    try{if(typeof render==="function")render();}catch(err){console.error("Wall MVP count render refresh failed.",err);}
    try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Wall MVP dropdown refresh failed.",err);}
  }
@@ -7639,7 +7612,7 @@ for(let i=0;i<localStorage.length;i++){
 const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"5.0.4",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"5.0.9",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
