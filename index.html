@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.37: reconcile already-settled wagers before exposure checks; preserve saved game data. -->
+<!-- CALVIN'S CITY — VERSION 4.29.38: block company self-purchases of newly issued shares; preserve saved game data. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 4.29.37</title>
+<title>Calvin's City 4.29.38</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -6820,6 +6820,13 @@ const price=Number(co.price)||0;const total=round4(count*price);if(total<=0){ale
 let buyer=null,seller=null,source="citizen-to-citizen",reservePurchase=false;
 if(action==="buyReserve"){
 buyer=actor;reservePurchase=true;
+/* 4.29.38: A business cannot purchase its own newly issued shares.
+  The issuer's cash is the same account that receives reserve proceeds, so
+  allowing a self-purchase would create a fake ownership entry without a
+  meaningful net cash debit. Require a separate investor account instead. */
+if(buyer.kind==="business"&&String(buyer.id)===String(company)){
+alert("Sports Bets and other businesses cannot buy their own newly issued shares. Select a citizen or a different account to purchase "+company+" shares.");return;
+}
 if(count>sharesAvailable(co)){alert("Only "+sharesAvailable(co)+" shares remain available.");return;}
 }else if(action==="buyCitizen"){buyer=actor;seller=other;}
 else if(action==="sellCitizen"){seller=actor;buyer=other;}
