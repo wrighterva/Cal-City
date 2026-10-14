@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <!-- CALVIN'S CITY — VERSION 4.29.38: block company self-purchases of newly issued shares; preserve saved game data. -->
-<!-- 4.29.39 patch: permanent player-by-player game-stat ledger + guarded Lions Season 31 career-stat recovery. Visible version label intentionally preserved. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -3340,54 +3339,6 @@ return true;
 function tvBroadcastingEligibleForSeason(season){const yr=Number(season)||Number(state.year)||29;const deals=Array.isArray(state.tvBroadcastingDeals)?state.tvBroadcastingDeals:[];const active=new Set(deals.filter(d=>d&&["Lions","Rims","Dunks"].includes(String(d.team||""))&&d.status!=="cancelled"&&Number(d.startSeason)<=yr&&Number(d.endSeason)>=yr).map(d=>String(d.team||"")));return active.size>=2;}
 function playGame(a,b){let A=playTeam(a),B=playTeam(b),ot=0;while(A.score===B.score){ot++;POSITIONS.forEach((p,i)=>{A.players[i].pts+=die();A.players[i].rebs+=die();B.players[i].pts+=die();B.players[i].rebs+=die()});A.score=A.players.reduce((x,p)=>x+p.pts,0);B.score=B.players.reduce((x,p)=>x+p.pts,0);A.rebs=A.players.reduce((x,p)=>x+p.rebs,0);B.rebs=B.players.reduce((x,p)=>x+p.rebs,0)}const winner=A.score>B.score?A:B,loser=A.score>B.score?B:A;const tvEligible=tvBroadcastingEligibleForSeason(state.year);return{A,B,winner,loser,ot,ticket:ticketRevenue(),shoeByCompany:Object.fromEntries(SHOES.map(s=>[s,shoeCompanyHasActivePlayerDeal(s)?shoeRevenue():0])),tvBroadcastingEligible:tvEligible,tvBaseRevenue:tvEligible?(die()+die())*10:0}}
 function gameText(g){const shoeTotal=SHOES.reduce((sum,company)=>sum+(Number(g.shoeByCompany&&g.shoeByCompany[company])||0),0);const tvEligible=(typeof g.tvBroadcastingEligible==="boolean")?g.tvBroadcastingEligible:true;const tvShare=tvEligible?Math.round(shoeTotal*10)/100:0;const tvBase=tvEligible?(Number(g.tvBaseRevenue)||0):0;let h='<p class="gold"><b>'+g.winner.team+' wins '+g.winner.score+'-'+g.loser.score+'</b>'+(g.ot?' after '+g.ot+' OT':'')+'</p><p>🎟️ Ticket revenue: <b>'+money(g.ticket)+'</b> — '+g.winner.team+' '+money(g.ticket*.7)+' / '+g.loser.team+' '+money(g.ticket*.3)+'</p><p>👟 Shoe revenue: '+SHOES.map(s=>s+' '+money(g.shoeByCompany[s])).join(" • ")+'</p>'+(tvEligible?'<p>📺 TV Company revenue: <b>'+money(tvBase)+'</b> from its two dice + <b>'+money(tvShare)+'</b> (10% of total shoe revenue) = <b>'+money(tvBase+tvShare)+'</b>. This requires at least two active team broadcasting deals. The shoe-revenue share is additional and does not reduce shoe-company earnings.</p>':'<p>📺 TV Company revenue: <b>$0M</b>. At least two teams must have active broadcasting deals before the season to qualify.</p>');[g.A,g.B].forEach(t=>{h+='<div class="team"><h3>🏀 '+t.team+' — Player Stats</h3><table><tr><th>Player</th><th>PTS</th><th>REB</th></tr>';t.players.forEach(p=>h+='<tr><td>'+p.name+' ('+p.pos+')</td><td>'+p.pts+'</td><td>'+p.rebs+'</td></tr>');h+='</table><p><b>Game Total:</b> '+t.score+' PTS • '+t.rebs+' REB</p></div>'});return h}
-/* 4.29.39: Permanent player-by-player game-stat ledger.
-  Every completed game gets a stable season/game key and append-only rows linked
-  to the citizen ID. Existing detailed game logs are migrated idempotently.
-  The original game log remains untouched; aggregate season summaries are not
-  treated as a source of individual player statistics. */
-function ensurePermanentPlayerGameStatsLedger(){
-state.records=state.records||{};
-if(!Array.isArray(state.records.playerGameStats))state.records.playerGameStats=[];
-return state.records.playerGameStats;
-}
-function playerGameLedgerKey(season,gameNumber,stage,team,playerId){
-return [Number(season)||0,Number(gameNumber)||0,String(stage||""),String(team||""),String(playerId||"")].join("|");
-}
-function recordPermanentPlayerGameStats(g,stage,gameNumber){
-if(!g||!g.A||!g.B)return false;
-const ledger=ensurePermanentPlayerGameStatsLedger();
-const season=Number(state.year)||29;
-const number=Number(gameNumber)||(Array.isArray(state.gamesPlayed)?state.gamesPlayed.length+1:1);
-const gameStage=String(stage||g.stage||"Unknown");
-const gameId="S"+season+"-G"+String(number).padStart(2,"0");
-let added=0;
-[g.A,g.B].forEach(side=>{
- if(!side||!Array.isArray(side.players))return;
- side.players.forEach(p=>{
-  if(!p||!p.name)return;
-  const citizen=ensureCitizen(p.name,{status:"Active Player",position:p.pos,currentTeam:side.team});
-  const playerId=citizen&&citizen.id?String(citizen.id):String(p.name);
-  const key=playerGameLedgerKey(season,number,gameStage,side.team,playerId);
-  if(ledger.some(row=>row&&row.ledgerKey===key))return;
-  ledger.push({ledgerKey:key,gameId,season,gameNumber:number,stage:gameStage,teamAtGame:String(side.team||""),playerId,playerName:String(p.name),position:String(p.pos||""),points:Number(p.pts)||0,rebounds:Number(p.rebs)||0,recordedAt:new Date().toISOString(),source:"completed-game"});
-  added++;
- });
-});
-return added>0;
-}
-(function migrateExistingDetailedPlayerGameLogs(){
-const ledger=ensurePermanentPlayerGameStatsLedger();
-const games=Array.isArray(state.gamesPlayed)?state.gamesPlayed:[];
-let changed=false;
-games.forEach((row,index)=>{
- if(!row||!row.game||!row.game.A||!row.game.B)return;
- const before=ledger.length;
- recordPermanentPlayerGameStats(row.game,row.stage||row.game.stage||"Historical Game",index+1);
- if(ledger.length!==before)changed=true;
-});
-if(changed)save();
-})();
- 
 function recordGameCareerStats(g){
 /* 4.17.105: Every completed game immediately adds the player's game
  PTS/REB to the Citizen career totals. Overtime is already included in
@@ -3530,8 +3481,6 @@ state.standings[g.winner.team].ticket+=g.ticket*.7;
 state.standings[g.loser.team].ticket+=g.ticket*.3;
 }
 recordGameCareerStats(g);
-const nextSeasonGameNumber=(Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0)+1;
-recordPermanentPlayerGameStats(g,stage,nextSeasonGameNumber);
 state.gamesPlayed.push({stage,a:g.A.team,b:g.B.team,winner:g.winner.team,loser:g.loser.team,scoreA:g.A.score,scoreB:g.B.score,game:g});
 recordHistoryGame(g,stage);
 state.lastGame={stage,game:g};
@@ -7564,6 +7513,39 @@ try{
      }
    }
  }catch(compactError){console.warn("Recovery snapshot was retained without compaction:",compactError);}
+ 
+ /* 4.29.39 SAFE IMPORT QUOTA GUARD:
+    localStorage stores strings in browser-managed storage, often with substantial
+    per-origin overhead. Keep the canonical live state and ledgers. Recovery snapshots
+    remain in the user's original downloaded JSON; do not force-write redundant snapshots
+    into a quota-limited browser store. Never remove history from the canonical ledgers. */
+ const canonicalKeys = new Set([
+   "calvins_city_v24",
+   "calvins_city_stock_market_v1",
+   "calvins_city_bets_v1",
+   "calvins_city_bets_pending_import_v1",
+   "calvins_city_business_ownership_v1",
+   "calvins_city_share_ownership_ledger_v1",
+   "calvins_city_financial_transactions_v1"
+ ]);
+ const recoveryKeys = Object.keys(restoreEntries).filter(k =>
+   /^calvins_city_(?:pre_|.*backup|.*recovery)/i.test(k) && !canonicalKeys.has(k)
+ );
+ const estimateStorageChars = obj => Object.entries(obj).reduce((n,[k,v])=>n+k.length+String(v).length,0);
+ const canonicalPresent = [...canonicalKeys].filter(k => Object.prototype.hasOwnProperty.call(restoreEntries,k));
+ if (!canonicalPresent.includes("calvins_city_v24")) {
+   throw new Error("Import stopped safely: the main game state is missing. Existing saved data was not changed.");
+ }
+ /* Do not discard snapshots unless the estimated payload is too large. In that case,
+    retain a single latest recovery snapshot only if one is present; the untouched
+    downloaded JSON remains the complete archival copy. */
+ if (estimateStorageChars(restoreEntries) > 1800000) {
+   const snapshots = recoveryKeys.filter(k => Object.prototype.hasOwnProperty.call(restoreEntries,k));
+   snapshots.forEach(k => { delete restoreEntries[k]; });
+   if (snapshots.length) {
+     console.warn("Import quota guard: recovery snapshots were left in the untouched downloaded JSON rather than duplicated into browser storage.", snapshots);
+   }
+ }
  /* The prior import tried to write new values on top of the full existing site,
     then tried to restore another full copy after quota failure. Instead, once the
     user confirms import, replace the matching app keys in-place. The downloaded
