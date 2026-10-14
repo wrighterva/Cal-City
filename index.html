@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 4.29.23: disable startup resets; preserve season and repair Markets rendering. -->
+<!-- CALVIN'S CITY — VERSION 4.29.24: disable startup resets; preserve season and repair Markets rendering. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -2427,7 +2428,7 @@ state.shoeDealDuplicateCleanupVersion="4.17.108";
 save();
 }
  
-/* 4.29.23: Repair duplicate active shoe deals after offseason verification.
+/* 4.29.24: Repair duplicate active shoe deals after offseason verification.
 The legacy Wall initializer checked for an exact 2-year deal, so when the
 legitimate deal advanced to 1 year it could append a second 2-year record.
 For same-player records with the same company, value, and start season, keep
@@ -2435,7 +2436,7 @@ the record that has already been advanced for the current season; otherwise
 prefer the most recently advanced record, then the most complete term data.
 This changes only duplicate live deal entries, not cash, payments, contracts,
 share ownership, or permanent game history. */
-if(state.shoeDealDuplicateCleanupVersion!=="4.29.23"){
+if(state.shoeDealDuplicateCleanupVersion!=="4.29.24"){
 const currentShoeSeason=Number(state.year)||0;
 function repairDuplicateShoeDeals(list){
  if(!Array.isArray(list))return list;
@@ -2466,7 +2467,7 @@ function repairDuplicateShoeDeals(list){
 }
 (state.citizens||[]).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=repairDuplicateShoeDeals(c.shoeDeals);});
 Object.values(state.contracts||{}).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))c.shoeDeals=repairDuplicateShoeDeals(c.shoeDeals);});
-state.shoeDealDuplicateCleanupVersion="4.29.23";
+state.shoeDealDuplicateCleanupVersion="4.29.24";
 save();
 }
  
@@ -3899,8 +3900,11 @@ const modal=document.getElementById("contractVerifyModal");
 if(modal){window.__contractVerifyScrollY=window.scrollY||window.pageYOffset||0;document.body.style.top=(-window.__contractVerifyScrollY)+"px";document.body.classList.add("verify-modal-open");modal.classList.add("show");}
 }
 function closeContractVerifyModal(){pendingContractVerification=null;const modal=document.getElementById("contractVerifyModal");if(modal)modal.classList.remove("show");const scrollY=Number(window.__contractVerifyScrollY)||0;document.body.classList.remove("verify-modal-open");document.body.style.top="";window.scrollTo(0,scrollY);window.__contractVerifyScrollY=0;}
-function confirmContractVerification(){const pending=pendingContractVerification;if(!pending)return;window.closeContractVerifyModal();verifyOffseasonDecision(pending.team,pending.pos);}
-function verifyOffseasonDecision(team,pos){
+/* 4.29.24: Confirm from the exact snapshot shown in the verification popup.
+  On iOS, reading the form again after closing the modal can lose or change the
+  selected decision/deal. The confirmed snapshot is authoritative for this save. */
+function confirmContractVerification(){const pending=pendingContractVerification;if(!pending)return;const confirmed={...pending};window.closeContractVerifyModal();verifyOffseasonDecision(confirmed.team,confirmed.pos,confirmed);}
+function verifyOffseasonDecision(team,pos,confirmed){
 if(!state.seasonPlayed||!state.offseasonOpen){alert("Open the offseason before verifying a decision.");return;}
 const k=team+"_"+pos;
 state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
@@ -3931,12 +3935,15 @@ const entry=state.offseasonDecisions[k]||{decision:"Keep"};
 const decisionSelect=card.querySelector(".offseason-decision");
 decision=(decisionSelect&&decisionSelect.value)||entry.decision||"Keep";
 }
+/* Keep the exact values that the user reviewed in the confirmation popup.
+  DOM values remain the fallback for legacy/direct calls. */
+if(confirmed){name=String(confirmed.name||name).trim();decision=String(confirmed.decision||decision);}
 const y=card.querySelector(".resign-years");
 const sal=card.querySelector(".resign-salary");
-let years=Math.max(1,Math.min(3,Number(y&&y.value)||0));
-let salary=Math.max(0,Number(sal&&sal.value)||0);
-const shoeCompany=(card.querySelector(".shoe-company-select")?.value||"").trim();
-const shoeValue=Math.max(0,Number(card.querySelector(".shoe-deal-value")?.value)||0);
+let years=Math.max(1,Math.min(3,Number(confirmed?confirmed.years:(y&&y.value))||0));
+let salary=Math.max(0,Number(confirmed?confirmed.salary:(sal&&sal.value))||0);
+const shoeCompany=String(confirmed?confirmed.shoeCompany:(card.querySelector(".shoe-company-select")?.value||"")).trim();
+const shoeValue=Math.max(0,Number(confirmed?confirmed.shoeValue:(card.querySelector(".shoe-deal-value")?.value))||0);
 /* 4.17.105: Creating a brand-new replacement player identifies a rookie.
 Rookie team contracts are fixed at 3 years / $0M. */
 const replacementSelect=card.querySelector(".replacement-player-select");
@@ -7125,7 +7132,7 @@ for(let i=0;i<localStorage.length;i++){
  const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"4.29.23",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"4.29.24",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
