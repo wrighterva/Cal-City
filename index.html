@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.0.4: one-time Lions career-stat repair. -->
+<!-- CALVIN'S CITY — VERSION 5.0.5: one-time Lions career-stat repair. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.0.4</title>
+<title>Calvin's City 5.0.5</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.0.4</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.0.5</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -2185,7 +2185,7 @@ if(c.arenaRosterSeeded!==true){
 }
 seedInitialArenaRosters();
  
-/* VERSION 5.0.4: Lions career-stat repair marker-collision fix.
+/* VERSION 5.0.5: Lions career-stat repair after startup synchronization.
   This migration changes ONLY the six basketball career-total fields below
   and its own version marker. It does not touch cash, contracts, bets, shares,
   MVPs, championships, rosters, or game/history records. */
@@ -5485,6 +5485,69 @@ warning.style.display=window.__calvinsCitySaveError?"block":"none";
 }
 window.addEventListener("error",function(){setTimeout(showCitySaveWarning,0);});
 document.addEventListener("DOMContentLoaded",showCitySaveWarning);
+ 
+/* VERSION 5.0.5: FINAL startup reconciliation for Lions career totals.
+  Earlier repairs ran before later startup synchronization and could be
+  overwritten. Run this after the app's startup routines have completed.
+  Only the three named citizens' career points/rebounds and this migration
+  marker are changed; financial data and historical game records are untouched. */
+(function finalLionsCareerTotalsRepair(){
+const marker="lions-career-stats-recovery-v9";
+if(state.lionsCareerStatsRecoveryVersion==="lions-career-stats-recovery-v9")return;
+const targets={
+  Wall:{points:798,rebounds:769},
+  Diggs:{points:305,rebounds:292},
+  Kap:{points:478,rebounds:487}
+};
+const citizens=Array.isArray(state.citizens)?state.citizens:[];
+const rows=Object.keys(targets).map(name=>({
+  name,target:targets[name],
+  citizen:citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase())
+}));
+if(rows.some(r=>!r.citizen)){
+  window.__lionsStatsRepairDiagnostic={
+    version:"5.0.5",status:"skipped",
+    reason:"One or more target citizens were not present at final startup repair.",
+    found:rows.map(r=>({name:r.name,found:!!r.citizen}))
+  };
+  console.error("Calvin's City 5.0.5 final Lions repair skipped.",window.__lionsStatsRepairDiagnostic);
+}else{
+  const before=rows.map(r=>({
+    name:r.name,points:r.citizen.careerPts,rebounds:r.citizen.careerRebs
+  }));
+  rows.forEach(r=>{
+    r.citizen.careerPts=r.target.points;
+    r.citizen.careerRebs=r.target.rebounds;
+  });
+  state.lionsCareerStatsRecoveryVersion=marker;
+  const saved=save();
+  let stored=null;
+  try{
+    const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+    if(raw&&Array.isArray(raw.citizens)){
+      stored=rows.map(r=>{
+        const c=raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()===r.name.toLowerCase());
+        return {name:r.name,points:c&&c.careerPts,rebounds:c&&c.careerRebs};
+      });
+    }
+  }catch(err){stored={error:String(err&&err.message||err)};}
+  const verified=rows.every(r=>
+    Number(r.citizen.careerPts)===r.target.points&&Number(r.citizen.careerRebs)===r.target.rebounds);
+  const persisted=Array.isArray(stored)&&stored.every(r=>{
+    const t=targets[r.name];
+    return t&&Number(r.points)===t.points&&Number(r.rebounds)===t.rebounds;
+  });
+  window.__lionsStatsRepairDiagnostic={
+    version:"5.0.5",
+    status:verified&&persisted?"saved-and-verified":verified?"memory-updated-storage-not-verified":"verification-failed",
+    season:state.year,saved,before,
+    players:rows.map(r=>({name:r.name,points:r.citizen.careerPts,rebounds:r.citizen.careerRebs})),
+    stored
+  };
+  console.info("Calvin's City 5.0.5 final Lions career totals diagnostic",window.__lionsStatsRepairDiagnostic);
+  try{if(typeof render==="function")render();}catch(err){console.error("Lions totals render refresh failed.",err);}
+}
+})();
  
 })();
  
