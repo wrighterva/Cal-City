@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.1.1: fix retired shoe-deal status without breaking business-tab navigation; based on working 5.0.9. -->
+<!-- CALVIN'S CITY — VERSION 5.1.2: preserve retired-player contract history; do not reseed retired Wall into active roster. Based on working 5.1.1. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.1.1</title>
+<title>Calvin's City 5.1.2</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.1.1</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.1.2</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -2091,6 +2091,14 @@ Lions_PG:{name:"Kap",careerPts:278,careerRebs:243,mvps:0,championships:1,
  contract:{value:450,years:2,rookie:false,totalPackage:450,teamValue:450,paymentModel:"starting-balance",totalPaid:450,paymentsMade:2,contractYears:2,contractStartSeason:null},shoeDeals:[]}
 };
 Object.entries(players).forEach(([key,p])=>{
+/* 5.1.2 CONTRACT PRESERVATION:
+  A retired player who is intentionally absent from the saved roster must
+  not be re-added by the legacy opening-roster seed. In particular, Wall's
+  Season 30 $75M re-sign and Season 31 retirement remain historical citizen
+  records; the Season 29 $787M opening contract must not become active again. */
+const savedCitizen=(state.citizens||[]).find(c=>c&&String(c.name||"").trim()===p.name);
+const retiredAndRemoved=p.name==="Wall" && Number(state.year)>29 && savedCitizen && String(savedCitizen.status||"").toLowerCase()==="retired" && !state.roster[key];
+if(retiredAndRemoved)return;
 if(!state.roster[key])state.roster[key]=p.name;
 const existing=state.contracts[key]||{};
 const untouchedSeason29StartingPoint=(Number(state.year)===29 && !state.seasonPlayed && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular");
@@ -2110,6 +2118,10 @@ const SEASON_29_OPENING_CASH={Wall:787,Diggs:0,Kap:450};
 const byName={Wall:players.Lions_C,Diggs:players.Lions_SG,Kap:players.Lions_PG};
 Object.entries(byName).forEach(([name,p])=>{
 let c=state.citizens.find(x=>x.name===name);
+/* Do not reactivate a retired player or rewrite their current team during
+  startup. Their complete contract and shoe-deal history remains in the
+  Citizen Ledger, but their expired opening contract is not live. */
+if(name==="Wall" && Number(state.year)>29 && c && String(c.status||"").toLowerCase()==="retired" && !(state.roster&&state.roster.Lions_C))return;
 if(!c){
  const id="C"+String(state.citizens.length+1).padStart(3,"0");
  c={id,name,status:"Active Player",position:p.position||null,currentTeam:"Lions",cash:null,debt:0,
@@ -7624,7 +7636,7 @@ for(let i=0;i<localStorage.length;i++){
 const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"5.1.1",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"5.1.2",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
