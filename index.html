@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.0.2: corrected scoped Lions Season 31 career-stat repair. -->
+<!-- CALVIN'S CITY — VERSION 5.0.3: one-time Lions career-stat repair. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.0.2</title>
+<title>Calvin's City 5.0.3</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.0.2</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.0.3</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -2185,42 +2185,66 @@ if(c.arenaRosterSeeded!==true){
 }
 seedInitialArenaRosters();
  
-/* VERSION 5.0.2: One-time, scoped Season 31 Lions career-stat repair.
-  Uses only the three exact citizen records and recognized saved totals. It does
-  not touch cash, contracts, bets, shares, game history, or other citizens. */
-(function repairLionsSeason31CareerStats(){
-const repairVersion="lions-season31-career-stats-recovery-v6";
-if(Number(state.year)!==31 || state.lionsCareerStatsRecoveryVersion===repairVersion)return;
+/* VERSION 5.0.3: One-time Lions career-stat repair.
+  This migration changes ONLY the six basketball career-total fields below
+  and its own version marker. It does not touch cash, contracts, bets, shares,
+  MVPs, championships, rosters, or game/history records. */
+(function repairLionsCareerStatsOnce(){
+const repairVersion="lions-career-stats-recovery-v7";
+if(state.lionsCareerStatsRecoveryVersion===repairVersion)return;
 const expected={
-  Wall:{known:[[568,549],[683,659],[798,769]],pts:798,rebs:769},
-  Diggs:{known:[[83,80],[194,186],[305,292]],pts:305,rebs:292},
-  Kap:{known:[[278,243],[378,365],[478,487]],pts:478,rebs:487}
+  Wall:{pts:798,rebs:769},
+  Diggs:{pts:305,rebs:292},
+  Kap:{pts:478,rebs:487}
 };
 const citizens=Array.isArray(state.citizens)?state.citizens:[];
 const people=Object.keys(expected).map(name=>({
-  name,target:expected[name],citizen:citizens.find(c=>c&&String(c.name).trim()===name)
+  name,target:expected[name],
+  citizen:citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase())
 }));
 if(people.some(x=>!x.citizen)){
-  window.__lionsStatsRepairDiagnostic={version:"5.0.2",status:"skipped",reason:"A required citizen record is missing."};
-  console.error("Calvin's City 5.0.2: Lions repair skipped; a required citizen record is missing.");
+  window.__lionsStatsRepairDiagnostic={
+    version:"5.0.3",status:"skipped",
+    reason:"One or more required citizen records were not found.",
+    found:people.map(x=>({name:x.name,found:!!x.citizen}))
+  };
+  console.error("Calvin's City 5.0.3 Lions repair skipped: required citizen record missing.",
+    window.__lionsStatsRepairDiagnostic);
   return;
 }
-const accepted=people.every(x=>{
-  const p=Number(x.citizen.careerPts),r=Number(x.citizen.careerRebs);
-  return x.target.known.some(pair=>p===pair[0]&&r===pair[1]);
+const before=people.map(x=>({
+  name:x.name,points:x.citizen.careerPts,rebounds:x.citizen.careerRebs
+}));
+people.forEach(x=>{
+  x.citizen.careerPts=x.target.pts;
+  x.citizen.careerRebs=x.target.rebs;
 });
-if(!accepted){
-  window.__lionsStatsRepairDiagnostic={version:"5.0.2",status:"skipped",reason:"At least one saved stat pair was not a recognized baseline/intermediate/target.",players:people.map(x=>({name:x.name,points:x.citizen.careerPts,rebounds:x.citizen.careerRebs}))};
-  console.error("Calvin's City 5.0.2: Lions repair stopped safely; unexpected totals were preserved.",window.__lionsStatsRepairDiagnostic);
-  return;
-}
-people.forEach(x=>{x.citizen.careerPts=x.target.pts;x.citizen.careerRebs=x.target.rebs;});
 state.lionsCareerStatsRecoveryVersion=repairVersion;
-save();
-const stored=(()=>{try{const v=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");return v?people.map(x=>{const c=(v.citizens||[]).find(p=>p&&String(p.name).trim()===x.name);return{name:x.name,points:c&&c.careerPts,rebounds:c&&c.careerRebs};}):null;}catch(e){return "storage read error: "+e.message;}})();
-const verified=people.every(x=>Number(x.citizen.careerPts)===x.target.pts&&Number(x.citizen.careerRebs)===x.target.rebs);
-window.__lionsStatsRepairDiagnostic={version:"5.0.2",status:verified?"repaired-in-memory":"verification-failed",season:state.year,players:people.map(x=>({name:x.name,points:x.citizen.careerPts,rebounds:x.citizen.careerRebs})),stored};
-console.info("Calvin's City Lions stats repair diagnostic",window.__lionsStatsRepairDiagnostic);
+const saveResult=save();
+const stored=(()=>{try{
+  const v=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+  return v?people.map(x=>{
+    const c=(v.citizens||[]).find(p=>p&&String(p.name||"").trim().toLowerCase()===x.name.toLowerCase());
+    return {name:x.name,points:c&&c.careerPts,rebounds:c&&c.careerRebs};
+  }):null;
+}catch(e){return "storage read error: "+e.message;}})();
+const verified=people.every(x=>
+  Number(x.citizen.careerPts)===x.target.pts&&Number(x.citizen.careerRebs)===x.target.rebs);
+const storedVerified=Array.isArray(stored)&&stored.every(x=>{
+  const t=expected[x.name];
+  return !!t&&Number(x.points)===t.pts&&Number(x.rebounds)===t.rebs;
+});
+window.__lionsStatsRepairDiagnostic={
+  version:"5.0.3",
+  status:verified&&saveResult&&storedVerified?"saved-and-verified":
+    (verified?"in-memory-only-or-storage-verification-failed":"verification-failed"),
+  season:state.year,
+  saveResult,
+  before,
+  players:people.map(x=>({name:x.name,points:x.citizen.careerPts,rebounds:x.citizen.careerRebs})),
+  stored
+};
+console.info("Calvin's City Lions career-stat repair diagnostic",window.__lionsStatsRepairDiagnostic);
 })();
  
 /* 4.17.105: All nine Season 29 contracts supplied as the opening roster are
