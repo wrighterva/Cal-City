@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.1.6: preserve retired-player contract history; do not reseed retired Wall into active roster. Based on working 5.1.1. -->
+<!-- CALVIN'S CITY — VERSION 5.1.7: preserve retired-player contract history; do not reseed retired Wall into active roster. Based on working 5.1.1. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
@@ -12,9 +12,130 @@
 
 <html lang="en">
 <head>
+
+<script>
+/* CALVIN'S CITY 5.1.7 — transparent synchronous compression for large localStorage
+  records. The application continues reading/writing ordinary JSON through the
+  standard Storage API. Only the on-disk representation is compressed. */
+(function(){
+"use strict";
+try {
+const proto=Storage.prototype;
+if(proto.__ccCompressionInstalled)return;
+const nativeGet=proto.getItem, nativeSet=proto.setItem, nativeRemove=proto.removeItem;
+const PREFIX="__CCZ1__";
+const target=k=>/^(calvins_city_v24|calvins_city_bets_v1|calvins_city_stock_market_v1|calvins_city_share_ownership_ledger_v1|calvins_city_business_ownership_v1)$/.test(String(k||""));
+const b64encode=bytes=>{
+  let bin="",step=0x8000;
+  for(let i=0;i<bytes.length;i+=step)bin+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+step,bytes.length)));
+  return btoa(bin);
+};
+const b64decode=s=>{
+  const bin=atob(s),out=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);
+  return out;
+};
+function compressBytes(input){
+  const out=[], n=input.length;
+  let pos=0;
+  while(pos<n){
+    const flagIndex=out.length; out.push(0); let flags=0;
+    for(let bit=0;bit<8&&pos<n;bit++){
+      let bestLen=0,bestOff=0;
+      if(pos+2<n){
+        const lo=Math.max(0,pos-4096);
+        for(let cand=pos-1,checked=0;cand>=lo&&checked<48;cand--){
+          if(input[cand]!==input[pos]||input[cand+1]!==input[pos+1]||input[cand+2]!==input[pos+2])continue;
+          checked++;
+          let len=3;
+          while(len<18&&pos+len<n&&input[cand+len]===input[pos+len])len++;
+          if(len>bestLen){bestLen=len;bestOff=pos-cand;if(len===18)break;}
+        }
+      }
+      if(bestLen>=3){
+        flags|=(1<<bit);
+        const code=((bestOff-1)<<4)|(bestLen-3);
+        out.push((code>>8)&255,code&255);pos+=bestLen;
+      }else{
+        out.push(input[pos++]);
+      }
+    }
+    out[flagIndex]=flags;
+  }
+  return new Uint8Array(out);
+}
+function decompressBytes(input){
+  const out=[];let p=0;
+  while(p<input.length){
+    const flags=input[p++];
+    for(let bit=0;bit<8&&p<input.length;bit++){
+      if(flags&(1<<bit)){
+        if(p+1>=input.length)throw new Error("Truncated compressed Calvin's City storage value.");
+        const code=(input[p++]<<8)|input[p++];
+        const offset=(code>>4)+1,len=(code&15)+3;
+        if(offset>out.length)throw new Error("Invalid compressed Calvin's City back-reference.");
+        for(let j=0;j<len;j++)out.push(out[out.length-offset]);
+      }else out.push(input[p++]);
+    }
+  }
+  return new Uint8Array(out);
+}
+const enc=new TextEncoder(),dec=new TextDecoder();
+function pack(value){
+  const raw=enc.encode(value),compressed=compressBytes(raw);
+  const payload=b64encode(compressed);
+  return PREFIX+raw.length+":"+payload;
+}
+function unpack(value){
+  if(typeof value!=="string"||!value.startsWith(PREFIX))return value;
+  const sep=value.indexOf(":",PREFIX.length);
+  if(sep<0)throw new Error("Invalid compressed Calvin's City storage header.");
+  const expected=Number(value.slice(PREFIX.length,sep));
+  const raw=dec.decode(decompressBytes(b64decode(value.slice(sep+1))));
+  if(!Number.isFinite(expected)||enc.encode(raw).length!==expected)throw new Error("Calvin's City storage integrity check failed.");
+  return raw;
+}
+proto.getItem=function(key){return unpack(nativeGet.call(this,key));};
+proto.setItem=function(key,value){
+  const k=String(key),v=String(value);
+  if(target(k)&&v.length>40000&&!v.startsWith(PREFIX)){
+    const packed=pack(v);
+    nativeSet.call(this,k,packed);
+  }else nativeSet.call(this,k,v);
+};
+proto.removeItem=function(key){return nativeRemove.call(this,key);};
+Object.defineProperty(proto,"__ccCompressionInstalled",{value:true,configurable:false});
+/* One-time migration: convert existing large uncompressed records. The original
+   string is retained in memory until the compressed replacement is written and
+   read-back verified. If compression/storage fails, attempt to restore the original. */
+const store=window.localStorage;
+const keys=[];
+for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keys.push(k);}
+keys.forEach(k=>{
+  let raw=nativeGet.call(store,k);
+  if(typeof raw!=="string"||raw.length<=40000||raw.startsWith(PREFIX))return;
+  try{
+    const packed=pack(raw);
+    nativeRemove.call(store,k);
+    nativeSet.call(store,k,packed);
+    const check=unpack(nativeGet.call(store,k));
+    if(check!==raw)throw new Error("Read-back mismatch");
+  }catch(err){
+    try{nativeRemove.call(store,k);nativeSet.call(store,k,raw);}catch(restoreErr){console.error("CRITICAL: Could not restore original storage value for "+k,restoreErr);}
+    console.error("5.1.7 compression migration failed for "+k+"; original value restoration was attempted.",err);
+  }
+});
+window.__calvinsCityStorageCompression={version:"5.1.7",status:"installed",keysChecked:keys.length};
+}catch(err){
+window.__calvinsCityStorageCompression={version:"5.1.7",status:"failed",message:String(err&&err.message||err)};
+console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
+}
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.1.6</title>
+<title>Calvin's City 5.1.7</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.1.6</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.1.7</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -7700,7 +7821,7 @@ for(let i=0;i<localStorage.length;i++){
 const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"5.1.6",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"5.1.7",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
