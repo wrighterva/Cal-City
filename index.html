@@ -539,7 +539,7 @@ const citizens=Array.isArray(pageState.citizens)?pageState.citizens:[];
 const retired=Array.isArray(pageState.records&&pageState.records.retiredPlayers)?pageState.records.retiredPlayers:[];
 const findCitizen=name=>citizens.find(c=>c&&c.name===name)||{};
 const findHistory=name=>retired.find(p=>p&&p.name===name)||{};
-reconcileChampionshipTitlesFromAwards(); const rows=["C","SG","PG"].map(pos=>{
+if(typeof window.reconcileChampionshipTitlesFromAwards==="function")window.reconcileChampionshipTitlesFromAwards(); const rows=["C","SG","PG"].map(pos=>{
 const key=t.key+"_"+pos;
 const name=roster[key]||"";
 const c=contracts[key]||{};
@@ -4844,6 +4844,9 @@ save();
    if(changed)save();
    return counts;
  }
+ /* 5.1.9.1: Team Arena is initialized by a separate script block. Expose the
+    reconciler explicitly so the roster can call it without a ReferenceError. */
+ window.reconcileChampionshipTitlesFromAwards=reconcileChampionshipTitlesFromAwards;
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
 reconcileChampionshipTitlesFromAwards();
