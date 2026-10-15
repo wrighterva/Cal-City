@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.1.4: preserve retired-player contract history; do not reseed retired Wall into active roster. Based on working 5.1.1. -->
+<!-- CALVIN'S CITY — VERSION 5.1.5: preserve retired-player contract history; do not reseed retired Wall into active roster. Based on working 5.1.1. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.1.4</title>
+<title>Calvin's City 5.1.5</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.1.4</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.1.5</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1274,12 +1274,31 @@ if(!sbSaveState())throw new Error("Main financial state could not be saved.");if
 }catch(e){try{state=JSON.parse(oldState);betsDatabase=JSON.parse(oldDb);localStorage.setItem("calvins_city_v24",oldState);sbRestoreFinancialMirror(oldMirror);localStorage.setItem(BETS_STORAGE_KEY,oldDb);}catch(_){}msg.textContent="Debt payoff failed and was rolled back: "+String(e&&e.message||e);}
 }
 function sbRenderFinancePanels(){
-sbReconcileSettledBetStatuses();
+/* 5.1.5: reconcile authoritative settlement rows immediately before any
+  BETS history is rendered. This updates status from an already-saved settlement
+  transaction only; it never creates a payout or changes cash. */
+const reconciliation=sbReconcileSettledBetStatuses();
+if(reconciliation&&reconciliation.ok===false)console.warn("5.1.5: BETS display is using saved status because reconciliation could not be persisted.",reconciliation.error);
 ensureBetsFinanceCollections();sbRenderCitizenPicker();sbDebtBuyerOptions();
 const issueSel=document.getElementById("betsDebtIssueSelect"),old=issueSel&&issueSel.value;if(issueSel){const open=betsDatabase.sportsBetsDebtIssues.filter(x=>x&&["open","fully-sold"].includes(x.status));issueSel.innerHTML=open.length?open.map(x=>'<option value="'+sbEsc(x.id)+'">'+sbEsc(x.id)+' — '+sbMoney(x.principal)+' issued, '+sbMoney(x.remainingPrincipal)+' unsold</option>').join(""):'<option value="">No open debt</option>';if(open.some(x=>x.id===old))issueSel.value=old;}
 const summary=document.getElementById("betsDebtSummary"),owners=document.getElementById("betsDebtOwnership");if(summary){const issues=betsDatabase.sportsBetsDebtIssues,open=issues.filter(x=>x&&["open","fully-sold"].includes(x.status)),outstanding=open.reduce((n,x)=>n+(Number(x.soldPrincipal)||0),0);summary.innerHTML='<div class="grid"><div class="metric"><small>Open Issuances</small><strong>'+open.length+'</strong></div><div class="metric"><small>Debt Outstanding</small><strong>'+sbMoney(outstanding)+'</strong></div><div class="metric"><small>Company Cash</small><strong>'+sbMoney(state.businessCash&&state.businessCash["Sports Bets Company"])+'</strong></div><div class="metric"><small>Cash Interest / Game</small><strong>2.00%</strong></div></div>';}
 if(owners){const issues=betsDatabase.sportsBetsDebtIssues;if(!issues.length){owners.innerHTML='<p class="muted">No debt has been issued yet.</p>';return;}owners.innerHTML=issues.slice().reverse().map(issue=>{const holders=issue.holders||[],rows=holders.map(h=>'<tr><td>'+sbEsc(h.buyerName)+'</td><td>'+sbEsc(h.buyerKind)+'</td><td>'+sbMoney(h.principal)+'</td><td>'+Number(h.ownershipPct||0).toFixed(2)+'%</td><td>'+sbMoney(h.interestAtRepayment)+'</td><td>'+sbMoney(h.expectedPayoutAtRepayment)+'</td><td>'+sbEsc(h.status)+'</td></tr>').join('');const payout=holders.filter(h=>h.status==="holding").reduce((n,h)=>n+(Number(h.expectedPayoutAtRepayment)||0),0);return '<div class="card" style="margin-top:10px"><h4>'+sbEsc(issue.id)+' — '+sbMoney(issue.principal)+' issuance <span class="badge">'+sbEsc(issue.status)+'</span></h4><p class="tiny">Sold: '+sbMoney(issue.soldPrincipal)+' · Unsold: '+sbMoney(issue.remainingPrincipal)+' · Outstanding holder payoff: '+sbMoney(payout)+' · Interest rate: 0.25% at payoff</p><div style="overflow-x:auto"><table><thead><tr><th>Holder</th><th>Type</th><th>Principal</th><th>Ownership</th><th>Interest</th><th>Expected payout</th><th>Status</th></tr></thead><tbody>'+(rows||'<tr><td colspan="7">No buyers yet.</td></tr>')+'</tbody></table></div>'+(issue.status==="repaid"?'<p class="tiny">Repaid '+sbEsc(issue.repaidAt||"")+' · Total payout '+sbMoney(issue.totalPayout)+'</p>':'<button type="button" data-sb-repay="'+sbEsc(issue.id)+'" class="goodbtn">Clear / Repay This Debt</button>')+'</div>';}).join("");owners.querySelectorAll('[data-sb-repay]').forEach(b=>b.addEventListener("click",()=>sbRepayDebt(b.getAttribute("data-sb-repay"))));}
-const other=document.getElementById("betsOtherHistory");if(other){const autos=betsDatabase.bets.filter(b=>b&&b.placedBy==="automatic").slice().reverse();other.innerHTML=autos.length?'<div style="overflow-x:auto"><table><thead><tr><th>Citizen</th><th>Game</th><th>Pick</th><th>Stake</th><th>Status</th><th>Payout</th></tr></thead><tbody>'+autos.slice(0,10).map(b=>'<tr><td>'+sbEsc(b.citizenName)+'</td><td>'+sbEsc(b.teamA)+' vs '+sbEsc(b.teamB)+'</td><td>'+sbEsc(b.description)+'</td><td>'+sbMoney(b.stake)+'</td><td>'+sbEsc(b.status)+'</td><td>'+sbMoney(b.cashPayout||0)+'</td></tr>').join("")+'</tbody></table></div><p class="tiny">Showing latest 10 automatic wagers. Full records remain in the BETS database.</p>':'<p class="muted">No automatic wagers yet.</p>';}
+const other=document.getElementById("betsOtherHistory");if(other){
+/* 5.1.5: do not assume array order equals recency after backup merges/imports.
+  Sort by the original placement timestamp, newest first, so the matchup shown
+  reflects the most recently placed wagers rather than a prior game's rows. */
+const autos=betsDatabase.bets.filter(b=>b&&b.placedBy==="automatic").slice().sort((a,b)=>{
+const ta=Date.parse(a.placedAt||"")||0,tb=Date.parse(b.placedAt||"")||0;
+return tb-ta||String(b.id||"").localeCompare(String(a.id||""));
+});
+other.innerHTML=autos.length?'<div style="overflow-x:auto"><table><thead><tr><th>Citizen</th><th>Game</th><th>Pick</th><th>Stake</th><th>Status</th><th>Payout</th></tr></thead><tbody>'+autos.slice(0,10).map(b=>{
+const tx=sbSettlementForBet(b);
+const txOutcome=tx&&["win","loss","push"].includes(String(tx.outcome||"").toLowerCase())?String(tx.outcome).toLowerCase():null;
+const shownStatus=(b.status==="pending"&&txOutcome)?txOutcome:String(b.status||"pending");
+const shownPayout=(b.status==="pending"&&txOutcome&&Number.isFinite(Number(tx.payout)))?Number(tx.payout):(Number(b.cashPayout)||Number(b.payout)||0);
+return '<tr><td>'+sbEsc(b.citizenName)+'</td><td>'+sbEsc(b.teamA)+' vs '+sbEsc(b.teamB)+'</td><td>'+sbEsc(b.description)+'</td><td>'+sbMoney(b.stake)+'</td><td>'+sbEsc(shownStatus)+'</td><td>'+sbMoney(shownPayout)+'</td></tr>';
+}).join("")+'</tbody></table></div><p class="tiny">Showing the 10 most recently placed automatic wagers, sorted by placement time. Full records remain in the BETS database.</p>':'<p class="muted">No automatic wagers yet.</p>';
+}
 }
 const sbOldRequestConfirmPracticeBet=requestConfirmPracticeBet;
 requestConfirmPracticeBet=sbRequestRealBet;
@@ -7681,7 +7700,7 @@ for(let i=0;i<localStorage.length;i++){
 const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"5.1.2",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"5.1.5",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
