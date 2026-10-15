@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.1.3: preserve retired-player contract history; do not reseed retired Wall into active roster. Based on working 5.1.1. -->
+<!-- CALVIN'S CITY — VERSION 5.1.4: preserve retired-player contract history; do not reseed retired Wall into active roster. Based on working 5.1.1. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
@@ -14,7 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.1.3</title>
+<title>Calvin's City 5.1.4</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -103,7 +103,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.1.3</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.1.4</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -3369,8 +3369,14 @@ if(!byId.has(normalized.transaction_id))byId.set(normalized.transaction_id,norma
 ingest(state.teamCashLedger,"team");
 ingest(state.businessCashLedger,"business");
 state.financialTransactions=Array.from(byId.values()).sort((a,b)=>String(a.timestamp||"").localeCompare(String(b.timestamp||""))||String(a.transaction_id||"").localeCompare(String(b.transaction_id||"")));
-try{localStorage.setItem(FINANCIAL_TRANSACTIONS_STORAGE_KEY,JSON.stringify({version:1,updatedAt:new Date().toISOString(),transactions:state.financialTransactions}));}
-catch(e){console.error("Unified financial ledger mirror could not be saved.",e);}
+/* 5.1.4 storage protection:
+  The full financial transaction history is already canonical inside calvins_city_v24.
+  Writing the same ~600KB array a second time can exceed iOS Safari's localStorage
+  quota. Keep any older mirror records merged above, but do not recreate a duplicate
+  mirror of the complete canonical history. Export All Data still includes the
+  canonical financialTransactions array inside the main game state. */
+try{localStorage.removeItem(FINANCIAL_TRANSACTIONS_STORAGE_KEY);}
+catch(e){console.warn("Redundant financial-ledger mirror could not be removed; canonical in-state records remain available.",e);}
 }
 if(typeof window!=="undefined")window.syncUnifiedFinancialLedger=syncUnifiedFinancialLedger;
 function save(){
@@ -7701,6 +7707,29 @@ const before={...current.entries};
    redundant; retain the main state, permanent records, pending imports, and the
    recovery snapshot's actual state. */
 const restoreEntries={...parsed.entries};
+/* 5.1.4: Remove the separate financial mirror from the restore payload only when
+   every mirrored transaction is already present byte-for-byte in the main state's
+   canonical financialTransactions array. The main state remains authoritative. */
+try{
+  const mainRaw=restoreEntries["calvins_city_v24"];
+  const mirrorRaw=restoreEntries["calvins_city_financial_transactions_v1"];
+  if(typeof mainRaw==="string"&&typeof mirrorRaw==="string"){
+    const main=JSON.parse(mainRaw);
+    const mirrorParsed=JSON.parse(mirrorRaw);
+    const mirror=Array.isArray(mirrorParsed)?mirrorParsed:
+      (mirrorParsed&&Array.isArray(mirrorParsed.transactions)?mirrorParsed.transactions:null);
+    const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTransactions:null;
+    if(mirror&&canonical&&mirror.length===canonical.length){
+      const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
+      const exact=byId.size===mirror.length&&mirror.every(t=>{
+        if(!t||t.transaction_id==null)return false;
+        const saved=byId.get(String(t.transaction_id));
+        return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
+      });
+      if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
+    }
+  }
+}catch(financialMirrorCheckError){console.warn("Financial mirror retained because exact duplication could not be verified.",financialMirrorCheckError);}
 const primaryBets=restoreEntries["calvins_city_bets_v1"];
 const backupBets=restoreEntries["calvins_city_bets_backup_v1"];
 if(typeof primaryBets==="string"&&primaryBets===backupBets){
@@ -7805,7 +7834,7 @@ try{
   /* Do not attempt a second large rollback write: that caused the same quota
      failure and can overwrite the original error. The selected JSON file is
      still the complete recovery source; report exactly what failed. */
-  throw new Error("Import could not finish writing the selected backup. Your downloaded JSON remains unchanged. Details: "+writeError.message);
+  throw new Error("Import could not finish writing the selected backup. Your downloaded JSON remains unchanged. Keep this file safe and do not reset the game. Details: "+writeError.message);
 }
 if(status())status().textContent="Backup values verified, including played Season 29 games and betting history. Reloading…";
 setTimeout(()=>location.reload(),250);
