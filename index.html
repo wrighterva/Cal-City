@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.2.5: launch boosts, company-filtered shoe catalogue, pause/resume and retired-player retro controls. Preserve existing records. -->
+<!-- CALVIN'S CITY — VERSION 5.2.6: launch boosts, company-filtered shoe catalogue, pause/resume and retired-player retro controls. Preserve existing records. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
@@ -139,7 +139,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.2.5</title>
+<title>Calvin's City 5.2.6</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -8602,15 +8602,15 @@ setTimeout(()=>location.reload(),250);
 
 </script>
 <script>
-/* CALVIN'S CITY 5.2.5 — independent CalSims consumer economy and Shoe Store retail.
+/* CALVIN'S CITY 5.2.6 — isolated CalSims interest and Shoe Store retail.
   All records live in the canonical game state so normal backups include them. */
 (function(){
 "use strict";
 const companies=["Nike","Reebok","Puma","Adidas","New Balance"];
 const tiers={standard:{label:"Standard",cost:25},performance:{label:"Performance",cost:50},premium:{label:"Premium",cost:100}};
 const money=n=>"$"+(Number(n)||0).toLocaleString("en-US",{maximumFractionDigits:2})+"M";
-const esc=s=>String(s==null?"":s).replace(/[&<>
-"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function bridge(){return window.__calvinsCityBridge;}
 function getState(){const b=bridge();return b&&typeof b.getState==="function"?b.getState():null;}
 function save(){const b=bridge();if(!b||typeof b.save!=="function")return false;return b.save()!==false;}
@@ -8637,11 +8637,12 @@ const st=getState();if(!st)return;const c=ensure(st);
 if(el("calSimsTotalCash"))el("calSimsTotalCash").textContent=money(c.totalCash);
 if(el("calSimsSpendableCash"))el("calSimsSpendableCash").textContent=money(c.spendableCash);
 if(el("calSimsReserveCash"))el("calSimsReserveCash").textContent=money(c.reserveCash);
-if(el("shoeStoreCash"))el("shoeStoreCash").textContent=money(st.businessCash["Shoe Store"]);
-const companyFilter=el("shoeModelCompa
-nyFilter")?el("shoeModelCompanyFilter").value:"all",statusFilter=el("shoeModelStatusFilter")?el("shoeModelStatusFilter").value:"all";
-const list=el("shoeModelList");if(list){const filtered=c.models.filter(m=>(companyFilter==="all"||m.company===companyFilter)&&(statusFilter==="all"||(statusFilter==="retro"?!!m.isRetro:String(m.status||"active")==statusFilter)));if(!c.models.length)list.innerHTML='<p class="muted">No models released yet.</p>';else if(!filtered.length)list.innerHTML='<p class="muted">No shoe models match these filters.</p>';else list.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Model</th><th>Company</th><th>Player</th><th>Tier</th><th>Price / Pair</th><th>Popularity</th><th>Units Sold</th><th>Retail Sales</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+filtered.map(m=>{const status=m.isRetro?"Retro":String(m.status||"active")==="paused"?"Paused":"Active";const pauseLabel=String(m.status||"active")==="paused"?"Resume":"Pause";return '<tr><td>'+esc(m.name)+(m.isRetro?'<br><span class="badge gold">RETRO</span>':'')+'</td><td>'+esc(m.company)+'</td><td>'+esc(m.playerAssociation||'—')+'</td><td>'+esc((tiers[m.tier]||tiers.standard).label)+'</td><td>$'+Number(m.price).toLocaleString("en-US",{maximumFractionDigits:2})+'</td><td>'+Math.round(Number(m.popularity)||50)+'</td><td>'+Math.round(Number(m.unitsSold)||0).toLocaleString("en-US")+'</td><td>'+money(m.retailRevenue||0)+'</td><td>'+status+'</td><td><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="pause" data-model-id="'+esc(m.id)+'">'+pauseLabel+'</button><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="retro" data-model-id="'+esc(m.id)+'">'+(m.isRetro?'Retroed':'Retro Sh
-oe')+'</button></td></tr>';}).join('')+'</tbody></table></div>';}
+if(el("calSimsInterestRate"))el("calSimsInterestRate").textContent="2% / game";
+if(el("shoeStoreCash"))el("shoeStoreCash").textContent=money(s
+t.businessCash["Shoe Store"]);
+const companyFilter=el("shoeModelCompanyFilter")?el("shoeModelCompanyFilter").value:"all",statusFilter=el("shoeModelStatusFilter")?el("shoeModelStatusFilter").value:"all";
+const list=el("shoeModelList");if(list){const filtered=c.models.filter(m=>(companyFilter==="all"||m.company===companyFilter)&&(statusFilter==="all"||(statusFilter==="retro"?!!m.isRetro:String(m.status||"active")==statusFilter)));if(!c.models.length)list.innerHTML='<p class="muted">No models released yet.</p>';else if(!filtered.length)list.innerHTML='<p class="muted">No shoe models match these filters.</p>';else list.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Model</th><th>Company</th><th>Player</th><th>Tier</th><th>Price / Pair</th><th>Popularity</th><th>Units Sold</th><th>Retail Sales</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+filtered.map(m=>{const status=m.isRetro?"Retro":String(m.status||"active")==="paused"?"Paused":"Active";const pauseLabel=String(m.status||"active")==="paused"?"Resume":"Pause";return '<tr><td>'+esc(m.name)+(m.isRetro?'<br><span class="badge gold">RETRO</span>':'')+'</td><td>'+esc(m.company)+'</td><td>'+esc(m.playerAssociation||'—')+'</td><td>'+esc((tiers[m.tier]||tiers.standard).label)+'</td><td>$'+Number(m.price).toLocaleString("en-US",{maximumFractionDigits:2})+'</td><td>'+Math.round(Number(m.popularity)||50)+'</td><td>'+Math.round(Number(m.unitsSold)||0).toLocaleString("en-US")+'</td><td>'+money(m.retailRevenue||0)+'</td><td>'+status+'</td><td><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="pause" data-model-id="'+esc(m.id)+'">'+pauseLabel+'</button><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action=
+"retro" data-model-id="'+esc(m.id)+'">'+(m.isRetro?'Retroed':'Retro Shoe')+'</button></td></tr>';}).join('')+'</tbody></table></div>';}
 const led=el("shoeRetailLedger");if(led){const rows=c.retailLedger.slice(-10).reverse();led.innerHTML=rows.length?'<div style="overflow-x:auto"><table><thead><tr><th>Cycle</th><th>Model</th><th>Units</th><th>Retail Revenue</th><th>Company (70%)</th><th>Store (30%)</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.cycle+'</td><td>'+esc(r.modelName)+'</td><td>'+Number(r.units).toLocaleString("en-US")+'</td><td>'+money(r.revenue)+'</td><td>'+money(r.companyShare)+'</td><td>'+money(r.storeShare)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No retail sales recorded yet.</p>';}
 }
 function activePlayersForCompany(st,company){
@@ -8659,10 +8660,10 @@ const season=Math.max(0,Number(st&&st.year)||0),found=[];
 (Array.isArray(st&&st.shoeDealContracts)?st.shoeDealContracts:[]).forEach(d=>{
   if(!d||d.company!==company||String(d.status||"active").toLowerCase()!=="active")return;
   const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0,start=d.startYear==null?null:Number(d.startYear);
-  if(remaining>0&&(start==null||!Number.isFinite(start)||start<=season)&&d.player)found.push(String(d.player));
+  if(remaining>0&&(start==null||!Number.isFinite(start)||start<
+=season)&&d.player)found.push(String(d.player));
 });
-return Array.fr
-om(new Set(found)).sort((a,b)=>a.localeCompare(b));
+return Array.from(new Set(found)).sort((a,b)=>a.localeCompare(b));
 }
 function refreshPlayerAssociationOptions(){
 const st=getState(),companySelect=el("shoeModelCompany"),playerSelect=el("shoeModelPlayer"),hint=el("shoeModelPlayerHint");
@@ -8683,8 +8684,8 @@ const player=(Array.isArray(st&&st.players)?st.players:[]).find(p=>p&&(String(p.
 return !!(player&&String(player.status||player.careerStatus||"").toLowerCase()==="retired");
 }
 function handleModelAction(action,id){
-const st=getState();if(!st){alert("Live game data is unavailable. No sho
-e model was changed.");return;}const c=ensure(st),m=c.models.find(x=>x&&String(x.id)===String(id));if(!m){alert("This shoe model could not be found. No changes were made.");return;}
+co
+nst st=getState();if(!st){alert("Live game data is unavailable. No shoe model was changed.");return;}const c=ensure(st),m=c.models.find(x=>x&&String(x.id)===String(id));if(!m){alert("This shoe model could not be found. No changes were made.");return;}
 if(action==="pause"){
   if(String(m.status||"active")==="paused"){m.status="active";m.resumedAt=new Date().toISOString();}else{m.status="paused";m.pausedAt=new Date().toISOString();}
   if(!save()){alert("Storage did not confirm the model status change. Check the save warning before retrying.");return;}render();return;
@@ -8699,8 +8700,8 @@ if(action==="retro"){
 }
 function release(){
 const st=getState(),msg=el("shoeModelMessage");if(!st||!msg){if(msg)msg.textContent="Live game data is unavailable; nothing was saved.";return;}const c=ensure(st),company=el("shoeModelCompany").value,name=String(el("shoeModelName").value||"").trim(),player=String(el("shoeModelPlayer").value||"").trim(),tier=el("shoeModelTier").value,price=Number(el("shoeModelPrice").value),cost=(tiers[tier]||{}).cost;
-if(!companies.includes(company)){msg.textContent="Choose a valid shoe company.";return;}if(!name){msg.textContent="Enter a model name.";return;}if(!Number.isFinite(price)||price<=0){ms
-g.textContent="Enter any positive price per pair. There is no preset shoe price.";return;}if(!cost){msg.textContent="Choose a valid development tier.";return;}
+if(!companies.includes(company)){msg.textContent="Choose a valid shoe company.";return;}if(!name){msg.textContent=
+"Enter a model name.";return;}if(!Number.isFinite(price)||price<=0){msg.textContent="Enter any positive price per pair. There is no preset shoe price.";return;}if(!cost){msg.textContent="Choose a valid development tier.";return;}
 if(c.models.some(m=>m.company===company&&String(m.name).toLowerCase()===name.toLowerCase())){msg.textContent="That company already has a model with this name.";return;}
 const boostTier=el("shoeModelBoost")?el("shoeModelBoost").value:"none",boosts={none:{fee:0,chance:0,label:"No boost"},basic:{fee:10,chance:10,label:"Basic"},standard:{fee:20,chance:20,label:"Standard"},premium:{fee:30,chance:30,label:"Premium"}},boost=boosts[boostTier];if(!boost){msg.textContent="Choose a valid launch promotion.";return;}
 const season=Number(st.year)||29,attempted=c.boostAttempts.some(a=>a&&a.company===company&&Number(a.season)===season);if(boost.fee>0&&attempted){msg.textContent=company+" has already used its one boost attempt for Season "+season+". You can still release this model without a boost.";return;}
@@ -8708,8 +8709,8 @@ const before=Number(st.businessCash[company])||0,totalCost=cost+boost.fee;if(bef
 const id="SHOE-MODEL-"+season+"-"+Date.now(),createdAt=new Date().toISOString(),developmentAfter=Math.round((before-cost)*100)/100;
 st.businessCash[company]=developmentAfter;
 const model={id,company,name,playerAssociation:player,tier,developmentCost:cost,price:Math.round(price*100)/100,popularity:50,unitsSold:0,retailRevenue:0,createdSeason:season,createdAt,status:"active",isRetro:false};c.models.push(model);
-st.businessCashLedger.push({id:id+"-DEV",season,type:"Shoe Model Development Cost",company,amount:-cost,before,after:developmentAfter,reason:"Upfront development of "+tiers[tier].la
-bel+" shoe model: "+name,createdAt,accountType:"business"});
+st.businessCashLedger.push({id:id+"-DEV",season,type:"Shoe Model Development Cost",company,amount:-cost,before,
+after:developmentAfter,reason:"Upfront development of "+tiers[tier].label+" shoe model: "+name,createdAt,accountType:"business"});
 let boostResult="No launch boost selected.";
 if(boost.fee>0){
   const attemptId="SHOE-BOOST-"+season+"-"+company.replace(/[^a-z0-9]/gi,"")+"-"+id,success=Math.random()*100<boost.chance,storeBefore=Number(st.businessCash["Shoe Store"])||0,companyAfter=Math.round((Number(st.businessCash[company])-boost.fee)*100)/100,storeAfter=Math.round((storeBefore+boost.fee)*100)/100;
@@ -8719,30 +8720,34 @@ if(boost.fee>0){
   if(success){model.popularity=70;model.boostBonus=20;model.boostUntilSeason=season+1;model.boostBonusActive=true;boostResult=boost.label+" boost succeeded: popularity increased by 20 points for two seasons.";}else boostResult=boost.label+" boost failed. The fee was not refunded, and this company cannot retry a boost this season.";
 }
 if(!save()){msg.textContent="Storage did not confirm the save. Do not retry yet; check the app's save warning and verify the model list.";return;}
-el("shoeModelName").value="";el("shoeModelPlayer").value="";el("shoeModelPrice").value="";if(el("shoeModelBoost"))el("shoeModelBoos
-t").value="none";msg.textContent="Released "+name+" at the company-selected price of $"+price.toLocaleString("en-US")+" per pair. Development cost paid: "+money(cost)+". "+boostResult;render();
+el("shoeModelName").value="";el("shoeModelPlayer").value="";e
+l("shoeModelPrice").value="";if(el("shoeModelBoost"))el("shoeModelBoost").value="none";msg.textContent="Released "+name+" at the company-selected price of $"+price.toLocaleString("en-US")+" per pair. Development cost paid: "+money(cost)+". "+boostResult;render();
+}
+function applyCalSimsInterestOnly(st,c,gameKey,season){
+// This helper is deliberately isolated: it mutates only CalSims cash and its own ledger.
+try{
+ if(!st||!c||!gameKey)return 0;
+ c.interestLedger=Array.isArray(c.interestLedger)?c.interestLedger:[];
+ const id="CALSIMS-INTEREST-"+String(gameKey);
+ if(c.interestLedger.some(entry=>entry&&String(entry.id)===id))return 0;
+ const base=Math.max(0,Number(c.totalCash)||0),amount=Math.round(base*0.02*100)/100;
+ if(!(amount>0))return 0;
+ const totalBefore=Number(c.totalCash)||0,spendableBefore=Number(c.spendableCash)||0;
+ c.totalCash=Math.round((totalBefore+amount)*100)/100;
+ c.spendableCash=Math.round((spendableBefore+amount)*100)/100;
+ c.interestLedger.push({id,gameKey:String(gameKey),season:Number(season)||29,rate:0.02,rateLabel:"2% per completed game",baseCash:base,amount,totalBefore,totalAfter:c.totalCash,spendableBefore,spendableAfter:c.spendableCash,createdAt:new Date().toISOString(),type:"CalSims Interest Income"});
+ return amount;
+}catch(error){console.error("CalSims interest was skipped safely; game processing continues.",error);return 0;}
 }
 function runCycle(gameKey){
 const st=getState(),msg=el("calSimsCycleMessage");if(!st)return {ok:false,reason:"state-unavailable"};const c=ensure(st),season=Number(st.year)||29;
 c.processedGameCycles=Array.isArray(c.processedGameCycles)?c.processedGameCycles:[];
 const key=String(gameKey||("MANUAL-DISABLED-"+season+"-"+(Number(c.cycleCount)||0)+"-"+Date.now()));
-if(c.processedGameCycles.includes(key))return {ok:true,duplicate:true,cycle:c.cycleCount};
-// Record the game key before calculating interest or sales so a repeated callback cannot pay twice.
+if(c.processedGameCycles.includes(key))re
+turn {ok:true,duplicate:true,cycle:c.cycleCount};
+// Record the game key before calculating sales so a repeated callback cannot charge consumers twice.
 c.processedGameCycles.push(key);
-const interestRate=0.02;
-const interestBase=Math.max(0,Number(c.totalCash)||0);
-const interest=Math.round(interestBase*interestRate*100)/100;
-const totalBeforeInterest=Number(c.totalCash)||0;
-const spendableBeforeInterest=Number(c.spendableCash)||0;
-if(interest>0){
-  c.totalCash=Math.round((totalBeforeInterest+interest)*100)/100;
-  c.spendableCash=Math.round((spendableBeforeInterest+interest)*100)/100;
-  const interestId="CALSIMS-INTEREST-"+key;
-  const interestAt=new Date().toISOString();
-  c.interestLedger.push({id:interestId,gameKey:key,season,rate:interestRate,rateLabel:"2% per completed game",baseCash:interestBase,amount:interest,totalBefore:totalBeforeInterest,totalAfter:c.totalCash,spendableBefore:spendableBeforeInterest,spendableAfter:c.spendableCash,createdAt:interestAt,type:"CalSims Interest Income"});
-}
-c.models.forEach(m=>{if(m&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBon
-usActive=false;m.boostExpiredSeason=season;}});
+c.models.forEach(m=>{if(m&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBonusActive=false;m.boostExpiredSeason=season;}});
 const cycle=(Number(c.cycleCount)||0)+1,consumers=Number(c.consumerCount)||50000000;
 const models=c.models.filter(m=>m&&String(m.status||"active")==="active"&&!m.isRetro&&Number(m.price)>0);
 let unitsRemaining=Math.max(0,Math.floor(consumers*0.015)),totalUnits=0,totalRevenue=0,companyPayouts=0,storePayout=0;
@@ -8754,10 +8759,10 @@ if(models.length&&Number(c.spendableCash)>0&&unitsRemaining>0){
   const revenue=Math.round((units*Number(m.price)/1000000)*100)/100,companyShare=Math.round(revenue*0.70*100)/100,storeShare=Math.round((revenue-companyShare)*100)/100;
   const before=Number(st.businessCash[m.company])||0,at=new Date().toISOString(),saleId="CALSIMS-SALE-"+cycle+"-"+m.id;
   m.unitsSold=(Number(m.unitsSold)||0)+units;m.retailRevenue=Math.round(((Number(m.retailRevenue)||0)+revenue)*100)/100;m.popularity=Math.max(1,Math.min(100,(Number(m.popularity)||50)+(revenue>0?2:-1)));
-  c.spendableCash=Math.max(0,Math.round((Number(c.spendableCash)-revenue)*100)/100);c.totalCash=Math.max(Number(c.reserveCash)||0,Math.round((Number(c.totalCash)-revenue)*100)/100);
+  c.spendableCash=Math.max(0,Math.round((
+Number(c.spendableCash)-revenue)*100)/100);c.totalCash=Math.max(Number(c.reserveCash)||0,Math.round((Number(c.totalCash)-revenue)*100)/100);
   st.businessCash[m.company]=Math.round((before+companyShare)*100)/100;st.businessCash["Shoe Store"]=Math.round(((Number(st.businessCash["Shoe Store"])||0)+storeShare)*100)/100;
-  c.retailLedger.push({id:saleId,cycle
-,gameKey:key,season,modelId:m.id,modelName:m.name,company:m.company,units,revenue,companyShare,storeShare,createdAt:at});
+  c.retailLedger.push({id:saleId,cycle,gameKey:key,season,modelId:m.id,modelName:m.name,company:m.company,units,revenue,companyShare,storeShare,createdAt:at});
   st.businessCashLedger.push({id:saleId+"-COMPANY",season,type:"CalSims Shoe Retail Revenue",company:m.company,amount:companyShare,before,after:st.businessCash[m.company],reason:"70% company share of "+units.toLocaleString("en-US")+" retail units for "+m.name,createdAt:at,accountType:"business"});
   totalUnits+=units;totalRevenue+=revenue;companyPayouts+=companyShare;storePayout+=storeShare;unitsRemaining=Math.max(0,unitsRemaining-units);
  });
@@ -8767,9 +8772,10 @@ if(totalUnits>0){
  const storeAfter=Number(st.businessCash["Shoe Store"])||0;
  st.businessCashLedger.push({id:"CALSIMS-STORE-CYCLE-"+cycle,season,type:"CalSims Retail Revenue",company:"Shoe Store",amount:storePayout,before:storeBefore,after:storeAfter,reason:"30% retail share from CalSims shoe sales in cycle "+cycle,createdAt:new Date().toISOString(),accountType:"business"});
 }
+const interestEarned=applyCalSimsInterestOnly(st,c,key,season);
 if(!save()){if(msg)msg.textContent="CalSims processed this game in memory, but storage did not confirm the save. Do not replay the game; check the app save warning and verify the ledgers.";return {ok:false,reason:"save-unconfirmed",cycle};}
-if(msg){const interestMessage=" CalSims earned "+money(interest)+" in interest (2% of "+money(interestBase)+").";msg.textContent=totalUnits?"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Shoe Store received "+money(storePayout)+". Spendable consumer cash remaining: "+money(c.spendableCash)+".":"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" No purchases occurred this game; consumers may skip bu
-ying, no active models may be available, or spendable cash may be exhausted.";}
+if(msg){const interestMessage=" CalSims interest earned: "+money(interestEarned)+" (2% per completed game).";msg.textContent=totalUnits?"Automatic CalS
+ims cycle "+cycle+" complete."+interestMessage+" "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Shoe Store received "+money(storePayout)+". Spendable consumer cash remaining: "+money(c.spendableCash)+".":"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" No purchases occurred this game; consumers may skip buying, no active models may be available, or spendable cash may be exhausted.";}
 render();return {ok:true,cycle,totalUnits,totalRevenue,companyPayouts,storePayout};
 }
 window.processCalSimsGameCycle=function(gameKey){try{return runCycle(gameKey);}catch(error){console.error("CalSims automatic retail cycle failed:",error);const msg=el("calSimsCycleMessage");if(msg)msg.textContent="CalSims could not complete the automatic sales cycle. The game remains recorded; check the console and save warning before continuing.";return {ok:false,reason:"exception"};}};
@@ -8780,10 +8786,10 @@ const releaseBtn=el("shoeModelRelease");if(releaseBtn&&!releaseBtn.dataset.bound
 const close=el("shoeStoreClose"),modal=el("shoeStoreModal"),box=modal?modal.querySelector(".modalbox"):null,companySelect=el("shoeModelCompany");
 if(close&&!close.dataset.bound){close.addEventListener("click",closeShoeStore);close.dataset.bound="1";}
 [el("shoeModelCompanyFilter"),el("shoeModelStatusFilter")].forEach(control=>{if(control&&!control.dataset.bound){control.addEventListener("change",render);control.dataset.bound="1";}});
-const modelList=el("shoeModelList");if(modelList&&!modelList.dataset.actionsBound){modelList.addEventListener("click",e=>{const btn=e.target.closest("button[data-shoe-action]");if(!btn)return;handleModelAction(btn.dataset.shoeAction,btn.dataset.modelId);});modelList.dataset.actionsBound="1";}
+const modelList=el("shoeModelList");if(modelList&&!modelList.dataset.actionsBound){modelList.addEventListener("click",e=>{const btn=e.target.closest("button[data-s
+hoe-action]");if(!btn)return;handleModelAction(btn.dataset.shoeAction,btn.dataset.modelId);});modelList.dataset.actionsBound="1";}
 if(modal&&!modal.dataset.bound){modal.addEventListener("click",e=>{if(e.target===modal)closeShoeStore(e);});if(box)box.addEventListener("click",e=>e.stopPropagation());modal.dataset.bound="1";}
-if(companySelect&&!companySelect.dataset.playerAssociationBound){companySelect.addEventListen
-er("change",refreshPlayerAssociationOptions);companySelect.dataset.playerAssociationBound="1";}
+if(companySelect&&!companySelect.dataset.playerAssociationBound){companySelect.addEventListener("change",refreshPlayerAssociationOptions);companySelect.dataset.playerAssociationBound="1";}
 refreshPlayerAssociationOptions();
 const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab&&!tab.dataset.calsimsBound){tab.addEventListener("click",()=>{setTimeout(render,0);});tab.dataset.calsimsBound="1";}
 render();
