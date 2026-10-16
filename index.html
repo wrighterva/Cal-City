@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.2.1: Shoe Store opens in a modal; shoe-model player association dropdown lists active players signed to the selected shoe company; preserve existing records. -->
+<!-- CALVIN'S CITY — VERSION 5.2.2: launch boosts, company-filtered shoe catalogue, pause/resume and retired-player retro controls. Preserve existing records. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -135,7 +135,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.2.1</title>
+<title>Calvin's City 5.2.2</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.2.1</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.2.2</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -294,15 +294,18 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div><label for="shoeModelPlayer">Player association</label><select id="shoeModelPlayer"><option value="">No player association</option></select><p id="shoeModelPlayerHint" class="tiny">Choose a player currently signed to the selected shoe company.</p></div>
 <div><label for="shoeModelTier">Development tier</label><select id="shoeModelTier"><option value="standard">Standard — $25M</option><option value="performance">Performance — $50M</option><option value="premium">Premium — $100M</option></select></div>
 <div><label for="shoeModelPrice">Company's chosen price ($ per pair)</label><input id="shoeModelPrice" type="number" min="0.01" step="0.01" placeholder="Set any positive price"></div>
+<div><label for="shoeModelBoost">Launch promotion</label><select id="shoeModelBoost"><option value="none">No boost</option><option value="basic">Basic boost — $10M / 10% chance</option><option value="standard">Standard boost — $20M / 20% chance</option><option value="premium">Premium boost — $30M / 30% chance</option></select></div>
 </div>
-<p class="tiny">Development cost is paid upfront by the shoe company. The price is fully company-selected; high prices may reduce demand, while low prices may increase sales but reduce revenue per pair.</p>
+<p class="tiny">Development cost and any selected boost fee are paid upfront by the shoe company. Each company gets one boost attempt per season. Fees are not refunded if a boost fails. A successful boost adds 20 popularity points for two seasons.</p>
 <button type="button" class="goodbtn" id="shoeModelRelease">Develop &amp; Release Model</button>
 <p id="shoeModelMessage" class="tiny" role="status" aria-live="polite"></p>
 <h3>Consumer Sales Cycle</h3>
 <p class="tiny">Run a cycle to simulate CalSims buying shoes when consumers are due for replacement. Demand is shared among eligible models according to price and popularity; consumers may skip buying. Sales are capped by CalSims' spendable cash.</p>
 <button type="button" id="calSimsRunCycle">Run CalSims Purchase Cycle</button>
 <p id="calSimsCycleMessage" class="tiny" role="status" aria-live="polite"></p>
-<h3>Released Shoe Models</h3><div id="shoeModelList"><p class="muted">No models released yet.</p></div>
+<h3>Released Shoe Models</h3>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px"><div><label for="shoeModelCompanyFilter">Show shoe company</label><select id="shoeModelCompanyFilter"><option value="all">All companies</option><option>Nike</option><option>Reebok</option><option>Puma</option><option>Adidas</option><option>New Balance</option></select></div><div><label for="shoeModelStatusFilter">Model status</label><select id="shoeModelStatusFilter"><option value="all">All models</option><option value="active">Active</option><option value="paused">Paused</option><option value="retro">Retro models</option></select></div></div>
+<div id="shoeModelList"><p class="muted">No models released yet.</p></div>
 <h3>Retail &amp; Company Sales Ledger</h3><div id="shoeRetailLedger"><p class="muted">No retail sales recorded yet.</p></div>
 <button type="button" class="secondary" id="shoeStoreClose">Close Shoe Store</button>
 </div></div></div>
@@ -8243,6 +8246,7 @@ if(!Number.isFinite(Number(c.consumerCount)))c.consumerCount=50000000;
 if(!Number.isFinite(Number(c.cycleCount)))c.cycleCount=0;
 if(!Array.isArray(c.models))c.models=[];
 if(!Array.isArray(c.retailLedger))c.retailLedger=[];
+if(!Array.isArray(c.boostAttempts))c.boostAttempts=[];
 st.businessCash=st.businessCash||{};
 st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
 if(!Number.isFinite(Number(st.businessCash["Shoe Store"])))st.businessCash["Shoe Store"]=0;
@@ -8255,7 +8259,8 @@ if(el("calSimsTotalCash"))el("calSimsTotalCash").textContent=money(c.totalCash);
 if(el("calSimsSpendableCash"))el("calSimsSpendableCash").textContent=money(c.spendableCash);
 if(el("calSimsReserveCash"))el("calSimsReserveCash").textContent=money(c.reserveCash);
 if(el("shoeStoreCash"))el("shoeStoreCash").textContent=money(st.businessCash["Shoe Store"]);
-const list=el("shoeModelList");if(list){if(!c.models.length)list.innerHTML='<p class="muted">No models released yet.</p>';else list.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Model</th><th>Company</th><th>Player</th><th>Tier</th><th>Price / Pair</th><th>Popularity</th><th>Units Sold</th><th>Retail Sales</th></tr></thead><tbody>'+c.models.map(m=>'<tr><td>'+esc(m.name)+'</td><td>'+esc(m.company)+'</td><td>'+esc(m.playerAssociation||'—')+'</td><td>'+esc((tiers[m.tier]||tiers.standard).label)+'</td><td>$'+Number(m.price).toLocaleString("en-US",{maximumFractionDigits:2})+'</td><td>'+Math.round(Number(m.popularity)||50)+'</td><td>'+Math.round(Number(m.unitsSold)||0).toLocaleString("en-US")+'</td><td>'+money(m.retailRevenue||0)+'</td></tr>').join("")+'</tbody></table></div>';}
+const companyFilter=el("shoeModelCompanyFilter")?el("shoeModelCompanyFilter").value:"all",statusFilter=el("shoeModelStatusFilter")?el("shoeModelStatusFilter").value:"all";
+const list=el("shoeModelList");if(list){const filtered=c.models.filter(m=>(companyFilter==="all"||m.company===companyFilter)&&(statusFilter==="all"||(statusFilter==="retro"?!!m.isRetro:String(m.status||"active")==statusFilter)));if(!c.models.length)list.innerHTML='<p class="muted">No models released yet.</p>';else if(!filtered.length)list.innerHTML='<p class="muted">No shoe models match these filters.</p>';else list.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Model</th><th>Company</th><th>Player</th><th>Tier</th><th>Price / Pair</th><th>Popularity</th><th>Units Sold</th><th>Retail Sales</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+filtered.map(m=>{const status=m.isRetro?"Retro":String(m.status||"active")==="paused"?"Paused":"Active";const pauseLabel=String(m.status||"active")==="paused"?"Resume":"Pause";return '<tr><td>'+esc(m.name)+(m.isRetro?'<br><span class="badge gold">RETRO</span>':'')+'</td><td>'+esc(m.company)+'</td><td>'+esc(m.playerAssociation||'—')+'</td><td>'+esc((tiers[m.tier]||tiers.standard).label)+'</td><td>$'+Number(m.price).toLocaleString("en-US",{maximumFractionDigits:2})+'</td><td>'+Math.round(Number(m.popularity)||50)+'</td><td>'+Math.round(Number(m.unitsSold)||0).toLocaleString("en-US")+'</td><td>'+money(m.retailRevenue||0)+'</td><td>'+status+'</td><td><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="pause" data-model-id="'+esc(m.id)+'">'+pauseLabel+'</button><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="retro" data-model-id="'+esc(m.id)+'">'+(m.isRetro?'Retroed':'Retro Shoe')+'</button></td></tr>';}).join('')+'</tbody></table></div>';}
 const led=el("shoeRetailLedger");if(led){const rows=c.retailLedger.slice(-10).reverse();led.innerHTML=rows.length?'<div style="overflow-x:auto"><table><thead><tr><th>Cycle</th><th>Model</th><th>Units</th><th>Retail Revenue</th><th>Company (70%)</th><th>Store (30%)</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.cycle+'</td><td>'+esc(r.modelName)+'</td><td>'+Number(r.units).toLocaleString("en-US")+'</td><td>'+money(r.revenue)+'</td><td>'+money(r.companyShare)+'</td><td>'+money(r.storeShare)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No retail sales recorded yet.</p>';}
 }
 function activePlayersForCompany(st,company){
@@ -8288,19 +8293,51 @@ if(hint)hint.textContent=players.length?"Choose a player currently signed to "+c
 function open(){const modal=el("shoeStoreModal");if(!modal)return;refreshPlayerAssociationOptions();render();lockBusinessPageScroll();modal.classList.add("show");}
 window.openShoeStore=open;
 function closeShoeStore(event){if(event){event.preventDefault();event.stopPropagation();}const modal=el("shoeStoreModal");if(modal)modal.classList.remove("show");unlockBusinessPageScroll();}
+function retiredPlayer(st,name){
+if(!name)return false;
+const citizen=(Array.isArray(st&&st.citizens)?st.citizens:[]).find(c=>c&&String(c.name)===String(name));
+if(citizen&&String(citizen.status||"").toLowerCase()==="retired")return true;
+const player=(Array.isArray(st&&st.players)?st.players:[]).find(p=>p&&(String(p.name||p.playerName||"")===String(name)));
+return !!(player&&String(player.status||player.careerStatus||"").toLowerCase()==="retired");
+}
+function handleModelAction(action,id){
+const st=getState();if(!st){alert("Live game data is unavailable. No shoe model was changed.");return;}const c=ensure(st),m=c.models.find(x=>x&&String(x.id)===String(id));if(!m){alert("This shoe model could not be found. No changes were made.");return;}
+if(action==="pause"){
+  if(String(m.status||"active")==="paused"){m.status="active";m.resumedAt=new Date().toISOString();}else{m.status="paused";m.pausedAt=new Date().toISOString();}
+  if(!save()){alert("Storage did not confirm the model status change. Check the save warning before retrying.");return;}render();return;
+}
+if(action==="retro"){
+  if(m.isRetro){alert("This shoe model has already been retroed.");return;}
+  if(!m.playerAssociation||!retiredPlayer(st,m.playerAssociation)){alert("A shoe can only be retroed when its associated player is retired. This model has not been changed.");return;}
+  if(!confirm("Retro "+m.name+" for retired player "+m.playerAssociation+"? The original company, price, player association and sales history will be preserved."))return;
+  m.isRetro=true;m.retroSeason=Number(st.year)||29;m.retroAt=new Date().toISOString();
+  if(!save()){alert("Storage did not confirm the retro status. Check the save warning before retrying.");return;}render();return;
+}
+}
 function release(){
 const st=getState(),msg=el("shoeModelMessage");if(!st||!msg){if(msg)msg.textContent="Live game data is unavailable; nothing was saved.";return;}const c=ensure(st),company=el("shoeModelCompany").value,name=String(el("shoeModelName").value||"").trim(),player=String(el("shoeModelPlayer").value||"").trim(),tier=el("shoeModelTier").value,price=Number(el("shoeModelPrice").value),cost=(tiers[tier]||{}).cost;
 if(!companies.includes(company)){msg.textContent="Choose a valid shoe company.";return;}if(!name){msg.textContent="Enter a model name.";return;}if(!Number.isFinite(price)||price<=0){msg.textContent="Enter any positive price per pair. There is no preset shoe price.";return;}if(!cost){msg.textContent="Choose a valid development tier.";return;}
 if(c.models.some(m=>m.company===company&&String(m.name).toLowerCase()===name.toLowerCase())){msg.textContent="That company already has a model with this name.";return;}
-const before=Number(st.businessCash[company])||0;if(before<cost){msg.textContent=company+" needs "+money(cost)+" to fund this model; available cash is "+money(before)+".";return;}
-const after=Math.round((before-cost)*100)/100,id="SHOE-MODEL-"+(Number(st.year)||29)+"-"+Date.now();st.businessCash[company]=after;
-const model={id,company,name,playerAssociation:player,tier,developmentCost:cost,price:Math.round(price*100)/100,popularity:50,unitsSold:0,retailRevenue:0,createdSeason:Number(st.year)||29,createdAt:new Date().toISOString(),status:"active"};c.models.push(model);
-st.businessCashLedger.push({id:id+"-DEV",season:Number(st.year)||29,type:"Shoe Model Development Cost",company,amount:-cost,before,after,reason:"Upfront development of "+tiers[tier].label+" shoe model: "+name,createdAt:model.createdAt,accountType:"business"});
+const boostTier=el("shoeModelBoost")?el("shoeModelBoost").value:"none",boosts={none:{fee:0,chance:0,label:"No boost"},basic:{fee:10,chance:10,label:"Basic"},standard:{fee:20,chance:20,label:"Standard"},premium:{fee:30,chance:30,label:"Premium"}},boost=boosts[boostTier];if(!boost){msg.textContent="Choose a valid launch promotion.";return;}
+const season=Number(st.year)||29,attempted=c.boostAttempts.some(a=>a&&a.company===company&&Number(a.season)===season);if(boost.fee>0&&attempted){msg.textContent=company+" has already used its one boost attempt for Season "+season+". You can still release this model without a boost.";return;}
+const before=Number(st.businessCash[company])||0,totalCost=cost+boost.fee;if(before<totalCost){msg.textContent=company+" needs "+money(totalCost)+" for development and the selected boost; available cash is "+money(before)+".";return;}
+const id="SHOE-MODEL-"+season+"-"+Date.now(),createdAt=new Date().toISOString(),developmentAfter=Math.round((before-cost)*100)/100;
+st.businessCash[company]=developmentAfter;
+const model={id,company,name,playerAssociation:player,tier,developmentCost:cost,price:Math.round(price*100)/100,popularity:50,unitsSold:0,retailRevenue:0,createdSeason:season,createdAt,status:"active",isRetro:false};c.models.push(model);
+st.businessCashLedger.push({id:id+"-DEV",season,type:"Shoe Model Development Cost",company,amount:-cost,before,after:developmentAfter,reason:"Upfront development of "+tiers[tier].label+" shoe model: "+name,createdAt,accountType:"business"});
+let boostResult="No launch boost selected.";
+if(boost.fee>0){
+  const attemptId="SHOE-BOOST-"+season+"-"+company.replace(/[^a-z0-9]/gi,"")+"-"+id,success=Math.random()*100<boost.chance,storeBefore=Number(st.businessCash["Shoe Store"])||0,companyAfter=Math.round((Number(st.businessCash[company])-boost.fee)*100)/100,storeAfter=Math.round((storeBefore+boost.fee)*100)/100;
+  st.businessCash[company]=companyAfter;st.businessCash["Shoe Store"]=storeAfter;c.boostAttempts.push({id:attemptId,company,modelId:id,season,tier:boostTier,fee:boost.fee,chance:boost.chance,success,createdAt});
+  st.businessCashLedger.push({id:attemptId+"-COMPANY",season,type:"Shoe Model Promotion Fee",company,amount:-boost.fee,before:developmentAfter,after:companyAfter,reason:boost.label+" launch boost attempt for "+name+" ("+boost.chance+"% chance)",createdAt,accountType:"business"});
+  st.businessCashLedger.push({id:attemptId+"-STORE",season,type:"Shoe Promotion Revenue",company:"Shoe Store",amount:boost.fee,before:storeBefore,after:storeAfter,reason:"Promotion fee for "+company+" model "+name,createdAt,accountType:"business"});
+  if(success){model.popularity=70;model.boostBonus=20;model.boostUntilSeason=season+1;model.boostBonusActive=true;boostResult=boost.label+" boost succeeded: popularity increased by 20 points for two seasons.";}else boostResult=boost.label+" boost failed. The fee was not refunded, and this company cannot retry a boost this season.";
+}
 if(!save()){msg.textContent="Storage did not confirm the save. Do not retry yet; check the app's save warning and verify the model list.";return;}
-el("shoeModelName").value="";el("shoeModelPlayer").value="";el("shoeModelPrice").value="";msg.textContent="Released "+name+" at the company-selected price of $"+price.toLocaleString("en-US")+" per pair. Development cost paid: "+money(cost)+".";render();
+el("shoeModelName").value="";el("shoeModelPlayer").value="";el("shoeModelPrice").value="";if(el("shoeModelBoost"))el("shoeModelBoost").value="none";msg.textContent="Released "+name+" at the company-selected price of $"+price.toLocaleString("en-US")+" per pair. Development cost paid: "+money(cost)+". "+boostResult;render();
 }
 function runCycle(){
-const st=getState(),msg=el("calSimsCycleMessage");if(!st||!msg){if(msg)msg.textContent="Live game data is unavailable; no cycle was run.";return;}const c=ensure(st),models=c.models.filter(m=>m&&m.status==="active"&&Number(m.price)>0);if(!models.length){msg.textContent="No active shoe models are available. Release a model first.";return;}if(Number(c.spendableCash)<=0){msg.textContent="CalSims has no spendable cash remaining. Its protected reserve is not used for purchases.";return;}
+const st=getState(),msg=el("calSimsCycleMessage");if(!st||!msg){if(msg)msg.textContent="Live game data is unavailable; no cycle was run.";return;}const c=ensure(st),season=Number(st.year)||29;c.models.forEach(m=>{if(m&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBonusActive=false;m.boostExpiredSeason=season;}});const models=c.models.filter(m=>m&&String(m.status||"active")==="active"&&Number(m.price)>0);if(!models.length){msg.textContent="No active shoe models are available. Release a model first.";return;}if(Number(c.spendableCash)<=0){msg.textContent="CalSims has no spendable cash remaining. Its protected reserve is not used for purchases.";return;}
 const cycle=(Number(c.cycleCount)||0)+1,consumers=Number(c.consumerCount)||50000000;
 // A modest share of consumers are due and choose to buy in each cycle; the rest skip.
 const potential=Math.max(0,Math.floor(consumers*0.015));
@@ -8332,6 +8369,8 @@ const releaseBtn=el("shoeModelRelease");if(releaseBtn&&!releaseBtn.dataset.bound
 const cycleBtn=el("calSimsRunCycle");if(cycleBtn&&!cycleBtn.dataset.bound){cycleBtn.addEventListener("click",runCycle);cycleBtn.dataset.bound="1";}
 const close=el("shoeStoreClose"),modal=el("shoeStoreModal"),box=modal?modal.querySelector(".modalbox"):null,companySelect=el("shoeModelCompany");
 if(close&&!close.dataset.bound){close.addEventListener("click",closeShoeStore);close.dataset.bound="1";}
+[el("shoeModelCompanyFilter"),el("shoeModelStatusFilter")].forEach(control=>{if(control&&!control.dataset.bound){control.addEventListener("change",render);control.dataset.bound="1";}});
+const modelList=el("shoeModelList");if(modelList&&!modelList.dataset.actionsBound){modelList.addEventListener("click",e=>{const btn=e.target.closest("button[data-shoe-action]");if(!btn)return;handleModelAction(btn.dataset.shoeAction,btn.dataset.modelId);});modelList.dataset.actionsBound="1";}
 if(modal&&!modal.dataset.bound){modal.addEventListener("click",e=>{if(e.target===modal)closeShoeStore(e);});if(box)box.addEventListener("click",e=>e.stopPropagation());modal.dataset.bound="1";}
 if(companySelect&&!companySelect.dataset.playerAssociationBound){companySelect.addEventListener("change",refreshPlayerAssociationOptions);companySelect.dataset.playerAssociationBound="1";}
 refreshPlayerAssociationOptions();
