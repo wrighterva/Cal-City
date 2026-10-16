@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.2.8: Diggs stats protection; launch boosts, company-filtered shoe catalogue, pause/resume and retired-player retro controls. Preserve existing records. -->
+<!-- CALVIN'S CITY — VERSION 5.2.9: Diggs stats protection; launch boosts, company-filtered shoe catalogue, pause/resume and retired-player retro controls. Preserve existing records. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.2.8</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.2.9</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -2446,10 +2446,14 @@ c.season29OpeningCash=Number(SEASON_29_OPENING_CASH[name])||0;
 c.status="Active Player";
 c.position=p.position||c.position;
 c.currentTeam="Lions";
-c.careerPts=Number(p.careerPts)||0;
-c.careerRebs=Number(p.careerRebs)||0;
-c.mvps=Number(p.mvps)||0;
-c.championships=Number(p.championships)||0;
+/* Preserve Diggs's existing career totals. The opening-roster seed is not
+  authoritative career history and must never reset a saved citizen. */
+if(name!=="Diggs"){
+ c.careerPts=Number(p.careerPts)||0;
+ c.careerRebs=Number(p.careerRebs)||0;
+ c.mvps=Number(p.mvps)||0;
+ c.championships=Number(p.championships)||0;
+}
 c.shoeDeals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
 if(name==="Wall" && !c.shoeDeals.some(d=>d&&d.company==="Reebok"&&Number(d.value)===290&&Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)>0)){
 c.shoeDeals.push({company:"Reebok",years:2,value:290,includedInContract:true,startYear:state.year});
@@ -2521,10 +2525,13 @@ if(c.arenaRosterSeeded!==true){
 c.status="Active Player";
 c.position=p.position;
 c.currentTeam=key.split("_")[0];
-c.careerPts=Number(p.careerPts)||0;
-c.careerRebs=Number(p.careerRebs)||0;
-c.mvps=Number(p.mvps)||0;
-c.championships=Number(p.championships)||0;
+/* Diggs career totals are protected from roster-seed defaults. */
+if(p.name!=="Diggs"){
+ c.careerPts=Number(p.careerPts)||0;
+ c.careerRebs=Number(p.careerRebs)||0;
+ c.mvps=Number(p.mvps)||0;
+ c.championships=Number(p.championships)||0;
+}
 c.cash=Number(c.cash)==null?Number(p.contract.value)||0:Number(c.cash);
 c.contracts=Array.isArray(c.contracts)?c.contracts:[];
 c.shoeDeals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
@@ -2537,67 +2544,10 @@ c.arenaRosterSeeded=true;
 }
 seedInitialArenaRosters();
 
-/* VERSION 5.0.7: Lions career-stat repair after startup synchronization.
-This migration changes ONLY the six basketball career-total fields below
-and its own version marker. It does not touch cash, contracts, bets, shares,
-MVPs, championships, rosters, or game/history records. */
-(function repairLionsCareerStatsOnce(){
-const repairVersion="lions-career-stats-recovery-v8";
-if(state.lionsCareerStatsRecoveryVersion===repairVersion)return;
-const expected={
-Wall:{pts:798,rebs:769},
-Diggs:{pts:305,rebs:292},
-Kap:{pts:478,rebs:487}
-};
-const citizens=Array.isArray(state.citizens)?state.citizens:[];
-const people=Object.keys(expected).map(name=>({
-name,target:expected[name],
-citizen:citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase())
-}));
-if(people.some(x=>!x.citizen)){
-window.__lionsStatsRepairDiagnostic={
-  version:"5.0.4",status:"skipped",
-  reason:"One or more required citizen records were not found.",
-  found:people.map(x=>({name:x.name,found:!!x.citizen}))
-};
-console.error("Calvin's City 5.0.4 Lions repair skipped: required citizen record missing.",
-  window.__lionsStatsRepairDiagnostic);
-return;
-}
-const before=people.map(x=>({
-name:x.name,points:x.citizen.careerPts,rebounds:x.citizen.careerRebs
-}));
-people.forEach(x=>{
-x.citizen.careerPts=x.target.pts;
-x.citizen.careerRebs=x.target.rebs;
-});
-state.lionsCareerStatsRecoveryVersion=repairVersion;
-const saveResult=save();
-const stored=(()=>{try{
-const v=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
-return v?people.map(x=>{
-  const c=(v.citizens||[]).find(p=>p&&String(p.name||"").trim().toLowerCase()===x.name.toLowerCase());
-  return {name:x.name,points:c&&c.careerPts,rebounds:c&&c.careerRebs};
-}):null;
-}catch(e){return "storage read error: "+e.message;}})();
-const verified=people.every(x=>
-Number(x.citizen.careerPts)===x.target.pts&&Number(x.citizen.careerRebs)===x.target.rebs);
-const storedVerified=Array.isArray(stored)&&stored.every(x=>{
-const t=expected[x.name];
-return !!t&&Number(x.points)===t.pts&&Number(x.rebounds)===t.rebs;
-});
-window.__lionsStatsRepairDiagnostic={
-version:"5.0.4",
-status:verified&&storedVerified?"saved-and-verified":
-  (verified?"in-memory-only-or-storage-verification-failed":"verification-failed"),
-season:state.year,
-saveResult,
-before,
-players:people.map(x=>({name:x.name,points:x.citizen.careerPts,rebounds:x.citizen.careerRebs})),
-stored
-};
-console.info("Calvin's City 5.0.4 Lions career-stat repair diagnostic",window.__lionsStatsRepairDiagnostic);
-})();
+/* 5.2.9 DIGGS CAREER STAT PROTECTION
+  The legacy v8 startup repair hardcoded career totals for Wall, Diggs and Kap.
+  It is intentionally removed. Career totals must come from saved records or
+  verified box scores, never from a startup target table. */
 
 /* 4.17.105: All nine Season 29 contracts supplied as the opening roster are
 already fully paid. They are not future salary obligations and are not new
@@ -5946,7 +5896,7 @@ warning.style.display=window.__calvinsCitySaveError?"block":"none";
 window.addEventListener("error",function(){setTimeout(showCitySaveWarning,0);});
 document.addEventListener("DOMContentLoaded",showCitySaveWarning);
 
-/* VERSION 5.2.8: Diggs career-stat protection.
+/* VERSION 5.2.9: Diggs career-stat protection.
   This startup check is read-only: it deliberately does not rewrite career
   points/rebounds, does not save state, and does not touch other citizens.
   Diggs totals are preserved until complete historical box-score coverage is
