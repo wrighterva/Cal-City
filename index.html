@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.1.8.1: repair split source tokens and restore startup/navigation; preserve retired-player contract history; do not reseed retired Wall into active roster. Based on working 5.1.1. -->
+<!-- CALVIN'S CITY — VERSION 5.1.8.3: move Create Player/Citizen directly into Markets > Free Agents; allow creation from that section; preserve existing records. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
@@ -135,7 +135,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.1.8.2</title>
+<title>Calvin's City 5.1.8.3</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.1.8.2</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.1.8.3</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -368,6 +368,16 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="card" id="freeAgentsMarketCard">
 <h2>🏀 Free Agents</h2>
 <p class="tiny">Review available players and their career records. Player signings and contract decisions are handled through Offseason Management.</p>
+<div class="card" id="createFreeAgentCard" style="margin:12px 0;border:1px solid #526176">
+<h3>➕ Create Player / Citizen</h3>
+<p class="tiny">Create a new player directly from the Free Agents section. They receive a unique Citizen ID and appear in this pool, ready for the existing offseason signing process.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
+<div><label for="newFreeAgentName">Player name</label><input id="newFreeAgentName" type="text" maxlength="60" placeholder="Enter player name"></div>
+<div><label for="newFreeAgentPosition">Preferred position (optional)</label><select id="newFreeAgentPosition"><option value="">No position selected</option><option value="C">Center (C)</option><option value="SG">Shooting Guard (SG)</option><option value="PG">Point Guard (PG)</option></select></div>
+</div>
+<button type="button" class="goodbtn" id="createFreeAgentButton" onclick="createOffseasonFreeAgent()">Create Free Agent</button>
+<p id="createFreeAgentMessage" class="tiny" role="status" aria-live="polite"></p>
+</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
 <label for="freeAgentSearch" class="tiny" style="align-self:center">Search players</label>
 <input id="freeAgentSearch" type="search" placeholder="Search by player name or position…" style="flex:1;min-width:180px">
@@ -445,7 +455,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="card"><h2>🏀 Next Game</h2><p>Play the season one game at a time. Every completed game saves immediately.</p><div id="nextGameBox"></div><button type="button" id="playNextGame" class="goodbtn">▶️ PLAY GAME</button><div id="seasonOutput" class="log" style="margin-top:12px"></div></div>
 <div class="card"><h2>🧾 Current Season</h2><div class="basketball-current-season-top"><div class="basketball-season-chip"><small>Current Season</small><strong id="basketballSeasonTop">Season —</strong></div></div><div id="standingsOutput"><p class="muted">No games played yet.</p></div></div>
 <div class="card"><h2>📋 Offseason Management</h2><p><b>The year does not advance automatically.</b> Finish contracts, trades, releases and roster decisions first.</p><div class="grid"><div class="metric"><small>Season Status</small><strong id="seasonStatus">Not Played</strong></div><div class="metric"><small>Offseason</small><strong id="offseasonStatus">Locked</strong></div></div><button id="openOffseason">Open Offseason</button></div>
-<div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div class="card" id="createFreeAgentCard" style="margin:12px 0;border:1px solid #526176"><h3>➕ Create Player / Citizen</h3><p class="tiny">Create a new player identity and add them directly to the Free Agent pool. They can then be selected for a roster spot through Offseason Management.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px"><div><label for="newFreeAgentName">Player name</label><input id="newFreeAgentName" type="text" maxlength="60" placeholder="Enter player name"></div><div><label for="newFreeAgentPosition">Preferred position (optional)</label><select id="newFreeAgentPosition"><option value="">No position selected</option><option value="C">Center (C)</option><option value="SG">Shooting Guard (SG)</option><option value="PG">Point Guard (PG)</option></select></div></div><button type="button" class="goodbtn" id="createFreeAgentButton" onclick="createOffseasonFreeAgent()">Create Free Agent</button><p id="createFreeAgentMessage" class="tiny" role="status" aria-live="polite"></p></div><div id="contractBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
+<div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div id="contractBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
 <div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 </section></main>
 
@@ -4107,7 +4117,7 @@ function nextGameDescription(){if(state.seasonPhase==="regular"){const p=REGULAR
 function escapeFreeAgentText(value){
 return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
-/* 5.1.8.2: Create a new player as one permanent Citizen Ledger identity and
+/* 5.1.8.3: Create a new player from Markets > Free Agents as one permanent Citizen Ledger identity and
 immediately place that same identity in the Free Agent pool. This operation
 never reseeds, resets, or edits existing career/financial/history records. */
 function createOffseasonFreeAgent(){
@@ -4115,7 +4125,6 @@ const name=String(document.getElementById("newFreeAgentName")?.value||"").trim()
 const position=String(document.getElementById("newFreeAgentPosition")?.value||"").trim();
 const message=document.getElementById("createFreeAgentMessage");
 const say=text=>{if(message)message.textContent=text;};
-if(!state.offseasonOpen){say("Open the offseason before creating a new free agent.");return false;}
 if(!name){say("Enter a player name first.");document.getElementById("newFreeAgentName")?.focus();return false;}
 const existing=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
 if(existing){
