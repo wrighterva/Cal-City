@@ -6058,7 +6058,7 @@ if(!wall){
  }catch(err){stored={error:String(err&&err.message||err)};}
  const verified=Number(kap.mvps)===2&&(!roster||String(roster.name||"").trim().toLowerCase()!=="kap"||Number(roster.mvps)===2)&&!!stored&&stored.citizen===2&&(stored.roster===null||stored.roster===2);
  window.__kapMvpRepairDiagnostic={version:"5.3.2",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},stored,saved,verified,scope:"Kap MVP count only"};
- console.info("Calvin's City 5.3.2 Kap MVP repair",window.__kapMvpRepairDiagnostic);
+ console.info("Calvin's City 5.3.3 Kap MVP repair",window.__kapMvpRepairDiagnostic);
  if(!verified)console.error("Kap MVP repair could not be fully verified.",window.__kapMvpRepairDiagnostic);
  try{if(typeof render==="function")render();}catch(err){console.error("Kap MVP roster refresh failed.",err);}
  try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Kap MVP dropdown refresh failed.",err);}
@@ -8421,6 +8421,29 @@ const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab
 render();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(init,0));else setTimeout(init,0);
+/* 5.3.3: Late, idempotent Kap MVP correction after normal app initialization.
+  Changes only Kap's MVP totals; does not alter championship/game history. */
+function finalizeKapMvpAfterStartup(){
+ try{
+   const st=typeof state!=="undefined"?state:null;
+   if(!st)return;
+   const citizens=Array.isArray(st.citizens)?st.citizens:[];
+   const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
+   const roster=st.roster&&st.roster.Lions_PG;
+   if(!kap){window.__kapMvpRepairDiagnostic533={version:"5.3.3",status:"skipped",reason:"Kap citizen record not found"};return;}
+   const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null};
+   kap.mvps=Math.max(2,Number(kap.mvps)||0);
+   if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=Math.max(2,Number(roster.mvps)||0);
+   st.kapMvpCountRecoveryVersion="kap-career-mvp-count-recovery-v2";
+   let saved=false;try{saved=save()!==false;}catch(e){}
+   let stored=null;try{const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");const c=raw&&Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;const r=raw&&raw.roster&&raw.roster.Lions_PG;stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};}catch(e){stored={error:String(e&&e.message||e)};}
+   const verified=!!stored&&stored.citizen>=2&&(stored.roster===null||stored.roster>=2);
+   window.__kapMvpRepairDiagnostic533={version:"5.3.3",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null},stored,saved,verified,scope:"Kap MVP count only"};
+   console.info("Calvin's City 5.3.3 late Kap MVP verification",window.__kapMvpRepairDiagnostic533);
+   try{if(typeof render==="function")render();}catch(e){}
+ }catch(err){window.__kapMvpRepairDiagnostic533={version:"5.3.3",status:"error",reason:String(err&&err.message||err)};console.error("Kap MVP late repair error",window.__kapMvpRepairDiagnostic533);}
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(finalizeKapMvpAfterStartup,80),{once:true});else setTimeout(finalizeKapMvpAfterStartup,80);
 })();
 </script>
 
