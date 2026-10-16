@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.2.2: launch boosts, company-filtered shoe catalogue, pause/resume and retired-player retro controls. Preserve existing records. -->
+<!-- CALVIN'S CITY — VERSION 5.2.4: launch boosts, company-filtered shoe catalogue, pause/resume and retired-player retro controls. Preserve existing records. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -135,7 +135,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.2.2</title>
+<title>Calvin's City 5.2.4</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -299,10 +299,9 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <p class="tiny">Development cost and any selected boost fee are paid upfront by the shoe company. Each company gets one boost attempt per season. Fees are not refunded if a boost fails. A successful boost adds 20 popularity points for two seasons.</p>
 <button type="button" class="goodbtn" id="shoeModelRelease">Develop &amp; Release Model</button>
 <p id="shoeModelMessage" class="tiny" role="status" aria-live="polite"></p>
-<h3>Consumer Sales Cycle</h3>
-<p class="tiny">Run a cycle to simulate CalSims buying shoes when consumers are due for replacement. Demand is shared among eligible models according to price and popularity; consumers may skip buying. Sales are capped by CalSims' spendable cash.</p>
-<button type="button" id="calSimsRunCycle">Run CalSims Purchase Cycle</button>
-<p id="calSimsCycleMessage" class="tiny" role="status" aria-live="polite"></p>
+<h3>Automatic Consumer Sales</h3>
+<p class="tiny">CalSims automatically simulates consumer shoe purchases after each completed game. Demand is shared among active models according to price and popularity; consumers may skip buying. Sales are capped by CalSims' spendable cash. Each completed game is processed once, even if the app is refreshed.</p>
+<p id="calSimsCycleMessage" class="tiny" role="status" aria-live="polite">Automatic sales will be processed after the next completed game.</p>
 <h3>Released Shoe Models</h3>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px"><div><label for="shoeModelCompanyFilter">Show shoe company</label><select id="shoeModelCompanyFilter"><option value="all">All companies</option><option>Nike</option><option>Reebok</option><option>Puma</option><option>Adidas</option><option>New Balance</option></select></div><div><label for="shoeModelStatusFilter">Model status</label><select id="shoeModelStatusFilter"><option value="all">All models</option><option value="active">Active</option><option value="paused">Paused</option><option value="retro">Retro models</option></select></div></div>
 <div id="shoeModelList"><p class="muted">No models released yet.</p></div>
@@ -4140,6 +4139,12 @@ state.playoff.championship={winner:g.winner.team,loser:g.loser.team};finishSeaso
 }
 if(auditEnabled)captureSeason29GameCashBoundary("after-game-finalization-before-save",{stage,a:g.A.team,b:g.B.team});
 save();
+/* CalSims runs only after the game and season phase are fully recorded and saved.
+  The persistent game key prevents duplicate retail cycles after refresh/re-entry. */
+if(typeof window.processCalSimsGameCycle==="function"){
+const calSimsGameKey="Y"+(Number(state.year)||29)+"-"+stage.replace(/[^a-z0-9]/gi,"")+"-G"+(Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0);
+window.processCalSimsGameCycle(calSimsGameKey);
+}
 if(auditEnabled){captureSeason29GameCashBoundary("after-save-before-render",{stage,a:g.A.team,b:g.B.team});save();}
 renderGameResult(g,stage);renderProgress();
 /* 4.23.1: Ensure completed-season shoe-deal reminder is not skipped. */
@@ -8336,37 +8341,46 @@ if(boost.fee>0){
 if(!save()){msg.textContent="Storage did not confirm the save. Do not retry yet; check the app's save warning and verify the model list.";return;}
 el("shoeModelName").value="";el("shoeModelPlayer").value="";el("shoeModelPrice").value="";if(el("shoeModelBoost"))el("shoeModelBoost").value="none";msg.textContent="Released "+name+" at the company-selected price of $"+price.toLocaleString("en-US")+" per pair. Development cost paid: "+money(cost)+". "+boostResult;render();
 }
-function runCycle(){
-const st=getState(),msg=el("calSimsCycleMessage");if(!st||!msg){if(msg)msg.textContent="Live game data is unavailable; no cycle was run.";return;}const c=ensure(st),season=Number(st.year)||29;c.models.forEach(m=>{if(m&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBonusActive=false;m.boostExpiredSeason=season;}});const models=c.models.filter(m=>m&&String(m.status||"active")==="active"&&Number(m.price)>0);if(!models.length){msg.textContent="No active shoe models are available. Release a model first.";return;}if(Number(c.spendableCash)<=0){msg.textContent="CalSims has no spendable cash remaining. Its protected reserve is not used for purchases.";return;}
+function runCycle(gameKey){
+const st=getState(),msg=el("calSimsCycleMessage");if(!st)return {ok:false,reason:"state-unavailable"};const c=ensure(st),season=Number(st.year)||29;
+c.processedGameCycles=Array.isArray(c.processedGameCycles)?c.processedGameCycles:[];
+const key=String(gameKey||("MANUAL-DISABLED-"+season+"-"+(Number(c.cycleCount)||0)+"-"+Date.now()));
+if(c.processedGameCycles.includes(key))return {ok:true,duplicate:true,cycle:c.cycleCount};
+// Record the game key before calculating sales so a repeated callback cannot charge consumers twice.
+c.processedGameCycles.push(key);
+c.models.forEach(m=>{if(m&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBonusActive=false;m.boostExpiredSeason=season;}});
 const cycle=(Number(c.cycleCount)||0)+1,consumers=Number(c.consumerCount)||50000000;
-// A modest share of consumers are due and choose to buy in each cycle; the rest skip.
-const potential=Math.max(0,Math.floor(consumers*0.015));
-const weights=models.map(m=>Math.max(1,Number(m.popularity)||50)/Math.pow(Math.max(0.01,Number(m.price)),0.7));const weightSum=weights.reduce((a,b)=>a+b,0);
-let unitsRemaining=potential,totalUnits=0,totalRevenue=0,companyPayouts=0,storePayout=0;
+const models=c.models.filter(m=>m&&String(m.status||"active")==="active"&&!m.isRetro&&Number(m.price)>0);
+let unitsRemaining=Math.max(0,Math.floor(consumers*0.015)),totalUnits=0,totalRevenue=0,companyPayouts=0,storePayout=0;
 const storeBefore=Number(st.businessCash["Shoe Store"])||0;
-models.forEach((m,i)=>{
-  const ideal=Math.floor(potential*weights[i]/weightSum);const affordable=Math.floor((Number(c.spendableCash)||0)*1000000/Number(m.price));const units=Math.max(0,Math.min(ideal,affordable,unitsRemaining));if(!units)return;
-  const revenue=Math.round((units*Number(m.price)/1000000)*100)/100;const companyShare=Math.round(revenue*0.70*100)/100;const storeShare=Math.round((revenue-companyShare)*100)/100;
-  const before=Number(st.businessCash[m.company])||0;m.unitsSold=(Number(m.unitsSold)||0)+units;m.retailRevenue=Math.round(((Number(m.retailRevenue)||0)+revenue)*100)/100;m.popularity=Math.max(1,Math.min(100,(Number(m.popularity)||50)+(revenue>0?2:-1)));
+if(models.length&&Number(c.spendableCash)>0&&unitsRemaining>0){
+ const potential=unitsRemaining,weights=models.map(m=>Math.max(1,Number(m.popularity)||50)/Math.pow(Math.max(0.01,Number(m.price)),0.7)),weightSum=weights.reduce((a,b)=>a+b,0);
+ models.forEach((m,i)=>{
+  const ideal=Math.floor(potential*weights[i]/weightSum),affordable=Math.floor((Number(c.spendableCash)||0)*1000000/Number(m.price)),units=Math.max(0,Math.min(ideal,affordable,unitsRemaining));if(!units)return;
+  const revenue=Math.round((units*Number(m.price)/1000000)*100)/100,companyShare=Math.round(revenue*0.70*100)/100,storeShare=Math.round((revenue-companyShare)*100)/100;
+  const before=Number(st.businessCash[m.company])||0,at=new Date().toISOString(),saleId="CALSIMS-SALE-"+cycle+"-"+m.id;
+  m.unitsSold=(Number(m.unitsSold)||0)+units;m.retailRevenue=Math.round(((Number(m.retailRevenue)||0)+revenue)*100)/100;m.popularity=Math.max(1,Math.min(100,(Number(m.popularity)||50)+(revenue>0?2:-1)));
   c.spendableCash=Math.max(0,Math.round((Number(c.spendableCash)-revenue)*100)/100);c.totalCash=Math.max(Number(c.reserveCash)||0,Math.round((Number(c.totalCash)-revenue)*100)/100);
   st.businessCash[m.company]=Math.round((before+companyShare)*100)/100;st.businessCash["Shoe Store"]=Math.round(((Number(st.businessCash["Shoe Store"])||0)+storeShare)*100)/100;
-  const at=new Date().toISOString(),saleId="CALSIMS-SALE-"+cycle+"-"+m.id;
-  c.retailLedger.push({id:saleId,cycle,season:Number(st.year)||29,modelId:m.id,modelName:m.name,company:m.company,units,revenue,companyShare,storeShare,createdAt:at});
-  st.businessCashLedger.push({id:saleId+"-COMPANY",season:Number(st.year)||29,type:"CalSims Shoe Retail Revenue",company:m.company,amount:companyShare,before,after:st.businessCash[m.company],reason:"70% company share of "+units.toLocaleString("en-US")+" retail units for "+m.name,createdAt:at,accountType:"business"});
+  c.retailLedger.push({id:saleId,cycle,gameKey:key,season,modelId:m.id,modelName:m.name,company:m.company,units,revenue,companyShare,storeShare,createdAt:at});
+  st.businessCashLedger.push({id:saleId+"-COMPANY",season,type:"CalSims Shoe Retail Revenue",company:m.company,amount:companyShare,before,after:st.businessCash[m.company],reason:"70% company share of "+units.toLocaleString("en-US")+" retail units for "+m.name,createdAt:at,accountType:"business"});
   totalUnits+=units;totalRevenue+=revenue;companyPayouts+=companyShare;storePayout+=storeShare;unitsRemaining=Math.max(0,unitsRemaining-units);
-});
-c.cycleCount=cycle;
-if(!totalUnits){msg.textContent="No purchases occurred this cycle. Consumers may skip buying, and current prices may be unaffordable or demand may be too low.";return;}
-// Add an auditable Shoe Store cash ledger entry for its aggregate retail share.
-const storeAfter=Number(st.businessCash["Shoe Store"])||0;const last=c.retailLedger[c.retailLedger.length-1];
-st.businessCashLedger.push({id:"CALSIMS-STORE-CYCLE-"+cycle,season:Number(st.year)||29,type:"CalSims Retail Revenue",company:"Shoe Store",amount:storePayout,before:storeBefore,after:storeAfter,reason:"30% retail share from CalSims shoe sales in cycle "+cycle,createdAt:new Date().toISOString(),accountType:"business"});
-if(!save()){msg.textContent="Cycle changes were applied in memory, but storage did not confirm the save. Do not rerun; check the app save warning and verify ledgers.";return;}
-msg.textContent="Cycle "+cycle+": "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Shoe Store received "+money(storePayout)+". CalSims spendable cash remaining: "+money(c.spendableCash)+". The 70/30 split is the current implementation default and can be revised if you choose a different split.";render();
+ });
 }
+c.cycleCount=cycle;
+if(totalUnits>0){
+ const storeAfter=Number(st.businessCash["Shoe Store"])||0;
+ st.businessCashLedger.push({id:"CALSIMS-STORE-CYCLE-"+cycle,season,type:"CalSims Retail Revenue",company:"Shoe Store",amount:storePayout,before:storeBefore,after:storeAfter,reason:"30% retail share from CalSims shoe sales in cycle "+cycle,createdAt:new Date().toISOString(),accountType:"business"});
+}
+if(!save()){if(msg)msg.textContent="CalSims processed this game in memory, but storage did not confirm the save. Do not replay the game; check the app save warning and verify the ledgers.";return {ok:false,reason:"save-unconfirmed",cycle};}
+if(msg){msg.textContent=totalUnits?"Automatic CalSims cycle "+cycle+" complete: "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Shoe Store received "+money(storePayout)+". Spendable consumer cash remaining: "+money(c.spendableCash)+".":"Automatic CalSims cycle "+cycle+" complete. No purchases occurred this game; consumers may skip buying, no active models may be available, or spendable cash may be exhausted.";}
+render();return {ok:true,cycle,totalUnits,totalRevenue,companyPayouts,storePayout};
+}
+window.processCalSimsGameCycle=function(gameKey){try{return runCycle(gameKey);}catch(error){console.error("CalSims automatic retail cycle failed:",error);const msg=el("calSimsCycleMessage");if(msg)msg.textContent="CalSims could not complete the automatic sales cycle. The game remains recorded; check the console and save warning before continuing.";return {ok:false,reason:"exception"};}};
+ 
 function init(){
 const st=getState();if(st){ensure(st);}
 const releaseBtn=el("shoeModelRelease");if(releaseBtn&&!releaseBtn.dataset.bound){releaseBtn.addEventListener("click",release);releaseBtn.dataset.bound="1";}
-const cycleBtn=el("calSimsRunCycle");if(cycleBtn&&!cycleBtn.dataset.bound){cycleBtn.addEventListener("click",runCycle);cycleBtn.dataset.bound="1";}
 const close=el("shoeStoreClose"),modal=el("shoeStoreModal"),box=modal?modal.querySelector(".modalbox"):null,companySelect=el("shoeModelCompany");
 if(close&&!close.dataset.bound){close.addEventListener("click",closeShoeStore);close.dataset.bound="1";}
 [el("shoeModelCompanyFilter"),el("shoeModelStatusFilter")].forEach(control=>{if(control&&!control.dataset.bound){control.addEventListener("change",render);control.dataset.bound="1";}});
