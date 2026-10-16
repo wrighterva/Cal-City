@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.3.1</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.3.2</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -6023,6 +6023,45 @@ if(!wall){
  if(!verified)console.error("Career stats were not fully persisted; inspect diagnostic before proceeding.",window.__careerStatsReconciliation);
  try{if(typeof render==="function")render();}catch(err){console.error("Roster refresh after career-stat reconciliation failed.",err);}
 })();
+})();
+
+/* VERSION 5.3.2 — Restore Kap's two known championship-game MVP awards.
+  Narrow one-time repair based on the user's confirmed historical fact that Kap
+  has two MVPs. Updates only Kap's citizen MVP count and the Lions PG roster MVP
+  count. Does not edit championship/game history, points, rebounds, titles,
+  contracts, cash, bets, or any other player. */
+(function repairKapMvpCountOnce(){
+ const marker="kap-career-mvp-count-recovery-v1";
+ if(state.kapMvpCountRecoveryVersion===marker)return;
+ const citizens=Array.isArray(state.citizens)?state.citizens:[];
+ const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
+ const roster=state.roster&&state.roster.Lions_PG;
+ if(!kap){
+   window.__kapMvpRepairDiagnostic={version:"5.3.2",status:"skipped",reason:"Kap citizen record not found; no values changed."};
+   console.error("Kap MVP repair skipped.",window.__kapMvpRepairDiagnostic);
+   return;
+ }
+ const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null};
+ kap.mvps=2;
+ if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=2;
+ state.kapMvpCountRecoveryVersion=marker;
+ let saved=false;
+ try{saved=save()!==false;}catch(err){saved=false;}
+ let stored=null;
+ try{
+   const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+   if(raw){
+     const c=Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;
+     const r=raw.roster&&raw.roster.Lions_PG;
+     stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};
+   }
+ }catch(err){stored={error:String(err&&err.message||err)};}
+ const verified=Number(kap.mvps)===2&&(!roster||String(roster.name||"").trim().toLowerCase()!=="kap"||Number(roster.mvps)===2)&&!!stored&&stored.citizen===2&&(stored.roster===null||stored.roster===2);
+ window.__kapMvpRepairDiagnostic={version:"5.3.2",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},stored,saved,verified,scope:"Kap MVP count only"};
+ console.info("Calvin's City 5.3.2 Kap MVP repair",window.__kapMvpRepairDiagnostic);
+ if(!verified)console.error("Kap MVP repair could not be fully verified.",window.__kapMvpRepairDiagnostic);
+ try{if(typeof render==="function")render();}catch(err){console.error("Kap MVP roster refresh failed.",err);}
+ try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Kap MVP dropdown refresh failed.",err);}
 })();
 
 /* 4.17.105: Championship awards now update Citizen/Arena/Ledger/Records.
