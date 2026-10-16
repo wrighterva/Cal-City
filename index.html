@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.2.9</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.3.1</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -5956,6 +5956,73 @@ if(!wall){
 }
 })();
 
+
+/* 5.3.1 — Conservative career-stat reconciliation.
+  Recovered 24 unique individual game records (deduplicated by season/stage/teams
+  and box-score identity): Diggs 660 PTS / 684 REB; Kap 665 PTS / 692 REB.
+  Seasons 30 and 32 remain unrecovered, so these are verified minimums, not complete
+  career totals. Raise-only: never reduces a saved total. No game records are edited. */
+(function reconcileRecoveredLionsCareerStatsOnce(){
+ const marker="lions-recovered-boxscore-floors-v2";
+ if(state.lionsRecoveredStatsFloorVersion===marker)return;
+ const citizens=Array.isArray(state.citizens)?state.citizens:[];
+ const targets={
+   Diggs:{points:660,rebounds:684,verifiedGames:24},
+   Kap:{points:665,rebounds:692,verifiedGames:24}
+ };
+ const before={},after={},players={},missing=[];
+ Object.keys(targets).forEach(name=>{
+   const citizen=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
+   if(!citizen){missing.push(name);return;}
+   before[name]={points:Number(citizen.careerPts)||0,rebounds:Number(citizen.careerRebs)||0};
+   after[name]={points:Math.max(before[name].points,targets[name].points),rebounds:Math.max(before[name].rebounds,targets[name].rebounds)};
+   players[name]=citizen;
+ });
+ if(missing.length){
+   window.__careerStatsReconciliation={version:"5.3.1",status:"skipped",reason:"Missing citizen record(s): "+missing.join(", ")+". No totals changed."};
+   console.error("Career stats reconciliation skipped.",window.__careerStatsReconciliation);
+   return;
+ }
+ let changed=false;
+ Object.keys(targets).forEach(name=>{
+   if(after[name].points!==before[name].points||after[name].rebounds!==before[name].rebounds){
+     players[name].careerPts=after[name].points;
+     players[name].careerRebs=after[name].rebounds;
+     changed=true;
+   }
+ });
+ state.lionsRecoveredStatsFloorVersion=marker;
+ state.lionsRecoveredStatsFloorAudit={
+   version:"5.3.1",at:new Date().toISOString(),
+   method:"raise-only verified minimum from 24 unique recovered individual box scores; no game rows edited",
+   verifiedGames:24,missingSeasons:[30,32],before,after,changed,
+   targets:{Diggs:{points:660,rebounds:684},Kap:{points:665,rebounds:692}}
+ };
+ let saved=false;
+ try{saved=save()!==false;}catch(err){saved=false;}
+ const stored=(()=>{try{
+   const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+   if(!raw||!Array.isArray(raw.citizens))return null;
+   const result={};
+   Object.keys(targets).forEach(name=>{
+     const c=raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
+     if(c)result[name]={points:Number(c.careerPts)||0,rebounds:Number(c.careerRebs)||0};
+   });
+   return result;
+ }catch(err){return null;}})();
+ const verified=!!stored&&Object.keys(targets).every(name=>
+   Number(players[name].careerPts)===after[name].points&&
+   Number(players[name].careerRebs)===after[name].rebounds&&
+   stored[name]&&stored[name].points===after[name].points&&stored[name].rebounds===after[name].rebounds);
+ window.__careerStatsReconciliation={
+   version:"5.3.1",status:verified?(changed?"saved-and-verified":"already-at-or-above-verified-minimum"):"save-or-persistence-verification-failed",
+   scope:"Diggs and Kap only",before,after,stored,saved,verifiedGames:24,missingSeasons:[30,32],
+   note:"These are verified minimums from recovered box scores, not complete career totals. Seasons 30 and 32 remain unresolved. Wall and all other players are untouched."
+ };
+ console.info("Calvin's City 5.3.1 career-stat reconciliation",window.__careerStatsReconciliation);
+ if(!verified)console.error("Career stats were not fully persisted; inspect diagnostic before proceeding.",window.__careerStatsReconciliation);
+ try{if(typeof render==="function")render();}catch(err){console.error("Roster refresh after career-stat reconciliation failed.",err);}
+})();
 })();
 
 /* 4.17.105: Championship awards now update Citizen/Arena/Ledger/Records.
