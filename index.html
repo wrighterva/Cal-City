@@ -135,7 +135,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.1.8.1</title>
+<title>Calvin's City 5.1.8.2</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.1.8.1</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.1.8.2</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -445,7 +445,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="card"><h2>🏀 Next Game</h2><p>Play the season one game at a time. Every completed game saves immediately.</p><div id="nextGameBox"></div><button type="button" id="playNextGame" class="goodbtn">▶️ PLAY GAME</button><div id="seasonOutput" class="log" style="margin-top:12px"></div></div>
 <div class="card"><h2>🧾 Current Season</h2><div class="basketball-current-season-top"><div class="basketball-season-chip"><small>Current Season</small><strong id="basketballSeasonTop">Season —</strong></div></div><div id="standingsOutput"><p class="muted">No games played yet.</p></div></div>
 <div class="card"><h2>📋 Offseason Management</h2><p><b>The year does not advance automatically.</b> Finish contracts, trades, releases and roster decisions first.</p><div class="grid"><div class="metric"><small>Season Status</small><strong id="seasonStatus">Not Played</strong></div><div class="metric"><small>Offseason</small><strong id="offseasonStatus">Locked</strong></div></div><button id="openOffseason">Open Offseason</button></div>
-<div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div id="contractBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
+<div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div class="card" id="createFreeAgentCard" style="margin:12px 0;border:1px solid #526176"><h3>➕ Create Player / Citizen</h3><p class="tiny">Create a new player identity and add them directly to the Free Agent pool. They can then be selected for a roster spot through Offseason Management.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px"><div><label for="newFreeAgentName">Player name</label><input id="newFreeAgentName" type="text" maxlength="60" placeholder="Enter player name"></div><div><label for="newFreeAgentPosition">Preferred position (optional)</label><select id="newFreeAgentPosition"><option value="">No position selected</option><option value="C">Center (C)</option><option value="SG">Shooting Guard (SG)</option><option value="PG">Point Guard (PG)</option></select></div></div><button type="button" class="goodbtn" id="createFreeAgentButton" onclick="createOffseasonFreeAgent()">Create Free Agent</button><p id="createFreeAgentMessage" class="tiny" role="status" aria-live="polite"></p></div><div id="contractBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
 <div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 </section></main>
 
@@ -4107,6 +4107,41 @@ function nextGameDescription(){if(state.seasonPhase==="regular"){const p=REGULAR
 function escapeFreeAgentText(value){
 return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
+/* 5.1.8.2: Create a new player as one permanent Citizen Ledger identity and
+immediately place that same identity in the Free Agent pool. This operation
+never reseeds, resets, or edits existing career/financial/history records. */
+function createOffseasonFreeAgent(){
+const name=String(document.getElementById("newFreeAgentName")?.value||"").trim();
+const position=String(document.getElementById("newFreeAgentPosition")?.value||"").trim();
+const message=document.getElementById("createFreeAgentMessage");
+const say=text=>{if(message)message.textContent=text;};
+if(!state.offseasonOpen){say("Open the offseason before creating a new free agent.");return false;}
+if(!name){say("Enter a player name first.");document.getElementById("newFreeAgentName")?.focus();return false;}
+const existing=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
+if(existing){
+ if(String(existing.status||"").trim().toLowerCase()==="free agent"&&!Object.values(state.roster||{}).some(n=>String(n||"").trim().toLowerCase()===name.toLowerCase())){
+  renderFreeAgentMarket();say(name+" already exists in the Citizen Ledger and Free Agent pool. No duplicate was created.");
+ }else say("A citizen/player named "+name+" already exists. No duplicate was created; use the existing identity or choose another name.");
+ return false;
+}
+state.citizens=Array.isArray(state.citizens)?state.citizens:[];
+const usedIds=new Set(state.citizens.map(c=>String(c&&c.id||"").trim()).filter(Boolean));
+let maxId=0;usedIds.forEach(id=>{const match=id.match(/^C(\d+)$/i);if(match)maxId=Math.max(maxId,Number(match[1])||0);});
+let id;do{maxId+=1;id="C"+String(maxId).padStart(3,"0");}while(usedIds.has(id));
+const citizen={id,name,status:"Free Agent",position:position||null,currentTeam:null,cash:0,debt:0,careerPts:0,careerRebs:0,mvps:0,championships:0,champStreak:0,currentChampStreak:0,businesses:[],contracts:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[],shoeDeals:[]};
+state.citizens.push(citizen);
+if(typeof syncCitizenLedger==="function")syncCitizenLedger();
+const saved=save();
+if(saved===false){state.citizens=state.citizens.filter(c=>c!==citizen);say("Could not save this player. No new free agent was committed; check device storage and try again.");return false;}
+const nameInput=document.getElementById("newFreeAgentName");if(nameInput)nameInput.value="";
+const posInput=document.getElementById("newFreeAgentPosition");if(posInput)posInput.value="";
+renderFreeAgentMarket();
+if(typeof buildContractBoard==="function")buildContractBoard();
+say(name+" was created as "+id+" and added to the Free Agent pool. They are ready to be selected for a roster spot.");
+return true;
+}
+window.createOffseasonFreeAgent=createOffseasonFreeAgent;
+
 /* 4.19.9: A release moves the existing citizen to Free Agent without creating
 a new identity, changing cash/stats, or deleting career/contract history. */
 function markPlayerAsFreeAgent(name,fromTeam,position){
@@ -7963,7 +7998,7 @@ for(let i=0;i<localStorage.length;i++){
 const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in this browser storage.");
-return {format:PREFIX,formatVersion:1,appVersion:"5.1.8.1",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"5.1.8.2",exportedAt:new Date().toISOString(),storageType:"localStorage",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
