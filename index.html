@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.3.8: Guard duplicate regular-season game processing; preserve saved career stats and records. -->
+<!-- CALVIN'S CITY — VERSION 5.3.9: Reconcile standings/progress from unique scheduled matchups; retain duplicate audit records. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -41,24 +41,24 @@ let pos=0;
 while(pos<n){
 const flagIndex=out.length; out.push(0); let flags=0;
 for(let bit=0;bit<8&&pos<n;bit++){
-  let bestLen=0,bestOff=0;
-  if(pos+2<n){
-    const lo=Math.max(0,pos-4096);
-    for(let cand=pos-1,checked=0;cand>=lo&&checked<48;cand--){
-      if(input[cand]!==input[pos]||input[cand+1]!==input[pos+1]||input[cand+2]!==input[pos+2])continue;
-      checked++;
-      let len=3;
-      while(len<18&&pos+len<n&&input[cand+len]===input[pos+len])len++;
-      if(len>bestLen){bestLen=len;bestOff=pos-cand;if(len===18)break;}
-    }
-  }
-  if(bestLen>=3){
-    flags|=(1<<bit);
-    const code=((bestOff-1)<<4)|(bestLen-3);
-    out.push((code>>8)&255,code&255);pos+=bestLen;
-  }else{
-    out.push(input[pos++]);
-  }
+ let bestLen=0,bestOff=0;
+ if(pos+2<n){
+   const lo=Math.max(0,pos-4096);
+   for(let cand=pos-1,checked=0;cand>=lo&&checked<48;cand--){
+     if(input[cand]!==input[pos]||input[cand+1]!==input[pos+1]||input[cand+2]!==input[pos+2])continue;
+     checked++;
+     let len=3;
+     while(len<18&&pos+len<n&&input[cand+len]===input[pos+len])len++;
+     if(len>bestLen){bestLen=len;bestOff=pos-cand;if(len===18)break;}
+   }
+ }
+ if(bestLen>=3){
+   flags|=(1<<bit);
+   const code=((bestOff-1)<<4)|(bestLen-3);
+   out.push((code>>8)&255,code&255);pos+=bestLen;
+ }else{
+   out.push(input[pos++]);
+ }
 }
 out[flagIndex]=flags;
 }
@@ -69,13 +69,13 @@ const out=[];let p=0;
 while(p<input.length){
 const flags=input[p++];
 for(let bit=0;bit<8&&p<input.length;bit++){
-  if(flags&(1<<bit)){
-    if(p+1>=input.length)throw new Error("Truncated compressed Calvin's City storage value.");
-    const code=(input[p++]<<8)|input[p++];
-    const offset=(code>>4)+1,len=(code&15)+3;
-    if(offset>out.length)throw new Error("Invalid compressed Calvin's City back-reference.");
-    for(let j=0;j<len;j++)out.push(out[out.length-offset]);
-  }else out.push(input[p++]);
+ if(flags&(1<<bit)){
+   if(p+1>=input.length)throw new Error("Truncated compressed Calvin's City storage value.");
+   const code=(input[p++]<<8)|input[p++];
+   const offset=(code>>4)+1,len=(code&15)+3;
+   if(offset>out.length)throw new Error("Invalid compressed Calvin's City back-reference.");
+   for(let j=0;j<len;j++)out.push(out[out.length-offset]);
+ }else out.push(input[p++]);
 }
 }
 return new Uint8Array(out);
@@ -135,7 +135,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.3.8</title>
+<title>Calvin's City 5.3.9</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.3.8</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.3.9</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -770,6 +770,48 @@ const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,pt
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},openRosterSpots:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
  
+/* 5.3.9: A duplicate game record remains in the permanent audit/history list,
+but a scheduled matchup contributes to regular-season standings only once.
+This is a read/aggregate repair: it does not delete or edit gamesPlayed,
+player career totals, cash, betting history, revenue ledgers, or historical records. */
+function getUniqueRegularSeasonGames(){
+ const schedulePairs=new Set(REGULAR_SCHEDULE.map(p=>[String(p[0]).trim(),String(p[1]).trim()].sort().join("::")));
+ const seen=new Set(),unique=[];
+ (Array.isArray(state.gamesPlayed)?state.gamesPlayed:[]).forEach(r=>{
+   if(!r||r.stage!=="Regular Season")return;
+   const a=String(r.a||"").trim(),b=String(r.b||"").trim();
+   if(!a||!b)return;
+   const key=[a,b].sort().join("::");
+   if(!schedulePairs.has(key)||seen.has(key))return;
+   seen.add(key);unique.push(r);
+ });
+ return unique;
+}
+function reconcileRegularSeasonStandings(){
+ const standings=freshStandings();
+ getUniqueRegularSeasonGames().forEach(r=>{
+   const g=r.game||{};
+   const a=String(r.a||(g.A&&g.A.team)||"").trim();
+   const b=String(r.b||(g.B&&g.B.team)||"").trim();
+   const scoreA=Number(r.scoreA!=null?r.scoreA:(g.A&&g.A.score))||0;
+   const scoreB=Number(r.scoreB!=null?r.scoreB:(g.B&&g.B.score))||0;
+   if(!standings[a]||!standings[b])return;
+   const winner=String(r.winner||(g.winner&&g.winner.team)||"").trim();
+   const loser=String(r.loser||(g.loser&&g.loser.team)||"").trim();
+   if(standings[winner]&&standings[loser]){standings[winner].w++;standings[loser].l++;}
+   standings[a].ptsFor+=scoreA;standings[a].ptsAgainst+=scoreB;
+   standings[b].ptsFor+=scoreB;standings[b].ptsAgainst+=scoreA;
+   const ticket=Number(g.ticket)||0;
+   if(standings[winner]&&standings[loser]){
+     standings[winner].ticket+=ticket*.7;
+     standings[loser].ticket+=ticket*.3;
+   }
+ });
+ state.standings=standings;
+ return getUniqueRegularSeasonGames().length;
+}
+reconcileRegularSeasonStandings();
+ 
 /* 5.1.8: Idempotent title-count reconciliation from permanent championship awards.
 It only raises a player's count when the saved award ledger proves a higher total.
 Seasons 1–28 remain represented by the established opening career baselines.
@@ -1060,8 +1102,8 @@ const isSuperset=(newer,older)=>{
 if(!validDb(newer)||!validDb(older))return false;
 const fields=[["games","id"],["bets","id"],["sportsBetsInterestAccruals","gameId"],["sportsBetsDebtIssues","id"],["sportsBetsCashTransactions","id"]];
 return fields.every(([field,key])=>{
- const newerIds=new Set(newer[field].filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
- return older[field].filter(x=>x&&x[key]!=null).every(x=>newerIds.has(String(x[key])));
+const newerIds=new Set(newer[field].filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
+return older[field].filter(x=>x&&x[key]!=null).every(x=>newerIds.has(String(x[key])));
 });
 };
 const snapshotHasUsableState=!!(snapshot&&snapshot.state&&snapshot.createdAt&&
@@ -1071,8 +1113,8 @@ const backupRaw=localStorage.getItem(BETS_BACKUP_KEY);
 if(backupRaw!==null){
 let backup=null;try{backup=JSON.parse(backupRaw);}catch(_){}
 if(validDb(backup)&&primaryRaw===backupRaw){
- localStorage.removeItem(BETS_BACKUP_KEY);
- console.info("4.29.38 storage repair: removed exact duplicate BETS backup after validating primary database and recovery snapshot.");
+localStorage.removeItem(BETS_BACKUP_KEY);
+console.info("4.29.38 storage repair: removed exact duplicate BETS backup after validating primary database and recovery snapshot.");
 }
 }
 const snapPrimary=typeof snapshot.betsRaw==="string"?JSON.parse(snapshot.betsRaw):null;
@@ -1083,9 +1125,9 @@ if(primaryCoversSnapshotCopies&&(typeof snapshot.betsRaw==="string"||typeof snap
 delete snapshot.betsRaw;
 delete snapshot.betsBackupRaw;
 snapshot.storageQuotaCompaction={
- version:"4.29.38",
- at:new Date().toISOString(),
- note:"Nested BETS copies removed only after validation that the current primary BETS database contains every identified record. Snapshot state, permanent records, and pending-import copy were retained."
+version:"4.29.38",
+at:new Date().toISOString(),
+note:"Nested BETS copies removed only after validation that the current primary BETS database contains every identified record. Snapshot state, permanent records, and pending-import copy were retained."
 };
 const compacted=JSON.stringify(snapshot);
 localStorage.setItem(SEASON29_RESTORE_BACKUP_KEY,compacted);
@@ -4080,8 +4122,8 @@ const recordedPairs=new Set((Array.isArray(state.gamesPlayed)?state.gamesPlayed:
 let idx=Math.max(0,Number(state.regularGameIndex)||0);
 const pairKey=p=>[String(p[0]).trim(),String(p[1]).trim()].sort().join("::");
 /* If the saved counter points at an already-recorded matchup, advance only to
-  the next scheduled matchup with no regular-season record. This does not
-  alter existing game records, standings, ledgers, or player statistics. */
+ the next scheduled matchup with no regular-season record. This does not
+ alter existing game records, standings, ledgers, or player statistics. */
 if(schedule[idx]&&recordedPairs.has(pairKey(schedule[idx]))){
 const nextUnplayed=schedule.findIndex((p,i)=>i>=idx&&!recordedPairs.has(pairKey(p)));
 if(nextUnplayed<0){
@@ -4109,6 +4151,7 @@ g=playGame(state.playoff.bye,state.playoff.semifinal.winner);stage="Championship
 }else{return;}
 if(auditEnabled)captureSeason29GameCashBoundary("after-playGame-before-recordGame",{stage,a:g.A.team,b:g.B.team});
 recordGame(g,stage);
+if(stage==="Regular Season")reconcileRegularSeasonStandings();
 if(auditEnabled)captureSeason29GameCashBoundary("after-recordGame",{stage,a:g.A.team,b:g.B.team});
 if(stage==="Regular Season"){
 state.regularGameIndex++;
@@ -4319,8 +4362,8 @@ h+='<tr><td>'+escapeFreeAgentText(c.id||"—")+'</td><td><b>'+escapeFreeAgentTex
 h+='</table></div><p class="team-note">To sign or replace a player, use Offseason Management. Retired players are excluded from this list.</p>';
 out.innerHTML=h;
 }
-function renderProgress(){const b=document.getElementById("nextGameBox"),btn=document.getElementById("playNextGame");b.innerHTML='<div class="metric"><small>Next</small><strong>'+nextGameDescription()+'</strong></div>';btn.style.display=state.seasonPhase==="offseason"?"none":"block";btn.textContent=state.seasonPhase==="championship"?"🏆 PLAY CHAMPIONSHIP":"▶️ PLAY GAME";const s=document.getElementById("seasonStatus"),o=document.getElementById("offseasonStatus");if(state.seasonPhase==="regular"){s.textContent='Game '+state.regularGameIndex+' of 3 played';o.textContent="Locked"}else if(state.seasonPhase==="semifinal"){s.textContent="Regular Season Complete";o.textContent="Locked"}else if(state.seasonPhase==="championship"){s.textContent="Semifinal Complete";o.textContent="Locked"}else{s.textContent="Season Complete";o.textContent="Ready"}renderStandings();renderFreeAgentMarket()}
-function renderStandings(){const out=document.getElementById("standingsOutput");if(!state.gamesPlayed.length){out.innerHTML='<p class="muted">Game 1 is ready. Nothing has been played yet.</p>';return}let h='<p><b>Games Played:</b> '+state.gamesPlayed.length+'</p><table><tr><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr>';TEAMS.slice().sort((a,b)=>state.standings[b].w-state.standings[a].w).forEach(t=>h+='<tr><td>'+t+'</td><td>'+state.standings[t].w+'</td><td>'+state.standings[t].l+'</td><td>'+state.standings[t].ptsFor+'</td><td>'+state.standings[t].ptsAgainst+'</td></tr>');h+='</table>';if(state.playoff.bye)h+='<p><b>Playoff Bye:</b> '+state.playoff.bye+'</p>';if(state.lastSeason)h+='<p class="gold"><b>Champion:</b> '+state.lastSeason.champion+' • <b>MVP:</b> '+state.lastSeason.championship.mvp+'</p>';out.innerHTML=h}
+function renderProgress(){const b=document.getElementById("nextGameBox"),btn=document.getElementById("playNextGame");b.innerHTML='<div class="metric"><small>Next</small><strong>'+nextGameDescription()+'</strong></div>';btn.style.display=state.seasonPhase==="offseason"?"none":"block";btn.textContent=state.seasonPhase==="championship"?"🏆 PLAY CHAMPIONSHIP":"▶️ PLAY GAME";const s=document.getElementById("seasonStatus"),o=document.getElementById("offseasonStatus");if(state.seasonPhase==="regular"){const played=reconcileRegularSeasonStandings();s.textContent=played+' of 3 regular-season games played';o.textContent="Locked"}else if(state.seasonPhase==="semifinal"){s.textContent="Regular Season Complete";o.textContent="Locked"}else if(state.seasonPhase==="championship"){s.textContent="Semifinal Complete";o.textContent="Locked"}else{s.textContent="Season Complete";o.textContent="Ready"}renderStandings();renderFreeAgentMarket()}
+function renderStandings(){const out=document.getElementById("standingsOutput");const uniquePlayed=reconcileRegularSeasonStandings();if(!uniquePlayed){out.innerHTML='<p class="muted">Game 1 is ready. Nothing has been played yet.</p>';return}let h='<p><b>Regular-Season Matchups Counted:</b> '+uniquePlayed+' / 3</p><p class="tiny">Duplicate matchup records remain in the permanent game history, but count only once in standings.</p><table><tr><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr>';TEAMS.slice().sort((a,b)=>state.standings[b].w-state.standings[a].w).forEach(t=>h+='<tr><td>'+t+'</td><td>'+state.standings[t].w+'</td><td>'+state.standings[t].l+'</td><td>'+state.standings[t].ptsFor+'</td><td>'+state.standings[t].ptsAgainst+'</td></tr>');h+='</table>';if(state.playoff.bye)h+='<p><b>Playoff Bye:</b> '+state.playoff.bye+'</p>';if(state.lastSeason)h+='<p class="gold"><b>Champion:</b> '+state.lastSeason.champion+' • <b>MVP:</b> '+state.lastSeason.championship.mvp+'</p>';out.innerHTML=h}
 function buildRosterInputs(){let h='<table><tr><th>Team</th><th>C</th><th>SG</th><th>PG</th></tr>';TEAMS.forEach(t=>
  
 {h+='<tr><td>'+t+'</td>';POSITIONS.forEach(p=>{const k=t+"_"+p;h+='<td><input id="r_'+k+'" placeholder="'+p+'" value="'+(state.roster[k]||"")+'"></td>'});h+='</tr>'});document.getElementById("rosterInputs").innerHTML=h+'</table>'}
@@ -4811,14 +4854,14 @@ if(d.decision==="Resign"){
 const years=Math.max(1,Math.min(3,Number(d.years)||0));
 const salary=Math.max(0,Number(d.salary)||0);
 if(!years||d.salary===""||d.salary==null||!Number.isFinite(salary)){
- errors.push(name+" needs a valid re-sign contract.");
- return;
+errors.push(name+" needs a valid re-sign contract.");
+return;
 }
 state.contracts[k]={value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary};
 const citizen=ensureCitizen(name);
 if(citizen){
- citizen.contracts=Array.isArray(citizen.contracts)?citizen.contracts:[];
- citizen.contracts.push({year:Number(state.year),team:t,value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary});
+citizen.contracts=Array.isArray(citizen.contracts)?citizen.contracts:[];
+citizen.contracts.push({year:Number(state.year),team:t,value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary});
 }
 }else if(d.decision==="Release"){
 markPlayerAsFreeAgent(name,t,p);
@@ -4827,14 +4870,14 @@ delete state.contracts[k];
 }else if(d.decision==="Retire"){
 const citizen=ensureCitizen(name);
 const retired={
- name,
- careerPts:Number(citizen&&citizen.careerPts||0),
- careerRebs:Number(citizen&&citizen.careerRebs||0),
- mvps:Number(citizen&&citizen.mvps||0),
- championships:Number(citizen&&citizen.championships||0),
- retirementCash:citizen&&citizen.cash!=null?Number(citizen.cash):null,
- champStreak:Number(citizen&&citizen.champStreak||0),
- currentChampStreak:Number(citizen&&citizen.currentChampStreak||0)
+name,
+careerPts:Number(citizen&&citizen.careerPts||0),
+careerRebs:Number(citizen&&citizen.careerRebs||0),
+mvps:Number(citizen&&citizen.mvps||0),
+championships:Number(citizen&&citizen.championships||0),
+retirementCash:citizen&&citizen.cash!=null?Number(citizen.cash):null,
+champStreak:Number(citizen&&citizen.champStreak||0),
+currentChampStreak:Number(citizen&&citizen.currentChampStreak||0)
 };
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
 state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
@@ -4850,7 +4893,7 @@ if(citizen){citizen.status="Retired";endRetiredPlayerShoeDeals(name,citizen);}
 // offseason. Offseason and Arena both read the same live contract.
 const years=Math.max(0,Number(c.years)||0);
 if(years<=0){
- errors.push(name+" has no contract years remaining. Use Re-sign, Release, or Retire.");
+errors.push(name+" has no contract years remaining. Use Re-sign, Release, or Retire.");
 }
 }
 });
@@ -4930,22 +4973,22 @@ const awards=Array.isArray(state.championshipAwards)?state.championshipAwards:[]
 const counts=new Map();
 const seen=new Set();
 awards.forEach(a=>{
- const season=Number(a&&a.season)||0;
- if(season<=28||!Array.isArray(a&&a.players))return;
- a.players.forEach(name=>{
-   const clean=String(name||"").trim(); if(!clean)return;
-   const key=season+"|"+clean.toLowerCase(); if(seen.has(key))return; seen.add(key);
-   const norm=clean.toLowerCase(); counts.set(norm,(counts.get(norm)||0)+1);
- });
+const season=Number(a&&a.season)||0;
+if(season<=28||!Array.isArray(a&&a.players))return;
+a.players.forEach(name=>{
+  const clean=String(name||"").trim(); if(!clean)return;
+  const key=season+"|"+clean.toLowerCase(); if(seen.has(key))return; seen.add(key);
+  const norm=clean.toLowerCase(); counts.set(norm,(counts.get(norm)||0)+1);
+});
 });
 let changed=false;
 const people=[...(Array.isArray(state.citizens)?state.citizens:[]),...(Array.isArray(state.records&&state.records.retiredPlayers)?state.records.retiredPlayers:[])];
 const visited=new Set();
 people.forEach(p=>{
- if(!p||!p.name)return; const key=String(p.name).trim().toLowerCase(); if(visited.has(key))return; visited.add(key);
- const base=Number(historicalBaseline[p.name])||0;
- const proven=base+(Number(counts.get(key))||0);
- if(proven>Number(p.championships||0)){p.championships=proven;changed=true;}
+if(!p||!p.name)return; const key=String(p.name).trim().toLowerCase(); if(visited.has(key))return; visited.add(key);
+const base=Number(historicalBaseline[p.name])||0;
+const proven=base+(Number(counts.get(key))||0);
+if(proven>Number(p.championships||0)){p.championships=proven;changed=true;}
 });
 if(changed)save();
 return counts;
@@ -5261,7 +5304,7 @@ entry.approvalStatus="pending";
 alert("Rejection paused: "+String(ownershipResult&&ownershipResult.reason||"share ownership could not be safely reversed")+". No cash was changed.");
 }else{
 /* Cash is only corrected when its current balance exactly matches the recorded post-trade balance.
- A cash-integrity restoration or any intervening cash movement makes it ineligible for auto-correction. */
+A cash-integrity restoration or any intervening cash movement makes it ineligible for auto-correction. */
 const buyerCash=readCash(buyerAccount),sellerCash=readCash(sellerAccount);
 const buyerPost=Number(original.buyerCashAfter),sellerPost=Number(original.sellerCashAfter);
 const buyerPre=Number(original.buyerCashBefore),sellerPre=Number(original.sellerCashBefore);
@@ -5978,7 +6021,7 @@ console.error("Wall MVP count repair skipped: Wall citizen record not found.",wi
 const before={citizen:wall.mvps,roster:state.roster&&state.roster.Lions_C&&state.roster.Lions_C.mvps};
 wall.mvps=2;
 if(state.roster&&state.roster.Lions_C&&String(state.roster.Lions_C.name||"").trim().toLowerCase()==="wall"){
- state.roster.Lions_C.mvps=2;
+state.roster.Lions_C.mvps=2;
 }
 state.wallMvpCountRecoveryVersion=marker;
 const saved=save();
@@ -6001,57 +6044,57 @@ const marker="lions-recovered-boxscore-floors-v2";
 if(state.lionsRecoveredStatsFloorVersion===marker)return;
 const citizens=Array.isArray(state.citizens)?state.citizens:[];
 const targets={
- Diggs:{points:660,rebounds:684,verifiedGames:24},
- Kap:{points:665,rebounds:692,verifiedGames:24}
+Diggs:{points:660,rebounds:684,verifiedGames:24},
+Kap:{points:665,rebounds:692,verifiedGames:24}
 };
 const before={},after={},players={},missing=[];
 Object.keys(targets).forEach(name=>{
- const citizen=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
- if(!citizen){missing.push(name);return;}
- before[name]={points:Number(citizen.careerPts)||0,rebounds:Number(citizen.careerRebs)||0};
- after[name]={points:Math.max(before[name].points,targets[name].points),rebounds:Math.max(before[name].rebounds,targets[name].rebounds)};
- players[name]=citizen;
+const citizen=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
+if(!citizen){missing.push(name);return;}
+before[name]={points:Number(citizen.careerPts)||0,rebounds:Number(citizen.careerRebs)||0};
+after[name]={points:Math.max(before[name].points,targets[name].points),rebounds:Math.max(before[name].rebounds,targets[name].rebounds)};
+players[name]=citizen;
 });
 if(missing.length){
- window.__careerStatsReconciliation={version:"5.3.1",status:"skipped",reason:"Missing citizen record(s): "+missing.join(", ")+". No totals changed."};
- console.error("Career stats reconciliation skipped.",window.__careerStatsReconciliation);
- return;
+window.__careerStatsReconciliation={version:"5.3.1",status:"skipped",reason:"Missing citizen record(s): "+missing.join(", ")+". No totals changed."};
+console.error("Career stats reconciliation skipped.",window.__careerStatsReconciliation);
+return;
 }
 let changed=false;
 Object.keys(targets).forEach(name=>{
- if(after[name].points!==before[name].points||after[name].rebounds!==before[name].rebounds){
-   players[name].careerPts=after[name].points;
-   players[name].careerRebs=after[name].rebounds;
-   changed=true;
- }
+if(after[name].points!==before[name].points||after[name].rebounds!==before[name].rebounds){
+  players[name].careerPts=after[name].points;
+  players[name].careerRebs=after[name].rebounds;
+  changed=true;
+}
 });
 state.lionsRecoveredStatsFloorVersion=marker;
 state.lionsRecoveredStatsFloorAudit={
- version:"5.3.1",at:new Date().toISOString(),
- method:"raise-only verified minimum from 24 unique recovered individual box scores; no game rows edited",
- verifiedGames:24,missingSeasons:[30,32],before,after,changed,
- targets:{Diggs:{points:660,rebounds:684},Kap:{points:665,rebounds:692}}
+version:"5.3.1",at:new Date().toISOString(),
+method:"raise-only verified minimum from 24 unique recovered individual box scores; no game rows edited",
+verifiedGames:24,missingSeasons:[30,32],before,after,changed,
+targets:{Diggs:{points:660,rebounds:684},Kap:{points:665,rebounds:692}}
 };
 let saved=false;
 try{saved=save()!==false;}catch(err){saved=false;}
 const stored=(()=>{try{
- const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
- if(!raw||!Array.isArray(raw.citizens))return null;
- const result={};
- Object.keys(targets).forEach(name=>{
-   const c=raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
-   if(c)result[name]={points:Number(c.careerPts)||0,rebounds:Number(c.careerRebs)||0};
- });
- return result;
+const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+if(!raw||!Array.isArray(raw.citizens))return null;
+const result={};
+Object.keys(targets).forEach(name=>{
+  const c=raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
+  if(c)result[name]={points:Number(c.careerPts)||0,rebounds:Number(c.careerRebs)||0};
+});
+return result;
 }catch(err){return null;}})();
 const verified=!!stored&&Object.keys(targets).every(name=>
- Number(players[name].careerPts)===after[name].points&&
- Number(players[name].careerRebs)===after[name].rebounds&&
- stored[name]&&stored[name].points===after[name].points&&stored[name].rebounds===after[name].rebounds);
+Number(players[name].careerPts)===after[name].points&&
+Number(players[name].careerRebs)===after[name].rebounds&&
+stored[name]&&stored[name].points===after[name].points&&stored[name].rebounds===after[name].rebounds);
 window.__careerStatsReconciliation={
- version:"5.3.1",status:verified?(changed?"saved-and-verified":"already-at-or-above-verified-minimum"):"save-or-persistence-verification-failed",
- scope:"Diggs and Kap only",before,after,stored,saved,verifiedGames:24,missingSeasons:[30,32],
- note:"These are verified minimums from recovered box scores, not complete career totals. Seasons 30 and 32 remain unresolved. Wall and all other players are untouched."
+version:"5.3.1",status:verified?(changed?"saved-and-verified":"already-at-or-above-verified-minimum"):"save-or-persistence-verification-failed",
+scope:"Diggs and Kap only",before,after,stored,saved,verifiedGames:24,missingSeasons:[30,32],
+note:"These are verified minimums from recovered box scores, not complete career totals. Seasons 30 and 32 remain unresolved. Wall and all other players are untouched."
 };
 console.info("Calvin's City 5.3.1 career-stat reconciliation",window.__careerStatsReconciliation);
 if(!verified)console.error("Career stats were not fully persisted; inspect diagnostic before proceeding.",window.__careerStatsReconciliation);
@@ -6071,9 +6114,9 @@ const citizens=Array.isArray(state.citizens)?state.citizens:[];
 const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
 const roster=state.roster&&state.roster.Lions_PG;
 if(!kap){
- window.__kapMvpRepairDiagnostic={version:"5.3.2",status:"skipped",reason:"Kap citizen record not found; no values changed."};
- console.error("Kap MVP repair skipped.",window.__kapMvpRepairDiagnostic);
- return;
+window.__kapMvpRepairDiagnostic={version:"5.3.2",status:"skipped",reason:"Kap citizen record not found; no values changed."};
+console.error("Kap MVP repair skipped.",window.__kapMvpRepairDiagnostic);
+return;
 }
 const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null};
 kap.mvps=2;
@@ -6083,12 +6126,12 @@ let saved=false;
 try{saved=save()!==false;}catch(err){saved=false;}
 let stored=null;
 try{
- const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
- if(raw){
-   const c=Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;
-   const r=raw.roster&&raw.roster.Lions_PG;
-   stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};
- }
+const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+if(raw){
+  const c=Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;
+  const r=raw.roster&&raw.roster.Lions_PG;
+  stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};
+}
 }catch(err){stored={error:String(err&&err.message||err)};}
 const verified=Number(kap.mvps)===2&&(!roster||String(roster.name||"").trim().toLowerCase()!=="kap"||Number(roster.mvps)===2)&&!!stored&&stored.citizen===2&&(stored.roster===null||stored.roster===2);
 window.__kapMvpRepairDiagnostic={version:"5.3.2",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},stored,saved,verified,scope:"Kap MVP count only"};
@@ -6099,9 +6142,9 @@ try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){c
 })();
  
 /* VERSION 5.3.7: Refresh player-selection dropdown after startup reconciliation.
- The underlying fix is preserving existing career totals during roster seeding;
- rebuilding the dropdown then displays those saved citizen.careerPts/careerRebs.
- No historical game rows are edited and no cash/contracts/bets/shares are changed. */
+The underlying fix is preserving existing career totals during roster seeding;
+rebuilding the dropdown then displays those saved citizen.careerPts/careerRebs.
+No historical game rows are edited and no cash/contracts/bets/shares are changed. */
 try{
 if(typeof buildContractBoard==="function")buildContractBoard();
 }catch(err){
@@ -6309,16 +6352,16 @@ let history=[];
 if(liveState&&Array.isArray(liveState.citizens)){
 liveState.citizens.forEach(c=>{
 (Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{
- if(!d||d.company!==company)return;
- const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
- const startYear=d.startYear==null?null:Number(d.startYear);
- const endYear=d.endYear==null?null:Number(d.endYear);
- // Ignore deals that have not started yet, even if a test/replacement marked them ended.
- if(startYear!=null&&Number.isFinite(startYear)&&startYear>currentSeason)return;
- // Past means ended only; active deals belong in Current Shoe Deals.
- if(remaining>0)return;
- if(endYear!=null&&Number.isFinite(endYear)&&endYear>currentSeason)return;
- history.push({player:c.name,years:Number(d.originalYears||d.years||d.yearsRemaining)||0,value:Number(d.value)||0,startYear:startYear,endYear:endYear,remaining:remaining});
+if(!d||d.company!==company)return;
+const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
+const startYear=d.startYear==null?null:Number(d.startYear);
+const endYear=d.endYear==null?null:Number(d.endYear);
+// Ignore deals that have not started yet, even if a test/replacement marked them ended.
+if(startYear!=null&&Number.isFinite(startYear)&&startYear>currentSeason)return;
+// Past means ended only; active deals belong in Current Shoe Deals.
+if(remaining>0)return;
+if(endYear!=null&&Number.isFinite(endYear)&&endYear>currentSeason)return;
+history.push({player:c.name,years:Number(d.originalYears||d.years||d.yearsRemaining)||0,value:Number(d.value)||0,startYear:startYear,endYear:endYear,remaining:remaining});
 });
 });
 }
@@ -8140,13 +8183,13 @@ const main=JSON.parse(mainRaw), mp=JSON.parse(mirrorRaw);
 const mirror=Array.isArray(mp)?mp:(mp&&Array.isArray(mp.transactions)?mp.transactions:null);
 const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTransactions:null;
 if(mirror&&canonical&&mirror.length===canonical.length){
-  const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
-  const exact=byId.size===mirror.length&&mirror.every(t=>{
-    if(!t||t.transaction_id==null)return false;
-    const saved=byId.get(String(t.transaction_id));
-    return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
-  });
-  if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
+ const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
+ const exact=byId.size===mirror.length&&mirror.every(t=>{
+   if(!t||t.transaction_id==null)return false;
+   const saved=byId.get(String(t.transaction_id));
+   return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
+ });
+ if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
 }
 }
 }catch(preflightError){console.warn("5.1.6 import preflight retained financial mirror because exact duplication could not be verified.",preflightError);}
@@ -8160,16 +8203,16 @@ if(typeof mainRaw==="string"&&typeof mirrorRaw==="string"){
 const main=JSON.parse(mainRaw);
 const mirrorParsed=JSON.parse(mirrorRaw);
 const mirror=Array.isArray(mirrorParsed)?mirrorParsed:
-  (mirrorParsed&&Array.isArray(mirrorParsed.transactions)?mirrorParsed.transactions:null);
+ (mirrorParsed&&Array.isArray(mirrorParsed.transactions)?mirrorParsed.transactions:null);
 const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTransactions:null;
 if(mirror&&canonical&&mirror.length===canonical.length){
-  const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
-  const exact=byId.size===mirror.length&&mirror.every(t=>{
-    if(!t||t.transaction_id==null)return false;
-    const saved=byId.get(String(t.transaction_id));
-    return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
-  });
-  if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
+ const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
+ const exact=byId.size===mirror.length&&mirror.every(t=>{
+   if(!t||t.transaction_id==null)return false;
+   const saved=byId.get(String(t.transaction_id));
+   return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
+ });
+ if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
 }
 }
 }catch(financialMirrorCheckError){console.warn("Financial mirror retained because exact duplication could not be verified.",financialMirrorCheckError);}
@@ -8184,8 +8227,8 @@ const newer=JSON.parse(newerRaw),older=JSON.parse(olderRaw);
 const fields=[["games","id"],["bets","id"],["sportsBetsInterestAccruals","gameId"],["sportsBetsDebtIssues","id"],["sportsBetsCashTransactions","id"]];
 if(!newer||!older||!Array.isArray(newer.games)||!Array.isArray(older.games))return false;
 return fields.every(([field,key])=>{
-  const current=new Set((newer[field]||[]).filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
-  return (older[field]||[]).filter(x=>x&&x[key]!=null).every(x=>current.has(String(x[key])));
+ const current=new Set((newer[field]||[]).filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
+ return (older[field]||[]).filter(x=>x&&x[key]!=null).every(x=>current.has(String(x[key])));
 });
 }catch(_){return false;}
 };
@@ -8198,11 +8241,11 @@ let changed=false;
 if(typeof snap.betsRaw==="string"&&subsetById(primaryBets,snap.betsRaw)){delete snap.betsRaw;changed=true;}
 if(typeof snap.betsBackupRaw==="string"&&subsetById(primaryBets,snap.betsBackupRaw)){delete snap.betsBackupRaw;changed=true;}
 if(changed){
-  snap.storageQuotaCompaction={
-    version:"4.29.38",
-    note:"Removed only embedded BETS copies whose identified records are all present in the restored primary BETS database. Kept snapshot state, pending import, and downloaded JSON unchanged."
-  };
-  restoreEntries[recoveryKey]=JSON.stringify(snap);
+ snap.storageQuotaCompaction={
+   version:"4.29.38",
+   note:"Removed only embedded BETS copies whose identified records are all present in the restored primary BETS database. Kept snapshot state, pending import, and downloaded JSON unchanged."
+ };
+ restoreEntries[recoveryKey]=JSON.stringify(snap);
 }
 }
 }catch(compactError){console.warn("Recovery snapshot was retained without compaction:",compactError);}
@@ -8265,7 +8308,7 @@ const mainRaw=localStorage.getItem("calvins_city_v24");
 if(!mainRaw)throw new Error("Main game state is missing after restore.");
 const main=JSON.parse(mainRaw);
 /* 5.0: Import validation remains separate from the startup career-stat repair below.
- The imported game state is saved first; startup then normalizes only verified Lions totals. */
+The imported game state is saved first; startup then normalizes only verified Lions totals. */
 if(!Number.isFinite(Number(main.year))||Number(main.year)<29||!Array.isArray(main.gamesPlayed)||main.gamesPlayed.length<1)
 throw new Error("Restored state does not contain a valid season (29 or later) and played games.");
 const betsRaw=localStorage.getItem("calvins_city_bets_v1");
@@ -8275,8 +8318,8 @@ if(!Array.isArray(bets.games)||bets.games.length<1)throw new Error("Betting hist
 }
 }catch(writeError){
 /* Do not attempt a second large rollback write: that caused the same quota
- failure and can overwrite the original error. The selected JSON file is
- still the complete recovery source; report exactly what failed. */
+failure and can overwrite the original error. The selected JSON file is
+still the complete recovery source; report exactly what failed. */
 throw new Error("Import could not finish writing the selected backup. Your downloaded JSON remains unchanged. Keep this file safe and do not reset the game. Storage preflight was applied where safe. Details: "+writeError.message);
 }
 if(status())status().textContent="Backup values verified, including played Season 29 games and betting history. Reloading…";
@@ -8331,10 +8374,10 @@ const season=Math.max(0,Number(st&&st.year)||0),found=[];
 (Array.isArray(st&&st.citizens)?st.citizens:[]).forEach(c=>{
 if(!c||!c.name||String(c.status||"").toLowerCase()==="retired")return;
 (Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{
-  if(!d||d.company!==company)return;
-  const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
-  const start=d.startYear==null?null:Number(d.startYear);
-  if(remaining>0&&(start==null||!Number.isFinite(start)||start<=season))found.push(String(c.name));
+ if(!d||d.company!==company)return;
+ const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
+ const start=d.startYear==null?null:Number(d.startYear);
+ if(remaining>0&&(start==null||!Number.isFinite(start)||start<=season))found.push(String(c.name));
 });
 });
 // Older/current contract records can exist even when a citizen's convenience list is incomplete.
@@ -8469,26 +8512,26 @@ Uses the live-state bridge because this script block cannot access the main
 script's lexical `state` binding. Changes only Kap's MVP totals. */
 function finalizeKapMvpAfterStartup(){
 try{
- /* This code runs in a separate script block from the main `let state`.
-    Read the authoritative live state through the bridge instead of relying
-    on the main script's lexical binding. */
- const bridge=window.__calvinsCityBridge;
- const st=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
- if(!st){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"skipped",reason:"Live state bridge unavailable"};return;}
- const citizens=Array.isArray(st.citizens)?st.citizens:[];
- const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
- const roster=st.roster&&st.roster.Lions_PG;
- if(!kap){window.__kapMvpRepairDiagnostic533={version:"5.3.3",status:"skipped",reason:"Kap citizen record not found"};return;}
- const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null};
- kap.mvps=Math.max(2,Number(kap.mvps)||0);
- if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=Math.max(2,Number(roster.mvps)||0);
- st.kapMvpCountRecoveryVersion="kap-career-mvp-count-recovery-v2";
- let saved=false;try{saved=save()!==false;}catch(e){}
- let stored=null;try{const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");const c=raw&&Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;const r=raw&&raw.roster&&raw.roster.Lions_PG;stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};}catch(e){stored={error:String(e&&e.message||e)};}
- const verified=!!stored&&stored.citizen>=2&&(stored.roster===null||stored.roster>=2);
- window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null},stored,saved,verified,scope:"Kap MVP count only"};
- console.info("Calvin's City 5.3.4 late Kap MVP verification",window.__kapMvpRepairDiagnostic533);
- try{if(typeof render==="function")render();}catch(e){}
+/* This code runs in a separate script block from the main `let state`.
+   Read the authoritative live state through the bridge instead of relying
+   on the main script's lexical binding. */
+const bridge=window.__calvinsCityBridge;
+const st=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
+if(!st){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"skipped",reason:"Live state bridge unavailable"};return;}
+const citizens=Array.isArray(st.citizens)?st.citizens:[];
+const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
+const roster=st.roster&&st.roster.Lions_PG;
+if(!kap){window.__kapMvpRepairDiagnostic533={version:"5.3.3",status:"skipped",reason:"Kap citizen record not found"};return;}
+const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null};
+kap.mvps=Math.max(2,Number(kap.mvps)||0);
+if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=Math.max(2,Number(roster.mvps)||0);
+st.kapMvpCountRecoveryVersion="kap-career-mvp-count-recovery-v2";
+let saved=false;try{saved=save()!==false;}catch(e){}
+let stored=null;try{const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");const c=raw&&Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;const r=raw&&raw.roster&&raw.roster.Lions_PG;stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};}catch(e){stored={error:String(e&&e.message||e)};}
+const verified=!!stored&&stored.citizen>=2&&(stored.roster===null||stored.roster>=2);
+window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null},stored,saved,verified,scope:"Kap MVP count only"};
+console.info("Calvin's City 5.3.4 late Kap MVP verification",window.__kapMvpRepairDiagnostic533);
+try{if(typeof render==="function")render();}catch(e){}
 }catch(err){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"error",reason:String(err&&err.message||err)};console.error("Kap MVP late repair error",window.__kapMvpRepairDiagnostic533);}
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(finalizeKapMvpAfterStartup,80),{once:true});else setTimeout(finalizeKapMvpAfterStartup,80);
