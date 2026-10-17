@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.3.6: Refresh player-selection PTS/REB labels after startup stat reconciliation. Preserve existing records. -->
+<!-- CALVIN'S CITY — VERSION 5.3.7: Preserve saved career PTS/REB during roster startup seeding; refresh offseason dropdown. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
 
@@ -135,7 +135,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.3.6</title>
+<title>Calvin's City 5.3.7</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.3.6</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.3.7</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -2386,6 +2386,7 @@ save();
 function seedInitialLionsRoster(){
 state.roster=state.roster||{};
 state.contracts=state.contracts||{};
+const untouchedSeason29StartingPoint=(Number(state.year)===29 && !state.seasonPlayed && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular");
 const players={
 Lions_C:{name:"Wall",careerPts:568,careerRebs:549,mvps:1,championships:2,
 contract:{value:787,years:2,rookie:false,totalPackage:787,teamValue:497,paymentModel:"starting-balance",totalPaid:787,paymentsMade:2,contractYears:2,contractStartSeason:null},
@@ -2406,7 +2407,6 @@ const retiredAndRemoved=p.name==="Wall" && Number(state.year)>29 && savedCitizen
 if(retiredAndRemoved)return;
 if(!state.roster[key])state.roster[key]=p.name;
 const existing=state.contracts[key]||{};
-const untouchedSeason29StartingPoint=(Number(state.year)===29 && !state.seasonPlayed && (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular");
 /* Only the untouched Season 29 opening state may restore the original
 2-year contracts. Once a season has been completed, the saved live
 contract term must survive every page refresh. */
@@ -2444,13 +2444,14 @@ c.season29OpeningCash=Number(SEASON_29_OPENING_CASH[name])||0;
 c.status="Active Player";
 c.position=p.position||c.position;
 c.currentTeam="Lions";
-/* Preserve Diggs's existing career totals. The opening-roster seed is not
- authoritative career history and must never reset a saved citizen. */
+/* Preserve saved career totals and awards after the Season 29 opening.
+The opening-roster seed is not authoritative career history. Only seed
+baseline values for the untouched Season 29 opening or missing fields. */
 if(name!=="Diggs"){
-c.careerPts=Number(p.careerPts)||0;
-c.careerRebs=Number(p.careerRebs)||0;
-c.mvps=Number(p.mvps)||0;
-c.championships=Number(p.championships)||0;
+if(untouchedSeason29StartingPoint || c.careerPts==null)c.careerPts=Number(p.careerPts)||0;
+if(untouchedSeason29StartingPoint || c.careerRebs==null)c.careerRebs=Number(p.careerRebs)||0;
+if(untouchedSeason29StartingPoint || c.mvps==null)c.mvps=Number(p.mvps)||0;
+if(untouchedSeason29StartingPoint || c.championships==null)c.championships=Number(p.championships)||0;
 }
 c.shoeDeals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
 if(name==="Wall" && !c.shoeDeals.some(d=>d&&d.company==="Reebok"&&Number(d.value)===290&&Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)>0)){
@@ -2523,12 +2524,14 @@ if(c.arenaRosterSeeded!==true){
 c.status="Active Player";
 c.position=p.position;
 c.currentTeam=key.split("_")[0];
-/* Diggs career totals are protected from roster-seed defaults. */
+/* Career records outrank roster-seed defaults after the untouched
+Season 29 opening. If an older saved citizen lacks the seed marker, do not
+replace real PTS/REB/MVP/title totals with opening-roster defaults. */
 if(p.name!=="Diggs"){
-c.careerPts=Number(p.careerPts)||0;
-c.careerRebs=Number(p.careerRebs)||0;
-c.mvps=Number(p.mvps)||0;
-c.championships=Number(p.championships)||0;
+if(freshSeason29 || c.careerPts==null)c.careerPts=Number(p.careerPts)||0;
+if(freshSeason29 || c.careerRebs==null)c.careerRebs=Number(p.careerRebs)||0;
+if(freshSeason29 || c.mvps==null)c.mvps=Number(p.mvps)||0;
+if(freshSeason29 || c.championships==null)c.championships=Number(p.championships)||0;
 }
 c.cash=Number(c.cash)==null?Number(p.contract.value)||0:Number(c.cash);
 c.contracts=Array.isArray(c.contracts)?c.contracts:[];
@@ -2716,6 +2719,7 @@ save();
 
 const CITIZEN_NAMES=()=>Array.from(new Set([...(state.records&&state.records.retiredPlayers||[]).map(x=>x.name),...Object.values(state.roster||{}).filter(Boolean)]));
 
+
 /* 4.17.105: Reset CrazBo's test data once.
 CrazBo is a test citizen. Clear all prior test cash and contract data so
 the next test starts from a clean Free Agent state. The Citizen identity
@@ -2791,10 +2795,10 @@ if(!citizen.id||!String(citizen.id).trim()){
 let id;do{maxId+=1;id="C"+String(maxId).padStart(3,"0")}while(usedIds.has(id));
 citizen.id=id;usedIds.add(id);changed=true;
 }else usedIds.add(String(citizen.id).trim());
-if(citizen.cash==null){citizen.cash=seed.cash;changed=true;}
+if(citizen.cash==null){citizen.cash=seed.cash;changed=true;} 
 if(citizen.careerPts==null){citizen.careerPts=seed.careerPts;changed=true;}
 if(citizen.careerRebs==null){citizen.careerRebs=seed.careerRebs;changed=true;}
-if(citizen.mvps==null){citizen.mvps=0;changed=true;} 
+if(citizen.mvps==null){citizen.mvps=0;changed=true;}
 if(citizen.championships==null){citizen.championships=0;changed=true;}
 if(citizen.currentChampStreak==null){citizen.currentChampStreak=0;changed=true;}
 if(!Array.isArray(citizen.contracts)){citizen.contracts=[];changed=true;}
@@ -3274,6 +3278,7 @@ if(deal.yearsRemaining===0)deal.endYear=completedYear;
 });
 state.contractYearsAdvancedForSeason=completedYear;
 }
+
 function setActivePlayerContract(key,team,name,contract,options={}){
 const c=state.contracts=state.contracts||{};
 const normalized={
@@ -3510,10 +3515,10 @@ save();
 
 seedRecords();
 seedConfirmedFreeAgents();
-importExistingRecordedGamesToBets();
+importExistingRecordedGamesToBets(); 
 ensureTeamCash();
 syncSeason29StartingLedger();
-syncCitizenLedger(); 
+syncCitizenLedger();
 /* 4.22.3: Repair B. Hall's opening cash after citizen-ledger reconciliation.
 Hall's New Balance ownership is separate business data and remains untouched.
 Run only at Season 29 Game 0; do not change his cash after play begins. */
@@ -6060,10 +6065,10 @@ try{if(typeof render==="function")render();}catch(err){console.error("Kap MVP ro
 try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Kap MVP dropdown refresh failed.",err);}
 })();
 
-/* VERSION 5.3.6: Refresh player-selection dropdown after all startup
-  career-stat reconciliation and MVP repair checks have completed.
-  The dropdown labels read citizen.careerPts/careerRebs; this rebuild is
-  display-only and does not change stats, game records, or saved data. */
+/* VERSION 5.3.7: Refresh player-selection dropdown after startup reconciliation.
+  The underlying fix is preserving existing career totals during roster seeding;
+  rebuilding the dropdown then displays those saved citizen.careerPts/careerRebs.
+  No historical game rows are edited and no cash/contracts/bets/shares are changed. */
 try{
 if(typeof buildContractBoard==="function")buildContractBoard();
 }catch(err){
@@ -6073,6 +6078,7 @@ console.error("Player-selection PTS/REB refresh failed.",err);
 /* 4.17.105: Championship awards now update Citizen/Arena/Ledger/Records.
 
 4.17.105: Season 29 starting-point migration plus contract-year timing.
+
 4.17.105: Citizen cash/contract synchronization fix.
 Season 29 opening cash is initialized once; Ledger sync never overwrites
 cash; original Season 29 contracts never trigger a new cash payment. */
@@ -6149,7 +6155,7 @@ return false;
 if(modal){
 modal.onclick=function(e){
 if(e.target===modal)window.closeContractVerifyModal();
-};
+}; 
 }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindContractVerifyModal,{once:true});
@@ -6310,7 +6316,6 @@ if(document.readyState!=="loading")bindShoeCompanyModal();
 })();
 </script>
 
-
 <div id="businessOwnershipMarketplaceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="businessOwnershipMarketplaceTitle">
 <div class="modalbox">
 <h2 id="businessOwnershipMarketplaceTitle">🏢 Business Ownership Marketplace</h2>
@@ -6389,7 +6394,7 @@ const round4=value=>Math.round((Number(value)||0)*10000)/10000;
 const norm=value=>String(value||"").trim().toLowerCase();
 function state(){return bridge.getState();}
 function registry(){if(typeof bridge.ensureBusinessOwnershipRegistry==="function")bridge.ensureBusinessOwnershipRegistry();return state().businessOwnershipRegistry;}
-function saveAll(){if(typeof bridge.saveBusinessOwnershipRegistry==="function")bridge.saveBusinessOwnershipRegistry();bridge.save();}
+function saveAll(){if(typeof bridge.saveBusinessOwnershipRegistry==="function")bridge.saveBusinessOwnershipRegistry();bridge.save();} 
 function citizenById(id){return (state().citizens||[]).find(c=>c&&String(c.id)===String(id))||null;}
 function ownerName(owner){const c=citizenById(owner.citizenId);return c&&c.name||owner.name||"Unknown owner";}
 function recordForBusiness(name){return registry().businesses[name]||null;}
