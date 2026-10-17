@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.2.9: Diggs stats protection; launch boosts, company-filtered shoe catalogue, pause/resume and retired-player retro controls. Preserve existing records. -->
+<!-- CALVIN'S CITY — VERSION 5.3.5: Balanced annual stock-price movement tiers. Preserve existing records. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -39,44 +39,44 @@ function compressBytes(input){
 const out=[], n=input.length;
 let pos=0;
 while(pos<n){
-  const flagIndex=out.length; out.push(0); let flags=0;
-  for(let bit=0;bit<8&&pos<n;bit++){
-    let bestLen=0,bestOff=0;
-    if(pos+2<n){
-      const lo=Math.max(0,pos-4096);
-      for(let cand=pos-1,checked=0;cand>=lo&&checked<48;cand--){
-        if(input[cand]!==input[pos]||input[cand+1]!==input[pos+1]||input[cand+2]!==input[pos+2])continue;
-        checked++;
-        let len=3;
-        while(len<18&&pos+len<n&&input[cand+len]===input[pos+len])len++;
-        if(len>bestLen){bestLen=len;bestOff=pos-cand;if(len===18)break;}
-      }
-    }
-    if(bestLen>=3){
-      flags|=(1<<bit);
-      const code=((bestOff-1)<<4)|(bestLen-3);
-      out.push((code>>8)&255,code&255);pos+=bestLen;
-    }else{
-      out.push(input[pos++]);
-    }
-  }
-  out[flagIndex]=flags;
+ const flagIndex=out.length; out.push(0); let flags=0;
+ for(let bit=0;bit<8&&pos<n;bit++){
+   let bestLen=0,bestOff=0;
+   if(pos+2<n){
+     const lo=Math.max(0,pos-4096);
+     for(let cand=pos-1,checked=0;cand>=lo&&checked<48;cand--){
+       if(input[cand]!==input[pos]||input[cand+1]!==input[pos+1]||input[cand+2]!==input[pos+2])continue;
+       checked++;
+       let len=3;
+       while(len<18&&pos+len<n&&input[cand+len]===input[pos+len])len++;
+       if(len>bestLen){bestLen=len;bestOff=pos-cand;if(len===18)break;}
+     }
+   }
+   if(bestLen>=3){
+     flags|=(1<<bit);
+     const code=((bestOff-1)<<4)|(bestLen-3);
+     out.push((code>>8)&255,code&255);pos+=bestLen;
+   }else{
+     out.push(input[pos++]);
+   }
+ }
+ out[flagIndex]=flags;
 }
 return new Uint8Array(out);
 }
 function decompressBytes(input){
 const out=[];let p=0;
 while(p<input.length){
-  const flags=input[p++];
-  for(let bit=0;bit<8&&p<input.length;bit++){
-    if(flags&(1<<bit)){
-      if(p+1>=input.length)throw new Error("Truncated compressed Calvin's City storage value.");
-      const code=(input[p++]<<8)|input[p++];
-      const offset=(code>>4)+1,len=(code&15)+3;
-      if(offset>out.length)throw new Error("Invalid compressed Calvin's City back-reference.");
-      for(let j=0;j<len;j++)out.push(out[out.length-offset]);
-    }else out.push(input[p++]);
-  }
+ const flags=input[p++];
+ for(let bit=0;bit<8&&p<input.length;bit++){
+   if(flags&(1<<bit)){
+     if(p+1>=input.length)throw new Error("Truncated compressed Calvin's City storage value.");
+     const code=(input[p++]<<8)|input[p++];
+     const offset=(code>>4)+1,len=(code&15)+3;
+     if(offset>out.length)throw new Error("Invalid compressed Calvin's City back-reference.");
+     for(let j=0;j<len;j++)out.push(out[out.length-offset]);
+   }else out.push(input[p++]);
+ }
 }
 return new Uint8Array(out);
 }
@@ -99,15 +99,15 @@ proto.getItem=function(key){return unpack(nativeGet.call(this,key));};
 proto.setItem=function(key,value){
 const k=String(key),v=String(value);
 if(target(k)&&v.length>40000&&!v.startsWith(PREFIX)){
-  const packed=pack(v);
-  nativeSet.call(this,k,packed);
+ const packed=pack(v);
+ nativeSet.call(this,k,packed);
 }else nativeSet.call(this,k,v);
 };
 proto.removeItem=function(key){return nativeRemove.call(this,key);};
 Object.defineProperty(proto,"__ccCompressionInstalled",{value:true,configurable:false});
 /* One-time migration: convert existing large uncompressed records. The original
- string is retained in memory until the compressed replacement is written and
- read-back verified. If compression/storage fails, attempt to restore the original. */
+string is retained in memory until the compressed replacement is written and
+read-back verified. If compression/storage fails, attempt to restore the original. */
 const store=window.localStorage;
 const keys=[];
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keys.push(k);}
@@ -115,14 +115,14 @@ keys.forEach(k=>{
 let raw=nativeGet.call(store,k);
 if(typeof raw!=="string"||raw.length<=40000||raw.startsWith(PREFIX))return;
 try{
-  const packed=pack(raw);
-  nativeRemove.call(store,k);
-  nativeSet.call(store,k,packed);
-  const check=unpack(nativeGet.call(store,k));
-  if(check!==raw)throw new Error("Read-back mismatch");
+ const packed=pack(raw);
+ nativeRemove.call(store,k);
+ nativeSet.call(store,k,packed);
+ const check=unpack(nativeGet.call(store,k));
+ if(check!==raw)throw new Error("Read-back mismatch");
 }catch(err){
-  try{nativeRemove.call(store,k);nativeSet.call(store,k,raw);}catch(restoreErr){console.error("CRITICAL: Could not restore original storage value for "+k,restoreErr);}
-  console.error("5.1.7 compression migration failed for "+k+"; original value restoration was attempted.",err);
+ try{nativeRemove.call(store,k);nativeSet.call(store,k,raw);}catch(restoreErr){console.error("CRITICAL: Could not restore original storage value for "+k,restoreErr);}
+ console.error("5.1.7 compression migration failed for "+k+"; original value restoration was attempted.",err);
 }
 });
 window.__calvinsCityStorageCompression={version:"5.1.7",status:"installed",keysChecked:keys.length};
@@ -135,7 +135,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.2.4</title>
+<title>Calvin's City 5.3.5</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -224,7 +224,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.3.2</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.3.5</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -714,7 +714,7 @@ document.querySelectorAll(".screen").forEach(function(x){x.classList.remove("act
 const basketballScreen=document.getElementById("basketball");
 if(basketballScreen)basketballScreen.classList.add("active");
 document.querySelectorAll(".nav button").forEach(function(b){
- b.classList.toggle("active",b.dataset.nav==="basketball");
+b.classList.toggle("active",b.dataset.nav==="basketball");
 });
 window.scrollTo(0,0);
 };
@@ -790,12 +790,12 @@ awards.forEach(a=>{
 const season=Number(a&&a.season)||0;
 if(season<=28||!Array.isArray(a&&a.players))return;
 a.players.forEach(name=>{
- const n=String(name||"").trim();
- if(!n)return;
- const key=season+"|"+n.toLowerCase();
- if(seen.has(key))return;
- seen.add(key);
- earned.set(n,(earned.get(n)||0)+1);
+const n=String(name||"").trim();
+if(!n)return;
+const key=season+"|"+n.toLowerCase();
+if(seen.has(key))return;
+seen.add(key);
+earned.set(n,(earned.get(n)||0)+1);
 });
 });
 const allPlayers=[
@@ -908,7 +908,7 @@ const existingSnapshotRaw=localStorage.getItem(SEASON29_RESTORE_BACKUP_KEY);
 if(existingSnapshotRaw){
 const existingSnapshot=JSON.parse(existingSnapshotRaw);
 season29RestoreBackupReady=!!(existingSnapshot&&existingSnapshot.state&&existingSnapshot.createdAt&&
-  existingSnapshot.state.records&&Array.isArray(existingSnapshot.state.records.gameRecords));
+ existingSnapshot.state.records&&Array.isArray(existingSnapshot.state.records.gameRecords));
 }
 }catch(snapshotReadError){
 console.warn("Existing Season 29 recovery snapshot could not be validated; it was not overwritten or deleted.",snapshotReadError);
@@ -1030,9 +1030,9 @@ const previousRaw=localStorage.getItem(BETS_BACKUP_KEY);
 if(previousRaw!==null){
 const previousDb=JSON.parse(previousRaw);
 if(isValidBetsDatabase(previousDb)){
- const before=betsRecordCount(betsDatabase);
- betsDatabase=mergeBetsDatabases(betsDatabase,previousDb);
- if(betsRecordCount(betsDatabase)>before)betsStorageMessage="BETS ledger recovered additional records from its previous-copy backup. Export a backup to preserve this recovered copy.";
+const before=betsRecordCount(betsDatabase);
+betsDatabase=mergeBetsDatabases(betsDatabase,previousDb);
+if(betsRecordCount(betsDatabase)>before)betsStorageMessage="BETS ledger recovered additional records from its previous-copy backup. Export a backup to preserve this recovered copy.";
 }
 }
 }catch(backupReadError){console.warn("Previous BETS backup could not be read; main ledger remains untouched:",backupReadError);}
@@ -1056,47 +1056,47 @@ const primary=primaryRaw?JSON.parse(primaryRaw):null;
 const snapshotRaw=localStorage.getItem(SEASON29_RESTORE_BACKUP_KEY);
 const snapshot=snapshotRaw?JSON.parse(snapshotRaw):null;
 const validDb=db=>!!(db&&typeof db==="object"&&Array.isArray(db.games)&&Array.isArray(db.bets)&&
- Array.isArray(db.sportsBetsInterestAccruals)&&Array.isArray(db.sportsBetsDebtIssues)&&
- Array.isArray(db.sportsBetsCashTransactions));
+Array.isArray(db.sportsBetsInterestAccruals)&&Array.isArray(db.sportsBetsDebtIssues)&&
+Array.isArray(db.sportsBetsCashTransactions));
 const isSuperset=(newer,older)=>{
- if(!validDb(newer)||!validDb(older))return false;
- const fields=[["games","id"],["bets","id"],["sportsBetsInterestAccruals","gameId"],["sportsBetsDebtIssues","id"],["sportsBetsCashTransactions","id"]];
- return fields.every(([field,key])=>{
-   const newerIds=new Set(newer[field].filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
-   return older[field].filter(x=>x&&x[key]!=null).every(x=>newerIds.has(String(x[key])));
- });
+if(!validDb(newer)||!validDb(older))return false;
+const fields=[["games","id"],["bets","id"],["sportsBetsInterestAccruals","gameId"],["sportsBetsDebtIssues","id"],["sportsBetsCashTransactions","id"]];
+return fields.every(([field,key])=>{
+  const newerIds=new Set(newer[field].filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
+  return older[field].filter(x=>x&&x[key]!=null).every(x=>newerIds.has(String(x[key])));
+});
 };
 const snapshotHasUsableState=!!(snapshot&&snapshot.state&&snapshot.createdAt&&
- snapshot.state.records&&Array.isArray(snapshot.state.records.gameRecords));
+snapshot.state.records&&Array.isArray(snapshot.state.records.gameRecords));
 if(!mainState||!Array.isArray(mainState.citizens)||!validDb(primary)||!snapshotHasUsableState)return;
 const backupRaw=localStorage.getItem(BETS_BACKUP_KEY);
 if(backupRaw!==null){
- let backup=null;try{backup=JSON.parse(backupRaw);}catch(_){}
- if(validDb(backup)&&primaryRaw===backupRaw){
-   localStorage.removeItem(BETS_BACKUP_KEY);
-   console.info("4.29.38 storage repair: removed exact duplicate BETS backup after validating primary database and recovery snapshot.");
- }
+let backup=null;try{backup=JSON.parse(backupRaw);}catch(_){}
+if(validDb(backup)&&primaryRaw===backupRaw){
+  localStorage.removeItem(BETS_BACKUP_KEY);
+  console.info("4.29.38 storage repair: removed exact duplicate BETS backup after validating primary database and recovery snapshot.");
+}
 }
 const snapPrimary=typeof snapshot.betsRaw==="string"?JSON.parse(snapshot.betsRaw):null;
 const snapBackup=typeof snapshot.betsBackupRaw==="string"?JSON.parse(snapshot.betsBackupRaw):null;
 const primaryCoversSnapshotCopies=
- (!snapPrimary||isSuperset(primary,snapPrimary))&&(!snapBackup||isSuperset(primary,snapBackup));
+(!snapPrimary||isSuperset(primary,snapPrimary))&&(!snapBackup||isSuperset(primary,snapBackup));
 if(primaryCoversSnapshotCopies&&(typeof snapshot.betsRaw==="string"||typeof snapshot.betsBackupRaw==="string")){
- delete snapshot.betsRaw;
- delete snapshot.betsBackupRaw;
- snapshot.storageQuotaCompaction={
-   version:"4.29.38",
-   at:new Date().toISOString(),
-   note:"Nested BETS copies removed only after validation that the current primary BETS database contains every identified record. Snapshot state, permanent records, and pending-import copy were retained."
- };
- const compacted=JSON.stringify(snapshot);
- localStorage.setItem(SEASON29_RESTORE_BACKUP_KEY,compacted);
- if(localStorage.getItem(SEASON29_RESTORE_BACKUP_KEY)!==compacted)throw new Error("Compacted recovery snapshot verification failed.");
- console.info("4.29.38 storage repair: compacted only nested BETS duplicates in recovery snapshot; retained snapshot state and permanent records.");
+delete snapshot.betsRaw;
+delete snapshot.betsBackupRaw;
+snapshot.storageQuotaCompaction={
+  version:"4.29.38",
+  at:new Date().toISOString(),
+  note:"Nested BETS copies removed only after validation that the current primary BETS database contains every identified record. Snapshot state, permanent records, and pending-import copy were retained."
+};
+const compacted=JSON.stringify(snapshot);
+localStorage.setItem(SEASON29_RESTORE_BACKUP_KEY,compacted);
+if(localStorage.getItem(SEASON29_RESTORE_BACKUP_KEY)!==compacted)throw new Error("Compacted recovery snapshot verification failed.");
+console.info("4.29.38 storage repair: compacted only nested BETS duplicates in recovery snapshot; retained snapshot state and permanent records.");
 }
 /* The financial mirror is intentionally not deleted here: it is a separate
-  recovery surface. Primary-state writes and BETS writes now avoid creating
-  another full duplicate backup when that backup has been reclaimed. */
+ recovery surface. Primary-state writes and BETS writes now avoid creating
+ another full duplicate backup when that backup has been reclaimed. */
 }catch(storageRepairError){
 console.warn("4.29.38 storage repair skipped or partially completed safely; saved records were not intentionally deleted.",storageRepairError);
 }
@@ -1645,14 +1645,14 @@ const currentRaw=localStorage.getItem(BETS_STORAGE_KEY);
 let currentDb=null;
 if(currentRaw!==null){
 try{currentDb=JSON.parse(currentRaw);}catch(parseError){
- betsStorageWritable=false;betsStorageMessage="WARNING: Current saved BETS copy is unreadable. Writes paused; export a recovery snapshot before continuing.";
- try{if(!localStorage.getItem(BETS_BACKUP_KEY))localStorage.setItem(BETS_BACKUP_KEY,currentRaw);}catch(backupError){}
- renderBetsStorageStatus();return false;
+betsStorageWritable=false;betsStorageMessage="WARNING: Current saved BETS copy is unreadable. Writes paused; export a recovery snapshot before continuing.";
+try{if(!localStorage.getItem(BETS_BACKUP_KEY))localStorage.setItem(BETS_BACKUP_KEY,currentRaw);}catch(backupError){}
+renderBetsStorageStatus();return false;
 }
 if(!isValidBetsDatabase(currentDb)){
- betsStorageWritable=false;betsStorageMessage="WARNING: Current saved BETS copy is incomplete. Writes paused to prevent data loss.";
- try{if(!localStorage.getItem(BETS_BACKUP_KEY))localStorage.setItem(BETS_BACKUP_KEY,currentRaw);}catch(backupError){}
- renderBetsStorageStatus();return false;
+betsStorageWritable=false;betsStorageMessage="WARNING: Current saved BETS copy is incomplete. Writes paused to prevent data loss.";
+try{if(!localStorage.getItem(BETS_BACKUP_KEY))localStorage.setItem(BETS_BACKUP_KEY,currentRaw);}catch(backupError){}
+renderBetsStorageStatus();return false;
 }
 // Merge stale-tab records before committing the authoritative primary copy.
 betsDatabase=mergeBetsDatabases(betsDatabase,currentDb);
@@ -1674,14 +1674,14 @@ try{
 const priorBackupRaw=localStorage.getItem(BETS_BACKUP_KEY);
 backupPresent=priorBackupRaw!==null;
 /* Keep a recovery copy current only when one already exists. Do not recreate
-  a full duplicate automatically after safe quota reclamation; users can
-  export a separate BETS backup on demand. */
+ a full duplicate automatically after safe quota reclamation; users can
+ export a separate BETS backup on demand. */
 if(backupPresent){
- let priorBackupDb=null;try{priorBackupDb=JSON.parse(priorBackupRaw);}catch(e){}
- const backupUnion=isValidBetsDatabase(priorBackupDb)?mergeBetsDatabases(betsDatabase,priorBackupDb):betsDatabase;
- const backupSerialized=JSON.stringify(backupUnion);
- localStorage.setItem(BETS_BACKUP_KEY,backupSerialized);
- backupUpdated=localStorage.getItem(BETS_BACKUP_KEY)===backupSerialized;
+let priorBackupDb=null;try{priorBackupDb=JSON.parse(priorBackupRaw);}catch(e){}
+const backupUnion=isValidBetsDatabase(priorBackupDb)?mergeBetsDatabases(betsDatabase,priorBackupDb):betsDatabase;
+const backupSerialized=JSON.stringify(backupUnion);
+localStorage.setItem(BETS_BACKUP_KEY,backupSerialized);
+backupUpdated=localStorage.getItem(BETS_BACKUP_KEY)===backupSerialized;
 }
 }catch(backupError){
 console.warn("BETS primary database saved, but recovery-copy refresh failed; existing recovery copy was left in place.",backupError);
@@ -1689,8 +1689,8 @@ console.warn("BETS primary database saved, but recovery-copy refresh failed; exi
 betsStorageMessage=backupUpdated
 ?"BETS ledger saved and verified; recovery copy refreshed."
 :backupPresent
- ?"BETS ledger saved and verified. WARNING: recovery copy could not be refreshed because browser storage may be full; export a BETS backup."
- :"BETS ledger saved and verified. Redundant in-browser backup omitted to protect storage space; use Export BETS Backup to save a separate copy.";
+?"BETS ledger saved and verified. WARNING: recovery copy could not be refreshed because browser storage may be full; export a BETS backup."
+:"BETS ledger saved and verified. Redundant in-browser backup omitted to protect storage space; use Export BETS Backup to save a separate copy.";
 renderBetsStorageStatus();return true;
 }catch(e){
 betsStorageMessage="WARNING: BETS could not save to browser storage. Download a backup before leaving this page.";
@@ -2432,8 +2432,8 @@ if(name==="Wall" && Number(state.year)>29 && c && String(c.status||"").toLowerCa
 if(!c){
 const id="C"+String(state.citizens.length+1).padStart(3,"0");
 c={id,name,status:"Active Player",position:p.position||null,currentTeam:"Lions",cash:null,debt:0,
- careerPts:p.careerPts,careerRebs:p.careerRebs,mvps:p.mvps,championships:p.championships,
- champStreak:0,currentChampStreak:0,businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
+careerPts:p.careerPts,careerRebs:p.careerRebs,mvps:p.mvps,championships:p.championships,
+champStreak:0,currentChampStreak:0,businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
 state.citizens.push(c);
 }
 /* 4.17.105: Initialize Season 29 opening cash exactly once.
@@ -2447,12 +2447,12 @@ c.status="Active Player";
 c.position=p.position||c.position;
 c.currentTeam="Lions";
 /* Preserve Diggs's existing career totals. The opening-roster seed is not
-  authoritative career history and must never reset a saved citizen. */
+ authoritative career history and must never reset a saved citizen. */
 if(name!=="Diggs"){
- c.careerPts=Number(p.careerPts)||0;
- c.careerRebs=Number(p.careerRebs)||0;
- c.mvps=Number(p.mvps)||0;
- c.championships=Number(p.championships)||0;
+c.careerPts=Number(p.careerPts)||0;
+c.careerRebs=Number(p.careerRebs)||0;
+c.mvps=Number(p.mvps)||0;
+c.championships=Number(p.championships)||0;
 }
 c.shoeDeals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
 if(name==="Wall" && !c.shoeDeals.some(d=>d&&d.company==="Reebok"&&Number(d.value)===290&&Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)>0)){
@@ -2473,12 +2473,12 @@ if(Number(state.year)===29){
 c.contracts=c.contracts.filter(x=>!(x&&x.team==="Lions"&&Number(x.year)===29&&(x.originalSeason29===true||x.action==="Original Season 29 Contract")));
 const openingRec=null;
 if(openingRec){
- openingRec.originalSeason29=true;
- openingRec.cashPaid=true;
- openingRec.cashAdded=0;
- openingRec.action=openingRec.action||"Original Season 29 Contract";
- openingRec.current=true;
- openingRec.season29OpeningCash=Number(SEASON_29_OPENING_CASH[name])||0;
+openingRec.originalSeason29=true;
+openingRec.cashPaid=true;
+openingRec.cashAdded=0;
+openingRec.action=openingRec.action||"Original Season 29 Contract";
+openingRec.current=true;
+openingRec.season29OpeningCash=Number(SEASON_29_OPENING_CASH[name])||0;
 }
 }
 });
@@ -2517,8 +2517,8 @@ let c=state.citizens.find(x=>x.name===p.name);
 if(!c){
 const id="C"+String(state.citizens.length+1).padStart(3,"0");
 c={id,name:p.name,status:"Active Player",position:p.position,currentTeam:key.split("_")[0],cash:Number(p.contract.value)||0,debt:0,
- careerPts:p.careerPts,careerRebs:p.careerRebs,mvps:p.mvps,championships:p.championships,
- champStreak:0,currentChampStreak:0,businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
+careerPts:p.careerPts,careerRebs:p.careerRebs,mvps:p.mvps,championships:p.championships,
+champStreak:0,currentChampStreak:0,businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],betting:[],history:[]};
 state.citizens.push(c);
 }
 if(c.arenaRosterSeeded!==true){
@@ -2527,16 +2527,16 @@ c.position=p.position;
 c.currentTeam=key.split("_")[0];
 /* Diggs career totals are protected from roster-seed defaults. */
 if(p.name!=="Diggs"){
- c.careerPts=Number(p.careerPts)||0;
- c.careerRebs=Number(p.careerRebs)||0;
- c.mvps=Number(p.mvps)||0;
- c.championships=Number(p.championships)||0;
+c.careerPts=Number(p.careerPts)||0;
+c.careerRebs=Number(p.careerRebs)||0;
+c.mvps=Number(p.mvps)||0;
+c.championships=Number(p.championships)||0;
 }
 c.cash=Number(c.cash)==null?Number(p.contract.value)||0:Number(c.cash);
 c.contracts=Array.isArray(c.contracts)?c.contracts:[];
 c.shoeDeals=Array.isArray(c.shoeDeals)?c.shoeDeals:[];
 p.shoeDeals.forEach(d=>{
- if(d&&d.company&&!c.shoeDeals.some(x=>x&&x.company===d.company))c.shoeDeals.push({...d,startYear:29});
+if(d&&d.company&&!c.shoeDeals.some(x=>x&&x.company===d.company))c.shoeDeals.push({...d,startYear:29});
 });
 c.arenaRosterSeeded=true;
 }
@@ -2545,9 +2545,9 @@ c.arenaRosterSeeded=true;
 seedInitialArenaRosters();
  
 /* 5.2.9 DIGGS CAREER STAT PROTECTION
-  The legacy v8 startup repair hardcoded career totals for Wall, Diggs and Kap.
-  It is intentionally removed. Career totals must come from saved records or
-  verified box scores, never from a startup target table. */
+ The legacy v8 startup repair hardcoded career totals for Wall, Diggs and Kap.
+ It is intentionally removed. Career totals must come from saved records or
+ verified box scores, never from a startup target table. */
  
 /* 4.17.105: All nine Season 29 contracts supplied as the opening roster are
 already fully paid. They are not future salary obligations and are not new
@@ -2605,8 +2605,8 @@ citizen.contracts=citizen.contracts.filter(rec=>{
 if(!rec)return false;
 if(rec.action==="Contract Payment")return false;
 if(rec.team===team && Number(rec.year)===29 && Number(rec.value)===value &&
-  (Number(rec.years)===0 || Number(rec.years)===originalTerm || Number(rec.contractYears)===originalTerm)){
- return false;
+ (Number(rec.years)===0 || Number(rec.years)===originalTerm || Number(rec.contractYears)===originalTerm)){
+return false;
 }
 return true;
 });
@@ -2864,9 +2864,9 @@ Object.keys(SEASON29_CASH_AUDIT_PLAYERS).forEach(name=>{
 const before=previous.cash[name]||[],after=cash[name]||[];
 const ids=new Set([...before,...after].map(x=>String(x.id||"(no-id)")));
 ids.forEach(id=>{
- const b=before.find(x=>String(x.id||"(no-id)")===id),a=after.find(x=>String(x.id||"(no-id)")===id);
- const bv=b&&b.cash!=null?Number(b.cash):null,av=a&&a.cash!=null?Number(a.cash):null;
- if(bv!==av)changes.push({player:name,citizenId:id,before:b?bv:null,after:a?av:null,delta:bv==null||av==null?null:Math.round((av-bv)*100)/100});
+const b=before.find(x=>String(x.id||"(no-id)")===id),a=after.find(x=>String(x.id||"(no-id)")===id);
+const bv=b&&b.cash!=null?Number(b.cash):null,av=a&&a.cash!=null?Number(a.cash):null;
+if(bv!==av)changes.push({player:name,citizenId:id,before:b?bv:null,after:a?av:null,delta:bv==null||av==null?null:Math.round((av-bv)*100)/100});
 });
 });
 }
@@ -3267,11 +3267,11 @@ if(startYear!=null&&Number.isFinite(startYear)&&startYear>completedYear)return;
 if(Number(deal.lastAdvancedSeason)===completedYear)return;
 const remaining=Math.max(0,Number(deal.yearsRemaining!=null?deal.yearsRemaining:deal.years)||0);
 if(remaining>0){
- deal.originalYears=Number(deal.originalYears||deal.years||remaining)||remaining;
- deal.yearsRemaining=remaining-1;
- deal.years=remaining-1;
- deal.lastAdvancedSeason=completedYear;
- if(deal.yearsRemaining===0)deal.endYear=completedYear;
+deal.originalYears=Number(deal.originalYears||deal.years||remaining)||remaining;
+deal.yearsRemaining=remaining-1;
+deal.years=remaining-1;
+deal.lastAdvancedSeason=completedYear;
+if(deal.yearsRemaining===0)deal.endYear=completedYear;
 }
 });
 });
@@ -3762,11 +3762,11 @@ const before=Number(state.businessCash[company])||0;
 const after=Math.round((before+amount)*100)/100;
 state.businessCash[company]=after;
 entries.push({
- id:"shoe-"+season+"-"+gameIndex+"-"+company+"-"+Date.now(),
- season,stage:String(stage||g.stage||""),gameIndex,
- type:"Shoe Revenue",company,amount,before,after,
- reason:"Two dice rolls × $10M for completed game",
- createdAt:at
+id:"shoe-"+season+"-"+gameIndex+"-"+company+"-"+Date.now(),
+season,stage:String(stage||g.stage||""),gameIndex,
+type:"Shoe Revenue",company,amount,before,after,
+reason:"Two dice rolls × $10M for completed game",
+createdAt:at
 });
 });
 g.shoeRevenueApplied=true;
@@ -3872,8 +3872,8 @@ const y=Number(x[0])||0;
 const winner=String(x[1]||"").trim();
  
 if(y<currentYear && winner && y>latestYear){
- latestYear=y;
- latestWinner=winner;
+latestYear=y;
+latestWinner=winner;
 }
 });
 }
@@ -4090,7 +4090,7 @@ state.playoff.championship={winner:g.winner.team,loser:g.loser.team};finishSeaso
 if(auditEnabled)captureSeason29GameCashBoundary("after-game-finalization-before-save",{stage,a:g.A.team,b:g.B.team});
 save();
 /* CalSims runs only after the game and season phase are fully recorded and saved.
-  The persistent game key prevents duplicate retail cycles after refresh/re-entry. */
+ The persistent game key prevents duplicate retail cycles after refresh/re-entry. */
 if(typeof window.processCalSimsGameCycle==="function"){
 const calSimsGameKey="Y"+(Number(state.year)||29)+"-"+stage.replace(/[^a-z0-9]/gi,"")+"-G"+(Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0);
 window.processCalSimsGameCycle(calSimsGameKey);
@@ -4118,7 +4118,7 @@ if(!name){say("Enter a player name first.");document.getElementById("newFreeAgen
 const existing=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
 if(existing){
 if(String(existing.status||"").trim().toLowerCase()==="free agent"&&!Object.values(state.roster||{}).some(n=>String(n||"").trim().toLowerCase()===name.toLowerCase())){
- renderFreeAgentMarket();say(name+" already exists in the Citizen Ledger and Free Agent pool. No duplicate was created.");
+renderFreeAgentMarket();say(name+" already exists in the Citizen Ledger and Free Agent pool. No duplicate was created.");
 }else say("A citizen/player named "+name+" already exists. No duplicate was created; use the existing identity or choose another name.");
 return false;
 }
@@ -4641,7 +4641,7 @@ if(paidRecord){paidRecord.contractId=contractPaymentId;paidRecord.cashPaid=true;
 if(openSpot){
 delete state.openRosterSpots[k];
 /* 4.17.105: A verified replacement supersedes the retired/released
- placeholder verification record for this roster slot. */
+placeholder verification record for this roster slot. */
 state.verifiedOffseasonDecisions[k]={
 player:name,
 team,
@@ -4774,50 +4774,50 @@ const c=state.contracts[k]||{value:0,years:0};
 if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k])return;
  
 if(d.decision==="Resign"){
- const years=Math.max(1,Math.min(3,Number(d.years)||0));
- const salary=Math.max(0,Number(d.salary)||0);
- if(!years||d.salary===""||d.salary==null||!Number.isFinite(salary)){
-   errors.push(name+" needs a valid re-sign contract.");
-   return;
- }
- state.contracts[k]={value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary};
- const citizen=ensureCitizen(name);
- if(citizen){
-   citizen.contracts=Array.isArray(citizen.contracts)?citizen.contracts:[];
-   citizen.contracts.push({year:Number(state.year),team:t,value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary});
- }
+const years=Math.max(1,Math.min(3,Number(d.years)||0));
+const salary=Math.max(0,Number(d.salary)||0);
+if(!years||d.salary===""||d.salary==null||!Number.isFinite(salary)){
+  errors.push(name+" needs a valid re-sign contract.");
+  return;
+}
+state.contracts[k]={value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary};
+const citizen=ensureCitizen(name);
+if(citizen){
+  citizen.contracts=Array.isArray(citizen.contracts)?citizen.contracts:[];
+  citizen.contracts.push({year:Number(state.year),team:t,value:salary,years:years,rookie:false,totalPackage:salary,teamValue:salary});
+}
 }else if(d.decision==="Release"){
- markPlayerAsFreeAgent(name,t,p);
- delete state.roster[k];
- delete state.contracts[k];
+markPlayerAsFreeAgent(name,t,p);
+delete state.roster[k];
+delete state.contracts[k];
 }else if(d.decision==="Retire"){
- const citizen=ensureCitizen(name);
- const retired={
-   name,
-   careerPts:Number(citizen&&citizen.careerPts||0),
-   careerRebs:Number(citizen&&citizen.careerRebs||0),
-   mvps:Number(citizen&&citizen.mvps||0),
-   championships:Number(citizen&&citizen.championships||0),
-   retirementCash:citizen&&citizen.cash!=null?Number(citizen.cash):null,
-   champStreak:Number(citizen&&citizen.champStreak||0),
-   currentChampStreak:Number(citizen&&citizen.currentChampStreak||0)
- };
- state.records=state.records||{retiredPlayers:[],gameRecords:[]};
- state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
- const idx=state.records.retiredPlayers.findIndex(x=>x&&x.name===name);
- if(idx>=0)state.records.retiredPlayers[idx]={...state.records.retiredPlayers[idx],...retired};
- else state.records.retiredPlayers.push(retired);
- delete state.roster[k];
- delete state.contracts[k];
- if(citizen){citizen.status="Retired";endRetiredPlayerShoeDeals(name,citizen);}
+const citizen=ensureCitizen(name);
+const retired={
+  name,
+  careerPts:Number(citizen&&citizen.careerPts||0),
+  careerRebs:Number(citizen&&citizen.careerRebs||0),
+  mvps:Number(citizen&&citizen.mvps||0),
+  championships:Number(citizen&&citizen.championships||0),
+  retirementCash:citizen&&citizen.cash!=null?Number(citizen.cash):null,
+  champStreak:Number(citizen&&citizen.champStreak||0),
+  currentChampStreak:Number(citizen&&citizen.currentChampStreak||0)
+};
+state.records=state.records||{retiredPlayers:[],gameRecords:[]};
+state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
+const idx=state.records.retiredPlayers.findIndex(x=>x&&x.name===name);
+if(idx>=0)state.records.retiredPlayers[idx]={...state.records.retiredPlayers[idx],...retired};
+else state.records.retiredPlayers.push(retired);
+delete state.roster[k];
+delete state.contracts[k];
+if(citizen){citizen.status="Retired";endRetiredPlayerShoeDeals(name,citizen);}
 }else{
- // KEEP: continue the existing contract. Do not create a new contract
- // record, do not move cash, and do not decrement again during the
- // offseason. Offseason and Arena both read the same live contract.
- const years=Math.max(0,Number(c.years)||0);
- if(years<=0){
-   errors.push(name+" has no contract years remaining. Use Re-sign, Release, or Retire.");
- }
+// KEEP: continue the existing contract. Do not create a new contract
+// record, do not move cash, and do not decrement again during the
+// offseason. Offseason and Arena both read the same live contract.
+const years=Math.max(0,Number(c.years)||0);
+if(years<=0){
+  errors.push(name+" has no contract years remaining. Use Re-sign, Release, or Retire.");
+}
 }
 });
 });
@@ -4886,38 +4886,38 @@ save();
 }
  
 /* 5.1.9: Reconcile title totals AFTER backup import as well as at startup.
-  The prior startup-only repair could run before the user imported their backup.
-  Permanent award rows are authoritative for Seasons 29+; historical opening
-  totals remain the baseline for the original roster. This only raises totals
-  when the award ledger proves a higher number; it never edits awards or games. */
+ The prior startup-only repair could run before the user imported their backup.
+ Permanent award rows are authoritative for Seasons 29+; historical opening
+ totals remain the baseline for the original roster. This only raises totals
+ when the award ledger proves a higher number; it never edits awards or games. */
 function reconcileChampionshipTitlesFromAwards(){
- const historicalBaseline={Wall:2,Diggs:0,Kap:1,Nadler:0,Holly:0,CJ:0,Vico:3,Pat:0,Bic:2};
- const awards=Array.isArray(state.championshipAwards)?state.championshipAwards:[];
- const counts=new Map();
- const seen=new Set();
- awards.forEach(a=>{
-   const season=Number(a&&a.season)||0;
-   if(season<=28||!Array.isArray(a&&a.players))return;
-   a.players.forEach(name=>{
-     const clean=String(name||"").trim(); if(!clean)return;
-     const key=season+"|"+clean.toLowerCase(); if(seen.has(key))return; seen.add(key);
-     const norm=clean.toLowerCase(); counts.set(norm,(counts.get(norm)||0)+1);
-   });
- });
- let changed=false;
- const people=[...(Array.isArray(state.citizens)?state.citizens:[]),...(Array.isArray(state.records&&state.records.retiredPlayers)?state.records.retiredPlayers:[])];
- const visited=new Set();
- people.forEach(p=>{
-   if(!p||!p.name)return; const key=String(p.name).trim().toLowerCase(); if(visited.has(key))return; visited.add(key);
-   const base=Number(historicalBaseline[p.name])||0;
-   const proven=base+(Number(counts.get(key))||0);
-   if(proven>Number(p.championships||0)){p.championships=proven;changed=true;}
- });
- if(changed)save();
- return counts;
+const historicalBaseline={Wall:2,Diggs:0,Kap:1,Nadler:0,Holly:0,CJ:0,Vico:3,Pat:0,Bic:2};
+const awards=Array.isArray(state.championshipAwards)?state.championshipAwards:[];
+const counts=new Map();
+const seen=new Set();
+awards.forEach(a=>{
+  const season=Number(a&&a.season)||0;
+  if(season<=28||!Array.isArray(a&&a.players))return;
+  a.players.forEach(name=>{
+    const clean=String(name||"").trim(); if(!clean)return;
+    const key=season+"|"+clean.toLowerCase(); if(seen.has(key))return; seen.add(key);
+    const norm=clean.toLowerCase(); counts.set(norm,(counts.get(norm)||0)+1);
+  });
+});
+let changed=false;
+const people=[...(Array.isArray(state.citizens)?state.citizens:[]),...(Array.isArray(state.records&&state.records.retiredPlayers)?state.records.retiredPlayers:[])];
+const visited=new Set();
+people.forEach(p=>{
+  if(!p||!p.name)return; const key=String(p.name).trim().toLowerCase(); if(visited.has(key))return; visited.add(key);
+  const base=Number(historicalBaseline[p.name])||0;
+  const proven=base+(Number(counts.get(key))||0);
+  if(proven>Number(p.championships||0)){p.championships=proven;changed=true;}
+});
+if(changed)save();
+return counts;
 }
 /* 5.1.9.1: Team Arena is initialized by a separate script block. Expose the
-  reconciler explicitly so the roster can call it without a ReferenceError. */
+ reconciler explicitly so the roster can call it without a ReferenceError. */
 window.reconcileChampionshipTitlesFromAwards=reconcileChampionshipTitlesFromAwards;
 function renderCitizenLedger(){
 const out=document.getElementById("citizenLedgerBody");if(!out)return;
@@ -5215,7 +5215,7 @@ entry.approvalStatus="pending";
 alert("Rejection requires manual reconciliation: the original buyer, seller, amount, or share count could not be safely verified. No reversal was applied.");
 }else{
 /* 4.28.64: Reverse ownership through the stock-market module's canonical in-memory DB.
- The public getDatabase() API returns a clone, so mutating that clone would not persist. */
+The public getDatabase() API returns a clone, so mutating that clone would not persist. */
 const marketApi=window.calvinsCityStockMarket;
 if(!marketApi||typeof marketApi.reverseTradeOwnership!=="function"){
 entry.approvalStatus="pending";
@@ -5227,7 +5227,7 @@ entry.approvalStatus="pending";
 alert("Rejection paused: "+String(ownershipResult&&ownershipResult.reason||"share ownership could not be safely reversed")+". No cash was changed.");
 }else{
 /* Cash is only corrected when its current balance exactly matches the recorded post-trade balance.
-   A cash-integrity restoration or any intervening cash movement makes it ineligible for auto-correction. */
+  A cash-integrity restoration or any intervening cash movement makes it ineligible for auto-correction. */
 const buyerCash=readCash(buyerAccount),sellerCash=readCash(sellerAccount);
 const buyerPost=Number(original.buyerCashAfter),sellerPost=Number(original.sellerCashAfter);
 const buyerPre=Number(original.buyerCashBefore),sellerPre=Number(original.sellerCashBefore);
@@ -5897,22 +5897,22 @@ window.addEventListener("error",function(){setTimeout(showCitySaveWarning,0);});
 document.addEventListener("DOMContentLoaded",showCitySaveWarning);
  
 /* VERSION 5.2.9: Diggs career-stat protection.
-  This startup check is read-only: it deliberately does not rewrite career
-  points/rebounds, does not save state, and does not touch other citizens.
-  Diggs totals are preserved until complete historical box-score coverage is
-  available; recovered records currently have gaps in Seasons 30 and 32. */
+ This startup check is read-only: it deliberately does not rewrite career
+ points/rebounds, does not save state, and does not touch other citizens.
+ Diggs totals are preserved until complete historical box-score coverage is
+ available; recovered records currently have gaps in Seasons 30 and 32. */
 (function protectDiggsCareerStats(){
 const citizens=Array.isArray(state.citizens)?state.citizens:[];
 const diggs=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="diggs");
 window.__diggsCareerStatsProtectionDiagnostic={
- version:"5.2.8",
- status:diggs?"protected-no-overwrite":"diggs-not-found",
- season:state.year,
- points:diggs?diggs.careerPts:null,
- rebounds:diggs?diggs.careerRebs:null,
- changed:false,
- saved:false,
- note:"Read-only protection. Diggs totals were not forced to an unverified value; recovered individual box scores have gaps in Seasons 30 and 32."
+version:"5.2.8",
+status:diggs?"protected-no-overwrite":"diggs-not-found",
+season:state.year,
+points:diggs?diggs.careerPts:null,
+rebounds:diggs?diggs.careerRebs:null,
+changed:false,
+saved:false,
+note:"Read-only protection. Diggs totals were not forced to an unverified value; recovered individual box scores have gaps in Seasons 30 and 32."
 };
 console.info("Calvin's City 5.2.8 Diggs stats protection",window.__diggsCareerStatsProtectionDiagnostic);
 })();
@@ -5936,132 +5936,132 @@ shares, or other players' records. */
 const marker="wall-career-mvp-count-recovery-v1";
 if(state.wallMvpCountRecoveryVersion===marker)return;
 const wall=(Array.isArray(state.citizens)?state.citizens:[])
- .find(c=>c&&String(c.name||"").trim().toLowerCase()==="wall");
+.find(c=>c&&String(c.name||"").trim().toLowerCase()==="wall");
 if(!wall){
- window.__wallMvpRepairDiagnostic={version:"5.0.7",status:"skipped",reason:"Wall citizen record not found"};
- console.error("Wall MVP count repair skipped: Wall citizen record not found.",window.__wallMvpRepairDiagnostic);
+window.__wallMvpRepairDiagnostic={version:"5.0.7",status:"skipped",reason:"Wall citizen record not found"};
+console.error("Wall MVP count repair skipped: Wall citizen record not found.",window.__wallMvpRepairDiagnostic);
 }else{
- const before={citizen:wall.mvps,roster:state.roster&&state.roster.Lions_C&&state.roster.Lions_C.mvps};
- wall.mvps=2;
- if(state.roster&&state.roster.Lions_C&&String(state.roster.Lions_C.name||"").trim().toLowerCase()==="wall"){
-   state.roster.Lions_C.mvps=2;
- }
- state.wallMvpCountRecoveryVersion=marker;
- const saved=save();
- const rosterValue=state.roster&&state.roster.Lions_C&&state.roster.Lions_C.mvps;
- window.__wallMvpRepairDiagnostic={version:"5.0.7",status:Number(wall.mvps)===2?"updated":"verification-failed",before,after:{citizen:wall.mvps,roster:rosterValue},saved};
- console.info("Calvin's City 5.0.7 Wall MVP count repair",window.__wallMvpRepairDiagnostic);
- try{if(typeof render==="function")render();}catch(err){console.error("Wall MVP count render refresh failed.",err);}
- try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Wall MVP dropdown refresh failed.",err);}
+const before={citizen:wall.mvps,roster:state.roster&&state.roster.Lions_C&&state.roster.Lions_C.mvps};
+wall.mvps=2;
+if(state.roster&&state.roster.Lions_C&&String(state.roster.Lions_C.name||"").trim().toLowerCase()==="wall"){
+  state.roster.Lions_C.mvps=2;
+}
+state.wallMvpCountRecoveryVersion=marker;
+const saved=save();
+const rosterValue=state.roster&&state.roster.Lions_C&&state.roster.Lions_C.mvps;
+window.__wallMvpRepairDiagnostic={version:"5.0.7",status:Number(wall.mvps)===2?"updated":"verification-failed",before,after:{citizen:wall.mvps,roster:rosterValue},saved};
+console.info("Calvin's City 5.0.7 Wall MVP count repair",window.__wallMvpRepairDiagnostic);
+try{if(typeof render==="function")render();}catch(err){console.error("Wall MVP count render refresh failed.",err);}
+try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Wall MVP dropdown refresh failed.",err);}
 }
 })();
  
  
 /* 5.3.1 — Conservative career-stat reconciliation.
-  Recovered 24 unique individual game records (deduplicated by season/stage/teams
-  and box-score identity): Diggs 660 PTS / 684 REB; Kap 665 PTS / 692 REB.
-  Seasons 30 and 32 remain unrecovered, so these are verified minimums, not complete
-  career totals. Raise-only: never reduces a saved total. No game records are edited. */
+ Recovered 24 unique individual game records (deduplicated by season/stage/teams
+ and box-score identity): Diggs 660 PTS / 684 REB; Kap 665 PTS / 692 REB.
+ Seasons 30 and 32 remain unrecovered, so these are verified minimums, not complete
+ career totals. Raise-only: never reduces a saved total. No game records are edited. */
 (function reconcileRecoveredLionsCareerStatsOnce(){
- const marker="lions-recovered-boxscore-floors-v2";
- if(state.lionsRecoveredStatsFloorVersion===marker)return;
- const citizens=Array.isArray(state.citizens)?state.citizens:[];
- const targets={
-   Diggs:{points:660,rebounds:684,verifiedGames:24},
-   Kap:{points:665,rebounds:692,verifiedGames:24}
- };
- const before={},after={},players={},missing=[];
- Object.keys(targets).forEach(name=>{
-   const citizen=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
-   if(!citizen){missing.push(name);return;}
-   before[name]={points:Number(citizen.careerPts)||0,rebounds:Number(citizen.careerRebs)||0};
-   after[name]={points:Math.max(before[name].points,targets[name].points),rebounds:Math.max(before[name].rebounds,targets[name].rebounds)};
-   players[name]=citizen;
- });
- if(missing.length){
-   window.__careerStatsReconciliation={version:"5.3.1",status:"skipped",reason:"Missing citizen record(s): "+missing.join(", ")+". No totals changed."};
-   console.error("Career stats reconciliation skipped.",window.__careerStatsReconciliation);
-   return;
- }
- let changed=false;
- Object.keys(targets).forEach(name=>{
-   if(after[name].points!==before[name].points||after[name].rebounds!==before[name].rebounds){
-     players[name].careerPts=after[name].points;
-     players[name].careerRebs=after[name].rebounds;
-     changed=true;
-   }
- });
- state.lionsRecoveredStatsFloorVersion=marker;
- state.lionsRecoveredStatsFloorAudit={
-   version:"5.3.1",at:new Date().toISOString(),
-   method:"raise-only verified minimum from 24 unique recovered individual box scores; no game rows edited",
-   verifiedGames:24,missingSeasons:[30,32],before,after,changed,
-   targets:{Diggs:{points:660,rebounds:684},Kap:{points:665,rebounds:692}}
- };
- let saved=false;
- try{saved=save()!==false;}catch(err){saved=false;}
- const stored=(()=>{try{
-   const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
-   if(!raw||!Array.isArray(raw.citizens))return null;
-   const result={};
-   Object.keys(targets).forEach(name=>{
-     const c=raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
-     if(c)result[name]={points:Number(c.careerPts)||0,rebounds:Number(c.careerRebs)||0};
-   });
-   return result;
- }catch(err){return null;}})();
- const verified=!!stored&&Object.keys(targets).every(name=>
-   Number(players[name].careerPts)===after[name].points&&
-   Number(players[name].careerRebs)===after[name].rebounds&&
-   stored[name]&&stored[name].points===after[name].points&&stored[name].rebounds===after[name].rebounds);
- window.__careerStatsReconciliation={
-   version:"5.3.1",status:verified?(changed?"saved-and-verified":"already-at-or-above-verified-minimum"):"save-or-persistence-verification-failed",
-   scope:"Diggs and Kap only",before,after,stored,saved,verifiedGames:24,missingSeasons:[30,32],
-   note:"These are verified minimums from recovered box scores, not complete career totals. Seasons 30 and 32 remain unresolved. Wall and all other players are untouched."
- };
- console.info("Calvin's City 5.3.1 career-stat reconciliation",window.__careerStatsReconciliation);
- if(!verified)console.error("Career stats were not fully persisted; inspect diagnostic before proceeding.",window.__careerStatsReconciliation);
- try{if(typeof render==="function")render();}catch(err){console.error("Roster refresh after career-stat reconciliation failed.",err);}
+const marker="lions-recovered-boxscore-floors-v2";
+if(state.lionsRecoveredStatsFloorVersion===marker)return;
+const citizens=Array.isArray(state.citizens)?state.citizens:[];
+const targets={
+  Diggs:{points:660,rebounds:684,verifiedGames:24},
+  Kap:{points:665,rebounds:692,verifiedGames:24}
+};
+const before={},after={},players={},missing=[];
+Object.keys(targets).forEach(name=>{
+  const citizen=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
+  if(!citizen){missing.push(name);return;}
+  before[name]={points:Number(citizen.careerPts)||0,rebounds:Number(citizen.careerRebs)||0};
+  after[name]={points:Math.max(before[name].points,targets[name].points),rebounds:Math.max(before[name].rebounds,targets[name].rebounds)};
+  players[name]=citizen;
+});
+if(missing.length){
+  window.__careerStatsReconciliation={version:"5.3.1",status:"skipped",reason:"Missing citizen record(s): "+missing.join(", ")+". No totals changed."};
+  console.error("Career stats reconciliation skipped.",window.__careerStatsReconciliation);
+  return;
+}
+let changed=false;
+Object.keys(targets).forEach(name=>{
+  if(after[name].points!==before[name].points||after[name].rebounds!==before[name].rebounds){
+    players[name].careerPts=after[name].points;
+    players[name].careerRebs=after[name].rebounds;
+    changed=true;
+  }
+});
+state.lionsRecoveredStatsFloorVersion=marker;
+state.lionsRecoveredStatsFloorAudit={
+  version:"5.3.1",at:new Date().toISOString(),
+  method:"raise-only verified minimum from 24 unique recovered individual box scores; no game rows edited",
+  verifiedGames:24,missingSeasons:[30,32],before,after,changed,
+  targets:{Diggs:{points:660,rebounds:684},Kap:{points:665,rebounds:692}}
+};
+let saved=false;
+try{saved=save()!==false;}catch(err){saved=false;}
+const stored=(()=>{try{
+  const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+  if(!raw||!Array.isArray(raw.citizens))return null;
+  const result={};
+  Object.keys(targets).forEach(name=>{
+    const c=raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()===name.toLowerCase());
+    if(c)result[name]={points:Number(c.careerPts)||0,rebounds:Number(c.careerRebs)||0};
+  });
+  return result;
+}catch(err){return null;}})();
+const verified=!!stored&&Object.keys(targets).every(name=>
+  Number(players[name].careerPts)===after[name].points&&
+  Number(players[name].careerRebs)===after[name].rebounds&&
+  stored[name]&&stored[name].points===after[name].points&&stored[name].rebounds===after[name].rebounds);
+window.__careerStatsReconciliation={
+  version:"5.3.1",status:verified?(changed?"saved-and-verified":"already-at-or-above-verified-minimum"):"save-or-persistence-verification-failed",
+  scope:"Diggs and Kap only",before,after,stored,saved,verifiedGames:24,missingSeasons:[30,32],
+  note:"These are verified minimums from recovered box scores, not complete career totals. Seasons 30 and 32 remain unresolved. Wall and all other players are untouched."
+};
+console.info("Calvin's City 5.3.1 career-stat reconciliation",window.__careerStatsReconciliation);
+if(!verified)console.error("Career stats were not fully persisted; inspect diagnostic before proceeding.",window.__careerStatsReconciliation);
+try{if(typeof render==="function")render();}catch(err){console.error("Roster refresh after career-stat reconciliation failed.",err);}
 })();
 })();
  
 /* VERSION 5.3.2 — Restore Kap's two known championship-game MVP awards.
-  Narrow one-time repair based on the user's confirmed historical fact that Kap
-  has two MVPs. Updates only Kap's citizen MVP count and the Lions PG roster MVP
-  count. Does not edit championship/game history, points, rebounds, titles,
-  contracts, cash, bets, or any other player. */
+ Narrow one-time repair based on the user's confirmed historical fact that Kap
+ has two MVPs. Updates only Kap's citizen MVP count and the Lions PG roster MVP
+ count. Does not edit championship/game history, points, rebounds, titles,
+ contracts, cash, bets, or any other player. */
 (function repairKapMvpCountOnce(){
- const marker="kap-career-mvp-count-recovery-v1";
- if(state.kapMvpCountRecoveryVersion===marker)return;
- const citizens=Array.isArray(state.citizens)?state.citizens:[];
- const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
- const roster=state.roster&&state.roster.Lions_PG;
- if(!kap){
-   window.__kapMvpRepairDiagnostic={version:"5.3.2",status:"skipped",reason:"Kap citizen record not found; no values changed."};
-   console.error("Kap MVP repair skipped.",window.__kapMvpRepairDiagnostic);
-   return;
- }
- const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null};
- kap.mvps=2;
- if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=2;
- state.kapMvpCountRecoveryVersion=marker;
- let saved=false;
- try{saved=save()!==false;}catch(err){saved=false;}
- let stored=null;
- try{
-   const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
-   if(raw){
-     const c=Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;
-     const r=raw.roster&&raw.roster.Lions_PG;
-     stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};
-   }
- }catch(err){stored={error:String(err&&err.message||err)};}
- const verified=Number(kap.mvps)===2&&(!roster||String(roster.name||"").trim().toLowerCase()!=="kap"||Number(roster.mvps)===2)&&!!stored&&stored.citizen===2&&(stored.roster===null||stored.roster===2);
- window.__kapMvpRepairDiagnostic={version:"5.3.2",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},stored,saved,verified,scope:"Kap MVP count only"};
- console.info("Calvin's City 5.3.3 Kap MVP repair",window.__kapMvpRepairDiagnostic);
- if(!verified)console.error("Kap MVP repair could not be fully verified.",window.__kapMvpRepairDiagnostic);
- try{if(typeof render==="function")render();}catch(err){console.error("Kap MVP roster refresh failed.",err);}
- try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Kap MVP dropdown refresh failed.",err);}
+const marker="kap-career-mvp-count-recovery-v1";
+if(state.kapMvpCountRecoveryVersion===marker)return;
+const citizens=Array.isArray(state.citizens)?state.citizens:[];
+const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
+const roster=state.roster&&state.roster.Lions_PG;
+if(!kap){
+  window.__kapMvpRepairDiagnostic={version:"5.3.2",status:"skipped",reason:"Kap citizen record not found; no values changed."};
+  console.error("Kap MVP repair skipped.",window.__kapMvpRepairDiagnostic);
+  return;
+}
+const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null};
+kap.mvps=2;
+if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=2;
+state.kapMvpCountRecoveryVersion=marker;
+let saved=false;
+try{saved=save()!==false;}catch(err){saved=false;}
+let stored=null;
+try{
+  const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+  if(raw){
+    const c=Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;
+    const r=raw.roster&&raw.roster.Lions_PG;
+    stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};
+  }
+}catch(err){stored={error:String(err&&err.message||err)};}
+const verified=Number(kap.mvps)===2&&(!roster||String(roster.name||"").trim().toLowerCase()!=="kap"||Number(roster.mvps)===2)&&!!stored&&stored.citizen===2&&(stored.roster===null||stored.roster===2);
+window.__kapMvpRepairDiagnostic={version:"5.3.2",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},stored,saved,verified,scope:"Kap MVP count only"};
+console.info("Calvin's City 5.3.3 Kap MVP repair",window.__kapMvpRepairDiagnostic);
+if(!verified)console.error("Kap MVP repair could not be fully verified.",window.__kapMvpRepairDiagnostic);
+try{if(typeof render==="function")render();}catch(err){console.error("Kap MVP roster refresh failed.",err);}
+try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Kap MVP dropdown refresh failed.",err);}
 })();
  
 /* 4.17.105: Championship awards now update Citizen/Arena/Ledger/Records.
@@ -6264,18 +6264,18 @@ if(pastOut){
 let history=[];
 if(liveState&&Array.isArray(liveState.citizens)){
 liveState.citizens.forEach(c=>{
- (Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{
-   if(!d||d.company!==company)return;
-   const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
-   const startYear=d.startYear==null?null:Number(d.startYear);
-   const endYear=d.endYear==null?null:Number(d.endYear);
-   // Ignore deals that have not started yet, even if a test/replacement marked them ended.
-   if(startYear!=null&&Number.isFinite(startYear)&&startYear>currentSeason)return;
-   // Past means ended only; active deals belong in Current Shoe Deals.
-   if(remaining>0)return;
-   if(endYear!=null&&Number.isFinite(endYear)&&endYear>currentSeason)return;
-   history.push({player:c.name,years:Number(d.originalYears||d.years||d.yearsRemaining)||0,value:Number(d.value)||0,startYear:startYear,endYear:endYear,remaining:remaining});
- });
+(Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{
+  if(!d||d.company!==company)return;
+  const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
+  const startYear=d.startYear==null?null:Number(d.startYear);
+  const endYear=d.endYear==null?null:Number(d.endYear);
+  // Ignore deals that have not started yet, even if a test/replacement marked them ended.
+  if(startYear!=null&&Number.isFinite(startYear)&&startYear>currentSeason)return;
+  // Past means ended only; active deals belong in Current Shoe Deals.
+  if(remaining>0)return;
+  if(endYear!=null&&Number.isFinite(endYear)&&endYear>currentSeason)return;
+  history.push({player:c.name,years:Number(d.originalYears||d.years||d.yearsRemaining)||0,value:Number(d.value)||0,startYear:startYear,endYear:endYear,remaining:remaining});
+});
 });
 }
 const seen=new Set();
@@ -7688,16 +7688,16 @@ if(changed)saveDB(db);
 return changed;
 }
 function priceAdjustment(previous,current){
-if(previous<=0)return current>0?5:0;
+if(previous<=0)return current>0?10:0;
 const growth=((current-previous)/previous)*100;
-/* Asymmetric fixed tiers: reward growth conservatively to reduce pump-and-dump swings,
-while applying progressively stronger penalties to material revenue declines. */
-if(growth>=20)return 7;
-if(growth>=10)return 5;
-if(growth>=1)return 2;
-if(growth<=-40)return -20;
-if(growth<=-30)return -15;
-if(growth<=-20)return -10;
+/* Balanced asymmetric fixed tiers: reward revenue growth more strongly while
+retaining downside penalties for declines. This changes share price only. */
+if(growth>=20)return 10;
+if(growth>=10)return 7;
+if(growth>=1)return 3;
+if(growth<=-40)return -15;
+if(growth<=-30)return -12;
+if(growth<=-20)return -8;
 if(growth<=-10)return -5;
 if(growth<=-1)return -2;
 return 0;
@@ -7733,7 +7733,7 @@ const out=$("stockAnnualReports");if(!out)return;
 if(!db.annualReports.length){out.innerHTML='<p class="muted">Annual reports appear after a season is completed.</p>';return;}
 const latestSeason=Math.max(...db.annualReports.map(r=>Number(r.season)||0));
 const reports=db.annualReports.filter(r=>Number(r.season)===latestSeason);
-out.innerHTML='<h4>Season '+latestSeason+' Company Reports</h4><div style="overflow-x:auto"><table><thead><tr><th>Company</th><th>Annual revenue</th><th>Previous revenue</th><th>Revenue growth</th><th>Share price move</th><th>New price</th></tr></thead><tbody>'+reports.map(r=>'<tr><td>'+esc(r.company)+'</td><td>'+(r.revenueTracked?money(r.revenue):'<span class="muted">Not tracked</span>')+'</td><td>'+(r.previousRevenue==null?"—":money(r.previousRevenue))+'</td><td>'+(r.revenueGrowthPct==null?(r.baseline?"Baseline":"—"):pct(r.revenueGrowthPct))+'</td><td>'+pct(r.priceChangePct)+(r.baseline?" (baseline)":"")+'</td><td>'+money(r.priceAfter)+'</td></tr>').join("")+'</tbody></table></div><p class="tiny">Asymmetric fixed tiers: growth ≥20% → +7%; growth 10% to 19.99% → +5%; growth 1% to 9.99% → +2%; changes between −1% and +1% → 0%; decline 1% to 9.99% → −2%; decline 10% to 19.99% → −5%; decline 20% to 29.99% → −10%; decline 30% to 39.99% → −15%; decline ≥40% → −20%. Upside is deliberately capped below major downside penalties to discourage pump-and-dump swings. The first recorded revenue report establishes a baseline and does not move price.</p>';
+out.innerHTML='<h4>Season '+latestSeason+' Company Reports</h4><div style="overflow-x:auto"><table><thead><tr><th>Company</th><th>Annual revenue</th><th>Previous revenue</th><th>Revenue growth</th><th>Share price move</th><th>New price</th></tr></thead><tbody>'+reports.map(r=>'<tr><td>'+esc(r.company)+'</td><td>'+(r.revenueTracked?money(r.revenue):'<span class="muted">Not tracked</span>')+'</td><td>'+(r.previousRevenue==null?"—":money(r.previousRevenue))+'</td><td>'+(r.revenueGrowthPct==null?(r.baseline?"Baseline":"—"):pct(r.revenueGrowthPct))+'</td><td>'+pct(r.priceChangePct)+(r.baseline?" (baseline)":"")+'</td><td>'+money(r.priceAfter)+'</td></tr>').join("")+'</tbody></table></div><p class="tiny">Balanced asymmetric fixed tiers: growth ≥20% → +10%; growth 10% to 19.99% → +7%; growth 1% to 9.99% → +3%; changes between −1% and +1% → 0%; decline 1% to 9.99% → −2%; decline 10% to 19.99% → −5%; decline 20% to 29.99% → −8%; decline 30% to 39.99% → −12%; decline ≥40% → −15%. Growth is rewarded more strongly while meaningful declines still reduce price. The first recorded revenue report establishes a baseline and does not move price.</p>';
 }
 function renderRegister(){
 const sel=$("stockRegisterCompany"),out=$("stockShareholderRegister");if(!sel||!out)return;
@@ -8077,57 +8077,57 @@ if(!parsed||parsed.format!==PREFIX||parsed.formatVersion!==1||!parsed.entries||t
 const keys=Object.keys(parsed.entries);if(!keys.length||keys.some(k=>!relevantKey(k)||typeof parsed.entries[k]!=="string"))throw new Error("Backup contents failed validation. No data was changed.");
 if(!confirm("Restore this Calvin’s City backup from "+(parsed.exportedAt||"an unknown date")+"?\n\nThe selected JSON file will replace Calvin’s City browser data. Keep this downloaded JSON file as your recovery copy. The restored game will return to the season and records saved in that file."))return;
 /* 4.29.21: Keep the pre-import recovery copy in memory, not localStorage.
- Duplicating the entire database under a recovery key can itself exceed iOS Safari's quota. */
+Duplicating the entire database under a recovery key can itself exceed iOS Safari's quota. */
 const current=capture();
 const before={...current.entries};
 /* 4.29.38 storage-quota import repair:
- Build a compact import before touching the browser. Keep the downloaded JSON
- as the full recovery copy. Remove only duplicate BETS copies that are provably
- redundant; retain the main state, permanent records, pending imports, and the
- recovery snapshot's actual state. */
+Build a compact import before touching the browser. Keep the downloaded JSON
+as the full recovery copy. Remove only duplicate BETS copies that are provably
+redundant; retain the main state, permanent records, pending imports, and the
+recovery snapshot's actual state. */
 const restoreEntries={...parsed.entries};
 /* 5.1.6: Preflight browser storage and compact only a provably redundant financial
- mirror from the incoming restore payload. Do not delete existing game keys as a
- generic quota workaround: rollback and historical records must remain protected. */
+mirror from the incoming restore payload. Do not delete existing game keys as a
+generic quota workaround: rollback and historical records must remain protected. */
 try{
 const mainRaw=restoreEntries["calvins_city_v24"];
 const mirrorRaw=restoreEntries["calvins_city_financial_transactions_v1"];
 if(typeof mainRaw==="string"&&typeof mirrorRaw==="string"){
-  const main=JSON.parse(mainRaw), mp=JSON.parse(mirrorRaw);
-  const mirror=Array.isArray(mp)?mp:(mp&&Array.isArray(mp.transactions)?mp.transactions:null);
-  const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTransactions:null;
-  if(mirror&&canonical&&mirror.length===canonical.length){
-    const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
-    const exact=byId.size===mirror.length&&mirror.every(t=>{
-      if(!t||t.transaction_id==null)return false;
-      const saved=byId.get(String(t.transaction_id));
-      return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
-    });
-    if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
-  }
+ const main=JSON.parse(mainRaw), mp=JSON.parse(mirrorRaw);
+ const mirror=Array.isArray(mp)?mp:(mp&&Array.isArray(mp.transactions)?mp.transactions:null);
+ const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTransactions:null;
+ if(mirror&&canonical&&mirror.length===canonical.length){
+   const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
+   const exact=byId.size===mirror.length&&mirror.every(t=>{
+     if(!t||t.transaction_id==null)return false;
+     const saved=byId.get(String(t.transaction_id));
+     return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
+   });
+   if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
+ }
 }
 }catch(preflightError){console.warn("5.1.6 import preflight retained financial mirror because exact duplication could not be verified.",preflightError);}
 /* 5.1.4: Remove the separate financial mirror from the restore payload only when
- every mirrored transaction is already present byte-for-byte in the main state's
- canonical financialTransactions array. The main state remains authoritative. */
+every mirrored transaction is already present byte-for-byte in the main state's
+canonical financialTransactions array. The main state remains authoritative. */
 try{
 const mainRaw=restoreEntries["calvins_city_v24"];
 const mirrorRaw=restoreEntries["calvins_city_financial_transactions_v1"];
 if(typeof mainRaw==="string"&&typeof mirrorRaw==="string"){
-  const main=JSON.parse(mainRaw);
-  const mirrorParsed=JSON.parse(mirrorRaw);
-  const mirror=Array.isArray(mirrorParsed)?mirrorParsed:
-    (mirrorParsed&&Array.isArray(mirrorParsed.transactions)?mirrorParsed.transactions:null);
-  const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTransactions:null;
-  if(mirror&&canonical&&mirror.length===canonical.length){
-    const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
-    const exact=byId.size===mirror.length&&mirror.every(t=>{
-      if(!t||t.transaction_id==null)return false;
-      const saved=byId.get(String(t.transaction_id));
-      return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
-    });
-    if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
-  }
+ const main=JSON.parse(mainRaw);
+ const mirrorParsed=JSON.parse(mirrorRaw);
+ const mirror=Array.isArray(mirrorParsed)?mirrorParsed:
+   (mirrorParsed&&Array.isArray(mirrorParsed.transactions)?mirrorParsed.transactions:null);
+ const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTransactions:null;
+ if(mirror&&canonical&&mirror.length===canonical.length){
+   const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
+   const exact=byId.size===mirror.length&&mirror.every(t=>{
+     if(!t||t.transaction_id==null)return false;
+     const saved=byId.get(String(t.transaction_id));
+     return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
+   });
+   if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
+ }
 }
 }catch(financialMirrorCheckError){console.warn("Financial mirror retained because exact duplication could not be verified.",financialMirrorCheckError);}
 const primaryBets=restoreEntries["calvins_city_bets_v1"];
@@ -8137,38 +8137,38 @@ delete restoreEntries["calvins_city_bets_backup_v1"];
 }
 const subsetById=(newerRaw,olderRaw)=>{
 try{
-  const newer=JSON.parse(newerRaw),older=JSON.parse(olderRaw);
-  const fields=[["games","id"],["bets","id"],["sportsBetsInterestAccruals","gameId"],["sportsBetsDebtIssues","id"],["sportsBetsCashTransactions","id"]];
-  if(!newer||!older||!Array.isArray(newer.games)||!Array.isArray(older.games))return false;
-  return fields.every(([field,key])=>{
-    const current=new Set((newer[field]||[]).filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
-    return (older[field]||[]).filter(x=>x&&x[key]!=null).every(x=>current.has(String(x[key])));
-  });
+ const newer=JSON.parse(newerRaw),older=JSON.parse(olderRaw);
+ const fields=[["games","id"],["bets","id"],["sportsBetsInterestAccruals","gameId"],["sportsBetsDebtIssues","id"],["sportsBetsCashTransactions","id"]];
+ if(!newer||!older||!Array.isArray(newer.games)||!Array.isArray(older.games))return false;
+ return fields.every(([field,key])=>{
+   const current=new Set((newer[field]||[]).filter(x=>x&&x[key]!=null).map(x=>String(x[key])));
+   return (older[field]||[]).filter(x=>x&&x[key]!=null).every(x=>current.has(String(x[key])));
+ });
 }catch(_){return false;}
 };
 const recoveryKey="calvins_city_pre_season29_restore_4_24_53";
 try{
 const snapRaw=restoreEntries[recoveryKey];
 if(typeof snapRaw==="string"&&typeof primaryBets==="string"){
-  const snap=JSON.parse(snapRaw);
-  let changed=false;
-  if(typeof snap.betsRaw==="string"&&subsetById(primaryBets,snap.betsRaw)){delete snap.betsRaw;changed=true;}
-  if(typeof snap.betsBackupRaw==="string"&&subsetById(primaryBets,snap.betsBackupRaw)){delete snap.betsBackupRaw;changed=true;}
-  if(changed){
-    snap.storageQuotaCompaction={
-      version:"4.29.38",
-      note:"Removed only embedded BETS copies whose identified records are all present in the restored primary BETS database. Kept snapshot state, pending import, and downloaded JSON unchanged."
-    };
-    restoreEntries[recoveryKey]=JSON.stringify(snap);
-  }
+ const snap=JSON.parse(snapRaw);
+ let changed=false;
+ if(typeof snap.betsRaw==="string"&&subsetById(primaryBets,snap.betsRaw)){delete snap.betsRaw;changed=true;}
+ if(typeof snap.betsBackupRaw==="string"&&subsetById(primaryBets,snap.betsBackupRaw)){delete snap.betsBackupRaw;changed=true;}
+ if(changed){
+   snap.storageQuotaCompaction={
+     version:"4.29.38",
+     note:"Removed only embedded BETS copies whose identified records are all present in the restored primary BETS database. Kept snapshot state, pending import, and downloaded JSON unchanged."
+   };
+   restoreEntries[recoveryKey]=JSON.stringify(snap);
+ }
 }
 }catch(compactError){console.warn("Recovery snapshot was retained without compaction:",compactError);}
  
 /* 4.29.39 SAFE IMPORT QUOTA GUARD:
- localStorage stores strings in browser-managed storage, often with substantial
- per-origin overhead. Keep the canonical live state and ledgers. Recovery snapshots
- remain in the user's original downloaded JSON; do not force-write redundant snapshots
- into a quota-limited browser store. Never remove history from the canonical ledgers. */
+localStorage stores strings in browser-managed storage, often with substantial
+per-origin overhead. Keep the canonical live state and ledgers. Recovery snapshots
+remain in the user's original downloaded JSON; do not force-write redundant snapshots
+into a quota-limited browser store. Never remove history from the canonical ledgers. */
 const canonicalKeys = new Set([
 "calvins_city_v24",
 "calvins_city_stock_market_v1",
@@ -8187,53 +8187,53 @@ if (!canonicalPresent.includes("calvins_city_v24")) {
 throw new Error("Import stopped safely: the main game state is missing. Existing saved data was not changed.");
 }
 /* Do not discard snapshots unless the estimated payload is too large. In that case,
- retain a single latest recovery snapshot only if one is present; the untouched
- downloaded JSON remains the complete archival copy. */
+retain a single latest recovery snapshot only if one is present; the untouched
+downloaded JSON remains the complete archival copy. */
 if (estimateStorageChars(restoreEntries) > 1800000) {
 const snapshots = recoveryKeys.filter(k => Object.prototype.hasOwnProperty.call(restoreEntries,k));
 snapshots.forEach(k => { delete restoreEntries[k]; });
 if (snapshots.length) {
-  console.warn("Import quota guard: recovery snapshots were left in the untouched downloaded JSON rather than duplicated into browser storage.", snapshots);
+ console.warn("Import quota guard: recovery snapshots were left in the untouched downloaded JSON rather than duplicated into browser storage.", snapshots);
 }
 }
 /* The prior import tried to write new values on top of the full existing site,
- then tried to restore another full copy after quota failure. Instead, once the
- user confirms import, replace the matching app keys in-place. The downloaded
- JSON is the durable recovery source; keeping an extra full browser copy would
- require more storage than Safari has available. */
+then tried to restore another full copy after quota failure. Instead, once the
+user confirms import, replace the matching app keys in-place. The downloaded
+JSON is the durable recovery source; keeping an extra full browser copy would
+require more storage than Safari has available. */
 try{
 const allExistingKeys=[];
 for(let i=0;i<localStorage.length;i++){
-  const k=localStorage.key(i);
-  if(k&&relevantKey(k))allExistingKeys.push(k);
+ const k=localStorage.key(i);
+ if(k&&relevantKey(k))allExistingKeys.push(k);
 }
 allExistingKeys.forEach(k=>localStorage.removeItem(k));
 /* Put main state and the primary BETS ledger first, then the remaining data. */
 const priority=["calvins_city_v24","calvins_city_bets_v1"];
 const ordered=Object.keys(restoreEntries).sort((x,y)=>{
-  const ix=priority.indexOf(x),iy=priority.indexOf(y);
-  return (ix<0?99:ix)-(iy<0?99:iy);
+ const ix=priority.indexOf(x),iy=priority.indexOf(y);
+ return (ix<0?99:ix)-(iy<0?99:iy);
 });
 for(const k of ordered)localStorage.setItem(k,restoreEntries[k]);
 for(const k of ordered){
-  if(localStorage.getItem(k)!==restoreEntries[k])throw new Error("Stored value verification failed for "+k);
+ if(localStorage.getItem(k)!==restoreEntries[k])throw new Error("Stored value verification failed for "+k);
 }
 const mainRaw=localStorage.getItem("calvins_city_v24");
 if(!mainRaw)throw new Error("Main game state is missing after restore.");
 const main=JSON.parse(mainRaw);
 /* 5.0: Import validation remains separate from the startup career-stat repair below.
-   The imported game state is saved first; startup then normalizes only verified Lions totals. */
+  The imported game state is saved first; startup then normalizes only verified Lions totals. */
 if(!Number.isFinite(Number(main.year))||Number(main.year)<29||!Array.isArray(main.gamesPlayed)||main.gamesPlayed.length<1)
-  throw new Error("Restored state does not contain a valid season (29 or later) and played games.");
+ throw new Error("Restored state does not contain a valid season (29 or later) and played games.");
 const betsRaw=localStorage.getItem("calvins_city_bets_v1");
 if(betsRaw){
-  const bets=JSON.parse(betsRaw);
-  if(!Array.isArray(bets.games)||bets.games.length<1)throw new Error("Betting history verification failed.");
+ const bets=JSON.parse(betsRaw);
+ if(!Array.isArray(bets.games)||bets.games.length<1)throw new Error("Betting history verification failed.");
 }
 }catch(writeError){
 /* Do not attempt a second large rollback write: that caused the same quota
-   failure and can overwrite the original error. The selected JSON file is
-   still the complete recovery source; report exactly what failed. */
+  failure and can overwrite the original error. The selected JSON file is
+  still the complete recovery source; report exactly what failed. */
 throw new Error("Import could not finish writing the selected backup. Your downloaded JSON remains unchanged. Keep this file safe and do not reset the game. Storage preflight was applied where safe. Details: "+writeError.message);
 }
 if(status())status().textContent="Backup values verified, including played Season 29 games and betting history. Reloading…";
@@ -8245,7 +8245,7 @@ setTimeout(()=>location.reload(),250);
 </script>
 <script>
 /* CALVIN'S CITY 5.2.0 — independent CalSims consumer economy and Shoe Store retail.
-  All records live in the canonical game state so normal backups include them. */
+ All records live in the canonical game state so normal backups include them. */
 (function(){
 "use strict";
 const companies=["Nike","Reebok","Puma","Adidas","New Balance"];
@@ -8286,19 +8286,19 @@ const led=el("shoeRetailLedger");if(led){const rows=c.retailLedger.slice(-10).re
 function activePlayersForCompany(st,company){
 const season=Math.max(0,Number(st&&st.year)||0),found=[];
 (Array.isArray(st&&st.citizens)?st.citizens:[]).forEach(c=>{
-  if(!c||!c.name||String(c.status||"").toLowerCase()==="retired")return;
-  (Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{
-    if(!d||d.company!==company)return;
-    const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
-    const start=d.startYear==null?null:Number(d.startYear);
-    if(remaining>0&&(start==null||!Number.isFinite(start)||start<=season))found.push(String(c.name));
-  });
+ if(!c||!c.name||String(c.status||"").toLowerCase()==="retired")return;
+ (Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{
+   if(!d||d.company!==company)return;
+   const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0;
+   const start=d.startYear==null?null:Number(d.startYear);
+   if(remaining>0&&(start==null||!Number.isFinite(start)||start<=season))found.push(String(c.name));
+ });
 });
 // Older/current contract records can exist even when a citizen's convenience list is incomplete.
 (Array.isArray(st&&st.shoeDealContracts)?st.shoeDealContracts:[]).forEach(d=>{
-  if(!d||d.company!==company||String(d.status||"active").toLowerCase()!=="active")return;
-  const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0,start=d.startYear==null?null:Number(d.startYear);
-  if(remaining>0&&(start==null||!Number.isFinite(start)||start<=season)&&d.player)found.push(String(d.player));
+ if(!d||d.company!==company||String(d.status||"active").toLowerCase()!=="active")return;
+ const remaining=Number(d.yearsRemaining!=null?d.yearsRemaining:d.years)||0,start=d.startYear==null?null:Number(d.startYear);
+ if(remaining>0&&(start==null||!Number.isFinite(start)||start<=season)&&d.player)found.push(String(d.player));
 });
 return Array.from(new Set(found)).sort((a,b)=>a.localeCompare(b));
 }
@@ -8323,15 +8323,15 @@ return !!(player&&String(player.status||player.careerStatus||"").toLowerCase()==
 function handleModelAction(action,id){
 const st=getState();if(!st){alert("Live game data is unavailable. No shoe model was changed.");return;}const c=ensure(st),m=c.models.find(x=>x&&String(x.id)===String(id));if(!m){alert("This shoe model could not be found. No changes were made.");return;}
 if(action==="pause"){
-  if(String(m.status||"active")==="paused"){m.status="active";m.resumedAt=new Date().toISOString();}else{m.status="paused";m.pausedAt=new Date().toISOString();}
-  if(!save()){alert("Storage did not confirm the model status change. Check the save warning before retrying.");return;}render();return;
+ if(String(m.status||"active")==="paused"){m.status="active";m.resumedAt=new Date().toISOString();}else{m.status="paused";m.pausedAt=new Date().toISOString();}
+ if(!save()){alert("Storage did not confirm the model status change. Check the save warning before retrying.");return;}render();return;
 }
 if(action==="retro"){
-  if(m.isRetro){alert("This shoe model has already been retroed.");return;}
-  if(!m.playerAssociation||!retiredPlayer(st,m.playerAssociation)){alert("A shoe can only be retroed when its associated player is retired. This model has not been changed.");return;}
-  if(!confirm("Retro "+m.name+" for retired player "+m.playerAssociation+"? The original company, price, player association and sales history will be preserved."))return;
-  m.isRetro=true;m.retroSeason=Number(st.year)||29;m.retroAt=new Date().toISOString();
-  if(!save()){alert("Storage did not confirm the retro status. Check the save warning before retrying.");return;}render();return;
+ if(m.isRetro){alert("This shoe model has already been retroed.");return;}
+ if(!m.playerAssociation||!retiredPlayer(st,m.playerAssociation)){alert("A shoe can only be retroed when its associated player is retired. This model has not been changed.");return;}
+ if(!confirm("Retro "+m.name+" for retired player "+m.playerAssociation+"? The original company, price, player association and sales history will be preserved."))return;
+ m.isRetro=true;m.retroSeason=Number(st.year)||29;m.retroAt=new Date().toISOString();
+ if(!save()){alert("Storage did not confirm the retro status. Check the save warning before retrying.");return;}render();return;
 }
 }
 function release(){
@@ -8347,11 +8347,11 @@ const model={id,company,name,playerAssociation:player,tier,developmentCost:cost,
 st.businessCashLedger.push({id:id+"-DEV",season,type:"Shoe Model Development Cost",company,amount:-cost,before,after:developmentAfter,reason:"Upfront development of "+tiers[tier].label+" shoe model: "+name,createdAt,accountType:"business"});
 let boostResult="No launch boost selected.";
 if(boost.fee>0){
-  const attemptId="SHOE-BOOST-"+season+"-"+company.replace(/[^a-z0-9]/gi,"")+"-"+id,success=Math.random()*100<boost.chance,storeBefore=Number(st.businessCash["Shoe Store"])||0,companyAfter=Math.round((Number(st.businessCash[company])-boost.fee)*100)/100,storeAfter=Math.round((storeBefore+boost.fee)*100)/100;
-  st.businessCash[company]=companyAfter;st.businessCash["Shoe Store"]=storeAfter;c.boostAttempts.push({id:attemptId,company,modelId:id,season,tier:boostTier,fee:boost.fee,chance:boost.chance,success,createdAt});
-  st.businessCashLedger.push({id:attemptId+"-COMPANY",season,type:"Shoe Model Promotion Fee",company,amount:-boost.fee,before:developmentAfter,after:companyAfter,reason:boost.label+" launch boost attempt for "+name+" ("+boost.chance+"% chance)",createdAt,accountType:"business"});
-  st.businessCashLedger.push({id:attemptId+"-STORE",season,type:"Shoe Promotion Revenue",company:"Shoe Store",amount:boost.fee,before:storeBefore,after:storeAfter,reason:"Promotion fee for "+company+" model "+name,createdAt,accountType:"business"});
-  if(success){model.popularity=70;model.boostBonus=20;model.boostUntilSeason=season+1;model.boostBonusActive=true;boostResult=boost.label+" boost succeeded: popularity increased by 20 points for two seasons.";}else boostResult=boost.label+" boost failed. The fee was not refunded, and this company cannot retry a boost this season.";
+ const attemptId="SHOE-BOOST-"+season+"-"+company.replace(/[^a-z0-9]/gi,"")+"-"+id,success=Math.random()*100<boost.chance,storeBefore=Number(st.businessCash["Shoe Store"])||0,companyAfter=Math.round((Number(st.businessCash[company])-boost.fee)*100)/100,storeAfter=Math.round((storeBefore+boost.fee)*100)/100;
+ st.businessCash[company]=companyAfter;st.businessCash["Shoe Store"]=storeAfter;c.boostAttempts.push({id:attemptId,company,modelId:id,season,tier:boostTier,fee:boost.fee,chance:boost.chance,success,createdAt});
+ st.businessCashLedger.push({id:attemptId+"-COMPANY",season,type:"Shoe Model Promotion Fee",company,amount:-boost.fee,before:developmentAfter,after:companyAfter,reason:boost.label+" launch boost attempt for "+name+" ("+boost.chance+"% chance)",createdAt,accountType:"business"});
+ st.businessCashLedger.push({id:attemptId+"-STORE",season,type:"Shoe Promotion Revenue",company:"Shoe Store",amount:boost.fee,before:storeBefore,after:storeAfter,reason:"Promotion fee for "+company+" model "+name,createdAt,accountType:"business"});
+ if(success){model.popularity=70;model.boostBonus=20;model.boostUntilSeason=season+1;model.boostBonusActive=true;boostResult=boost.label+" boost succeeded: popularity increased by 20 points for two seasons.";}else boostResult=boost.label+" boost failed. The fee was not refunded, and this company cannot retry a boost this season.";
 }
 if(!save()){msg.textContent="Storage did not confirm the save. Do not retry yet; check the app's save warning and verify the model list.";return;}
 el("shoeModelName").value="";el("shoeModelPlayer").value="";el("shoeModelPrice").value="";if(el("shoeModelBoost"))el("shoeModelBoost").value="none";msg.textContent="Released "+name+" at the company-selected price of $"+price.toLocaleString("en-US")+" per pair. Development cost paid: "+money(cost)+". "+boostResult;render();
@@ -8364,17 +8364,17 @@ if(c.processedGameCycles.includes(key))return {ok:true,duplicate:true,cycle:c.cy
 // Record the game key before calculating sales so a repeated callback cannot charge consumers twice.
 c.processedGameCycles.push(key);
 /* CalSims interest is part of this existing transaction/save, not a second app-wide save.
-  It changes only CalSims total/spendable cash and the CalSims interest ledger. */
+ It changes only CalSims total/spendable cash and the CalSims interest ledger. */
 const interestRate=0.02;
 const interestBase=Math.max(0,Number(c.totalCash)||0);
 const interestAmount=Math.round(interestBase*interestRate*100)/100;
 if(interestAmount>0){
 const interestId="CALSIMS-INTEREST-"+key;
 if(!c.interestLedger.some(row=>row&&row.id===interestId)){
- const totalBefore=Number(c.totalCash)||0,spendableBefore=Number(c.spendableCash)||0;
- c.totalCash=Math.round((totalBefore+interestAmount)*100)/100;
- c.spendableCash=Math.round((spendableBefore+interestAmount)*100)/100;
- c.interestLedger.push({id:interestId,gameKey:key,season,rate:interestRate,rateLabel:"2% per completed game",baseCash:interestBase,amount:interestAmount,totalBefore,totalAfter:c.totalCash,spendableBefore,spendableAfter:c.spendableCash,reserveCash:Number(c.reserveCash)||0,createdAt:new Date().toISOString(),type:"CalSims Interest Income"});
+const totalBefore=Number(c.totalCash)||0,spendableBefore=Number(c.spendableCash)||0;
+c.totalCash=Math.round((totalBefore+interestAmount)*100)/100;
+c.spendableCash=Math.round((spendableBefore+interestAmount)*100)/100;
+c.interestLedger.push({id:interestId,gameKey:key,season,rate:interestRate,rateLabel:"2% per completed game",baseCash:interestBase,amount:interestAmount,totalBefore,totalAfter:c.totalCash,spendableBefore,spendableAfter:c.spendableCash,reserveCash:Number(c.reserveCash)||0,createdAt:new Date().toISOString(),type:"CalSims Interest Income"});
 }
 }
 c.models.forEach(m=>{if(m&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBonusActive=false;m.boostExpiredSeason=season;}});
@@ -8383,23 +8383,23 @@ const models=c.models.filter(m=>m&&String(m.status||"active")==="active"&&!m.isR
 let unitsRemaining=Math.max(0,Math.floor(consumers*0.015)),totalUnits=0,totalRevenue=0,companyPayouts=0,storePayout=0;
 const storeBefore=Number(st.businessCash["Shoe Store"])||0;
 if(models.length&&Number(c.spendableCash)>0&&unitsRemaining>0){
- const potential=unitsRemaining,weights=models.map(m=>Math.max(1,Number(m.popularity)||50)/Math.pow(Math.max(0.01,Number(m.price)),0.7)),weightSum=weights.reduce((a,b)=>a+b,0);
- models.forEach((m,i)=>{
-  const ideal=Math.floor(potential*weights[i]/weightSum),affordable=Math.floor((Number(c.spendableCash)||0)*1000000/Number(m.price)),units=Math.max(0,Math.min(ideal,affordable,unitsRemaining));if(!units)return;
-  const revenue=Math.round((units*Number(m.price)/1000000)*100)/100,companyShare=Math.round(revenue*0.70*100)/100,storeShare=Math.round((revenue-companyShare)*100)/100;
-  const before=Number(st.businessCash[m.company])||0,at=new Date().toISOString(),saleId="CALSIMS-SALE-"+cycle+"-"+m.id;
-  m.unitsSold=(Number(m.unitsSold)||0)+units;m.retailRevenue=Math.round(((Number(m.retailRevenue)||0)+revenue)*100)/100;m.popularity=Math.max(1,Math.min(100,(Number(m.popularity)||50)+(revenue>0?2:-1)));
-  c.spendableCash=Math.max(0,Math.round((Number(c.spendableCash)-revenue)*100)/100);c.totalCash=Math.max(Number(c.reserveCash)||0,Math.round((Number(c.totalCash)-revenue)*100)/100);
-  st.businessCash[m.company]=Math.round((before+companyShare)*100)/100;st.businessCash["Shoe Store"]=Math.round(((Number(st.businessCash["Shoe Store"])||0)+storeShare)*100)/100;
-  c.retailLedger.push({id:saleId,cycle,gameKey:key,season,modelId:m.id,modelName:m.name,company:m.company,units,revenue,companyShare,storeShare,createdAt:at});
-  st.businessCashLedger.push({id:saleId+"-COMPANY",season,type:"CalSims Shoe Retail Revenue",company:m.company,amount:companyShare,before,after:st.businessCash[m.company],reason:"70% company share of "+units.toLocaleString("en-US")+" retail units for "+m.name,createdAt:at,accountType:"business"});
-  totalUnits+=units;totalRevenue+=revenue;companyPayouts+=companyShare;storePayout+=storeShare;unitsRemaining=Math.max(0,unitsRemaining-units);
- });
+const potential=unitsRemaining,weights=models.map(m=>Math.max(1,Number(m.popularity)||50)/Math.pow(Math.max(0.01,Number(m.price)),0.7)),weightSum=weights.reduce((a,b)=>a+b,0);
+models.forEach((m,i)=>{
+ const ideal=Math.floor(potential*weights[i]/weightSum),affordable=Math.floor((Number(c.spendableCash)||0)*1000000/Number(m.price)),units=Math.max(0,Math.min(ideal,affordable,unitsRemaining));if(!units)return;
+ const revenue=Math.round((units*Number(m.price)/1000000)*100)/100,companyShare=Math.round(revenue*0.70*100)/100,storeShare=Math.round((revenue-companyShare)*100)/100;
+ const before=Number(st.businessCash[m.company])||0,at=new Date().toISOString(),saleId="CALSIMS-SALE-"+cycle+"-"+m.id;
+ m.unitsSold=(Number(m.unitsSold)||0)+units;m.retailRevenue=Math.round(((Number(m.retailRevenue)||0)+revenue)*100)/100;m.popularity=Math.max(1,Math.min(100,(Number(m.popularity)||50)+(revenue>0?2:-1)));
+ c.spendableCash=Math.max(0,Math.round((Number(c.spendableCash)-revenue)*100)/100);c.totalCash=Math.max(Number(c.reserveCash)||0,Math.round((Number(c.totalCash)-revenue)*100)/100);
+ st.businessCash[m.company]=Math.round((before+companyShare)*100)/100;st.businessCash["Shoe Store"]=Math.round(((Number(st.businessCash["Shoe Store"])||0)+storeShare)*100)/100;
+ c.retailLedger.push({id:saleId,cycle,gameKey:key,season,modelId:m.id,modelName:m.name,company:m.company,units,revenue,companyShare,storeShare,createdAt:at});
+ st.businessCashLedger.push({id:saleId+"-COMPANY",season,type:"CalSims Shoe Retail Revenue",company:m.company,amount:companyShare,before,after:st.businessCash[m.company],reason:"70% company share of "+units.toLocaleString("en-US")+" retail units for "+m.name,createdAt:at,accountType:"business"});
+ totalUnits+=units;totalRevenue+=revenue;companyPayouts+=companyShare;storePayout+=storeShare;unitsRemaining=Math.max(0,unitsRemaining-units);
+});
 }
 c.cycleCount=cycle;
 if(totalUnits>0){
- const storeAfter=Number(st.businessCash["Shoe Store"])||0;
- st.businessCashLedger.push({id:"CALSIMS-STORE-CYCLE-"+cycle,season,type:"CalSims Retail Revenue",company:"Shoe Store",amount:storePayout,before:storeBefore,after:storeAfter,reason:"30% retail share from CalSims shoe sales in cycle "+cycle,createdAt:new Date().toISOString(),accountType:"business"});
+const storeAfter=Number(st.businessCash["Shoe Store"])||0;
+st.businessCashLedger.push({id:"CALSIMS-STORE-CYCLE-"+cycle,season,type:"CalSims Retail Revenue",company:"Shoe Store",amount:storePayout,before:storeBefore,after:storeAfter,reason:"30% retail share from CalSims shoe sales in cycle "+cycle,createdAt:new Date().toISOString(),accountType:"business"});
 }
 if(!save()){if(msg)msg.textContent="CalSims processed this game in memory, but storage did not confirm the save. Do not replay the game; check the app save warning and verify the ledgers.";return {ok:false,reason:"save-unconfirmed",cycle};}
 if(msg){const interestMessage=" CalSims earned "+money(interestAmount)+" in interest (2% of "+money(interestBase)+").";msg.textContent=totalUnits?"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Shoe Store received "+money(storePayout)+". Spendable consumer cash remaining: "+money(c.spendableCash)+".":"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" No purchases occurred this game; consumers may skip buying, no active models may be available, or spendable cash may be exhausted.";}
@@ -8422,31 +8422,31 @@ render();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(init,0));else setTimeout(init,0);
 /* 5.3.4: Late, idempotent Kap MVP correction after normal app initialization.
-  Uses the live-state bridge because this script block cannot access the main
-  script's lexical `state` binding. Changes only Kap's MVP totals. */
+ Uses the live-state bridge because this script block cannot access the main
+ script's lexical `state` binding. Changes only Kap's MVP totals. */
 function finalizeKapMvpAfterStartup(){
- try{
-   /* This code runs in a separate script block from the main `let state`.
-      Read the authoritative live state through the bridge instead of relying
-      on the main script's lexical binding. */
-   const bridge=window.__calvinsCityBridge;
-   const st=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
-   if(!st){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"skipped",reason:"Live state bridge unavailable"};return;}
-   const citizens=Array.isArray(st.citizens)?st.citizens:[];
-   const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
-   const roster=st.roster&&st.roster.Lions_PG;
-   if(!kap){window.__kapMvpRepairDiagnostic533={version:"5.3.3",status:"skipped",reason:"Kap citizen record not found"};return;}
-   const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null};
-   kap.mvps=Math.max(2,Number(kap.mvps)||0);
-   if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=Math.max(2,Number(roster.mvps)||0);
-   st.kapMvpCountRecoveryVersion="kap-career-mvp-count-recovery-v2";
-   let saved=false;try{saved=save()!==false;}catch(e){}
-   let stored=null;try{const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");const c=raw&&Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;const r=raw&&raw.roster&&raw.roster.Lions_PG;stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};}catch(e){stored={error:String(e&&e.message||e)};}
-   const verified=!!stored&&stored.citizen>=2&&(stored.roster===null||stored.roster>=2);
-   window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null},stored,saved,verified,scope:"Kap MVP count only"};
-   console.info("Calvin's City 5.3.4 late Kap MVP verification",window.__kapMvpRepairDiagnostic533);
-   try{if(typeof render==="function")render();}catch(e){}
- }catch(err){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"error",reason:String(err&&err.message||err)};console.error("Kap MVP late repair error",window.__kapMvpRepairDiagnostic533);}
+try{
+  /* This code runs in a separate script block from the main `let state`.
+     Read the authoritative live state through the bridge instead of relying
+     on the main script's lexical binding. */
+  const bridge=window.__calvinsCityBridge;
+  const st=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
+  if(!st){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"skipped",reason:"Live state bridge unavailable"};return;}
+  const citizens=Array.isArray(st.citizens)?st.citizens:[];
+  const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
+  const roster=st.roster&&st.roster.Lions_PG;
+  if(!kap){window.__kapMvpRepairDiagnostic533={version:"5.3.3",status:"skipped",reason:"Kap citizen record not found"};return;}
+  const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null};
+  kap.mvps=Math.max(2,Number(kap.mvps)||0);
+  if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=Math.max(2,Number(roster.mvps)||0);
+  st.kapMvpCountRecoveryVersion="kap-career-mvp-count-recovery-v2";
+  let saved=false;try{saved=save()!==false;}catch(e){}
+  let stored=null;try{const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");const c=raw&&Array.isArray(raw.citizens)?raw.citizens.find(x=>x&&String(x.name||"").trim().toLowerCase()==="kap"):null;const r=raw&&raw.roster&&raw.roster.Lions_PG;stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toLowerCase()==="kap"?Number(r.mvps)||0:null};}catch(e){stored={error:String(e&&e.message||e)};}
+  const verified=!!stored&&stored.citizen>=2&&(stored.roster===null||stored.roster>=2);
+  window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?Number(roster.mvps)||0:null},stored,saved,verified,scope:"Kap MVP count only"};
+  console.info("Calvin's City 5.3.4 late Kap MVP verification",window.__kapMvpRepairDiagnostic533);
+  try{if(typeof render==="function")render();}catch(e){}
+}catch(err){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"error",reason:String(err&&err.message||err)};console.error("Kap MVP late repair error",window.__kapMvpRepairDiagnostic533);}
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(finalizeKapMvpAfterStartup,80),{once:true});else setTimeout(finalizeKapMvpAfterStartup,80);
 })();
