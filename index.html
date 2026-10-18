@@ -353,13 +353,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div id="rouletteLiveTable" class="card" style="margin:10px 0;padding:10px;background:#075235;border:2px solid #c6a65d">
 <h3 style="margin:0 0 8px;color:white">Roulette Betting Table</h3>
 <p class="tiny" style="color:#e7f3e9">Choose a chip, then tap a betting spot. One bet per spin in this test build.</p>
-<div id="rouletteChipRack" class="roulette-chip-rack" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0;align-items:center">
- <button type="button" data-chip="0.1" class="roulette-chip chip-white" aria-label="Select 0.1 million chip"><span>$0.1</span><small>M</small></button>
- <button type="button" data-chip="0.5" class="roulette-chip chip-red" aria-label="Select 0.5 million chip"><span>$0.5</span><small>M</small></button>
- <button type="button" data-chip="1" class="roulette-chip chip-blue active" aria-label="Select 1 million chip"><span>$1</span><small>M</small></button>
- <button type="button" data-chip="5" class="roulette-chip chip-black" aria-label="Select 5 million chip"><span>$5</span><small>M</small></button>
- <button type="button" data-chip="10" class="roulette-chip chip-gold" aria-label="Select 10 million chip"><span>$10</span><small>M</small></button>
-</div>
+ 
 <div id="rouletteNumberTable" class="roulette-felt-layout">
  <div class="roulette-zero-row">
   <button type="button" class="roulette-bet-spot green" data-type="number" data-target="0">0</button>
@@ -379,6 +373,14 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
   <button type="button" class="roulette-bet-spot black" data-type="number" data-target="31">31</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="32">32</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="33">33</button>
   <button type="button" class="roulette-bet-spot red" data-type="number" data-target="34">34</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="35">35</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="36">36</button>
  </div>
+</div>
+<div class="roulette-chip-divider"><span>CHIP RACK · SELECT YOUR WAGER</span></div>
+<div id="rouletteChipRack" class="roulette-chip-rack" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0;align-items:center">
+ <button type="button" data-chip="0.1" class="roulette-chip chip-white" aria-label="Select 0.1 million chip"><span>$0.1</span><small>M</small></button>
+ <button type="button" data-chip="0.5" class="roulette-chip chip-red" aria-label="Select 0.5 million chip"><span>$0.5</span><small>M</small></button>
+ <button type="button" data-chip="1" class="roulette-chip chip-blue active" aria-label="Select 1 million chip"><span>$1</span><small>M</small></button>
+ <button type="button" data-chip="5" class="roulette-chip chip-black" aria-label="Select 5 million chip"><span>$5</span><small>M</small></button>
+ <button type="button" data-chip="10" class="roulette-chip chip-gold" aria-label="Select 10 million chip"><span>$10</span><small>M</small></button>
 </div>
 <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:8px">
 <button type="button" class="roulette-bet-spot outside" data-type="dozen1">1st 12</button><button type="button" class="roulette-bet-spot outside" data-type="dozen2">2nd 12</button><button type="button" class="roulette-bet-spot outside" data-type="dozen3">3rd 12</button>
@@ -8783,9 +8785,27 @@ const rouletteSpinButton=$('casinoRouletteSpinButton');
 if(rouletteSpinButton&&!rouletteSpinButton.dataset.animHook){
 const originalSpin=window.playCasinoRoulette;
 window.playCasinoRoulette=function(){
- const svg=$('rouletteWheelSvg');if(svg){svg.classList.remove('spinning');void svg.getBoundingClientRect();svg.classList.add('spinning');}
+ const state=st(),pockets=['0','00',...Array.from({length:36},(_,i)=>String(i+1))];
+ const svg=$('rouletteWheelSvg'), wheelOrder=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
+ if(!state){originalSpin();return;}
+ const parts=String($('casinoRoulettePlayer').value||'').split('|'),kind=parts.shift(),ref=parts.join('|'),wager=cents(Number($('casinoRouletteWager').value));
+ const available=cashOf(state,kind,ref),beforeCasino=Number(state.businessCash&&state.businessCash[CASINO])||0;
+ if(!Number.isFinite(wager)||wager<=0||available==null||available<wager){originalSpin();return;}
+ const type=String($('casinoRouletteBetType').value||'red'),target=String($('casinoRouletteNumber').value||'0');
+ const planned=pockets[Math.floor(Math.random()*pockets.length)];
+ const win=rouletteWins(planned,type,target),gross=win?cents(wager+wager*rouletteProfitMultiplier(type)):0;
+ if(win&&cents(beforeCasino+wager)<gross){originalSpin();return;}
+ window.__roulettePlannedResult=planned;
  rouletteSpinButton.disabled=true;rouletteSpinButton.textContent='Wheel spinning…';
- setTimeout(()=>{try{originalSpin();}finally{rouletteSpinButton.disabled=false;rouletteSpinButton.textContent='Place Bet & Spin';if(svg){svg.classList.remove('spinning');svg.style.transform=`rotate(${Math.floor(Math.random()*360)}deg)`;}}},2600);
+ if(svg){
+  const idx=wheelOrder.indexOf(planned),sector=360/wheelOrder.length,desired=((-(idx+0.5)*sector)%360+360)%360;
+  const prior=Number(svg.dataset.rotation||0),priorNorm=((prior%360)+360)%360;
+  const delta=((desired-priorNorm)+360)%360;
+  const final=prior+360*6+delta;
+  svg.style.transition='transform 2.8s cubic-bezier(.12,.72,.18,1)';
+  svg.style.transform=`rotate(${final}deg)`;svg.dataset.rotation=String(final);
+ }
+ setTimeout(()=>{try{originalSpin();}finally{rouletteSpinButton.disabled=false;rouletteSpinButton.textContent='Place Bet & Spin';}},2900);
 };
 rouletteSpinButton.dataset.animHook='1';
 }
@@ -8879,7 +8899,7 @@ const state=st();if(!state){alert('Live game state is unavailable. No bet was pl
 const parts=String($('casinoRoulettePlayer').value||'').split('|'),kind=parts.shift(),ref=parts.join('|'),wager=cents(Number($('casinoRouletteWager').value)),type=String($('casinoRouletteBetType').value||'red'),target=String($('casinoRouletteNumber').value||'0');
 if(!Number.isFinite(wager)||wager<=0){alert('Enter a wager greater than zero.');return;}const available=cashOf(state,kind,ref);if(available==null||available<wager){alert('This account does not have enough cash for that wager. No bet was placed.');return;}
 if(!state.businessCash||!Object.prototype.hasOwnProperty.call(state.businessCash,CASINO)){alert('Casino cash account is unavailable. No bet was placed.');return;}
-const old=JSON.stringify(state),beforePlayer=available,beforeCasino=Number(state.businessCash[CASINO])||0,season=currentSeason(state);const pockets=['0','00',...Array.from({length:36},(_,i)=>String(i+1))];const result=pockets[Math.floor(Math.random()*pockets.length)];const won=rouletteWins(result,type,target),profit=won?cents(wager*rouletteProfitMultiplier(type)):0,grossReturn=won?cents(wager+profit):0;const casinoAfterStake=cents(beforeCasino+wager);if(won&&casinoAfterStake<grossReturn){alert('The casino cannot cover this winning payout. No bet was accepted.');return;}
+const old=JSON.stringify(state),beforePlayer=available,beforeCasino=Number(state.businessCash[CASINO])||0,season=currentSeason(state);const pockets=['0','00',...Array.from({length:36},(_,i)=>String(i+1))];const result=(window.__roulettePlannedResult&&pockets.includes(window.__roulettePlannedResult))?window.__roulettePlannedResult:pockets[Math.floor(Math.random()*pockets.length)];window.__roulettePlannedResult=null;const won=rouletteWins(result,type,target),profit=won?cents(wager*rouletteProfitMultiplier(type)):0,grossReturn=won?cents(wager+profit):0;const casinoAfterStake=cents(beforeCasino+wager);if(won&&casinoAfterStake<grossReturn){alert('The casino cannot cover this winning payout. No bet was accepted.');return;}
 const txid='CASINO-RLT-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);if((state.casinoRouletteHistory||[]).some(r=>r.transactionId===txid)||state.casinoFinanceLedger.some(r=>r.transactionId===txid)){alert('Duplicate spin transaction detected. No wager was placed.');return;}
 try{if(!Array.isArray(state.casinoRouletteHistory))state.casinoRouletteHistory=[];if(kind==='citizen'){const c=(state.citizens||[]).find(x=>x&&String(x.id)===String(ref));if(!c)throw Error('Player account disappeared');c.cash=cents(beforePlayer-wager+grossReturn);}else{if(!Object.prototype.hasOwnProperty.call(state.businessCash,ref))throw Error('Business player account disappeared');state.businessCash[ref]=cents(beforePlayer-wager+grossReturn);}state.businessCash[CASINO]=cents(beforeCasino+wager-grossReturn);
 const row={transactionId:txid,season,accountKind:kind,accountRef:ref,accountLabel:accountLabel(state,kind,ref),wager,betType:type,betTarget:type==='number'?target:null,betLabel:rouletteLabel(type,target),result,won,profit,grossReturn,net:won?profit:-wager,casinoBefore:beforeCasino,casinoAfter:state.businessCash[CASINO],playerBefore:beforePlayer,playerAfter:kind==='citizen'?Number((state.citizens||[]).find(c=>String(c.id)===String(ref)).cash):Number(state.businessCash[ref]),timestamp:new Date().toISOString()};state.casinoRouletteHistory.push(row);state.casinoFinanceLedger.push({transactionId:txid,type:'roulette_spin_settled',season,amount:wager,result,won,profit,grossReturn,accountKind:kind,accountRef:ref,casinoBefore:beforeCasino,casinoAfter:state.businessCash[CASINO],timestamp:row.timestamp});if(!saveVerified(state))throw Error('Save could not be verified');refresh();const res=$('casinoRouletteResult');if(res)res.innerHTML='<strong>Wheel result: '+escapeHtml(result)+(result==='0'||result==='00'?' · Green':rouletteRed(result)?' · Red':' · Black')+'</strong><p class="tiny">'+(won?'You won '+money(profit)+' profit; your '+money(wager)+' stake was returned.':'You lost '+money(wager)+'.')+' Net result: '+(won?'+':'−')+money(Math.abs(row.net))+'.</p>';}
@@ -8898,6 +8918,15 @@ const lender=$('casinoLender');if(lender)lender.addEventListener('change',update
 #rouletteLiveTable .roulette-bet-spot.selected{outline:3px solid #ffe58c!important;outline-offset:1px!important}
 #rouletteLiveTable .roulette-chip-marker{border-color:#fff9}
 </style>
+<style id="roulette550Styles">
+.roulette-chip-divider{display:flex;align-items:center;gap:10px;margin:16px 0 10px;color:#e4d19b;font-weight:800;font-size:12px;letter-spacing:1px}
+.roulette-chip-divider:before,.roulette-chip-divider:after{content:"";height:1px;background:#c8ad67;flex:1}
+#casinoModal.roulette-room-mode #rouletteRoomTop ~ #casinoRoulettePanel{display:block!important}
+#casinoModal.roulette-room-mode #rouletteWheelStage{margin-bottom:12px}
+#casinoModal.roulette-room-mode #rouletteLiveTable{margin-top:12px}
+#rouletteWheelSvg{transform-origin:50% 50%;will-change:transform}
+</style>
+ 
  
  
 <script>
