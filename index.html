@@ -346,7 +346,10 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
   <circle cx="150" cy="150" r="26" fill="#d8bd78" stroke="#725022" stroke-width="3"/>
   <circle cx="150" cy="150" r="7" fill="#725022"/>
  </svg>
- <div style="position:absolute;left:50%;top:-2px;transform:translateX(-50%);z-index:2;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:25px solid #fff2b4;filter:drop-shadow(0 2px 3px #000)"></div>
+ <div id="rouletteBallOrbit" aria-hidden="true" style="position:absolute;inset:0;z-index:3;pointer-events:none;transform:rotate(0deg)">
+  <div id="rouletteBall" style="position:absolute;left:50%;top:5%;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#e9e8df 48%,#a5a39b 78%,#555);box-shadow:0 1px 4px #000b,0 0 3px #fff;opacity:0"></div>
+ </div>
+ <div style="position:absolute;left:50%;top:-2px;transform:translateX(-50%);z-index:4;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:25px solid #fff2b4;filter:drop-shadow(0 2px 3px #000)"></div>
 </div>
 </div>
  
@@ -8787,36 +8790,52 @@ if(rouletteSpinButton&&!rouletteSpinButton.dataset.animHook){
 const originalSpin=window.playCasinoRoulette;
 window.playCasinoRoulette=function(){
  const state=st(),pockets=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
- const svg=$('rouletteWheelSvg');
- if(!state||!svg){originalSpin();return;}
+ const svg=$('rouletteWheelSvg'),orbit=$('rouletteBallOrbit'),ball=$('rouletteBall');
+ if(!state||!svg||!orbit||!ball){originalSpin();return;}
  const parts=String($('casinoRoulettePlayer').value||'').split('|'),kind=parts.shift(),ref=parts.join('|'),wager=cents(Number($('casinoRouletteWager').value));
  const available=cashOf(state,kind,ref),beforeCasino=Number(state.businessCash&&state.businessCash[CASINO])||0;
  if(!Number.isFinite(wager)||wager<=0||available==null||available<wager){originalSpin();return;}
  const type=String($('casinoRouletteBetType').value||'red'),target=String($('casinoRouletteNumber').value||'0');
- const sector=360/pockets.length;
- // The wheel's random landing angle is the source of truth. Determine the pocket under the fixed pointer from that angle.
- const landingAngle=Math.random()*360;
- const pocketIndex=Math.floor((((-landingAngle)%360)+360)%360/sector);
- const landed=pockets[pocketIndex];
+ // Randomly choose the physical pocket that will come to rest beneath the fixed pointer.
+ // The animation is calculated from this pocket, and settlement uses this same result.
+ const index=Math.floor(Math.random()*pockets.length),landed=pockets[index],sector=360/pockets.length;
  const win=rouletteWins(landed,type,target),gross=win?cents(wager+wager*rouletteProfitMultiplier(type)):0;
  if(win&&cents(beforeCasino+wager)<gross){originalSpin();return;}
  window.__roulettePlannedResult=landed;
  rouletteSpinButton.disabled=true;rouletteSpinButton.textContent='Wheel spinning…';
- const prior=Number(svg.dataset.rotation||0),priorNorm=((prior%360)+360)%360;
- const delta=((landingAngle-priorNorm)+360)%360;
- const final=prior+360*6+delta;
- svg.style.transition='none';
- // Force browser to commit the current position before starting the spin transition.
- void svg.getBoundingClientRect();
- svg.style.transition='transform 3.2s cubic-bezier(.10,.70,.12,1)';
- svg.style.transform=`rotate(${final}deg)`;svg.dataset.rotation=String(final);
- const finish=()=>{try{originalSpin();}finally{rouletteSpinButton.disabled=false;rouletteSpinButton.textContent='Place Bet & Spin';}};
- setTimeout(finish,3300);
+ const prior=Number(svg.dataset.rotation||0);
+ const currentNorm=((prior%360)+360)%360;
+ // Pocket centers start at -90° + half a sector. Rotate the selected center exactly under the fixed pointer.
+ const targetNorm=((( -(index+0.5)*sector )%360)+360)%360;
+ const delta=((targetNorm-currentNorm)+360)%360;
+ const wheelFinal=prior+360*7+delta;
+ // Ball circles in the opposite direction and slows before settling beneath the pointer.
+ const ballPrior=Number(orbit.dataset.rotation||0);
+ const ballFinal=ballPrior-360*9;
+ svg.style.transition='none';orbit.style.transition='none';
+ void svg.getBoundingClientRect();void orbit.getBoundingClientRect();
+ ball.style.opacity='1';
+ svg.style.transition='transform 4.25s cubic-bezier(.10,.72,.12,1)';
+ orbit.style.transition='transform 4.05s cubic-bezier(.15,.68,.2,1)';
+ svg.style.transform=`rotate(${wheelFinal}deg)`;svg.dataset.rotation=String(wheelFinal);
+ orbit.style.transform=`rotate(${ballFinal}deg)`;orbit.dataset.rotation=String(ballFinal);
+ // Let the ball visibly settle, then settle the wager using the same pocket now under the pointer.
+ setTimeout(()=>{
+  ball.style.transition='transform .25s ease-out';
+  ball.style.transform='translateY(2px)';
+  setTimeout(()=>{
+   ball.style.transform='none';ball.style.opacity='0.98';
+   try{originalSpin();}finally{
+    rouletteSpinButton.disabled=false;rouletteSpinButton.textContent='Place Bet & Spin';
+   }
+  },260);
+ },4350);
 };
 rouletteSpinButton.dataset.animHook='1';
 }
  
  
+// v5.5.4: ball-on-wheel spin, with the pointer-aligned pocket as the settlement result.
 // v5.4.9: keep visual table selection synchronized with the existing bet controls and display chips on spots.
 (function(){
 const table=$('rouletteLiveTable'), rack=$('rouletteChipRack'), wager=$('casinoRouletteWager'),
