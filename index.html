@@ -8719,6 +8719,25 @@ window.playCasinoRoulette=function(){
 };
 rouletteSpinButton.dataset.animHook='1';
 }
+ 
+// v5.4.4 chip rack and click-to-select roulette betting layout (one bet per spin).
+(function(){
+let chip=1, selectedType='red', selectedTarget='0';
+const rack=$('rouletteChipRack'), table=$('rouletteLiveTable'), wager=$('casinoRouletteWager'), typeSel=$('casinoRouletteBetType'), targetSel=$('casinoRouletteNumber');
+function update(){
+ const label=rouletteLabel(selectedType,selectedTarget);
+ const out=$('rouletteSelectedBet');if(out)out.textContent='Selected bet: '+label+' · Wager: $'+chip+'M';
+ if(wager)wager.value=String(chip);
+ if(typeSel){typeSel.value=selectedType;typeSel.dispatchEvent(new Event('change',{bubbles:true}));}
+ if(targetSel)targetSel.value=selectedTarget;
+ if(table)table.querySelectorAll('.roulette-bet-spot').forEach(b=>b.classList.toggle('selected',b.dataset.type===selectedType&&(selectedType!=='number'||b.dataset.target===selectedTarget)));
+}
+if(rack)rack.addEventListener('click',e=>{const b=e.target.closest('[data-chip]');if(!b)return;chip=Number(b.dataset.chip);rack.querySelectorAll('[data-chip]').forEach(x=>x.classList.toggle('active',x===b));update();});
+if(table)table.addEventListener('click',e=>{const b=e.target.closest('[data-type]');if(!b)return;selectedType=b.dataset.type;selectedTarget=b.dataset.target||'0';update();});
+if(wager)wager.addEventListener('change',()=>{const n=Number(wager.value);if(Number.isFinite(n)&&n>0){chip=Math.round(n*100)/100;if(rack)rack.querySelectorAll('[data-chip]').forEach(x=>x.classList.toggle('active',Number(x.dataset.chip)===chip));const out=$('rouletteSelectedBet');if(out)out.textContent='Selected bet: '+rouletteLabel(selectedType,selectedTarget)+' · Wager: $'+chip+'M';}});
+if(typeSel)typeSel.addEventListener('change',()=>{if(typeSel.value!==selectedType){selectedType=typeSel.value;update();}});
+update();
+})();
 const rouletteType=$('casinoRouletteBetType');if(rouletteType)rouletteType.addEventListener('change',()=>{const w=$('casinoRouletteNumberWrap');if(w)w.style.display=rouletteType.value==='number'?'block':'none';});
 window.playCasinoRoulette=function(){
 const state=st();if(!state){alert('Live game state is unavailable. No bet was placed.');return;} // TEST MODE: roulette can be played before funding; account-balance and payout safeguards remain active.
