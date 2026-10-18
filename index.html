@@ -222,6 +222,30 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </style>
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
+<style id="rouletteRealTableStyles">
+#rouletteLiveTable{background:linear-gradient(145deg,#075638,#064329)!important;border:3px solid #c8ad67!important;border-radius:18px!important;box-shadow:inset 0 0 0 2px #164c36,0 8px 22px #0004!important}
+.roulette-chip-rack{justify-content:center}
+#rouletteLiveTable .roulette-chip{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;max-width:58px!important;padding:0!important;aspect-ratio:1/1!important;flex:0 0 58px!important;border-radius:50%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;line-height:1!important;font-weight:900!important;font-size:13px!important;position:relative!important;box-shadow:0 3px 5px #0008,inset 0 0 0 3px #fff9,inset 0 0 0 6px #0002!important;border:2px dashed #fff!important}
+#rouletteLiveTable .roulette-chip:before{content:"";position:absolute;inset:5px;border:1px solid #fff9;border-radius:50%;pointer-events:none}
+#rouletteLiveTable .roulette-chip small{font-size:9px!important;line-height:10px!important}
+#rouletteLiveTable .chip-white{background:#f7f4e9!important;color:#151515!important;border-color:#8d8d8d!important}
+#rouletteLiveTable .chip-red{background:#c92e3c!important;color:white!important}
+#rouletteLiveTable .chip-blue{background:#2767d9!important;color:white!important}
+#rouletteLiveTable .chip-black{background:#17191c!important;color:white!important}
+#rouletteLiveTable .chip-gold{background:#d5a928!important;color:#171717!important}
+#rouletteLiveTable .roulette-chip.active{outline:3px solid #ffe58c!important;outline-offset:3px!important;transform:translateY(-3px)!important}
+#rouletteNumberTable.roulette-felt-layout{display:block!important}
+#rouletteNumberTable .roulette-zero-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;margin-bottom:3px}
+#rouletteNumberTable .roulette-zero-row .roulette-bet-spot{min-height:42px!important}
+#rouletteNumberTable .roulette-number-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+#rouletteNumberTable .roulette-number-grid .roulette-bet-spot{min-height:42px!important;border-radius:3px!important;font-size:15px!important;border:1px solid #d8c27a!important;box-shadow:inset 0 0 0 1px #0002!important}
+#rouletteNumberTable .roulette-bet-spot.red{background:#b82c39!important}
+#rouletteNumberTable .roulette-bet-spot.black{background:#17191c!important}
+#rouletteNumberTable .roulette-bet-spot.green{background:#087448!important}
+#rouletteLiveTable .roulette-bet-spot.outside{border-radius:4px!important;border:1px solid #d8c27a!important;min-height:48px!important}
+#rouletteLiveTable .roulette-bet-spot.selected{outline:3px solid #ffe58c!important;outline-offset:1px!important;box-shadow:0 0 10px #facc15!important;position:relative!important;z-index:1}
+@media(max-width:480px){#rouletteLiveTable .roulette-chip{width:53px!important;height:53px!important;min-width:53px!important;min-height:53px!important;max-width:53px!important;flex-basis:53px!important}#rouletteNumberTable .roulette-number-grid .roulette-bet-spot{min-height:39px!important;font-size:14px!important}}
+</style>
 </head>
 <body>
 <header><h1>🏙️ Calvin's City — 5.4.6</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
@@ -329,12 +353,32 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div id="rouletteLiveTable" class="card" style="margin:10px 0;padding:10px;background:#075235;border:2px solid #c6a65d">
 <h3 style="margin:0 0 8px;color:white">Roulette Betting Table</h3>
 <p class="tiny" style="color:#e7f3e9">Choose a chip, then tap a betting spot. One bet per spin in this test build.</p>
-<div id="rouletteChipRack" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
- <button type="button" data-chip="0.1" class="roulette-chip">$0.1M</button><button type="button" data-chip="0.5" class="roulette-chip">$0.5M</button><button type="button" data-chip="1" class="roulette-chip active">$1M</button><button type="button" data-chip="5" class="roulette-chip">$5M</button><button type="button" data-chip="10" class="roulette-chip">$10M</button>
+<div id="rouletteChipRack" class="roulette-chip-rack" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0;align-items:center">
+ <button type="button" data-chip="0.1" class="roulette-chip chip-white" aria-label="Select 0.1 million chip"><span>$0.1</span><small>M</small></button>
+ <button type="button" data-chip="0.5" class="roulette-chip chip-red" aria-label="Select 0.5 million chip"><span>$0.5</span><small>M</small></button>
+ <button type="button" data-chip="1" class="roulette-chip chip-blue active" aria-label="Select 1 million chip"><span>$1</span><small>M</small></button>
+ <button type="button" data-chip="5" class="roulette-chip chip-black" aria-label="Select 5 million chip"><span>$5</span><small>M</small></button>
+ <button type="button" data-chip="10" class="roulette-chip chip-gold" aria-label="Select 10 million chip"><span>$10</span><small>M</small></button>
 </div>
-<div id="rouletteNumberTable" style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px">
- <button type="button" class="roulette-bet-spot green" data-type="number" data-target="0" style="grid-column:span 6">0</button><button type="button" class="roulette-bet-spot green" data-type="number" data-target="00" style="grid-column:span 6">00</button>
- <button type="button" class="roulette-bet-spot red" data-type="number" data-target="1">1</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="2">2</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="3">3</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="4">4</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="5">5</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="6">6</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="7">7</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="8">8</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="9">9</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="10">10</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="11">11</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="12">12</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="13">13</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="14">14</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="15">15</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="16">16</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="17">17</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="18">18</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="19">19</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="20">20</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="21">21</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="22">22</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="23">23</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="24">24</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="25">25</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="26">26</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="27">27</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="28">28</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="29">29</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="30">30</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="31">31</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="32">32</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="33">33</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="34">34</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="35">35</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="36">36</button>
+<div id="rouletteNumberTable" class="roulette-felt-layout">
+ <div class="roulette-zero-row">
+  <button type="button" class="roulette-bet-spot green" data-type="number" data-target="0">0</button>
+  <button type="button" class="roulette-bet-spot green" data-type="number" data-target="00">00</button>
+ </div>
+ <div class="roulette-number-grid">
+  <button type="button" class="roulette-bet-spot red" data-type="number" data-target="1">1</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="2">2</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="3">3</button>
+  <button type="button" class="roulette-bet-spot black" data-type="number" data-target="4">4</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="5">5</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="6">6</button>
+  <button type="button" class="roulette-bet-spot red" data-type="number" data-target="7">7</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="8">8</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="9">9</button>
+  <button type="button" class="roulette-bet-spot black" data-type="number" data-target="10">10</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="11">11</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="12">12</button>
+  <button type="button" class="roulette-bet-spot black" data-type="number" data-target="13">13</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="14">14</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="15">15</button>
+  <button type="button" class="roulette-bet-spot red" data-type="number" data-target="16">16</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="17">17</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="18">18</button>
+  <button type="button" class="roulette-bet-spot red" data-type="number" data-target="19">19</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="20">20</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="21">21</button>
+  <button type="button" class="roulette-bet-spot black" data-type="number" data-target="22">22</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="23">23</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="24">24</button>
+  <button type="button" class="roulette-bet-spot red" data-type="number" data-target="25">25</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="26">26</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="27">27</button>
+  <button type="button" class="roulette-bet-spot black" data-type="number" data-target="28">28</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="29">29</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="30">30</button>
+  <button type="button" class="roulette-bet-spot black" data-type="number" data-target="31">31</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="32">32</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="33">33</button>
+  <button type="button" class="roulette-bet-spot red" data-type="number" data-target="34">34</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="35">35</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="36">36</button>
+ </div>
 </div>
 <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:8px">
 <button type="button" class="roulette-bet-spot outside" data-type="dozen1">1st 12</button><button type="button" class="roulette-bet-spot outside" data-type="dozen2">2nd 12</button><button type="button" class="roulette-bet-spot outside" data-type="dozen3">3rd 12</button>
@@ -8745,6 +8789,7 @@ window.playCasinoRoulette=function(){
 };
 rouletteSpinButton.dataset.animHook='1';
 }
+ 
  
  
 // v5.4.6: chip and table selection controls.
