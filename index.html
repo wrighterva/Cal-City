@@ -285,7 +285,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="metric"><small>Casino Cash</small><strong id="casinoCash">$0M</strong></div><div class="metric"><small>Debt Raised</small><strong id="casinoDebtRaised">$0M</strong></div>
 <div class="metric"><small>Funding Progress</small><strong id="casinoFundingProgress">$0M / $500M</strong></div><div class="metric"><small>Business Status</small><strong id="casinoOpenStatus">Not funded</strong></div>
 </div>
-<h3>1. Configure debt offering</h3>
+<div id="casinoManagement"><h3>1. Configure debt offering</h3>
 <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
 <label class="tiny">Funding target ($M)<input id="casinoFundingTarget" type="number" min="1" step="1" value="500" style="width:100%;box-sizing:border-box"></label>
 <label class="tiny">Interest per season (%)<input id="casinoInterestRate" type="number" min="0" max="100" step="0.25" value="5" style="width:100%;box-sizing:border-box"></label>
@@ -304,7 +304,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div id="casinoFinanceMessage" class="tiny" role="status"></div>
 <h3>Debt holders</h3><div id="casinoDebtHolders" class="tiny">No loans issued.</div>
 <h3>Games</h3><div id="casinoGamesLocked" class="card"><strong>🔒 Casino games are locked</strong><p class="tiny">American Roulette unlocks when the casino funding target is met. Slots remain in development.</p></div>
-<div id="casinoRoulettePanel" class="card" style="display:none;margin-top:10px">
+</div><div id="casinoRoulettePanel" class="card" style="display:none;margin-top:10px">
  
 <div id="rouletteRoomTop" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
 <div><h2 style="margin:0">🎡 American Roulette</h2><p class="tiny" style="margin:5px 0 0">Live-style table · American wheel · 0, 00, 1–36</p></div>
@@ -325,7 +325,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  <div style="position:absolute;left:50%;top:-2px;transform:translateX(-50%);z-index:2;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:25px solid #fff2b4;filter:drop-shadow(0 2px 3px #000)"></div>
 </div>
 </div>
-<button type="button" class="goodbtn" onclick="window.openRouletteRoom()">🎡 Enter American Roulette</button><div id="casinoRoulettePanel" style="display:none"><p class="tiny">American wheel: 0, 00, and 1–36. Payouts are standard: even-money bets 1:1, dozens 2:1, straight-up number 35:1. Winning bets return the original stake plus winnings.</p>
+<button type="button" class="goodbtn" onclick="window.openRouletteRoom()">🎡 Enter American Roulette</button><p class="tiny">American wheel: 0, 00, and 1–36. Payouts are standard: even-money bets 1:1, dozens 2:1, straight-up number 35:1. Winning bets return the original stake plus winnings.</p>
 <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
 <label class="tiny">Player account<select id="casinoRoulettePlayer" style="width:100%;box-sizing:border-box"></select></label>
 <label class="tiny">Wager ($M)<input id="casinoRouletteWager" type="number" min="0.01" step="0.01" value="1" style="width:100%;box-sizing:border-box"></label>
@@ -337,7 +337,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div id="casinoRouletteResult" class="card" role="status" style="margin-top:8px">Place a wager to spin the wheel.</div>
 <h4>Recent Roulette Results</h4><div id="casinoRouletteHistory" class="tiny">No spins yet.</div>
 </div>
-</div><button type="button" class="secondary" onclick="window.closeCasino()">Close</button>
+<button type="button" class="secondary" onclick="window.closeCasino()">Close</button>
 </div></div>
 <div id="shoeStoreModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shoeStoreModalTitle"><div class="modalbox"><div id="shoeStoreManagement" class="card" style="display:block;margin-top:0">
 <h2 id="shoeStoreModalTitle">🏬 Shoe Store &amp; CalSims Consumer Market</h2>
@@ -8751,6 +8751,63 @@ const row={transactionId:txid,season,accountKind:kind,accountRef:ref,accountLabe
 catch(e){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);}catch(rollbackError){}alert('Roulette settlement was not committed: '+String(e.message||e)+'. State was restored in memory; verify saved data before retrying.');console.error('Roulette settlement failed',e);}
 };
 const lender=$('casinoLender');if(lender)lender.addEventListener('change',updateLenderCash);const roulettePlayer=$('casinoRoulettePlayer');if(roulettePlayer)roulettePlayer.addEventListener('change',updateRoulettePlayerCash);const modal=$('casinoModal');if(modal)modal.addEventListener('click',e=>{if(e.target===modal)window.closeCasino();});
+})();
+</script>
+ 
+<script>
+(function(){
+const $id=id=>document.getElementById(id);
+window.openRouletteRoom=function(){
+  const modal=$id('casinoModal'); if(!modal)return;
+  modal.classList.add('roulette-room-mode');
+  modal.style.display='flex';
+  const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='block';
+  const management=$id('casinoManagement'); if(management)management.style.display='none';
+  // Build wheel pockets once, with American wheel order.
+  const wheel=$id('rouletteWheelPockets');
+  if(wheel&&!wheel.dataset.built){
+    const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
+    const reds=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+    const NS='http://www.w3.org/2000/svg',cx=150,cy=150,r1=135,r2=83,step=2*Math.PI/order.length;
+    order.forEach((v,i)=>{const a=-Math.PI/2+i*step,b=a+step,pt=(r,t)=>[cx+r*Math.cos(t),cy+r*Math.sin(t)],p1=pt(r1,a),p2=pt(r1,b),q2=pt(r2,b),q1=pt(r2,a);
+      const path=document.createElementNS(NS,'path');path.setAttribute('d',`M ${p1} A ${r1} ${r1} 0 0 1 ${p2} L ${q2} A ${r2} ${r2} 0 0 0 ${q1} Z`);path.setAttribute('fill',v==='0'||v==='00'?'#078047':reds.has(Number(v))?'#c52632':'#20242b');path.setAttribute('stroke','#e4c47d');path.setAttribute('stroke-width','1');wheel.appendChild(path);
+      const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute('x',cx+rr*Math.cos(t));txt.setAttribute('y',cy+rr*Math.sin(t)+3);txt.setAttribute('fill','#fff');txt.setAttribute('font-size',v.length>1?'7':'8');txt.setAttribute('font-weight','700');txt.setAttribute('text-anchor','middle');txt.textContent=v;wheel.appendChild(txt);
+    });wheel.dataset.built='1';
+  }
+  if(typeof updateRoulettePlayerCash==='function')updateRoulettePlayerCash();
+};
+window.closeRouletteRoom=function(){
+  const modal=$id('casinoModal'); if(!modal)return;
+  modal.classList.remove('roulette-room-mode');
+  modal.style.display='flex';
+  const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='none';
+  const management=$id('casinoManagement'); if(management)management.style.display='block';
+  // Explicitly restore scroll on the underlying page/modal.
+  document.documentElement.style.overflow='';
+  document.body.style.overflow='';
+};
+window.closeCasino=function(){
+  const modal=$id('casinoModal'); if(!modal)return;
+  modal.classList.remove('roulette-room-mode');
+  modal.style.display='none';
+  const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='none';
+  const management=$id('casinoManagement'); if(management)management.style.display='block';
+  document.documentElement.style.overflow='';
+  document.body.style.overflow='';
+};
+const style=document.createElement('style');
+style.textContent=`
+#casinoModal.roulette-room-mode{position:fixed!important;inset:0!important;z-index:999999!important;background:#080d16!important;padding:8px!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;overflow-y:auto!important;overscroll-behavior:contain}
+#casinoModal.roulette-room-mode .modalbox{width:min(100%,1100px)!important;max-width:1100px!important;max-height:none!important;height:auto!important;overflow:visible!important;margin:0 auto!important;border-radius:18px!important;background:#121c2a!important}
+#casinoModal.roulette-room-mode #casinoManagement{display:none!important}
+#casinoModal.roulette-room-mode #casinoRoulettePanel{display:block!important;margin-top:0!important}
+#casinoModal:not(.roulette-room-mode) #casinoRoulettePanel{display:none!important}
+#casinoModal:not(.roulette-room-mode) #rouletteWheelStage{display:none!important}
+#casinoModal.roulette-room-mode #rouletteWheelStage{display:flex!important}
+#casinoModal.roulette-room-mode #rouletteLiveTable{display:block!important}
+#casinoModal.roulette-room-mode #casinoRouletteSpinButton{width:100%;min-height:54px}
+`;
+document.head.appendChild(style);
 })();
 </script>
 </body></html>
