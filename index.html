@@ -352,6 +352,10 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div style="position:absolute;left:50%;top:-2px;transform:translateX(-50%);z-index:4;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:25px solid #fff2b4;filter:drop-shadow(0 2px 3px #000)"></div>
 </div>
 </div>
+<div id="rouletteRecentNumbers" aria-label="Recent roulette numbers" style="margin:0 auto 12px;width:min(100%,520px);box-sizing:border-box;padding:9px 10px;background:#101820;border:1px solid #c6a65d;border-radius:10px;color:#f3f5f7">
+<div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#d8bd78;margin-bottom:7px">Recent Numbers</div>
+<div id="rouletteRecentNumbersList" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex-wrap:wrap;min-height:30px"><span style="font-size:12px;color:#aab4bf">No results yet</span></div>
+</div>
  
 <div id="rouletteLiveTable" class="card" style="margin:10px 0;padding:10px;background:#075235;border:2px solid #c6a65d">
 <h3 style="margin:0 0 8px;color:white">Roulette Betting Table</h3>
@@ -9009,6 +9013,13 @@ const player=$('casinoRoulettePlayer'),wagerInput=$('casinoRouletteWager');
 const svg=$('rouletteWheelSvg'),orbit=$('rouletteBallOrbit'),ball=$('rouletteBall');
 if(!table||!numberTable||!rack||!button||!player||!wagerInput){console.error('Roulette v5.6.6 could not initialize betting controls.',{table:!!table,numberTable:!!numberTable,rack:!!rack,button:!!button,player:!!player,wagerInput:!!wagerInput});return;}
 const hasSpinVisuals=!!(svg&&orbit&&ball);
+function rouletteResultColor(result){return result==='0'||result==='00'?'#16834b':rouletteRed(result)?'#c52d3b':'#17191c';}
+function renderRecentNumbers(){
+const host=$('rouletteRecentNumbersList');if(!host)return;
+const state=rouletteState(),rows=(state&&Array.isArray(state.casinoRouletteHistory)?state.casinoRouletteHistory:[]).slice(-12).reverse();
+if(!rows.length){host.innerHTML='<span style="font-size:12px;color:#aab4bf">No results yet</span>';return;}
+host.innerHTML=rows.map(row=>{const n=String(row.result??'');const color=rouletteResultColor(n);return '<span title="Latest results first" style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 5px;box-sizing:border-box;border-radius:5px;background:'+color+';color:#fff;font-weight:800;font-size:14px;border:1px solid '+(color==='#17191c'?'#8a9299':color)+';box-shadow:inset 0 0 0 1px #ffffff12">'+rouletteEscape(n)+'</span>';}).join('');
+}
  
 let chip=1,bets=[],roundBets=[],spinning=false;
 const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
@@ -9069,6 +9080,7 @@ splitBets.forEach(b=>{
 });
 let splitHint=$('rouletteSplitHint');if(!splitHint){splitHint=document.createElement('p');splitHint.id='rouletteSplitHint';splitHint.className='tiny';splitHint.style.cssText='color:#f7e7ae;margin:5px 0';const intro=numberTable.previousElementSibling;if(intro)intro.insertAdjacentElement('afterend',splitHint);}
 if(splitHint)splitHint.textContent='Split bet: tap close to the shared edge between two adjacent numbers. One chip covers both numbers.';
+const undoButton=$('rouletteUndoLastChipButton');if(undoButton)undoButton.disabled=spinning||bets.length===0;
 summary();
 }
 // Normalize legacy selection UI immediately: the betting table must start empty.
@@ -9149,6 +9161,9 @@ addBet(spot.dataset.type,spot.dataset.target||'',null);
 wagerInput.addEventListener('change',()=>{const n=Number(wagerInput.value);if(Number.isFinite(n)&&n>0){chip=Math.round(n*100)/100;rack.querySelectorAll('[data-chip]').forEach(x=>x.classList.toggle('active',Number(x.dataset.chip)===chip));summary();}},true);
 player.addEventListener('change',()=>{const a=account(),state=rouletteState(),available=state?rouletteCash(state,a.kind,a.ref):null;if(bets.length&&available!=null&&stakeTotal()>available){clearBets();alert('The account changed and cannot cover the current table wager, so the bets were cleared.');}},true);
 let clearButton=$('rouletteClearBetsButton');if(!clearButton){clearButton=document.createElement('button');clearButton.id='rouletteClearBetsButton';clearButton.type='button';clearButton.className='secondary';clearButton.textContent='Clear All Bets';clearButton.style.cssText='width:100%;margin-top:8px;min-height:42px';button.parentNode.insertBefore(clearButton,button);}
+let undoButton=$('rouletteUndoLastChipButton');if(!undoButton){undoButton=document.createElement('button');undoButton.id='rouletteUndoLastChipButton';undoButton.type='button';undoButton.className='secondary';undoButton.textContent='Undo Last Chip';undoButton.style.cssText='width:100%;margin-top:8px;min-height:42px';clearButton.parentNode.insertBefore(undoButton,clearButton);}
+undoButton.disabled=true;
+undoButton.addEventListener('click',()=>{if(spinning||!bets.length)return;const removed=bets.pop();renderMarkers();const r=$('casinoRouletteResult');if(r)r.textContent='Undid the last '+(removed.type==='split'?'split ':'')+'chip ('+moneyM(removed.stake)+'). Earlier bets remain on the table.';});
 clearButton.addEventListener('click',()=>{if(spinning)return;clearBets();const r=$('casinoRouletteResult');if(r)r.textContent='Table cleared. Choose chips and place your bets.';});
 function wonBet(result,b){
 if(b.type==='split')return b.targets.includes(String(result));
@@ -9182,14 +9197,14 @@ setTimeout(function(){try{
  state.casinoRouletteHistory.push(row);state.casinoFinanceLedger.push({transactionId:txid,type:'roulette_multi_account_spin_settled',season,amount:stake,result,betCount:settled.length,accountCount:accounts.length,profit:profitTotal,grossReturn:grossTotal,accountKind:row.accountKind,accountRef:row.accountRef,casinoBefore:beforeCasino,casinoAfter:afterCasino,timestamp:row.timestamp});
  if(!rouletteSaveVerified(state))throw Error('Save could not be verified');rouletteRefresh();
  const wins=settled.filter(b=>b.won),resultEl=$('casinoRouletteResult');if(resultEl)resultEl.innerHTML='<strong>Wheel result: '+rouletteEscape(result)+(result==='0'||result==='00'?' · Green':rouletteRed(result)?' · Red':' · Black')+'</strong><p class="tiny">Accounts: '+accounts.length+' · Bets: '+settled.length+' · Total wager: '+moneyM(stake)+' · Winning bets: '+wins.length+' · Gross returned: '+moneyM(grossTotal)+' · Net: '+(grossTotal>=stake?'+':'−')+moneyM(Math.abs(grossTotal-stake))+'.</p>';
- const history=$('casinoRouletteHistory');if(history)history.innerHTML='<div>'+rouletteEscape(result)+' · '+accounts.length+' account(s) · '+settled.length+' bets · '+(wins.length?'Won '+moneyM(profitTotal)+' profit':'No winning bets')+'</div>'+history.innerHTML;
+ const history=$('casinoRouletteHistory');if(history)history.innerHTML='<div>'+rouletteEscape(result)+' · '+accounts.length+' account(s) · '+settled.length+' bets · '+(wins.length?'Won '+moneyM(profitTotal)+' profit':'No winning bets')+'</div>'+history.innerHTML;renderRecentNumbers();
  roundBets=[];clearBets();
 }catch(err){try{const restored=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,restored);}catch(rollbackError){}alert('Roulette settlement failed: '+String(err.message||err)+'. State was restored in memory; verify saved data before retrying.');console.error('Roulette multi-account settlement failed',err);}
 finally{spinning=false;button.disabled=false;clearButton.disabled=false;const placeButton=$('roulettePlaceBetsButton');if(placeButton)placeButton.disabled=false;button.textContent='Spin';window.__roulettePlannedResult=null;summary();}
 },4350);
 };
 summary();
-window.__rouletteMultiBetDiagnostic={version:'5.6.7',initialized:true,bettingControlsReady:true,multiAccountRounds:true,spinVisualsAvailable:hasSpinVisuals,splitEdgeTolerancePx:12};
+window.__rouletteMultiBetDiagnostic={version:'5.7.0',initialized:true,bettingControlsReady:true,multiAccountRounds:true,spinVisualsAvailable:hasSpinVisuals,splitEdgeTolerancePx:12};
 console.info('Roulette multi-bet initialized',window.__rouletteMultiBetDiagnostic);
 })();
  
