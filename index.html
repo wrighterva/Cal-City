@@ -8967,7 +8967,7 @@ style.textContent=`
 document.head.appendChild(style);
 })();
  
-// v5.6.6: enable zero-pocket splits and initialize with an empty table. Self-contained betting scope. Do not depend on private helpers from the casino-finance IIFE.
+// v5.6.7: aggregate repeated wagers visually by spot/split edge and match chip color tiers to the rack. Bet records and settlement remain separate and unchanged.
 (function(){
 const $=id=>document.getElementById(id);
 const CASINO_ACCOUNT="Calvin's Casino";
@@ -9019,36 +9019,48 @@ const stakeTotal=()=>Math.round(bets.reduce((sum,b)=>sum+b.stake,0)*100)/100;
 function summary(){const el=$('rouletteSelectedBet');if(el){const queued=roundBets.reduce((n,r)=>n+r.bets.length,0),queuedStake=roundBets.reduce((n,r)=>n+r.bets.reduce((a,b)=>a+b.stake,0),0);el.textContent=(bets.length?'Current account: '+bets.length+' bets · '+moneyM(stakeTotal())+'. ':'No unsubmitted bets. ')+(queued?'Placed for '+roundBets.length+' account(s): '+queued+' bets · '+moneyM(queuedStake)+' total. ':'')+'Selected chip: '+moneyM(chip);}}
 function matchesSpot(b,spot){const type=spot.dataset.type,target=String(spot.dataset.target||'');return b.type===type&&(type!=='number'||b.target===target);}
 function chipColor(stake){
-const colors={0.1:{bg:'#f7f4e9',fg:'#151515',border:'#8d8d8d'},0.5:{bg:'#c92e3c',fg:'#fff',border:'#fff'},1:{bg:'#2767d9',fg:'#fff',border:'#fff'},5:{bg:'#17191c',fg:'#fff',border:'#aaa'},10:{bg:'#d5a928',fg:'#171717',border:'#ffe6a0'}};
-return colors[Math.round(Number(stake)*100)/100]||{bg:'#2767d9',fg:'#fff',border:'#fff'};
+// Match the rack's denomination colors, with the visible chip advancing at each denomination tier.
+const n=Math.round(Number(stake)*100)/100;
+if(n>=10)return {bg:'#d5a928',fg:'#171717',border:'#ffe6a0'};
+if(n>=5)return {bg:'#17191c',fg:'#fff',border:'#aaa'};
+if(n>=1)return {bg:'#2767d9',fg:'#fff',border:'#fff'};
+if(n>=0.5)return {bg:'#c92e3c',fg:'#fff',border:'#fff'};
+return {bg:'#f7f4e9',fg:'#151515',border:'#8d8d8d'};
 }
 function makeChip(b, split=false){
 const token=document.createElement('span'),c=chipColor(b.stake);
 token.className='roulette-placed-chip'+(split?' roulette-placed-split':'');
 token.textContent=moneyM(b.stake);
-token.style.cssText='display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:31px;min-height:31px;padding:3px 5px;border-radius:50%;background:'+c.bg+';color:'+c.fg+';border:3px dashed '+c.border+';box-shadow:0 2px 5px #000a;font-size:9px;font-weight:900;line-height:1;white-space:nowrap;text-shadow:none;pointer-events:none;';
+token.title=(split?'Split ':'Bet ')+moneyM(b.stake);
+token.style.cssText='display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:35px;min-height:35px;padding:4px 6px;border-radius:50%;background:'+c.bg+';color:'+c.fg+';border:3px dashed '+c.border+';box-shadow:0 2px 5px #000a;font-size:9px;font-weight:900;line-height:1;white-space:nowrap;text-shadow:none;pointer-events:none;';
 return token;
+}
+function aggregateVisualBets(list,keyFn){
+const grouped=new Map();
+for(const b of list){const key=keyFn(b);let item=grouped.get(key);if(!item){item={...b,stake:0,visualCount:0};grouped.set(key,item);}item.stake=Math.round((item.stake+b.stake)*100)/100;item.visualCount++;}
+return Array.from(grouped.values());
 }
 function renderMarkers(){
 table.querySelectorAll('.roulette-bet-spot').forEach(spot=>{
  spot.classList.remove('selected');spot.querySelectorAll('.roulette-chip-stack,.roulette-chip-marker').forEach(el=>el.remove());
- const placed=bets.filter(b=>b.type!=='split'&&matchesSpot(b,spot));
+ const placed=aggregateVisualBets(bets.filter(b=>b.type!=='split'&&matchesSpot(b,spot)),b=>b.type+'|'+String(b.target||''));
  if(!placed.length)return;spot.classList.add('selected');
  const stack=document.createElement('span');stack.className='roulette-chip-stack';
  stack.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px;pointer-events:none;z-index:4;padding:2px';
- placed.slice(0,4).forEach(b=>stack.appendChild(makeChip(b,false)));
+ placed.forEach(b=>stack.appendChild(makeChip(b,false)));
  spot.appendChild(stack);
 });
-// Render each split exactly once, centered on the shared edge rather than on both number cells.
+// Aggregate repeated wagers on the same split edge into one chip showing the full combined stake.
 numberTable.querySelectorAll('.roulette-split-overlay').forEach(el=>el.remove());
 numberTable.style.position='relative';const tableRect=numberTable.getBoundingClientRect();
-bets.filter(b=>b.type==='split'&&Array.isArray(b.targets)&&b.targets.length===2).forEach(b=>{
+const splitBets=aggregateVisualBets(bets.filter(b=>b.type==='split'&&Array.isArray(b.targets)&&b.targets.length===2),b=>b.targets.map(String).sort((a,c)=>order.indexOf(a)-order.indexOf(c)).join('|'));
+splitBets.forEach(b=>{
  const a=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[0]));
  const c=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[1]));if(!a||!c)return;
  const ar=a.getBoundingClientRect(),br=c.getBoundingClientRect();if(!ar.width||!br.width)return;
  let x,y;
  const horizontalOverlap=Math.min(ar.right,br.right)-Math.max(ar.left,br.left);
- if(horizontalOverlap>Math.min(ar.width,br.width)*.45){x=(Math.max(ar.left,br.left)+Math.min(ar.right,br.right))/2;y=(ar.bottom+br.top)/2; if(ar.top>br.top)y=(br.bottom+ar.top)/2;}
+ if(horizontalOverlap>Math.min(ar.width,br.width)*.45){x=(Math.max(ar.left,br.left)+Math.min(ar.right,br.right))/2;y=(ar.bottom+br.top)/2;if(ar.top>br.top)y=(br.bottom+ar.top)/2;}
  else{x=(ar.right+br.left)/2;y=(Math.max(ar.top,br.top)+Math.min(ar.bottom,br.bottom))/2;if(ar.left>br.left)x=(br.right+ar.left)/2;}
  const marker=document.createElement('span');marker.className='roulette-split-overlay';
  marker.style.cssText='position:absolute;left:'+(x-tableRect.left)+'px;top:'+(y-tableRect.top)+'px;transform:translate(-50%,-50%);z-index:10;pointer-events:none;';
@@ -9177,7 +9189,7 @@ finally{spinning=false;button.disabled=false;clearButton.disabled=false;const pl
 },4350);
 };
 summary();
-window.__rouletteMultiBetDiagnostic={version:'5.6.6',initialized:true,bettingControlsReady:true,multiAccountRounds:true,spinVisualsAvailable:hasSpinVisuals,splitEdgeTolerancePx:12};
+window.__rouletteMultiBetDiagnostic={version:'5.6.7',initialized:true,bettingControlsReady:true,multiAccountRounds:true,spinVisualsAvailable:hasSpinVisuals,splitEdgeTolerancePx:12};
 console.info('Roulette multi-bet initialized',window.__rouletteMultiBetDiagnostic);
 })();
  
