@@ -8793,7 +8793,7 @@ rouletteSpinButton.dataset.animHook='1';
  
  
  
-// v5.4.8: keep visual table selection synchronized with the existing bet controls and display chips on spots.
+// v5.4.9: keep visual table selection synchronized with the existing bet controls and display chips on spots.
 (function(){
 const table=$('rouletteLiveTable'), rack=$('rouletteChipRack'), wager=$('casinoRouletteWager'),
       typeSel=$('casinoRouletteBetType'), numberSel=$('casinoRouletteNumber'),
@@ -8839,16 +8839,7 @@ if(wager)wager.addEventListener('change',()=>{
 });
 sync();
 })();
-<style id="rouletteBetChipStyles">
-#rouletteLiveTable .roulette-bet-spot{position:relative!important;overflow:visible!important}
-#rouletteLiveTable .roulette-bet-spot.red{background:#b82c39!important;color:#fff!important}
-#rouletteLiveTable .roulette-bet-spot.black{background:#17191c!important;color:#fff!important}
-#rouletteLiveTable .roulette-outside-layout .roulette-bet-spot.red,
-#rouletteLiveTable .roulette-outside-layout .roulette-bet-spot.black{font-size:25px!important;min-height:48px!important}
-.roulette-chip-marker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:flex;align-items:center;justify-content:center;width:31px;height:31px;border-radius:50%;border:3px dashed #fff;background:#2767d9;color:#fff;font-size:8px;font-weight:900;line-height:1;box-shadow:0 2px 4px #000b;pointer-events:none;text-shadow:0 1px 2px #000}
-#rouletteLiveTable .roulette-bet-spot.selected{outline:3px solid #ffe58c!important;outline-offset:1px!important}
-#rouletteLiveTable .roulette-chip-marker{border-color:#fff9}
-</style>
+ 
 // v5.4.6: chip and table selection controls.
 (function(){
 let chip=1, betType='red', target='0';
@@ -8897,6 +8888,17 @@ catch(e){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete s
 const lender=$('casinoLender');if(lender)lender.addEventListener('change',updateLenderCash);const roulettePlayer=$('casinoRoulettePlayer');if(roulettePlayer)roulettePlayer.addEventListener('change',updateRoulettePlayerCash);const modal=$('casinoModal');if(modal)modal.addEventListener('click',e=>{if(e.target===modal)window.closeCasino();});
 })();
 </script>
+<style id="rouletteBetChipStyles">
+#rouletteLiveTable .roulette-bet-spot{position:relative!important;overflow:visible!important}
+#rouletteLiveTable .roulette-bet-spot.red{background:#b82c39!important;color:#fff!important}
+#rouletteLiveTable .roulette-bet-spot.black{background:#17191c!important;color:#fff!important}
+#rouletteLiveTable .roulette-outside-layout .roulette-bet-spot.red,
+#rouletteLiveTable .roulette-outside-layout .roulette-bet-spot.black{font-size:25px!important;min-height:48px!important}
+.roulette-chip-marker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:flex;align-items:center;justify-content:center;width:31px;height:31px;border-radius:50%;border:3px dashed #fff;background:#2767d9;color:#fff;font-size:8px;font-weight:900;line-height:1;box-shadow:0 2px 4px #000b;pointer-events:none;text-shadow:0 1px 2px #000}
+#rouletteLiveTable .roulette-bet-spot.selected{outline:3px solid #ffe58c!important;outline-offset:1px!important}
+#rouletteLiveTable .roulette-chip-marker{border-color:#fff9}
+</style>
+ 
  
 <script>
 (function(){
