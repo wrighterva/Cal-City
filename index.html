@@ -8792,6 +8792,63 @@ rouletteSpinButton.dataset.animHook='1';
  
  
  
+ 
+// v5.4.8: keep visual table selection synchronized with the existing bet controls and display chips on spots.
+(function(){
+const table=$('rouletteLiveTable'), rack=$('rouletteChipRack'), wager=$('casinoRouletteWager'),
+      typeSel=$('casinoRouletteBetType'), numberSel=$('casinoRouletteNumber'),
+      numberWrap=$('casinoRouletteNumberWrap'), playerSel=$('casinoRoulettePlayer');
+let currentChip=1, selectedType='red', selectedNumber='0';
+function label(type,num){
+ if(type==='number')return 'Number '+num;
+ return ({red:'Red',black:'Black',odd:'Odd',even:'Even',low:'1–18',high:'19–36',dozen1:'1st 12',dozen2:'2nd 12',dozen3:'3rd 12'})[type]||type;
+}
+function sync(){
+ if(typeSel){typeSel.value=selectedType;typeSel.dispatchEvent(new Event('change',{bubbles:true}));}
+ if(numberSel)numberSel.value=selectedNumber;
+ if(numberWrap)numberWrap.style.display=selectedType==='number'?'block':'none';
+ if(wager)wager.value=String(currentChip);
+ const summary=$('rouletteSelectedBet');if(summary)summary.textContent='Selected bet: '+label(selectedType,selectedNumber)+' · Wager: $'+currentChip+'M';
+ if(table)table.querySelectorAll('.roulette-bet-spot').forEach(b=>{
+  b.classList.toggle('selected',b.dataset.type===selectedType&&(selectedType!=='number'||b.dataset.target===selectedNumber));
+  const old=b.querySelector('.roulette-chip-marker');if(old)old.remove();
+  if(b.dataset.type===selectedType&&(selectedType!=='number'||b.dataset.target===selectedNumber)){
+   const marker=document.createElement('span');marker.className='roulette-chip-marker';marker.textContent='$'+currentChip+'M';b.appendChild(marker);
+  }
+ });
+}
+if(rack)rack.addEventListener('click',e=>{
+ const b=e.target.closest('[data-chip]');if(!b)return;
+ currentChip=Number(b.dataset.chip);
+ rack.querySelectorAll('[data-chip]').forEach(x=>x.classList.toggle('active',x===b));
+ sync();
+});
+if(table)table.addEventListener('click',e=>{
+ const b=e.target.closest('.roulette-bet-spot[data-type]');if(!b)return;
+ selectedType=b.dataset.type;selectedNumber=b.dataset.target||'0';
+ sync();
+});
+if(typeSel)typeSel.addEventListener('change',()=>{
+ if(typeSel.value!==selectedType){selectedType=typeSel.value;sync();}
+});
+if(numberSel)numberSel.addEventListener('change',()=>{
+ if(numberSel.value!==selectedNumber){selectedNumber=numberSel.value;sync();}
+});
+if(wager)wager.addEventListener('change',()=>{
+ const v=Number(wager.value);if(Number.isFinite(v)&&v>0){currentChip=Math.round(v*100)/100;sync();}
+});
+sync();
+})();
+<style id="rouletteBetChipStyles">
+#rouletteLiveTable .roulette-bet-spot{position:relative!important;overflow:visible!important}
+#rouletteLiveTable .roulette-bet-spot.red{background:#b82c39!important;color:#fff!important}
+#rouletteLiveTable .roulette-bet-spot.black{background:#17191c!important;color:#fff!important}
+#rouletteLiveTable .roulette-outside-layout .roulette-bet-spot.red,
+#rouletteLiveTable .roulette-outside-layout .roulette-bet-spot.black{font-size:25px!important;min-height:48px!important}
+.roulette-chip-marker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:flex;align-items:center;justify-content:center;width:31px;height:31px;border-radius:50%;border:3px dashed #fff;background:#2767d9;color:#fff;font-size:8px;font-weight:900;line-height:1;box-shadow:0 2px 4px #000b;pointer-events:none;text-shadow:0 1px 2px #000}
+#rouletteLiveTable .roulette-bet-spot.selected{outline:3px solid #ffe58c!important;outline-offset:1px!important}
+#rouletteLiveTable .roulette-chip-marker{border-color:#fff9}
+</style>
 // v5.4.6: chip and table selection controls.
 (function(){
 let chip=1, betType='red', target='0';
