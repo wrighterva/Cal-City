@@ -355,7 +355,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 <div id="rouletteLiveTable" class="card" style="margin:10px 0;padding:10px;background:#075235;border:2px solid #c6a65d">
 <h3 style="margin:0 0 8px;color:white">Roulette Betting Table</h3>
-<p class="tiny" style="color:#e7f3e9">Choose a chip, then tap a betting spot. One bet per spin in this test build.</p>
+<p class="tiny" style="color:#e7f3e9">Choose a chip, then tap multiple betting spots. All placed chips settle on one spin.</p>
  
 <div id="rouletteNumberTable" class="roulette-felt-layout">
  <div class="roulette-zero-row">
@@ -8786,7 +8786,7 @@ const rouletteRoomStyle=document.createElement('style');rouletteRoomStyle.textCo
 #rouletteWheelSvg.spinning{animation:roulette-wheel-spin 2.6s cubic-bezier(.12,.72,.18,1) forwards}
 `;document.head.appendChild(rouletteRoomStyle);
  
-// v5.5.5: ball-on-wheel spin, with the pointer-aligned pocket as the settlement result.
+// v5.5.6: ball-on-wheel spin, with the pointer-aligned pocket as the settlement result.
 // v5.4.9: keep visual table selection synchronized with the existing bet controls and display chips on spots.
 (function(){
 const table=$('rouletteLiveTable'), rack=$('rouletteChipRack'), wager=$('casinoRouletteWager'),
@@ -8880,69 +8880,6 @@ const row={transactionId:txid,season,accountKind:kind,accountRef:ref,accountLabe
 catch(e){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);}catch(rollbackError){}alert('Roulette settlement was not committed: '+String(e.message||e)+'. State was restored in memory; verify saved data before retrying.');console.error('Roulette settlement failed',e);}
 };
  
-// v5.5.5: install animation wrapper AFTER the settlement function so it cannot be overwritten.
-(function(){
-const button=$('casinoRouletteSpinButton');
-const settleSpin=window.playCasinoRoulette;
-if(!button||typeof settleSpin!=='function'||button.dataset.spinFixed==='1')return;
-window.playCasinoRoulette=function(){
- const liveState=st();
- const svg=$('rouletteWheelSvg'),orbit=$('rouletteBallOrbit'),ball=$('rouletteBall');
- if(!liveState||!svg||!orbit||!ball){settleSpin();return;}
- const select=$('casinoRoulettePlayer');
- const parts=String(select&&select.value||'').split('|');
- const kind=parts.shift(),ref=parts.join('|');
- const wager=cents(Number($('casinoRouletteWager').value));
- const available=cashOf(liveState,kind,ref);
- if(!Number.isFinite(wager)||wager<=0||available==null||available<wager){settleSpin();return;}
- if(!liveState.businessCash||!Object.prototype.hasOwnProperty.call(liveState.businessCash,CASINO)){settleSpin();return;}
- 
- const wheelOrder=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
- const index=Math.floor(Math.random()*wheelOrder.length);
- const result=wheelOrder[index];
- const sector=360/wheelOrder.length;
- const previous=Number(svg.dataset.rotation||0);
- const previousNorm=((previous%360)+360)%360;
- // Each SVG pocket is drawn starting at 12 o'clock; align the selected pocket center with the fixed pointer.
- const targetNorm=((-(index+0.5)*sector)%360+360)%360;
- const delta=((targetNorm-previousNorm)+360)%360;
- const finalWheel=previous+360*7+delta;
- const previousBall=Number(orbit.dataset.rotation||0);
- const finalBall=previousBall-360*9;
- 
- window.__roulettePlannedResult=result;
- button.disabled=true;
- button.textContent='Wheel spinning…';
- svg.style.transition='none';
- orbit.style.transition='none';
- ball.style.transition='none';
- ball.style.transform='none';
- ball.style.opacity='1';
- void svg.getBoundingClientRect();
- void orbit.getBoundingClientRect();
- svg.style.transition='transform 4.2s cubic-bezier(.10,.72,.12,1)';
- orbit.style.transition='transform 4.05s cubic-bezier(.15,.68,.2,1)';
- svg.style.transform=`rotate(${finalWheel}deg)`;
- svg.dataset.rotation=String(finalWheel);
- orbit.style.transform=`rotate(${finalBall}deg)`;
- orbit.dataset.rotation=String(finalBall);
- 
- // Do not settle the wager until the wheel has visibly stopped.
- window.__rouletteSpinTimer=setTimeout(function(){
-  try{
-   ball.style.transition='transform .22s ease-out';
-   ball.style.transform='translateY(2px)';
-   settleSpin();
-  }finally{
-   setTimeout(function(){
-    button.disabled=false;
-    button.textContent='Place Bet & Spin';
-   },100);
-  }
- },4350);
-};
-button.dataset.spinFixed='1';
-})();
 const lender=$('casinoLender');if(lender)lender.addEventListener('change',updateLenderCash);const roulettePlayer=$('casinoRoulettePlayer');if(roulettePlayer)roulettePlayer.addEventListener('change',updateRoulettePlayerCash);const modal=$('casinoModal');if(modal)modal.addEventListener('click',e=>{if(e.target===modal)window.closeCasino();});
 })();
 </script>
@@ -9022,5 +8959,158 @@ style.textContent=`
 `;
 document.head.appendChild(style);
 })();
+ 
+// v5.5.6: multi-spot roulette betting. Every chip placed on a spot is an independent wager
+// settled against the one pocket where the animated wheel stops.
+(function(){
+const table=$('rouletteLiveTable'),rack=$('rouletteChipRack'),button=$('casinoRouletteSpinButton');
+const player=$('casinoRoulettePlayer'),wagerInput=$('casinoRouletteWager');
+const svg=$('rouletteWheelSvg'),orbit=$('rouletteBallOrbit'),ball=$('rouletteBall');
+if(!table||!rack||!button||!player||!wagerInput||!svg||!orbit||!ball)return;
+ 
+let chip=1, bets=[], spinning=false;
+const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
+const spotLabel=(type,target)=>type==='number'?'Number '+target:rouletteLabel(type,target);
+const moneyM=n=>'$'+(Math.round(n*100)/100).toLocaleString('en-US',{maximumFractionDigits:2})+'M';
+function totalStake(){return Math.round(bets.reduce((sum,b)=>sum+b.stake,0)*100)/100;}
+function summary(){
+ const el=$('rouletteSelectedBet');if(!el)return;
+ el.textContent=bets.length?('Bets on table: '+bets.length+' · Total wager: '+moneyM(totalStake())+' · Selected chip: '+moneyM(chip)):'No bets placed · Selected chip: '+moneyM(chip);
+}
+function renderMarkers(){
+ table.querySelectorAll('.roulette-bet-spot').forEach(spot=>{
+  spot.classList.remove('selected');
+  const old=spot.querySelector('.roulette-chip-stack');if(old)old.remove();
+  const type=spot.dataset.type,target=String(spot.dataset.target||'');
+  const placed=bets.filter(b=>b.type===type&&(type!=='number'||b.target===target));
+  if(!placed.length)return;
+  spot.classList.add('selected');
+  const stack=document.createElement('span');stack.className='roulette-chip-stack';
+  stack.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px;pointer-events:none;z-index:4;padding:2px';
+  const totals={};
+  placed.forEach(b=>totals[b.stake]=(totals[b.stake]||0)+1);
+  Object.keys(totals).slice(0,4).forEach(stake=>{
+   const token=document.createElement('span');token.textContent=totals[stake]>1?(moneyM(Number(stake))+' ×'+totals[stake]):moneyM(Number(stake));
+   token.style.cssText='background:#2869d9;color:white;border:2px dashed #fff;border-radius:999px;box-shadow:0 2px 5px #000a;font-size:9px;font-weight:900;padding:4px 6px;line-height:1.1;white-space:nowrap';
+   stack.appendChild(token);
+  });
+  spot.appendChild(stack);
+ });
+ summary();
+}
+function clearBets(){bets=[];renderMarkers();}
+function selectedAccount(){
+ const parts=String(player.value||'').split('|');
+ return {kind:parts.shift(),ref:parts.join('|')};
+}
+function placeChip(spot){
+ if(spinning)return;
+ const type=String(spot.dataset.type||''),target=String(spot.dataset.target||'');
+ if(!type)return;
+ if(!Number.isFinite(chip)||chip<=0){alert('Choose a chip denomination first.');return;}
+ const account=selectedAccount(),state=st(),available=state?cashOf(state,account.kind,account.ref):null;
+ const proposed=Math.round((totalStake()+chip)*100)/100;
+ if(available==null||proposed>available){alert('The selected account does not have enough cash for the total wager on the table.');return;}
+ bets.push({type,target,stake:Math.round(chip*100)/100});
+ renderMarkers();
+}
+rack.addEventListener('click',function(e){
+ const token=e.target.closest('[data-chip]');if(!token)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ chip=Math.round(Number(token.dataset.chip)*100)/100;
+ rack.querySelectorAll('[data-chip]').forEach(x=>x.classList.toggle('active',x===token));
+ wagerInput.value=String(chip);
+ summary();
+},true);
+table.addEventListener('click',function(e){
+ const spot=e.target.closest('.roulette-bet-spot[data-type]');if(!spot)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ placeChip(spot);
+},true);
+wagerInput.addEventListener('change',function(){
+ const value=Number(wagerInput.value);
+ if(Number.isFinite(value)&&value>0){
+  chip=Math.round(value*100)/100;
+  rack.querySelectorAll('[data-chip]').forEach(x=>x.classList.toggle('active',Number(x.dataset.chip)===chip));
+  summary();
+ }
+},true);
+player.addEventListener('change',function(){
+ const state=st(),account=selectedAccount(),available=state?cashOf(state,account.kind,account.ref):null;
+ if(bets.length&&available!=null&&totalStake()>available){clearBets();alert('The account changed and cannot cover the current table wager, so the bets were cleared.');}
+},true);
+ 
+// Add clear-table control so users can correct a layout before spinning.
+let clearButton=$('rouletteClearBetsButton');
+if(!clearButton){
+ clearButton=document.createElement('button');clearButton.id='rouletteClearBetsButton';clearButton.type='button';
+ clearButton.className='secondary';clearButton.textContent='Clear All Bets';
+ clearButton.style.cssText='width:100%;margin-top:8px;min-height:42px';
+ button.parentNode.insertBefore(clearButton,button);
+}
+clearButton.addEventListener('click',function(){if(spinning)return;clearBets();const r=$('casinoRouletteResult');if(r)r.textContent='Table cleared. Choose chips and place your bets.';});
+ 
+// Replace single-bet settlement. Stakes and winnings are aggregated and saved atomically.
+window.playCasinoRoulette=function(){
+ if(spinning)return;
+ const state=st();if(!state){alert('Live game state is unavailable. No bet was placed.');return;}
+ if(!bets.length){alert('Place at least one chip on the table before spinning.');return;}
+ const account=selectedAccount(),available=cashOf(state,account.kind,account.ref),stake=totalStake();
+ if(available==null||available<stake){alert('This account does not have enough cash for all bets. No spin was placed.');return;}
+ if(!state.businessCash||!Object.prototype.hasOwnProperty.call(state.businessCash,CASINO)){alert('Casino cash account is unavailable. No bet was placed.');return;}
+ const beforeCasino=Number(state.businessCash[CASINO])||0,beforePlayer=available;
+ const pockets=order.slice(),index=Math.floor(Math.random()*pockets.length),result=pockets[index];
+ const settled=bets.map((b,i)=>{const won=rouletteWins(result,b.type,b.target),profit=won?cents(b.stake*rouletteProfitMultiplier(b.type)):0,gross=won?cents(b.stake+profit):0;return {...b,won,profit,gross,betLabel:spotLabel(b.type,b.target),betIndex:i};});
+ const grossTotal=cents(settled.reduce((n,b)=>n+b.gross,0)),profitTotal=cents(settled.reduce((n,b)=>n+b.profit,0));
+ const casinoAfterStake=cents(beforeCasino+stake);
+ if(casinoAfterStake<grossTotal){alert('The casino cannot cover all winning payouts on this spin. No bets were accepted.');return;}
+ const txid='CASINO-RLT-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),old=JSON.stringify(state),season=currentSeason(state);
+ spinning=true;button.disabled=true;clearButton.disabled=true;button.textContent='Wheel spinning…';
+ const sector=360/pockets.length,previous=Number(svg.dataset.rotation||0),prevNorm=((previous%360)+360)%360;
+ // SVG wheel pockets are drawn around 12 o'clock. Center the actual selected pocket under the pointer.
+ const targetNorm=((-(index+0.5)*sector)%360+360)%360,delta=((targetNorm-prevNorm)+360)%360,finalWheel=previous+360*7+delta;
+ const prevBall=Number(orbit.dataset.rotation||0),finalBall=prevBall-360*10;
+ svg.style.transition='none';orbit.style.transition='none';ball.style.transition='none';ball.style.transform='none';ball.style.opacity='1';
+ void svg.getBoundingClientRect();void orbit.getBoundingClientRect();
+ svg.style.transition='transform 4.2s cubic-bezier(.10,.72,.12,1)';
+ orbit.style.transition='transform 4.05s cubic-bezier(.15,.68,.2,1)';
+ svg.style.transform='rotate('+finalWheel+'deg)';svg.dataset.rotation=String(finalWheel);
+ orbit.style.transform='rotate('+finalBall+'deg)';orbit.dataset.rotation=String(finalBall);
+ window.__roulettePlannedResult=result;
+ setTimeout(function(){
+  try{
+   ball.style.transition='transform .25s ease-out';ball.style.transform='translateY(2px)';
+   const afterPlayer=cents(beforePlayer-stake+grossTotal),afterCasino=cents(beforeCasino+stake-grossTotal);
+   if(account.kind==='citizen'){
+    const citizen=(state.citizens||[]).find(c=>c&&String(c.id)===String(account.ref));if(!citizen)throw Error('Citizen account disappeared');
+    citizen.cash=afterPlayer;
+   }else{
+    if(!Object.prototype.hasOwnProperty.call(state.businessCash,account.ref))throw Error('Business player account disappeared');
+    state.businessCash[account.ref]=afterPlayer;
+   }
+   state.businessCash[CASINO]=afterCasino;
+   if(!Array.isArray(state.casinoRouletteHistory))state.casinoRouletteHistory=[];
+   if(!Array.isArray(state.casinoFinanceLedger))throw Error('Casino finance ledger is unavailable');
+   const row={transactionId:txid,season,accountKind:account.kind,accountRef:account.ref,accountLabel:accountLabel(state,account.kind,account.ref),wager:stake,bets:settled.map(b=>({type:b.type,target:b.target,stake:b.stake,betLabel:b.betLabel,won:b.won,profit:b.profit,grossReturn:b.gross})),result,won:grossTotal>0,profit:profitTotal,grossReturn:grossTotal,net:cents(grossTotal-stake),casinoBefore:beforeCasino,casinoAfter:afterCasino,playerBefore:beforePlayer,playerAfter:afterPlayer,timestamp:new Date().toISOString()};
+   state.casinoRouletteHistory.push(row);
+   state.casinoFinanceLedger.push({transactionId:txid,type:'roulette_multi_bet_spin_settled',season,amount:stake,result,betCount:settled.length,profit:profitTotal,grossReturn:grossTotal,accountKind:account.kind,accountRef:account.ref,casinoBefore:beforeCasino,casinoAfter:afterCasino,timestamp:row.timestamp});
+   if(!saveVerified(state))throw Error('Save could not be verified');
+   refresh();
+   const wins=settled.filter(b=>b.won),resultEl=$('casinoRouletteResult');
+   if(resultEl)resultEl.innerHTML='<strong>Wheel result: '+escapeHtml(result)+(result==='0'||result==='00'?' · Green':rouletteRed(result)?' · Red':' · Black')+'</strong><p class="tiny">Bets placed: '+settled.length+' · Total wager: '+moneyM(stake)+' · Winning bets: '+wins.length+' · Gross returned: '+moneyM(grossTotal)+' · Net: '+(grossTotal>=stake?'+':'−')+moneyM(Math.abs(grossTotal-stake))+'.</p>';
+   const history=$('casinoRouletteHistory');if(history)history.innerHTML='<div>'+escapeHtml(result)+' · '+settled.length+' bets · '+(wins.length?'Won '+moneyM(profitTotal)+' profit':'No winning bets')+'</div>'+history.innerHTML;
+   clearBets();
+  }catch(err){
+   try{const restored=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,restored);}catch(rollbackError){}
+   alert('Roulette settlement failed: '+String(err.message||err)+'. State was restored in memory; verify saved data before retrying.');
+   console.error('Roulette multi-bet settlement failed',err);
+  }finally{
+   spinning=false;button.disabled=false;clearButton.disabled=false;button.textContent='Place Bet & Spin';window.__roulettePlannedResult=null;
+  }
+ },4350);
+};
+summary();
+})();
+ 
 </script>
 </body></html>
