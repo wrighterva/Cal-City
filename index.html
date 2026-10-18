@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.4.1: Adds American Roulette to Calvin's Casino after funding; no existing balances or history reset. Based on v5.3.9. Preserves existing standings and duplicate audit records. -->
+<!-- CALVIN'S CITY — VERSION 5.4.2: American Roulette TEST MODE unlocked before funding; no starting balances or history reset. Based on v5.3.9. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -280,7 +280,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </div>
 <div id="casinoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="casinoModalTitle"><div class="modalbox">
 <h2 id="casinoModalTitle">🎰 Calvin's Casino</h2>
-<p class="tiny">Separate business account and debt registry. Loans transfer existing cash from the lender; no money is created. Casino games remain locked until the funding target is met.</p>
+<p class="tiny">TEST MODE: American Roulette is unlocked before funding so it can be tested in your existing game. Wagers and payouts still use existing account balances; no money is created. Classic Slots and High-Stakes Slots are not implemented yet.</p>
 <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
 <div class="metric"><small>Casino Cash</small><strong id="casinoCash">$0M</strong></div><div class="metric"><small>Debt Raised</small><strong id="casinoDebtRaised">$0M</strong></div>
 <div class="metric"><small>Funding Progress</small><strong id="casinoFundingProgress">$0M / $500M</strong></div><div class="metric"><small>Business Status</small><strong id="casinoOpenStatus">Not funded</strong></div>
@@ -8627,16 +8627,16 @@ const isOpen=raisedM>=target&&target>0;
 if($('casinoCash'))$('casinoCash').textContent=money(cash);
 if($('casinoDebtRaised'))$('casinoDebtRaised').textContent=money(raisedM);
 if($('casinoFundingProgress'))$('casinoFundingProgress').textContent=money(raisedM)+' / '+money(target);
-if($('casinoOpenStatus'))$('casinoOpenStatus').textContent=isOpen?'Funded — games can be added':'Not funded';
-if($('casinoBusinessCardStatus'))$('casinoBusinessCardStatus').textContent=isOpen?'Funding complete':money(raisedM)+' / '+money(target)+' raised';
+if($('casinoOpenStatus'))$('casinoOpenStatus').textContent=isOpen?'Funded — games can be added':'TEST MODE — roulette unlocked; casino not funded';
+if($('casinoBusinessCardStatus'))$('casinoBusinessCardStatus').textContent=isOpen?'Funding complete':'TEST MODE · '+money(raisedM)+' / '+money(target)+' raised';
 if($('casinoFundingTarget'))$('casinoFundingTarget').value=target;
 if($('casinoInterestRate'))$('casinoInterestRate').value=Number(f.offering&&f.offering.interestRate)||0;
 if($('casinoLoanTerm'))$('casinoLoanTerm').value=Number(f.offering&&f.offering.termSeasons)||3;
 if($('casinoCurrentSeason'))$('casinoCurrentSeason').value='Season '+currentSeason(state);
 const sel=$('casinoLender');if(sel){const prior=sel.value;sel.innerHTML='';getLenders(state).forEach(l=>{const o=document.createElement('option');o.value=l.kind+'|'+l.ref;o.textContent=l.label+' ('+money(l.cash)+')';sel.appendChild(o);});if([...sel.options].some(o=>o.value===prior))sel.value=prior;updateLenderCash();}
 const holders=$('casinoDebtHolders');if(holders){if(!f.loans||!f.loans.length)holders.textContent='No loans issued.';else holders.innerHTML=f.loans.map(l=>'<div style="border-bottom:1px solid #354253;padding:6px 0"><strong>'+escapeHtml(l.lenderLabel||l.lenderRef)+'</strong> — '+money(l.principal)+' principal; '+Number(l.interestRate)+'% per season; maturity Season '+l.maturitySeason+'; outstanding '+money(l.outstandingPrincipal==null?l.principal:l.outstandingPrincipal)+'</div>').join('');}
-const games=$('casinoGamesLocked');if(games){games.innerHTML=isOpen?'<strong>✅ Funding target met</strong><p class="tiny">American Roulette is open. Classic Slots and High-Stakes Slots are still in development.</p>':'<strong>🔒 Casino games are locked</strong><p class="tiny">American Roulette unlocks when the funding target is met. Slots remain in development.</p>';}
-const roulette=$('casinoRoulettePanel');if(roulette)roulette.style.display=isOpen?'block':'none';
+const games=$('casinoGamesLocked');if(games){games.innerHTML='<strong>🧪 TEST MODE — American Roulette unlocked</strong><p class="tiny">Roulette is available before funding for testing. Winning payouts require sufficient real casino cash. Classic Slots and High-Stakes Slots are still in development.</p>'; }
+const roulette=$('casinoRoulettePanel');if(roulette)roulette.style.display='block';
 const playerSel=$('casinoRoulettePlayer');if(playerSel){const prior=playerSel.value;playerSel.innerHTML='';getBettingAccounts(state).forEach(a=>{const o=document.createElement('option');o.value=a.kind+'|'+a.ref;o.textContent=a.label+' ('+money(a.cash)+')';playerSel.appendChild(o);});if([...playerSel.options].some(o=>o.value===prior))playerSel.value=prior;updateRoulettePlayerCash();}
 const hist=$('casinoRouletteHistory');if(hist){const rows=(state.casinoRouletteHistory||[]).slice(-8).reverse();hist.innerHTML=rows.length?rows.map(r=>'<div style="border-bottom:1px solid #354253;padding:5px 0">Season '+r.season+' · <strong>'+escapeHtml(r.result)+'</strong> · '+escapeHtml(r.accountLabel)+' · '+money(r.wager)+' on '+escapeHtml(r.betLabel)+' · '+(r.won?'WIN +':'LOSS ')+money(r.net)+' net</div>').join(''):'No spins yet.';}
 }
@@ -8660,7 +8660,7 @@ function rouletteWins(result,type,target){const n=Number(result);if(type==='numb
 function rouletteProfitMultiplier(type){return type==='number'?35:(type.startsWith('dozen')?2:1);}
 const rouletteType=$('casinoRouletteBetType');if(rouletteType)rouletteType.addEventListener('change',()=>{const w=$('casinoRouletteNumberWrap');if(w)w.style.display=rouletteType.value==='number'?'block':'none';});
 window.playCasinoRoulette=function(){
-const state=st();if(!state){alert('Live game state is unavailable. No bet was placed.');return;}const f=state.casinoFinance||{offering:{fundingTarget:500}};if(raised(f)<(Number(f.offering&&f.offering.fundingTarget)||500)){alert('Casino funding target has not been met. Roulette remains locked.');return;}
+const state=st();if(!state){alert('Live game state is unavailable. No bet was placed.');return;} // TEST MODE: roulette can be played before funding; account-balance and payout safeguards remain active.
 const parts=String($('casinoRoulettePlayer').value||'').split('|'),kind=parts.shift(),ref=parts.join('|'),wager=cents(Number($('casinoRouletteWager').value)),type=String($('casinoRouletteBetType').value||'red'),target=String($('casinoRouletteNumber').value||'0');
 if(!Number.isFinite(wager)||wager<=0){alert('Enter a wager greater than zero.');return;}const available=cashOf(state,kind,ref);if(available==null||available<wager){alert('This account does not have enough cash for that wager. No bet was placed.');return;}
 if(!state.businessCash||!Object.prototype.hasOwnProperty.call(state.businessCash,CASINO)){alert('Casino cash account is unavailable. No bet was placed.');return;}
