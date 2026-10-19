@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.7.9: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
+<!-- CALVIN'S CITY — VERSION 5.8.1: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -9062,7 +9062,7 @@ if(!rows.length){host.innerHTML='<span style="font-size:12px;color:#aab4bf">No r
 host.innerHTML=rows.map(row=>{const n=String(row.result??'');const color=rouletteResultColor(n);return '<span title="Latest results first" style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 5px;box-sizing:border-box;border-radius:5px;background:'+color+';color:#fff;font-weight:800;font-size:14px;border:1px solid '+(color==='#17191c'?'#8a9299':color)+';box-shadow:inset 0 0 0 1px #ffffff12">'+rouletteEscape(n)+'</span>';}).join('');
 }
  
-let chip=1,bets=[],roundBets=[],spinning=false;
+let chip=1,bets=[],roundBets=[],lastSettledRound=[],spinning=false;
 const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
 const numberSpots=()=>Array.from(numberTable.querySelectorAll('.roulette-bet-spot[data-type="number"]'));
 const moneyM=n=>'$'+(Math.round(n*100)/100).toLocaleString('en-US',{maximumFractionDigits:2})+'M';
@@ -9205,6 +9205,9 @@ let clearButton=$('rouletteClearBetsButton');if(!clearButton){clearButton=docume
 let undoButton=$('rouletteUndoLastChipButton');if(!undoButton){undoButton=document.createElement('button');undoButton.id='rouletteUndoLastChipButton';undoButton.type='button';undoButton.className='secondary';undoButton.textContent='Undo Last Chip';undoButton.style.cssText='width:100%;margin-top:8px;min-height:42px';clearButton.parentNode.insertBefore(undoButton,clearButton);}
 undoButton.disabled=true;
 undoButton.addEventListener('click',()=>{if(spinning||!bets.length)return;const removed=bets.pop();renderMarkers();const r=$('casinoRouletteResult');if(r)r.textContent='Undid the last '+(removed.type==='split'?'split ':'')+'chip ('+moneyM(removed.stake)+'). Earlier bets remain on the table.';});
+let redoButton=$('rouletteRedoLastBetButton');if(!redoButton){redoButton=document.createElement('button');redoButton.id='rouletteRedoLastBetButton';redoButton.type='button';redoButton.className='goodbtn';redoButton.textContent='Redo Last Bet';redoButton.style.cssText='width:100%;margin-top:8px;min-height:44px';clearButton.parentNode.insertBefore(redoButton,clearButton.nextSibling);}
+redoButton.disabled=true;redoButton.title='Spin once to save a completed round, then you can repeat those same bets.';
+redoButton.addEventListener('click',()=>{if(spinning)return;if(!lastSettledRound.length){alert('Complete a roulette spin first. Your last set of bets will then be available to repeat.');return;}if(bets.length||roundBets.length){alert('Clear or finish the bets currently on the table before redoing the previous round.');return;}roundBets=lastSettledRound.map(g=>({...g,bets:g.bets.map(b=>({...b,targets:b.targets?b.targets.slice():undefined}))}));const result=$('casinoRouletteResult');if(result)result.textContent='Last round restored: '+roundBets.length+' account(s), '+roundBets.reduce((n,g)=>n+g.bets.length,0)+' bets. Press Spin to replay them.';summary();});
 clearButton.addEventListener('click',()=>{if(spinning)return;clearBets();const r=$('casinoRouletteResult');if(r)r.textContent='Table cleared. Choose chips and place your bets.';});
 function wonBet(result,b){
 if(b.type==='split')return b.targets.includes(String(result));
@@ -9239,9 +9242,10 @@ setTimeout(function(){try{
  if(!rouletteSaveVerified(state))throw Error('Save could not be verified');rouletteRefresh();
  const wins=settled.filter(b=>b.won),resultEl=$('casinoRouletteResult');if(resultEl)resultEl.innerHTML='<strong>Wheel result: '+rouletteEscape(result)+(result==='0'||result==='00'?' · Green':rouletteRed(result)?' · Red':' · Black')+'</strong><p class="tiny">Accounts: '+accounts.length+' · Bets: '+settled.length+' · Total wager: '+moneyM(stake)+' · Winning bets: '+wins.length+' · Gross returned: '+moneyM(grossTotal)+' · Net: '+(grossTotal>=stake?'+':'−')+moneyM(Math.abs(grossTotal-stake))+'.</p>';
  const history=$('casinoRouletteHistory');if(history)history.innerHTML='<div>'+rouletteEscape(result)+' · '+accounts.length+' account(s) · '+settled.length+' bets · '+(wins.length?'Won '+moneyM(profitTotal)+' profit':'No winning bets')+'</div>'+history.innerHTML;renderRecentNumbers();
+ lastSettledRound=accounts.map(a=>({kind:a.kind,ref:a.ref,label:a.label,bets:a.bets.map(b=>({...b,targets:b.targets?b.targets.slice():undefined}))}));if(redoButton){redoButton.disabled=false;redoButton.title='Repeat the previous completed round.';}
  roundBets=[];clearBets();
 }catch(err){try{const restored=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,restored);}catch(rollbackError){}alert('Roulette settlement failed: '+String(err.message||err)+'. State was restored in memory; verify saved data before retrying.');console.error('Roulette multi-account settlement failed',err);}
-finally{spinning=false;button.disabled=false;clearButton.disabled=false;const placeButton=$('roulettePlaceBetsButton');if(placeButton)placeButton.disabled=false;button.textContent='Spin';window.__roulettePlannedResult=null;summary();}
+finally{spinning=false;button.disabled=false;clearButton.disabled=false;if(redoButton)redoButton.disabled=!lastSettledRound.length;const placeButton=$('roulettePlaceBetsButton');if(placeButton)placeButton.disabled=false;button.textContent='Spin';window.__roulettePlannedResult=null;summary();}
 },4350);
 };
 summary();
