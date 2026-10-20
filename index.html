@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.3: Adds a Federal Reserve City tab and dashboard shell; no tax or Treasury transactions activated. Based on v5.8.2. -->
+<!-- CALVIN'S CITY — VERSION 5.8.4: Adds read-only live Federal Reserve cash tracker; no money movement, taxes, or Treasury transactions activated. Based on v5.8.3. -->
 <!-- CALVIN'S CITY — VERSION 5.8.2: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
@@ -136,7 +137,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.5.9</title>
+<title>Calvin's City 5.8.4</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -252,7 +253,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.3</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.4</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -503,10 +504,22 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="metric"><small>Institution</small><strong>Federal Reserve</strong></div>
 <div class="metric"><small>Operating Status</small><strong id="fedOperatingStatus">Setup phase</strong></div>
 </div>
-<div class="card" style="margin-top:12px">
+<div class="card" id="fedCashTrackerCard" style="margin-top:12px">
 <h3>📊 Economy & Cash Tracker</h3>
-<p>Planned: seasonal cash snapshots for citizens, businesses, teams, CalSims, and the Federal Reserve, with changes over time and safeguards against double-counting.</p>
-<div class="tiny">Cash tracking is not active in this initial dashboard build.</div>
+<p>Live read-only view of current cash balances. This first step does not move money or change any game records.</p>
+<div class="grid">
+<div class="metric"><small>Total Tracked Cash</small><strong id="fedTotalTrackedCash">Calculating…</strong></div>
+<div class="metric"><small>Current Season</small><strong id="fedCashSeason">—</strong></div>
+<div class="metric"><small>Citizens</small><strong id="fedCitizensCash">—</strong></div>
+<div class="metric"><small>Businesses</small><strong id="fedBusinessesCash">—</strong></div>
+<div class="metric"><small>Teams</small><strong id="fedTeamsCash">—</strong></div>
+<div class="metric"><small>CalSims Consumer Pool</small><strong id="fedCalSimsCash">—</strong></div>
+<div class="metric"><small>Federal Reserve</small><strong id="fedInstitutionCash">—</strong></div>
+<div class="metric"><small>Accounts Counted</small><strong id="fedAccountCount">—</strong></div>
+</div>
+<button type="button" class="secondary" id="fedRefreshCashTracker">↻ Refresh Cash Tracker</button>
+<p id="fedCashTrackerStatus" class="tiny" role="status" aria-live="polite">Reading current saved game balances. No balances will be changed.</p>
+<div class="tiny">Accounting note: CalSims is counted as one separate consumer pool. Its cash is not added to citizen or company balances. Teams are read from teamCash and excluded from business totals.</div>
 </div>
 <div class="card">
 <h3>🧾 Seasonal Taxes</h3>
@@ -6477,6 +6490,44 @@ e.stopPropagation();
 setCityTab(tab);
 });
 });
+})();
+</script>
+<script>
+/* 5.8.4: Read-only Federal Reserve live cash tracker. No cash mutation, tax, or debt actions. */
+(function(){
+"use strict";
+const fmt=n=>"$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2})+"M";
+const el=id=>document.getElementById(id);
+function runFederalReserveCashTracker(){
+const bridge=window.__calvinsCityBridge;
+const st=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
+const status=el("fedCashTrackerStatus");
+if(!st){if(status)status.textContent="Game state is not available yet. Try refreshing the tracker.";return false;}
+const citizens=Array.isArray(st.citizens)?st.citizens:[];
+const citizenAccounts=citizens.filter(c=>c&&c.cash!==null&&c.cash!==""&&Number.isFinite(Number(c.cash)));
+const citizenCash=citizenAccounts.reduce((sum,c)=>sum+Number(c.cash),0);
+const teamCashMap=st.teamCash&&typeof st.teamCash==="object"?st.teamCash:{};
+const teamEntries=Object.entries(teamCashMap).filter(([name,value])=>!['Lions','Rims','Dunks'].includes(name)?false:Number.isFinite(Number(value)));
+const teamCash=teamEntries.reduce((sum,[,value])=>sum+Number(value),0);
+const businessMap=st.businessCash&&typeof st.businessCash==="object"?st.businessCash:{};
+const teamNames=new Set(['Lions','Rims','Dunks']);
+const businessEntries=Object.entries(businessMap).filter(([name,value])=>!teamNames.has(name)&&Number.isFinite(Number(value)));
+const businessCash=businessEntries.reduce((sum,[,value])=>sum+Number(value),0);
+const cal=st.calSimsEconomy&&typeof st.calSimsEconomy==="object"?st.calSimsEconomy:{};
+const hasCalSims=Number.isFinite(Number(cal.totalCash));
+const calSimsCash=hasCalSims?Number(cal.totalCash):0;
+const fed=st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:{};
+const fedCash=Number.isFinite(Number(fed.cash))?Number(fed.cash):0;
+const total=citizenCash+teamCash+businessCash+calSimsCash+fedCash;
+const values={fedTotalTrackedCash:fmt(total),fedCashSeason:String(Number(st.year)||'—'),fedCitizensCash:fmt(citizenCash),fedBusinessesCash:fmt(businessCash),fedTeamsCash:fmt(teamCash),fedCalSimsCash:hasCalSims?fmt(calSimsCash):'Not initialized',fedInstitutionCash:fmt(fedCash),fedAccountCount:(citizenAccounts.length+businessEntries.length+teamEntries.length+(hasCalSims?1:0)+1).toLocaleString('en-US')};
+Object.entries(values).forEach(([id,value])=>{const node=el(id);if(node)node.textContent=value;});
+if(status)status.textContent="Updated "+new Date().toLocaleTimeString()+". Read-only snapshot; no game balances or records were changed.";
+return true;
+}
+window.refreshFederalReserveCashTracker=runFederalReserveCashTracker;
+const button=el('fedRefreshCashTracker');if(button)button.addEventListener('click',runFederalReserveCashTracker);
+const tab=el('cityFederalReserveTab');if(tab)tab.addEventListener('click',()=>setTimeout(runFederalReserveCashTracker,0));
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',runFederalReserveCashTracker);else setTimeout(runFederalReserveCashTracker,0);
 })();
 </script>
 <script>
