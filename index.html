@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- CALVIN'S CITY — VERSION 5.8.3: Adds a Federal Reserve City tab and dashboard shell; no tax or Treasury transactions activated. Based on v5.8.2. -->
 <!-- CALVIN'S CITY — VERSION 5.8.2: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
@@ -43,21 +44,21 @@ const flagIndex=out.length; out.push(0); let flags=0;
 for(let bit=0;bit<8&&pos<n;bit++){
 let bestLen=0,bestOff=0;
 if(pos+2<n){
- const lo=Math.max(0,pos-4096);
- for(let cand=pos-1,checked=0;cand>=lo&&checked<48;cand--){
-   if(input[cand]!==input[pos]||input[cand+1]!==input[pos+1]||input[cand+2]!==input[pos+2])continue;
-   checked++;
-   let len=3;
-   while(len<18&&pos+len<n&&input[cand+len]===input[pos+len])len++;
-   if(len>bestLen){bestLen=len;bestOff=pos-cand;if(len===18)break;}
- }
+const lo=Math.max(0,pos-4096);
+for(let cand=pos-1,checked=0;cand>=lo&&checked<48;cand--){
+  if(input[cand]!==input[pos]||input[cand+1]!==input[pos+1]||input[cand+2]!==input[pos+2])continue;
+  checked++;
+  let len=3;
+  while(len<18&&pos+len<n&&input[cand+len]===input[pos+len])len++;
+  if(len>bestLen){bestLen=len;bestOff=pos-cand;if(len===18)break;}
+}
 }
 if(bestLen>=3){
- flags|=(1<<bit);
- const code=((bestOff-1)<<4)|(bestLen-3);
- out.push((code>>8)&255,code&255);pos+=bestLen;
+flags|=(1<<bit);
+const code=((bestOff-1)<<4)|(bestLen-3);
+out.push((code>>8)&255,code&255);pos+=bestLen;
 }else{
- out.push(input[pos++]);
+out.push(input[pos++]);
 }
 }
 out[flagIndex]=flags;
@@ -70,11 +71,11 @@ while(p<input.length){
 const flags=input[p++];
 for(let bit=0;bit<8&&p<input.length;bit++){
 if(flags&(1<<bit)){
- if(p+1>=input.length)throw new Error("Truncated compressed Calvin's City storage value.");
- const code=(input[p++]<<8)|input[p++];
- const offset=(code>>4)+1,len=(code&15)+3;
- if(offset>out.length)throw new Error("Invalid compressed Calvin's City back-reference.");
- for(let j=0;j<len;j++)out.push(out[out.length-offset]);
+if(p+1>=input.length)throw new Error("Truncated compressed Calvin's City storage value.");
+const code=(input[p++]<<8)|input[p++];
+const offset=(code>>4)+1,len=(code&15)+3;
+if(offset>out.length)throw new Error("Invalid compressed Calvin's City back-reference.");
+for(let j=0;j<len;j++)out.push(out[out.length-offset]);
 }else out.push(input[p++]);
 }
 }
@@ -159,8 +160,11 @@ input,select,textarea{font-size:16px!important;-webkit-text-size-adjust:100%;tex
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left}th{color:#9eabba}
 .badge{display:inline-block;padding:4px 8px;border-radius:8px;background:#344255;font-size:11px;font-weight:800;margin-right:5px}.gold{color:#f1d37a}.muted{color:#9eabba}
 .log{font-size:12px;color:#b9c5d2;line-height:1.5;max-height:360px;overflow:auto}.tiny{font-size:11px;color:#9eabba}
-.city-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 14px}
+.city-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 8px}
+.city-fed-tab-row{display:flex;justify-content:center;margin:0 0 14px}
+.city-fed-tab{width:min(100%,260px);background:#344255;border:1px solid #4f8dca}
 .city-tab{margin:0;background:#344255}.city-tab.active{background:#2f6fed}
+.city-fed-tab.active{background:#245b8e;border-color:#7db7ed}
 .city-panel h3{margin-top:4px}
 .city-place-card{display:flex;align-items:center;gap:12px;text-align:left;background:#121b27;border:1px solid #3a4960;border-radius:14px;padding:14px;margin-top:10px;min-height:70px}
 .city-place-card:active{transform:none}
@@ -248,7 +252,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.6.4</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.3</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -261,8 +265,11 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <p>City businesses and teams. Select a section below to manage it.</p>
  
 <div class="city-tabs" role="tablist" aria-label="City sections">
-<button type="button" class="city-tab active" data-city-tab="teams">🏀 Teams</button>
-<button type="button" class="city-tab" data-city-tab="businesses">🏢 Businesses</button>
+<button type="button" class="city-tab active" data-city-tab="teams" role="tab" aria-controls="cityTeamsPanel" aria-selected="true">🏀 Teams</button>
+<button type="button" class="city-tab" data-city-tab="businesses" role="tab" aria-controls="cityBusinessesPanel" aria-selected="false">🏢 Businesses</button>
+</div>
+<div class="city-fed-tab-row">
+<button type="button" id="cityFederalReserveTab" class="city-tab city-fed-tab" data-city-tab="federalReserve" role="tab" aria-controls="cityFederalReservePanel" aria-selected="false">🏛️ Federal Reserve</button>
 </div>
  
 <div id="cityTeamsPanel" class="city-panel">
@@ -353,16 +360,16 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div style="position:relative;width:min(78vw,330px);aspect-ratio:1">
 <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,#e7c77b 0 4%,#6a421e 4.5% 7%,#d6b36a 7.5% 10%,#202c27 10.5% 100%);box-shadow:0 8px 28px #0008,inset 0 0 0 5px #d9b96c,inset 0 0 0 10px #50391f"></div>
 <svg id="rouletteWheelSvg" viewBox="0 0 300 300" style="position:absolute;inset:5%;width:90%;height:90%;filter:drop-shadow(0 2px 5px #0009);transform:rotate(0deg)">
- <circle cx="150" cy="150" r="139" fill="#d4b26b" stroke="#f1d99b" stroke-width="3"/>
- <g id="rouletteWheelPockets"></g>
- <circle cx="150" cy="150" r="73" fill="#b48a45" stroke="#f1d99b" stroke-width="4"/>
- <circle cx="150" cy="150" r="61" fill="#1d5a3c" stroke="#e4c47d" stroke-width="3"/>
- <circle cx="150" cy="150" r="42" fill="#b48a45" stroke="#f2dda0" stroke-width="3"/>
- <circle cx="150" cy="150" r="26" fill="#d8bd78" stroke="#725022" stroke-width="3"/>
- <circle cx="150" cy="150" r="7" fill="#725022"/>
+<circle cx="150" cy="150" r="139" fill="#d4b26b" stroke="#f1d99b" stroke-width="3"/>
+<g id="rouletteWheelPockets"></g>
+<circle cx="150" cy="150" r="73" fill="#b48a45" stroke="#f1d99b" stroke-width="4"/>
+<circle cx="150" cy="150" r="61" fill="#1d5a3c" stroke="#e4c47d" stroke-width="3"/>
+<circle cx="150" cy="150" r="42" fill="#b48a45" stroke="#f2dda0" stroke-width="3"/>
+<circle cx="150" cy="150" r="26" fill="#d8bd78" stroke="#725022" stroke-width="3"/>
+<circle cx="150" cy="150" r="7" fill="#725022"/>
 </svg>
 <div id="rouletteBallOrbit" aria-hidden="true" style="position:absolute;inset:0;z-index:3;pointer-events:none;transform:rotate(0deg)">
- <div id="rouletteBall" style="position:absolute;left:50%;top:5%;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#e9e8df 48%,#a5a39b 78%,#555);box-shadow:0 1px 4px #000b,0 0 3px #fff;opacity:0"></div>
+<div id="rouletteBall" style="position:absolute;left:50%;top:5%;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#e9e8df 48%,#a5a39b 78%,#555);box-shadow:0 1px 4px #000b,0 0 3px #fff;opacity:0"></div>
 </div>
 <div style="position:absolute;left:50%;top:-2px;transform:translateX(-50%);z-index:4;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:25px solid #fff2b4;filter:drop-shadow(0 2px 3px #000)"></div>
 </div>
@@ -378,22 +385,22 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 <div id="rouletteNumberTable" class="roulette-felt-layout">
 <div class="roulette-zero-row">
- <button type="button" class="roulette-bet-spot green" data-type="number" data-target="0">0</button>
- <button type="button" class="roulette-bet-spot green" data-type="number" data-target="00">00</button>
+<button type="button" class="roulette-bet-spot green" data-type="number" data-target="0">0</button>
+<button type="button" class="roulette-bet-spot green" data-type="number" data-target="00">00</button>
 </div>
 <div class="roulette-number-grid">
- <button type="button" class="roulette-bet-spot red" data-type="number" data-target="1">1</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="2">2</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="3">3</button>
- <button type="button" class="roulette-bet-spot black" data-type="number" data-target="4">4</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="5">5</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="6">6</button>
- <button type="button" class="roulette-bet-spot red" data-type="number" data-target="7">7</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="8">8</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="9">9</button>
- <button type="button" class="roulette-bet-spot black" data-type="number" data-target="10">10</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="11">11</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="12">12</button>
- <button type="button" class="roulette-bet-spot black" data-type="number" data-target="13">13</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="14">14</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="15">15</button>
- <button type="button" class="roulette-bet-spot red" data-type="number" data-target="16">16</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="17">17</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="18">18</button>
- <button type="button" class="roulette-bet-spot red" data-type="number" data-target="19">19</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="20">20</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="21">21</button>
- <button type="button" class="roulette-bet-spot black" data-type="number" data-target="22">22</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="23">23</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="24">24</button>
- <button type="button" class="roulette-bet-spot red" data-type="number" data-target="25">25</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="26">26</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="27">27</button>
- <button type="button" class="roulette-bet-spot black" data-type="number" data-target="28">28</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="29">29</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="30">30</button>
- <button type="button" class="roulette-bet-spot black" data-type="number" data-target="31">31</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="32">32</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="33">33</button>
- <button type="button" class="roulette-bet-spot red" data-type="number" data-target="34">34</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="35">35</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="36">36</button>
+<button type="button" class="roulette-bet-spot red" data-type="number" data-target="1">1</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="2">2</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="3">3</button>
+<button type="button" class="roulette-bet-spot black" data-type="number" data-target="4">4</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="5">5</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="6">6</button>
+<button type="button" class="roulette-bet-spot red" data-type="number" data-target="7">7</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="8">8</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="9">9</button>
+<button type="button" class="roulette-bet-spot black" data-type="number" data-target="10">10</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="11">11</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="12">12</button>
+<button type="button" class="roulette-bet-spot black" data-type="number" data-target="13">13</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="14">14</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="15">15</button>
+<button type="button" class="roulette-bet-spot red" data-type="number" data-target="16">16</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="17">17</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="18">18</button>
+<button type="button" class="roulette-bet-spot red" data-type="number" data-target="19">19</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="20">20</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="21">21</button>
+<button type="button" class="roulette-bet-spot black" data-type="number" data-target="22">22</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="23">23</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="24">24</button>
+<button type="button" class="roulette-bet-spot red" data-type="number" data-target="25">25</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="26">26</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="27">27</button>
+<button type="button" class="roulette-bet-spot black" data-type="number" data-target="28">28</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="29">29</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="30">30</button>
+<button type="button" class="roulette-bet-spot black" data-type="number" data-target="31">31</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="32">32</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="33">33</button>
+<button type="button" class="roulette-bet-spot red" data-type="number" data-target="34">34</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="35">35</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="36">36</button>
 </div>
 </div>
  
@@ -487,6 +494,33 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div id="tvBroadcastRegister"><p class="muted">No broadcasting deals recorded.</p></div>
 </div>
 <div id="poweredByCalSims" style="margin-top:18px;padding:14px 10px;border-top:1px solid #344255;text-align:center;color:#9eabba;font-size:12px;letter-spacing:.04em"><strong style="display:block;color:#d5deea;font-size:14px;margin-bottom:4px">⚙️ Powered by CalSims</strong><span>The independent consumer economy powering product demand and purchases across Calvin's City.</span></div>
+</div>
+</div>
+<div id="cityFederalReservePanel" class="city-panel" style="display:none" role="tabpanel" aria-labelledby="cityFederalReserveTab">
+<h3>🏛️ Federal Reserve</h3>
+<p>The central economic institution for Calvin’s City. The Fed dashboard will manage economy-wide cash tracking, seasonal tax approvals, Treasury offerings, investor records, and repayment obligations.</p>
+<div class="grid">
+<div class="metric"><small>Institution</small><strong>Federal Reserve</strong></div>
+<div class="metric"><small>Operating Status</small><strong id="fedOperatingStatus">Setup phase</strong></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h3>📊 Economy & Cash Tracker</h3>
+<p>Planned: seasonal cash snapshots for citizens, businesses, teams, CalSims, and the Federal Reserve, with changes over time and safeguards against double-counting.</p>
+<div class="tiny">Cash tracking is not active in this initial dashboard build.</div>
+</div>
+<div class="card">
+<h3>🧾 Seasonal Taxes</h3>
+<p>The Fed Board will recommend a seasonal tax plan for your approval. Taxes will not be collected automatically without approval.</p>
+<div class="tiny">Tax controls remain inactive until the calculation, eligibility, reserve safeguards, and once-per-season processing rules are implemented.</div>
+</div>
+<div class="card">
+<h3>💵 Treasury Bills & Bonds</h3>
+<p>You will choose the fundraising target. The Fed Board will recommend rates for 1-season Treasury bills, 3-season Treasury bills, and 5-season bonds; you can accept or adjust the rates before the offering opens.</p>
+<div class="tiny">No securities can be sold and no investor cash can move in this initial dashboard build.</div>
+</div>
+<div class="card">
+<h3>📒 Fed Ledger & Board Recommendations</h3>
+<p>Planned records include investor, principal, rate, maturity, interest, repayment, tax approvals, and the Fed’s remaining obligations. The Board will provide recommendations; you retain final approval.</p>
 </div>
 </div>
 </section>
@@ -635,6 +669,9 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div id="betsGameHistory"><p class="muted">No games stored yet. Complete a basketball season game to start building the database.</p></div>
 <button type="button" id="betsGameHistoryToggle" style="display:none;margin:10px 0">View Full Game History</button>
 </div>
+ 
+ 
+ 
 </section>
  
 <section id="basketball" class="screen">
@@ -935,34 +972,34 @@ function getUniqueRegularSeasonGames(){
 const schedulePairs=new Set(REGULAR_SCHEDULE.map(p=>[String(p[0]).trim(),String(p[1]).trim()].sort().join("::")));
 const seen=new Set(),unique=[];
 (Array.isArray(state.gamesPlayed)?state.gamesPlayed:[]).forEach(r=>{
- if(!r||r.stage!=="Regular Season")return;
- const a=String(r.a||"").trim(),b=String(r.b||"").trim();
- if(!a||!b)return;
- const key=[a,b].sort().join("::");
- if(!schedulePairs.has(key)||seen.has(key))return;
- seen.add(key);unique.push(r);
+if(!r||r.stage!=="Regular Season")return;
+const a=String(r.a||"").trim(),b=String(r.b||"").trim();
+if(!a||!b)return;
+const key=[a,b].sort().join("::");
+if(!schedulePairs.has(key)||seen.has(key))return;
+seen.add(key);unique.push(r);
 });
 return unique;
 }
 function reconcileRegularSeasonStandings(){
 const standings=freshStandings();
 getUniqueRegularSeasonGames().forEach(r=>{
- const g=r.game||{};
- const a=String(r.a||(g.A&&g.A.team)||"").trim();
- const b=String(r.b||(g.B&&g.B.team)||"").trim();
- const scoreA=Number(r.scoreA!=null?r.scoreA:(g.A&&g.A.score))||0;
- const scoreB=Number(r.scoreB!=null?r.scoreB:(g.B&&g.B.score))||0;
- if(!standings[a]||!standings[b])return;
- const winner=String(r.winner||(g.winner&&g.winner.team)||"").trim();
- const loser=String(r.loser||(g.loser&&g.loser.team)||"").trim();
- if(standings[winner]&&standings[loser]){standings[winner].w++;standings[loser].l++;}
- standings[a].ptsFor+=scoreA;standings[a].ptsAgainst+=scoreB;
- standings[b].ptsFor+=scoreB;standings[b].ptsAgainst+=scoreA;
- const ticket=Number(g.ticket)||0;
- if(standings[winner]&&standings[loser]){
-   standings[winner].ticket+=ticket*.7;
-   standings[loser].ticket+=ticket*.3;
- }
+const g=r.game||{};
+const a=String(r.a||(g.A&&g.A.team)||"").trim();
+const b=String(r.b||(g.B&&g.B.team)||"").trim();
+const scoreA=Number(r.scoreA!=null?r.scoreA:(g.A&&g.A.score))||0;
+const scoreB=Number(r.scoreB!=null?r.scoreB:(g.B&&g.B.score))||0;
+if(!standings[a]||!standings[b])return;
+const winner=String(r.winner||(g.winner&&g.winner.team)||"").trim();
+const loser=String(r.loser||(g.loser&&g.loser.team)||"").trim();
+if(standings[winner]&&standings[loser]){standings[winner].w++;standings[loser].l++;}
+standings[a].ptsFor+=scoreA;standings[a].ptsAgainst+=scoreB;
+standings[b].ptsFor+=scoreB;standings[b].ptsAgainst+=scoreA;
+const ticket=Number(g.ticket)||0;
+if(standings[winner]&&standings[loser]){
+  standings[winner].ticket+=ticket*.7;
+  standings[loser].ticket+=ticket*.3;
+}
 });
 state.standings=standings;
 return getUniqueRegularSeasonGames().length;
@@ -1595,10 +1632,10 @@ const eventKey=match.eventKey||betsCurrentEventKey(match),citizens=(Array.isArra
 let made=0,skipped=0,fatalError=null;const markets=["moneyline","spread","total"],company=sbGetAccount("business","Sports Bets Company");
 if(!company){out.textContent="Sports Bets Company cash account is unavailable.";return {ok:false,error:"Sports Bets Company cash account is unavailable."};}
 /* 5.7.8: Build per-game lookup sets and stake totals once. The former loop repeatedly
-  scanned the full bet history for every citizen, including a settlement reconciliation
-  during every pending-exposure check. This became progressively slower as history grew.
-  Cash transfers, validation, transaction IDs, and verified saves still use the existing
-  paired-transaction routine for each actual wager. */
+ scanned the full bet history for every citizen, including a settlement reconciliation
+ during every pending-exposure check. This became progressively slower as history grew.
+ Cash transfers, validation, transaction IDs, and verified saves still use the existing
+ paired-transaction routine for each actual wager. */
 const manualCitizens=new Set(),automaticCitizens=new Set(),stakeUsedByCitizen=new Map();
 for(const b of betsDatabase.bets){
 if(!b||b.targetEventKey!==eventKey)continue;
@@ -6420,13 +6457,18 @@ action. No click/touchend handlers are attached to arena cards. */
 (function(){
 function setCityTab(tab){
 const target=tab.getAttribute("data-city-tab");
-document.querySelectorAll(".city-tab").forEach(function(t){
+document.querySelectorAll(".city-tab[data-city-tab]").forEach(function(t){
 t.classList.toggle("active",t===tab);
 });
 const teams=document.getElementById("cityTeamsPanel");
 const businesses=document.getElementById("cityBusinessesPanel");
+const federalReserve=document.getElementById("cityFederalReservePanel");
+document.querySelectorAll(".city-tab[data-city-tab]").forEach(function(t){
+t.setAttribute("aria-selected",t===tab?"true":"false");
+});
 if(teams)teams.style.display=target==="teams"?"block":"none";
 if(businesses)businesses.style.display=target==="businesses"?"block":"none";
+if(federalReserve)federalReserve.style.display=target==="federalReserve"?"block":"none";
 }
 document.querySelectorAll(".city-tab").forEach(function(tab){
 tab.addEventListener("click",function(e){
@@ -8360,9 +8402,9 @@ const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTr
 if(mirror&&canonical&&mirror.length===canonical.length){
 const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
 const exact=byId.size===mirror.length&&mirror.every(t=>{
- if(!t||t.transaction_id==null)return false;
- const saved=byId.get(String(t.transaction_id));
- return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
+if(!t||t.transaction_id==null)return false;
+const saved=byId.get(String(t.transaction_id));
+return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
 });
 if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
 }
@@ -8383,9 +8425,9 @@ const canonical=main&&Array.isArray(main.financialTransactions)?main.financialTr
 if(mirror&&canonical&&mirror.length===canonical.length){
 const byId=new Map(canonical.filter(t=>t&&t.transaction_id!=null).map(t=>[String(t.transaction_id),t]));
 const exact=byId.size===mirror.length&&mirror.every(t=>{
- if(!t||t.transaction_id==null)return false;
- const saved=byId.get(String(t.transaction_id));
- return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
+if(!t||t.transaction_id==null)return false;
+const saved=byId.get(String(t.transaction_id));
+return !!saved&&JSON.stringify(saved)===JSON.stringify(t);
 });
 if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
 }
@@ -8417,8 +8459,8 @@ if(typeof snap.betsRaw==="string"&&subsetById(primaryBets,snap.betsRaw)){delete 
 if(typeof snap.betsBackupRaw==="string"&&subsetById(primaryBets,snap.betsBackupRaw)){delete snap.betsBackupRaw;changed=true;}
 if(changed){
 snap.storageQuotaCompaction={
- version:"4.29.38",
- note:"Removed only embedded BETS copies whose identified records are all present in the restored primary BETS database. Kept snapshot state, pending import, and downloaded JSON unchanged."
+version:"4.29.38",
+note:"Removed only embedded BETS copies whose identified records are all present in the restored primary BETS database. Kept snapshot state, pending import, and downloaded JSON unchanged."
 };
 restoreEntries[recoveryKey]=JSON.stringify(snap);
 }
@@ -8688,8 +8730,8 @@ script's lexical `state` binding. Changes only Kap's MVP totals. */
 function finalizeKapMvpAfterStartup(){
 try{
 /* This code runs in a separate script block from the main `let state`.
- Read the authoritative live state through the bridge instead of relying
- on the main script's lexical binding. */
+Read the authoritative live state through the bridge instead of relying
+on the main script's lexical binding. */
 const bridge=window.__calvinsCityBridge;
 const st=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
 if(!st){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"skipped",reason:"Live state bridge unavailable"};return;}
@@ -8715,8 +8757,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  
 <script>
 /* Calvin's City 5.4.0 — Casino financing foundation.
- Uses the existing live-state bridge. No casino cash account is created and no
- balance is changed until a lender explicitly funds the offering. */
+Uses the existing live-state bridge. No casino cash account is created and no
+balance is changed until a lender explicitly funds the offering. */
 (function(){
 'use strict';
 const CASINO="Calvin's Casino", KEY="calvins_city_v24";
@@ -8803,8 +8845,8 @@ const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','
 const redSet=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 const NS='http://www.w3.org/2000/svg',cx=150,cy=150,r1=135,r2=83,step=2*Math.PI/order.length;
 order.forEach((v,i)=>{const a=-Math.PI/2+i*step, b=a+step;const pt=(r,t)=>[cx+r*Math.cos(t),cy+r*Math.sin(t)];const p1=pt(r1,a),p2=pt(r1,b),q2=pt(r2,b),q1=pt(r2,a);
- const path=document.createElementNS(NS,'path');path.setAttribute('d',`M ${p1} A ${r1} ${r1} 0 0 1 ${p2} L ${q2} A ${r2} ${r2} 0 0 0 ${q1} Z`);path.setAttribute('fill',v==='0'||v==='00'?'#087b43':redSet.has(Number(v))?'#c52632':'#20242b');path.setAttribute('stroke','#e4c47d');path.setAttribute('stroke-width','1');wheel.appendChild(path);
- const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute('x',cx+rr*Math.cos(t));txt.setAttribute('y',cy+rr*Math.sin(t)+3);txt.setAttribute('fill','#fff');txt.setAttribute('font-size',v.length>1?'7':'8');txt.setAttribute('font-weight','700');txt.setAttribute('text-anchor','middle');txt.setAttribute('transform',`rotate(${(t*180/Math.PI)+90} ${cx+rr*Math.cos(t)} ${cy+rr*Math.sin(t)})`);txt.textContent=v;wheel.appendChild(txt);
+const path=document.createElementNS(NS,'path');path.setAttribute('d',`M ${p1} A ${r1} ${r1} 0 0 1 ${p2} L ${q2} A ${r2} ${r2} 0 0 0 ${q1} Z`);path.setAttribute('fill',v==='0'||v==='00'?'#087b43':redSet.has(Number(v))?'#c52632':'#20242b');path.setAttribute('stroke','#e4c47d');path.setAttribute('stroke-width','1');wheel.appendChild(path);
+const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute('x',cx+rr*Math.cos(t));txt.setAttribute('y',cy+rr*Math.sin(t)+3);txt.setAttribute('fill','#fff');txt.setAttribute('font-size',v.length>1?'7':'8');txt.setAttribute('font-weight','700');txt.setAttribute('text-anchor','middle');txt.setAttribute('transform',`rotate(${(t*180/Math.PI)+90} ${cx+rr*Math.cos(t)} ${cy+rr*Math.sin(t)})`);txt.textContent=v;wheel.appendChild(txt);
 });wheel.dataset.built='1';
 }
 updateRoulettePlayerCash();
@@ -8828,8 +8870,8 @@ const rouletteRoomStyle=document.createElement('style');rouletteRoomStyle.textCo
 (function(){
 const $=id=>document.getElementById(id);
 const table=$('rouletteLiveTable'), rack=$('rouletteChipRack'), wager=$('casinoRouletteWager'),
-     typeSel=$('casinoRouletteBetType'), numberSel=$('casinoRouletteNumber'),
-     numberWrap=$('casinoRouletteNumberWrap'), playerSel=$('casinoRoulettePlayer');
+    typeSel=$('casinoRouletteBetType'), numberSel=$('casinoRouletteNumber'),
+    numberWrap=$('casinoRouletteNumberWrap'), playerSel=$('casinoRoulettePlayer');
 let currentChip=1, selectedType='red', selectedNumber='0';
 function label(type,num){
 if(type==='number')return 'Number '+num;
@@ -8842,11 +8884,11 @@ if(numberWrap)numberWrap.style.display=selectedType==='number'?'block':'none';
 if(wager)wager.value=String(currentChip);
 const summary=$('rouletteSelectedBet');if(summary)summary.textContent='Selected bet: '+label(selectedType,selectedNumber)+' · Wager: $'+currentChip+'M';
 if(table)table.querySelectorAll('.roulette-bet-spot').forEach(b=>{
- b.classList.toggle('selected',b.dataset.type===selectedType&&(selectedType!=='number'||b.dataset.target===selectedNumber));
- const old=b.querySelector('.roulette-chip-marker');if(old)old.remove();
- if(b.dataset.type===selectedType&&(selectedType!=='number'||b.dataset.target===selectedNumber)){
-  const marker=document.createElement('span');marker.className='roulette-chip-marker';marker.textContent='$'+currentChip+'M';b.appendChild(marker);
- }
+b.classList.toggle('selected',b.dataset.type===selectedType&&(selectedType!=='number'||b.dataset.target===selectedNumber));
+const old=b.querySelector('.roulette-chip-marker');if(old)old.remove();
+if(b.dataset.type===selectedType&&(selectedType!=='number'||b.dataset.target===selectedNumber)){
+ const marker=document.createElement('span');marker.className='roulette-chip-marker';marker.textContent='$'+currentChip+'M';b.appendChild(marker);
+}
 });
 }
 if(rack)rack.addEventListener('click',e=>{
@@ -8946,48 +8988,48 @@ const lender=$('casinoLender');if(lender)lender.addEventListener('change',update
 (function(){
 const $id=id=>document.getElementById(id);
 window.openRouletteRoom=function(){
- const modal=$id('casinoModal'); if(!modal)return;
- modal.classList.add('roulette-room-mode');
- modal.style.display='flex';
- const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='block';
- const management=$id('casinoManagement'); if(management)management.style.display='none';
- // Build wheel pockets once, with American wheel order.
- const wheel=$id('rouletteWheelPockets');
- if(wheel&&!wheel.dataset.built){
-   const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
-   const reds=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
-   const NS='http://www.w3.org/2000/svg',cx=150,cy=150,r1=135,r2=83,step=2*Math.PI/order.length;
-   order.forEach((v,i)=>{const a=-Math.PI/2+i*step,b=a+step,pt=(r,t)=>[cx+r*Math.cos(t),cy+r*Math.sin(t)],p1=pt(r1,a),p2=pt(r1,b),q2=pt(r2,b),q1=pt(r2,a);
-     const path=document.createElementNS(NS,'path');path.setAttribute('d',`M ${p1} A ${r1} ${r1} 0 0 1 ${p2} L ${q2} A ${r2} ${r2} 0 0 0 ${q1} Z`);path.setAttribute('fill',v==='0'||v==='00'?'#078047':reds.has(Number(v))?'#c52632':'#20242b');path.setAttribute('stroke','#e4c47d');path.setAttribute('stroke-width','1');wheel.appendChild(path);
-     const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute('x',cx+rr*Math.cos(t));txt.setAttribute('y',cy+rr*Math.sin(t)+3);txt.setAttribute('fill','#fff');txt.setAttribute('font-size',v.length>1?'7':'8');txt.setAttribute('font-weight','700');txt.setAttribute('text-anchor','middle');txt.textContent=v;wheel.appendChild(txt);
-   });wheel.dataset.built='1';
- }
- if(typeof updateRoulettePlayerCash==='function')updateRoulettePlayerCash();
+const modal=$id('casinoModal'); if(!modal)return;
+modal.classList.add('roulette-room-mode');
+modal.style.display='flex';
+const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='block';
+const management=$id('casinoManagement'); if(management)management.style.display='none';
+// Build wheel pockets once, with American wheel order.
+const wheel=$id('rouletteWheelPockets');
+if(wheel&&!wheel.dataset.built){
+  const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
+  const reds=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+  const NS='http://www.w3.org/2000/svg',cx=150,cy=150,r1=135,r2=83,step=2*Math.PI/order.length;
+  order.forEach((v,i)=>{const a=-Math.PI/2+i*step,b=a+step,pt=(r,t)=>[cx+r*Math.cos(t),cy+r*Math.sin(t)],p1=pt(r1,a),p2=pt(r1,b),q2=pt(r2,b),q1=pt(r2,a);
+    const path=document.createElementNS(NS,'path');path.setAttribute('d',`M ${p1} A ${r1} ${r1} 0 0 1 ${p2} L ${q2} A ${r2} ${r2} 0 0 0 ${q1} Z`);path.setAttribute('fill',v==='0'||v==='00'?'#078047':reds.has(Number(v))?'#c52632':'#20242b');path.setAttribute('stroke','#e4c47d');path.setAttribute('stroke-width','1');wheel.appendChild(path);
+    const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute('x',cx+rr*Math.cos(t));txt.setAttribute('y',cy+rr*Math.sin(t)+3);txt.setAttribute('fill','#fff');txt.setAttribute('font-size',v.length>1?'7':'8');txt.setAttribute('font-weight','700');txt.setAttribute('text-anchor','middle');txt.textContent=v;wheel.appendChild(txt);
+  });wheel.dataset.built='1';
+}
+if(typeof updateRoulettePlayerCash==='function')updateRoulettePlayerCash();
 };
 window.closeRouletteRoom=function(){
- const modal=$id('casinoModal'); if(!modal)return;
- modal.classList.remove('roulette-room-mode');
- modal.style.display='flex';
- const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='none';
- const management=$id('casinoManagement'); if(management)management.style.display='block';
- // Explicitly restore scroll on the underlying page/modal.
- document.documentElement.style.overflow='';
- document.body.style.overflow='';
+const modal=$id('casinoModal'); if(!modal)return;
+modal.classList.remove('roulette-room-mode');
+modal.style.display='flex';
+const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='none';
+const management=$id('casinoManagement'); if(management)management.style.display='block';
+// Explicitly restore scroll on the underlying page/modal.
+document.documentElement.style.overflow='';
+document.body.style.overflow='';
 };
 window.closeCasino=function(){
- const modal=$id('casinoModal'); if(!modal)return;
- modal.classList.remove('show','roulette-room-mode','lucy7s-room-mode');
- modal.style.display='none';
- const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='none';
- const management=$id('casinoManagement'); if(management)management.style.display='block';
- // The modal lock is applied through body.business-modal-open (position:fixed).
- // Release the scroll lock on close. openCasino removes this inline display override before reopening.
- document.body.classList.remove('business-modal-open');
- document.documentElement.style.removeProperty('overflow');
- document.body.style.removeProperty('overflow');
- if(!document.body.classList.contains('verify-modal-open')&&!document.body.classList.contains('share-ledger-modal-open')&&!document.body.classList.contains('citizen-ledger-scroll-locked')&&!document.body.classList.contains('tv-broadcast-alert-open')){
-   document.body.style.removeProperty('position');document.body.style.removeProperty('top');document.body.style.removeProperty('left');document.body.style.removeProperty('right');document.body.style.removeProperty('width');document.body.style.removeProperty('touch-action');
- }
+const modal=$id('casinoModal'); if(!modal)return;
+modal.classList.remove('show','roulette-room-mode','lucy7s-room-mode');
+modal.style.display='none';
+const panel=$id('casinoRoulettePanel'); if(panel)panel.style.display='none';
+const management=$id('casinoManagement'); if(management)management.style.display='block';
+// The modal lock is applied through body.business-modal-open (position:fixed).
+// Release the scroll lock on close. openCasino removes this inline display override before reopening.
+document.body.classList.remove('business-modal-open');
+document.documentElement.style.removeProperty('overflow');
+document.body.style.removeProperty('overflow');
+if(!document.body.classList.contains('verify-modal-open')&&!document.body.classList.contains('share-ledger-modal-open')&&!document.body.classList.contains('citizen-ledger-scroll-locked')&&!document.body.classList.contains('tv-broadcast-alert-open')){
+  document.body.style.removeProperty('position');document.body.style.removeProperty('top');document.body.style.removeProperty('left');document.body.style.removeProperty('right');document.body.style.removeProperty('width');document.body.style.removeProperty('touch-action');
+}
 };
 const style=document.createElement('style');
 style.textContent=`
@@ -9035,12 +9077,12 @@ return 'Business — '+String(ref);
 }
 function rouletteSaveVerified(state){
 try{
- const b=window.__calvinsCityBridge;if(!b||typeof b.save!=='function'||b.save()===false)return false;
- const raw=localStorage.getItem('calvins_city_v24');if(!raw)return false;const saved=JSON.parse(raw);
- return !!saved&&JSON.stringify(saved.casinoFinance||null)===JSON.stringify(state.casinoFinance||null)&&JSON.stringify(saved.businessCash||null)===JSON.stringify(state.businessCash||null)&&
-  JSON.stringify(saved.casinoFinanceLedger||null)===JSON.stringify(state.casinoFinanceLedger||null)&&
-  JSON.stringify(saved.casinoRouletteHistory||[])===JSON.stringify(state.casinoRouletteHistory||[])&&
-  JSON.stringify((saved.citizens||[]).map(c=>[c&&c.id,c&&c.cash]))===JSON.stringify((state.citizens||[]).map(c=>[c&&c.id,c&&c.cash]));
+const b=window.__calvinsCityBridge;if(!b||typeof b.save!=='function'||b.save()===false)return false;
+const raw=localStorage.getItem('calvins_city_v24');if(!raw)return false;const saved=JSON.parse(raw);
+return !!saved&&JSON.stringify(saved.casinoFinance||null)===JSON.stringify(state.casinoFinance||null)&&JSON.stringify(saved.businessCash||null)===JSON.stringify(state.businessCash||null)&&
+ JSON.stringify(saved.casinoFinanceLedger||null)===JSON.stringify(state.casinoFinanceLedger||null)&&
+ JSON.stringify(saved.casinoRouletteHistory||[])===JSON.stringify(state.casinoRouletteHistory||[])&&
+ JSON.stringify((saved.citizens||[]).map(c=>[c&&c.id,c&&c.cash]))===JSON.stringify((state.citizens||[]).map(c=>[c&&c.id,c&&c.cash]));
 }catch(err){console.error('Roulette save verification failed',err);return false;}
 }
 function rouletteRefresh(){
@@ -9094,30 +9136,30 @@ return Array.from(grouped.values());
 }
 function renderMarkers(){
 table.querySelectorAll('.roulette-bet-spot').forEach(spot=>{
- spot.classList.remove('selected');spot.querySelectorAll('.roulette-chip-stack,.roulette-chip-marker').forEach(el=>el.remove());
- const placed=aggregateVisualBets(bets.filter(b=>b.type!=='split'&&matchesSpot(b,spot)),b=>b.type+'|'+String(b.target||''));
- if(!placed.length)return;spot.classList.add('selected');
- const stack=document.createElement('span');stack.className='roulette-chip-stack';
- stack.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px;pointer-events:none;z-index:4;padding:2px';
- placed.forEach(b=>stack.appendChild(makeChip(b,false)));
- spot.appendChild(stack);
+spot.classList.remove('selected');spot.querySelectorAll('.roulette-chip-stack,.roulette-chip-marker').forEach(el=>el.remove());
+const placed=aggregateVisualBets(bets.filter(b=>b.type!=='split'&&matchesSpot(b,spot)),b=>b.type+'|'+String(b.target||''));
+if(!placed.length)return;spot.classList.add('selected');
+const stack=document.createElement('span');stack.className='roulette-chip-stack';
+stack.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px;pointer-events:none;z-index:4;padding:2px';
+placed.forEach(b=>stack.appendChild(makeChip(b,false)));
+spot.appendChild(stack);
 });
 // Aggregate repeated wagers on the same split edge into one chip showing the full combined stake.
 numberTable.querySelectorAll('.roulette-split-overlay').forEach(el=>el.remove());
 numberTable.style.position='relative';const tableRect=numberTable.getBoundingClientRect();
 const splitBets=aggregateVisualBets(bets.filter(b=>b.type==='split'&&Array.isArray(b.targets)&&b.targets.length===2),b=>b.targets.map(String).sort((a,c)=>order.indexOf(a)-order.indexOf(c)).join('|'));
 splitBets.forEach(b=>{
- const a=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[0]));
- const c=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[1]));if(!a||!c)return;
- const ar=a.getBoundingClientRect(),br=c.getBoundingClientRect();if(!ar.width||!br.width)return;
- let x,y;
- const horizontalOverlap=Math.min(ar.right,br.right)-Math.max(ar.left,br.left);
- if(horizontalOverlap>Math.min(ar.width,br.width)*.45){x=(Math.max(ar.left,br.left)+Math.min(ar.right,br.right))/2;y=(ar.bottom+br.top)/2;if(ar.top>br.top)y=(br.bottom+ar.top)/2;}
- else{x=(ar.right+br.left)/2;y=(Math.max(ar.top,br.top)+Math.min(ar.bottom,br.bottom))/2;if(ar.left>br.left)x=(br.right+ar.left)/2;}
- const marker=document.createElement('span');marker.className='roulette-split-overlay';
- marker.style.cssText='position:absolute;left:'+(x-tableRect.left)+'px;top:'+(y-tableRect.top)+'px;transform:translate(-50%,-50%);z-index:10;pointer-events:none;';
- marker.appendChild(makeChip(b,true));numberTable.appendChild(marker);
- a.classList.add('selected');c.classList.add('selected');
+const a=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[0]));
+const c=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[1]));if(!a||!c)return;
+const ar=a.getBoundingClientRect(),br=c.getBoundingClientRect();if(!ar.width||!br.width)return;
+let x,y;
+const horizontalOverlap=Math.min(ar.right,br.right)-Math.max(ar.left,br.left);
+if(horizontalOverlap>Math.min(ar.width,br.width)*.45){x=(Math.max(ar.left,br.left)+Math.min(ar.right,br.right))/2;y=(ar.bottom+br.top)/2;if(ar.top>br.top)y=(br.bottom+ar.top)/2;}
+else{x=(ar.right+br.left)/2;y=(Math.max(ar.top,br.top)+Math.min(ar.bottom,br.bottom))/2;if(ar.left>br.left)x=(br.right+ar.left)/2;}
+const marker=document.createElement('span');marker.className='roulette-split-overlay';
+marker.style.cssText='position:absolute;left:'+(x-tableRect.left)+'px;top:'+(y-tableRect.top)+'px;transform:translate(-50%,-50%);z-index:10;pointer-events:none;';
+marker.appendChild(makeChip(b,true));numberTable.appendChild(marker);
+a.classList.add('selected');c.classList.add('selected');
 });
 let splitHint=$('rouletteSplitHint');if(!splitHint){splitHint=document.createElement('p');splitHint.id='rouletteSplitHint';splitHint.className='tiny';splitHint.style.cssText='color:#f7e7ae;margin:5px 0';const intro=numberTable.previousElementSibling;if(intro)intro.insertAdjacentElement('afterend',splitHint);}
 if(splitHint)splitHint.textContent='Split bet: tap close to the shared edge between two adjacent numbers. One chip covers both numbers.';
@@ -9141,33 +9183,33 @@ function adjacency(){
 // Derive legal split edges from actual number-cell rectangles, allowing CSS gutters on phones.
 // Include 0 and 00 so the shared edge between the two green pockets is a legal split.
 const rects=numberSpots()
- .map(el=>({el,n:String(el.dataset.target),r:el.getBoundingClientRect()}))
- .filter(x=>x.r.width>0&&x.r.height>0);
+.map(el=>({el,n:String(el.dataset.target),r:el.getBoundingClientRect()}))
+.filter(x=>x.r.width>0&&x.r.height>0);
 const pairs=[],gapTolerance=38;
 for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){
- const a=rects[i],b=rects[j];
- const oy=Math.min(a.r.bottom,b.r.bottom)-Math.max(a.r.top,b.r.top);
- const ox=Math.min(a.r.right,b.r.right)-Math.max(a.r.left,b.r.left);
- const dx1=Math.abs(a.r.right-b.r.left),dx2=Math.abs(b.r.right-a.r.left);
- const dy1=Math.abs(a.r.bottom-b.r.top),dy2=Math.abs(b.r.bottom-a.r.top);
- if(oy>Math.min(a.r.height,b.r.height)*.55&&Math.min(dx1,dx2)<=gapTolerance){
-  const x=dx1<=dx2?(a.r.right+b.r.left)/2:(b.r.right+a.r.left)/2;
-  pairs.push({a,b,axis:'x',x,y1:Math.max(a.r.top,b.r.top),y2:Math.min(a.r.bottom,b.r.bottom)});
- }
- if(ox>Math.min(a.r.width,b.r.width)*.55&&Math.min(dy1,dy2)<=gapTolerance){
-  const y=dy1<=dy2?(a.r.bottom+b.r.top)/2:(b.r.bottom+a.r.top)/2;
-  pairs.push({a,b,axis:'y',y,x1:Math.max(a.r.left,b.r.left),x2:Math.min(a.r.right,b.r.right)});
- }
+const a=rects[i],b=rects[j];
+const oy=Math.min(a.r.bottom,b.r.bottom)-Math.max(a.r.top,b.r.top);
+const ox=Math.min(a.r.right,b.r.right)-Math.max(a.r.left,b.r.left);
+const dx1=Math.abs(a.r.right-b.r.left),dx2=Math.abs(b.r.right-a.r.left);
+const dy1=Math.abs(a.r.bottom-b.r.top),dy2=Math.abs(b.r.bottom-a.r.top);
+if(oy>Math.min(a.r.height,b.r.height)*.55&&Math.min(dx1,dx2)<=gapTolerance){
+ const x=dx1<=dx2?(a.r.right+b.r.left)/2:(b.r.right+a.r.left)/2;
+ pairs.push({a,b,axis:'x',x,y1:Math.max(a.r.top,b.r.top),y2:Math.min(a.r.bottom,b.r.bottom)});
+}
+if(ox>Math.min(a.r.width,b.r.width)*.55&&Math.min(dy1,dy2)<=gapTolerance){
+ const y=dy1<=dy2?(a.r.bottom+b.r.top)/2:(b.r.bottom+a.r.top)/2;
+ pairs.push({a,b,axis:'y',y,x1:Math.max(a.r.left,b.r.left),x2:Math.min(a.r.right,b.r.right)});
+}
 }
 return pairs;
 }
 function splitAt(x,y){
 let best=null,bestDistance=Infinity;
 for(const p of adjacency()){
- const distance=p.axis==='x'?Math.abs(x-p.x):Math.abs(y-p.y);
- const along=p.axis==='x'?y>=p.y1-8&&y<=p.y2+8:x>=p.x1-8&&x<=p.x2+8;
- // A split must be near an edge, not merely anywhere on a number button.
- if(along&&distance<=12&&distance<bestDistance){best=[p.a.n,p.b.n];bestDistance=distance;}
+const distance=p.axis==='x'?Math.abs(x-p.x):Math.abs(y-p.y);
+const along=p.axis==='x'?y>=p.y1-8&&y<=p.y2+8:x>=p.x1-8&&x<=p.x2+8;
+// A split must be near an edge, not merely anywhere on a number button.
+if(along&&distance<=12&&distance<bestDistance){best=[p.a.n,p.b.n];bestDistance=distance;}
 }
 return best;
 }
@@ -9177,10 +9219,10 @@ document.addEventListener('click',e=>{
 const target=e.target instanceof Element?e.target:null;if(!target)return;
 const token=target.closest('#rouletteChipRack [data-chip]');
 if(token&&rack.contains(token)){
- e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
- const n=Number(token.dataset.chip);if(Number.isFinite(n)&&n>0)chip=Math.round(n*100)/100;
- rack.querySelectorAll('[data-chip]').forEach(x=>x.classList.toggle('active',x===token));
- wagerInput.value=String(chip);summary();return;
+e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+const n=Number(token.dataset.chip);if(Number.isFinite(n)&&n>0)chip=Math.round(n*100)/100;
+rack.querySelectorAll('[data-chip]').forEach(x=>x.classList.toggle('active',x===token));
+wagerInput.value=String(chip);summary();return;
 }
 const point=e;
 const rect=table.getBoundingClientRect();
@@ -9189,11 +9231,11 @@ if(!inside)return;
 const spot=target.closest('.roulette-bet-spot[data-type]');
 // Only infer a split from taps in/around the numbered grid; outside bets stay single.
 const inNumberGrid=numberTable.contains(target)||(
- point.clientX>=numberTable.getBoundingClientRect().left-18&&point.clientX<=numberTable.getBoundingClientRect().right+18&&
- point.clientY>=numberTable.getBoundingClientRect().top-18&&point.clientY<=numberTable.getBoundingClientRect().bottom+18);
+point.clientX>=numberTable.getBoundingClientRect().left-18&&point.clientX<=numberTable.getBoundingClientRect().right+18&&
+point.clientY>=numberTable.getBoundingClientRect().top-18&&point.clientY<=numberTable.getBoundingClientRect().bottom+18);
 if(inNumberGrid&&(point.clientX||point.clientY)){
- const split=splitAt(point.clientX,point.clientY);
- if(split){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();addBet('split',split.join('|'),split);return;}
+const split=splitAt(point.clientX,point.clientY);
+if(split){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();addBet('split',split.join('|'),split);return;}
 }
 if(!spot||!table.contains(spot))return;
 e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
@@ -9233,17 +9275,17 @@ const sector=360/order.length,previous=hasSpinVisuals?Number(svg.dataset.rotatio
 if(hasSpinVisuals){svg.style.transition='none';orbit.style.transition='none';ball.style.transition='none';ball.style.transform='none';ball.style.opacity='1';void svg.getBoundingClientRect();void orbit.getBoundingClientRect();svg.style.transition='transform 4.2s cubic-bezier(.10,.72,.12,1)';orbit.style.transition='transform 4.05s cubic-bezier(.15,.68,.2,1)';svg.style.transform='rotate('+finalWheel+'deg)';svg.dataset.rotation=String(finalWheel);orbit.style.transform='rotate('+finalBall+'deg)';orbit.dataset.rotation=String(finalBall);}
 window.__roulettePlannedResult=result;
 setTimeout(function(){try{
- if(hasSpinVisuals){ball.style.transition='transform .25s ease-out';ball.style.transform='translateY(2px)';}
- const afterCasino=cents(beforeCasino+stake-grossTotal);
- for(const a of accounts){const after=cents(a.before-a.stake+a.gross);if(a.kind==='citizen'){const c=(state.citizens||[]).find(c=>c&&String(c.id)===String(a.ref));if(!c)throw Error('Citizen account disappeared: '+a.label);c.cash=after;}else{if(!Object.prototype.hasOwnProperty.call(state.businessCash,a.ref))throw Error('Business account disappeared: '+a.label);state.businessCash[a.ref]=after;}}
- state.businessCash[CASINO_ACCOUNT]=afterCasino;if(!Array.isArray(state.casinoRouletteHistory))state.casinoRouletteHistory=[];if(!Array.isArray(state.casinoFinanceLedger))throw Error('Casino finance ledger is unavailable');
- const row={transactionId:txid,season,accountKind:accounts.length===1?accounts[0].kind:'multiple',accountRef:accounts.length===1?accounts[0].ref:'multiple',accountLabel:accounts.length===1?accounts[0].label:accounts.length+' accounts',accounts:accounts.map(a=>({kind:a.kind,ref:a.ref,label:a.label,wager:a.stake,grossReturn:a.gross,profit:a.profit,bets:a.settled.map(b=>({type:b.type,target:b.target,targets:b.targets||null,stake:b.stake,betLabel:b.betLabel,won:b.won,profit:b.profit,grossReturn:b.gross}))})),wager:stake,bets:settled.map(b=>({type:b.type,target:b.target,targets:b.targets||null,stake:b.stake,betLabel:b.betLabel,won:b.won,profit:b.profit,grossReturn:b.gross,accountKind:b.accountKind,accountRef:b.accountRef,accountLabel:b.accountLabel})),result,won:grossTotal>0,profit:profitTotal,grossReturn:grossTotal,net:cents(grossTotal-stake),casinoBefore:beforeCasino,casinoAfter:afterCasino,timestamp:new Date().toISOString()};
- state.casinoRouletteHistory.push(row);state.casinoFinanceLedger.push({transactionId:txid,type:'roulette_multi_account_spin_settled',season,amount:stake,result,betCount:settled.length,accountCount:accounts.length,profit:profitTotal,grossReturn:grossTotal,accountKind:row.accountKind,accountRef:row.accountRef,casinoBefore:beforeCasino,casinoAfter:afterCasino,timestamp:row.timestamp});
- if(!rouletteSaveVerified(state))throw Error('Save could not be verified');rouletteRefresh();
- const wins=settled.filter(b=>b.won),resultEl=$('casinoRouletteResult');if(resultEl)resultEl.innerHTML='<strong>Wheel result: '+rouletteEscape(result)+(result==='0'||result==='00'?' · Green':rouletteRed(result)?' · Red':' · Black')+'</strong><p class="tiny">Accounts: '+accounts.length+' · Bets: '+settled.length+' · Total wager: '+moneyM(stake)+' · Winning bets: '+wins.length+' · Gross returned: '+moneyM(grossTotal)+' · Net: '+(grossTotal>=stake?'+':'−')+moneyM(Math.abs(grossTotal-stake))+'.</p>';
- const history=$('casinoRouletteHistory');if(history)history.innerHTML='<div>'+rouletteEscape(result)+' · '+accounts.length+' account(s) · '+settled.length+' bets · '+(wins.length?'Won '+moneyM(profitTotal)+' profit':'No winning bets')+'</div>'+history.innerHTML;renderRecentNumbers();
- lastSettledRound=accounts.map(a=>({kind:a.kind,ref:a.ref,label:a.label,bets:a.bets.map(b=>({...b,targets:b.targets?b.targets.slice():undefined}))}));if(redoButton){redoButton.disabled=false;redoButton.title='Repeat the previous completed round.';}
- roundBets=[];clearBets();
+if(hasSpinVisuals){ball.style.transition='transform .25s ease-out';ball.style.transform='translateY(2px)';}
+const afterCasino=cents(beforeCasino+stake-grossTotal);
+for(const a of accounts){const after=cents(a.before-a.stake+a.gross);if(a.kind==='citizen'){const c=(state.citizens||[]).find(c=>c&&String(c.id)===String(a.ref));if(!c)throw Error('Citizen account disappeared: '+a.label);c.cash=after;}else{if(!Object.prototype.hasOwnProperty.call(state.businessCash,a.ref))throw Error('Business account disappeared: '+a.label);state.businessCash[a.ref]=after;}}
+state.businessCash[CASINO_ACCOUNT]=afterCasino;if(!Array.isArray(state.casinoRouletteHistory))state.casinoRouletteHistory=[];if(!Array.isArray(state.casinoFinanceLedger))throw Error('Casino finance ledger is unavailable');
+const row={transactionId:txid,season,accountKind:accounts.length===1?accounts[0].kind:'multiple',accountRef:accounts.length===1?accounts[0].ref:'multiple',accountLabel:accounts.length===1?accounts[0].label:accounts.length+' accounts',accounts:accounts.map(a=>({kind:a.kind,ref:a.ref,label:a.label,wager:a.stake,grossReturn:a.gross,profit:a.profit,bets:a.settled.map(b=>({type:b.type,target:b.target,targets:b.targets||null,stake:b.stake,betLabel:b.betLabel,won:b.won,profit:b.profit,grossReturn:b.gross}))})),wager:stake,bets:settled.map(b=>({type:b.type,target:b.target,targets:b.targets||null,stake:b.stake,betLabel:b.betLabel,won:b.won,profit:b.profit,grossReturn:b.gross,accountKind:b.accountKind,accountRef:b.accountRef,accountLabel:b.accountLabel})),result,won:grossTotal>0,profit:profitTotal,grossReturn:grossTotal,net:cents(grossTotal-stake),casinoBefore:beforeCasino,casinoAfter:afterCasino,timestamp:new Date().toISOString()};
+state.casinoRouletteHistory.push(row);state.casinoFinanceLedger.push({transactionId:txid,type:'roulette_multi_account_spin_settled',season,amount:stake,result,betCount:settled.length,accountCount:accounts.length,profit:profitTotal,grossReturn:grossTotal,accountKind:row.accountKind,accountRef:row.accountRef,casinoBefore:beforeCasino,casinoAfter:afterCasino,timestamp:row.timestamp});
+if(!rouletteSaveVerified(state))throw Error('Save could not be verified');rouletteRefresh();
+const wins=settled.filter(b=>b.won),resultEl=$('casinoRouletteResult');if(resultEl)resultEl.innerHTML='<strong>Wheel result: '+rouletteEscape(result)+(result==='0'||result==='00'?' · Green':rouletteRed(result)?' · Red':' · Black')+'</strong><p class="tiny">Accounts: '+accounts.length+' · Bets: '+settled.length+' · Total wager: '+moneyM(stake)+' · Winning bets: '+wins.length+' · Gross returned: '+moneyM(grossTotal)+' · Net: '+(grossTotal>=stake?'+':'−')+moneyM(Math.abs(grossTotal-stake))+'.</p>';
+const history=$('casinoRouletteHistory');if(history)history.innerHTML='<div>'+rouletteEscape(result)+' · '+accounts.length+' account(s) · '+settled.length+' bets · '+(wins.length?'Won '+moneyM(profitTotal)+' profit':'No winning bets')+'</div>'+history.innerHTML;renderRecentNumbers();
+lastSettledRound=accounts.map(a=>({kind:a.kind,ref:a.ref,label:a.label,bets:a.bets.map(b=>({...b,targets:b.targets?b.targets.slice():undefined}))}));if(redoButton){redoButton.disabled=false;redoButton.title='Repeat the previous completed round.';}
+roundBets=[];clearBets();
 }catch(err){try{const restored=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,restored);}catch(rollbackError){}alert('Roulette settlement failed: '+String(err.message||err)+'. State was restored in memory; verify saved data before retrying.');console.error('Roulette multi-account settlement failed',err);}
 finally{spinning=false;button.disabled=false;clearButton.disabled=false;if(redoButton)redoButton.disabled=!lastSettledRound.length;const placeButton=$('roulettePlaceBetsButton');if(placeButton)placeButton.disabled=false;button.textContent='Spin';window.__roulettePlannedResult=null;summary();}
 },4350);
