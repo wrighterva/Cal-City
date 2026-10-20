@@ -579,9 +579,26 @@ id="fedTreasuryIssue" disabled>4. Issue Securities</button>
 <div id="fedTreasuryLedger" style="overflow-x:auto;margin-top:12px"></div>
 <div class="tiny">Accounting: purchases transfer existing cash from investor to Federal Reserve and create a matching principal liability. Interest is calculated as principal × per-season rate × term. No money is created at issuance. Maturity repayment reduces Federal Reserve cash and clears the liability.</div>
 </div>
+<div class="card" id="fedUnifiedLedgerCard">
+<h3>📒 Federal Reserve Cash Ledger</h3>
+<p class="tiny">Read-only consolidated view of recorded cash movements. Existing records are displayed as saved; this ledger does not create backdated transactions or change balances.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0">
+<div class="metric"><small>Current Fed Cash</small><strong id="fedLedgerCurrentCash">—</strong></div>
+<div class="metric"><small>Recorded Cash Events</small><strong id="fedLedgerEventCount">0</strong></div>
+<div class="metric"><small>Recorded Inflows</small><strong id="fedLedgerInflows">—</strong></div>
+<div class="metric"><small>Recorded Outflows</small><strong id="fedLedgerOutflows">—</strong></div>
+</div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0">
+<label for="fedLedgerFilter">Show</label>
+<select id="fedLedgerFilter" style="max-width:220px"><option value="all">All cash movements</option><option value="credit">Inflows only</option><option value="debit">Outflows only</option></select>
+<button type="button" id="fedLedgerRefresh" class="secondary">Refresh Ledger</button>
+</div>
+<div id="fedUnifiedLedgerTable" style="overflow-x:auto" aria-live="polite"><p class="tiny">Loading recorded Federal Reserve transactions…</p></div>
+<p id="fedUnifiedLedgerStatus" class="tiny" role="status" aria-live="polite">The ledger reads saved tax-collection and Treasury cash-movement records. It does not infer transactions that were not recorded.</p>
+</div>
 <div class="card">
-<h3>📒 Fed Ledger & Board Recommendations</h3>
-<p>Planned records include investor, principal, rate, maturity, interest, repayment, tax approvals, and the Fed’s remaining obligations. The Board will provide recommendations; you retain final approval.</p>
+<h3>📊 Fed Board Recommendations</h3>
+<p>Board recommendations remain separate from cash transactions. Review, verify, and approve each tax plan or Treasury offering before money moves.</p>
 </div>
 </div>
 </section>
@@ -6745,6 +6762,59 @@ $("fedTreasuryReleaseType")?.addEventListener("change",()=>{if(draft&&["recommen
 (function restore(){const st=getState();if(!st)return;const f=fedState(st),season=getSeason(st);const found=f.treasuryOfferings.find(o=>o&&Number(o.season)===season&&["recommended","verified","approved","open"].includes(o.status));if(found){draft=found;$("fedTreasuryTarget").value=String(found.target);if(found.term&&$("fedTreasuryReleaseType"))$("fedTreasuryReleaseType").value=String(found.term);$("fedTreasuryRate").value=String((found.rates&&found.rates[Number(found.term)])||0);$("fedTreasurySecurity").value=String(found.term||1);$("fedTreasuryVerify").disabled=found.status!=="recommended";$("fedTreasuryApprove").disabled=found.status!=="verified";$("fedTreasuryIssue").disabled=found.status!=="approved";status("Restored Season "+season+" Treasury offering in status: "+found.status+". Check the saved offering and ledger before proceeding.");}render();})();
 })();
  
+</script>
+ 
+<script>
+/* 5.8.15: Read-only Federal Reserve consolidated cash ledger. Does not mutate game state. */
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const fmt=n=>"$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2})+"M";
+const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function state(){const b=window.__calvinsCityBridge;return b&&typeof b.getState==="function"?b.getState():null;}
+function stamp(v){if(!v)return "Not recorded";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString();}
+function buildEvents(st){
+const f=st&&st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:{};
+const events=[];const seen=new Set();
+const add=e=>{if(!e||!e.id||seen.has(String(e.id)))return;seen.add(String(e.id));events.push(e);};
+for(const row of (Array.isArray(f.seasonalTaxCollections)?f.seasonalTaxCollections:[])){
+ if(!row||row.status&&row.status!=="collected")continue;
+ const amount=Number(row.total);if(!Number.isFinite(amount)||amount<=0)continue;
+ add({id:row.id,type:"credit",kind:"Seasonal tax collection",description:"Season "+(row.season==null?"—":row.season)+" tax deposit",season:row.season,amount,after:Number.isFinite(Number(row.federalReserveCashAfter))?Number(row.federalReserveCashAfter):null,before:Number.isFinite(Number(row.federalReserveCashBefore))?Number(row.federalReserveCashBefore):null,date:row.createdAt,source:"seasonalTaxCollections"});
+}
+for(const row of (Array.isArray(f.treasuryLedger)?f.treasuryLedger:[])){
+ if(!row||!row.id)continue;
+ if(row.type==="security_purchased"){
+  const amount=Number(row.principal);if(!Number.isFinite(amount)||amount<=0)continue;
+  const after=Number(row.federalReserveCashAfter);
+  add({id:row.id,type:"credit",kind:"Treasury security purchase",description:(row.investorType||"Investor")+": "+(row.investorName||"Unknown")+"; security principal received",season:row.season,amount,after:Number.isFinite(after)?after:null,before:Number.isFinite(after)?after-amount:null,date:row.timestamp,source:"treasuryLedger"});
+ } else if(row.type==="security_repaid"){
+  const amount=Number(row.total);if(!Number.isFinite(amount)||amount<=0)continue;
+  const after=Number(row.federalReserveCashAfter);
+  add({id:row.id,type:"debit",kind:"Treasury maturity repayment",description:"Principal and interest repaid; security "+(row.securityId||"—"),season:row.season,amount,after:Number.isFinite(after)?after:null,before:Number.isFinite(after)?after+amount:null,date:row.timestamp,source:"treasuryLedger"});
+ }
+}
+return events.sort((a,b)=>{const ta=Date.parse(a.date||"")||0,tb=Date.parse(b.date||"")||0;return tb-ta||String(b.id).localeCompare(String(a.id));});
+}
+function render(){
+const table=$("fedUnifiedLedgerTable"),status=$("fedUnifiedLedgerStatus");if(!table)return;
+const st=state();if(!st){table.innerHTML='<p class="tiny">Game state unavailable. No ledger data was changed.</p>';if(status)status.textContent="Cannot read the current saved game state through the app bridge.";return;}
+const f=st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:{};
+const cash=Number(f.cash);$("fedLedgerCurrentCash").textContent=fmt(Number.isFinite(cash)?cash:0);
+const events=buildEvents(st);const inflows=events.filter(e=>e.type==="credit").reduce((n,e)=>n+e.amount,0);const outflows=events.filter(e=>e.type==="debit").reduce((n,e)=>n+e.amount,0);
+$("fedLedgerEventCount").textContent=events.length.toLocaleString("en-US");$("fedLedgerInflows").textContent=fmt(inflows);$("fedLedgerOutflows").textContent=fmt(outflows);
+const filter=$("fedLedgerFilter")?$("fedLedgerFilter").value:"all";const visible=events.filter(e=>filter==="all"||e.type===filter);
+if(!visible.length){table.innerHTML='<p class="tiny">No matching recorded Federal Reserve cash movements were found. Historical events are not inferred.</p>';}
+else {
+ let html='<table style="width:100%;border-collapse:collapse;min-width:760px"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #64748b">Date / Season</th><th style="text-align:left;padding:8px;border-bottom:1px solid #64748b">Transaction</th><th style="text-align:left;padding:8px;border-bottom:1px solid #64748b">Details</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Cash In</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Cash Out</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Fed Balance After</th></tr></thead><tbody>';
+ for(const e of visible){html+='<tr><td style="padding:8px;border-bottom:1px solid #475569">'+esc(stamp(e.date))+'<br><span class="tiny">Season '+esc(e.season==null?'—':e.season)+'</span></td><td style="padding:8px;border-bottom:1px solid #475569">'+esc(e.kind)+'</td><td style="padding:8px;border-bottom:1px solid #475569">'+esc(e.description)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+(e.type==="credit"?fmt(e.amount):"—")+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+(e.type==="debit"?fmt(e.amount):"—")+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+(e.after==null?"Not recorded":fmt(e.after))+'</td></tr>';}
+ html+='</tbody></table>';table.innerHTML=html;
+}
+if(status)status.textContent="Read-only ledger refreshed. Displaying "+visible.length+" recorded cash movement(s). Current Fed cash is read from the saved game state; only recorded tax deposits, Treasury purchases, and Treasury repayments are included. Treasury offering recommendations/issuance are not cash movements.";
+}
+$("fedLedgerRefresh")?.addEventListener("click",render);$("fedLedgerFilter")?.addEventListener("change",render);$("cityFederalReserveTab")?.addEventListener("click",()=>setTimeout(render,0));
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",render);else render();
+})();
 </script>
  
 <script>
