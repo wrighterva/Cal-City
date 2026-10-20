@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.12: Adds Fed-selected Treasury security type for each offering; preserves v5.8.8 Treasury accounting and v5.8.7 tax collection. -->
+<!-- CALVIN'S CITY — VERSION 5.8.13: Adds Fed-selected Treasury security type for each offering; preserves v5.8.8 Treasury accounting and v5.8.7 tax collection. -->
 <!-- CALVIN'S CITY — VERSION 5.8.2: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
@@ -136,7 +136,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.12</title>
+<title>Calvin's City 5.8.13</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -258,7 +258,7 @@ t:1.3}.verify-decision{padding:8px 12px;font-size:11px;background:#246b46!import
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.12</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.13</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -6180,9 +6180,7 @@ requestAnimationFrame(function(){window.scrollTo(0,recordsScrollY);});
 }
 function openRecords(){renderRecords();document.getElementById("recordsModal").classList.add("show");lockRecordsScroll()}
 function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0);if(id==="markets"){try{const market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();else{const out=document.getElementById("stockMarketTable");if(out)out.innerHTML='<p class="muted">Markets are still initializing. Your saved company records have not been changed. Please wait a moment and reopen Markets.</p>';setTimeout(()=>{try{const lateMarket=window.calvinsCityStockMarket;if(lateMarket&&typeof lateMarket.render==="function")lateMarket.render();}catch(err){console.error("Market refresh retry failed:",err);}},250);}}catch(err){console.error("Market screen refresh failed:",err);const out=document.getElementById("stockMarketTable");if(out)out.innerHTML='<p class="muted">Markets could not refresh. Saved company records were not intentionally changed.</p>';}}}
-document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));
-try{sbReconcileSportsBetsOpeningCash();renderBetsSection();}catch(betsStartupError){console.error("Sports Bets startup failed; core app controls continue initializing.",betsStartupError);window.__calvinsCityBetsStartupError=String(betsStartupError);}
-document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
+document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));sbReconcileSportsBetsOpeningCash();renderBetsSection();document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
 document.getElementById("runGame").addEventListener("click",()=>{const g=playGame("Lions","Rims");document.getElementById("gameOutput").innerHTML=gameText(g)});document.getElementById("openBasketballInfo").addEventListener("click",function(){
 document.getElementById("basketballInfoModal").classList.add("show");
 });
@@ -6539,58 +6537,22 @@ There is no City/stadium event-binding layer. Each arena button
 calls the existing global openTeamPage() directly. */
  
  
-</script>
- 
-<script>
-/* 5.8.12: Non-destructive navigation and season display recovery.
-  Runs independently of the main game script so optional module startup
-  failures cannot leave the homepage stuck. Does not modify saved state. */
-(function(){
-"use strict";
-function season(){
- try{
-   const bridge=window.__calvinsCityBridge;
-   if(bridge&&typeof bridge.getState==="function"){
-     const state=bridge.getState();
-     if(state&&Number(state.year)>0)return Number(state.year);
-   }
- }catch(err){console.warn("Game state bridge unavailable for season display.",err);}
- try{
-   const raw=localStorage.getItem("calvins_city_v24");
-   if(raw){const saved=JSON.parse(raw);if(saved&&Number(saved.year)>0)return Number(saved.year);}
- }catch(err){console.warn("Saved season could not be read; no data was modified.",err);}
- return null;
+/* 5.8.13 startup repair: hydrate the visible season chips from the already-loaded
+  saved game state. This is display-only and does not write or reset saved data. */
+try {
+ const startupSeason = Number(state && state.year);
+ if (Number.isFinite(startupSeason) && startupSeason > 0) {
+   const homeSeasonNode = document.getElementById("homeSeason");
+   if (homeSeasonNode) homeSeasonNode.textContent = "Season " + startupSeason;
+   const basketballSeasonNode = document.getElementById("basketballSeasonTop");
+   if (basketballSeasonNode) basketballSeasonNode.textContent = "Season " + startupSeason;
+   window.__calvinsCityStartupRepair = { version: "5.8.13", status: "season-display-initialized", season: startupSeason };
+ } else {
+   window.__calvinsCityStartupRepair = { version: "5.8.13", status: "saved-season-unavailable" };
+ }
+} catch (startupRepairError) {
+ console.error("Calvin's City startup season display could not initialize.", startupRepairError);
 }
-function refreshSeason(){
-const n=season();if(!n)return;
-for(const id of ["homeSeason","basketballSeasonTop"]){
- const el=document.getElementById(id);if(el)el.textContent="Season "+n;
-}
-window.__calvinsCityStartupRepair={version:"5.8.12",status:"season-display-initialized",season:n};
-}
-function show(id){
-const target=document.getElementById(id);
-if(!target||!target.classList.contains("screen"))return;
-document.querySelectorAll(".screen").forEach(el=>el.classList.toggle("active",el===target));
-document.querySelectorAll(".nav button[data-nav]").forEach(el=>el.classList.toggle("active",el.dataset.nav===id));
-}
-function init(){
-refreshSeason();
-document.addEventListener("click",function(event){
- const btn=event.target&&event.target.closest&&event.target.closest("[data-nav],[data-navjump]");
- if(!btn)return;
- const id=btn.dataset.nav||btn.dataset.navjump;
- if(!id)return;
- // Run after the original handler. If it failed or was never attached,
- // recover the requested screen without changing the game state.
- setTimeout(function(){
-  const target=document.getElementById(id);
-  if(target&&target.classList.contains("screen")&&!target.classList.contains("active"))show(id);
- },0);
-});
-}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
-})();
 </script>
  
 <div id="shoeDealNeedsModal" class="modal"><div class="modalbox">
@@ -6898,7 +6860,7 @@ function approve(){try{const st=getState();if(!st||!draft||draft.status!=="verif
 function issue(){try{const st=getState();if(!st||!draft||draft.status!=="approved")throw Error("An approved offering is required.");if(getSeason(st)!==draft.season)throw Error("Season changed; offering not issued.");const f=fedState(st),i=f.treasuryOfferings.findIndex(o=>o&&o.id===draft.id);if(i<0||f.treasuryOfferings[i].status!=="approved")throw Error("Saved approval is missing or changed.");if(f.treasuryOfferings.some(o=>o&&o.id!==draft.id&&o.status==="open"))throw Error("Another Treasury offering is already open.");draft.status="open";draft.issuedAt=new Date().toISOString();f.treasuryOfferings[i]=draft;f.treasuryLedger.push({id:draft.id+"-issued",type:"offering_issued",season:draft.season,target:draft.target,rates:draft.rates,timestamp:draft.issuedAt});if(!save())throw Error("Could not save issued offering.");$("fedTreasuryIssue").disabled=true;status("Treasury offering is open. Investors may purchase up to the remaining target; no cash moves until a purchase is confirmed.");render();}catch(e){status("Issuance blocked: "+e.message);}}
 function buy(){const st=getState();if(!st){status("Purchase blocked: game state unavailable.");return;}const before=JSON.stringify(st);try{const f=fedState(st),off=getOffering(st);if(!off)throw Error("No open Treasury offering.");const investorValue=$("fedTreasuryInvestor").value;if(!investorValue)throw Error("Choose an investor account.");const split=investorValue.split("|"),type=split.shift(),name=split.join("|");const investor=getAccounts(st).find(a=>a.type===type&&a.name===name);if(!investor)throw Error("Investor account not found.");const amount=Number($("fedTreasuryPurchaseAmount").value),term=Number(off.term||$("fedTreasurySecurity").value);if(!Number.isFinite(amount)||amount<=0)throw Error("Purchase amount must be greater than zero.");if(![1,3,5].includes(term))throw Error("Invalid Treasury term.");if(off.term&&Number(off.term)!==term)throw Error("This offering only permits purchases of the selected security type.");const already=totalRaised(f,off.id);if(amount>off.target-already+0.000001)throw Error("Purchase exceeds the remaining offering target.");if(amount>getCash(st,investor)+0.000001)throw Error("Investor has insufficient available cash.");const rate=Number(off.rates[term]),season=getSeason(st),principal=Math.round((amount+Number.EPSILON)*100)/100,interest=Math.round((principal*rate/100*term+Number.EPSILON)*100)/100,total=Math.round((principal+interest+Number.EPSILON)*100)/100;const id="treasury-security-"+season+"-"+(Number(f.treasurySecurities.reduce((m,x)=>Math.max(m,Number(x.sequence)||0),0))+1);setCash(st,investor,Math.round((getCash(st,investor)-principal+Number.EPSILON)*100)/100);f.cash=Math.round((Number(f.cash)+principal+Number.EPSILON)*100)/100;const sec={id,sequence:Number(f.treasurySecurities.reduce((m,x)=>Math.max(m,Number(x.sequence)||0),0))+1,offeringId:off.id,issuedSeason:season,investorType:type,investorName:name,term,principal,rate,interest,maturityTotal:total,maturitySeason:season+term,status:"outstanding",purchasedAt:new Date().toISOString(),repaidAt:null};f.treasurySecurities.push(sec);f.treasuryLedger.push({id:id+"-purchase",type:"security_purchased",securityId:id,season,investorType:type,investorName:name,principal,rate,term,maturitySeason:sec.maturitySeason,interest,totalDue:total,investorCashBefore:getCash(st,investor)+principal,investorCashAfter:getCash(st,investor),federalReserveCashAfter:f.cash,timestamp:sec.purchasedAt});if(!save())throw Error("Save failed after purchase.");const saved=getState(),sf=saved&&saved.federalReserve,ss=sf&&sf.treasurySecurities.find(x=>x&&x.id===id);if(!ss||ss.status!=="outstanding"||Math.abs(Number(sf.cash)-f.cash)>0.011||Math.abs(getCash(saved,investor)-(investor.cash-principal))>0.011)throw Error("Post-save purchase verification failed.");status("Purchase saved and verified: "+fmt(principal)+" transferred to the Federal Reserve. Principal liability and maturity total recorded.");render();}catch(e){try{const old=JSON.parse(before);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,old);save();}catch(_e){}status("Purchase did not complete safely: "+e.message+". State restoration was attempted; inspect balances and ledger before retrying.");}}
 function processMaturities(){const st=getState();if(!st){status("Maturity processing blocked: game state unavailable.");return;}const before=JSON.stringify(st);try{const f=fedState(st),season=getSeason(st),due=f.treasurySecurities.filter(s=>s&&s.status==="outstanding"&&Number(s.maturitySeason)<=season);if(!due.length)throw Error("No outstanding securities are due in Season "+season+".");const total=due.reduce((sum,s)=>sum+Number(s.maturityTotal),0);if(!Number.isFinite(total)||total<0)throw Error("Invalid maturity total.");if(Number(f.cash)+0.000001<total)throw Error("Federal Reserve cash is insufficient. Due total is "+fmt(total)+"; available cash is "+fmt(f.cash)+". No securities were repaid.");const now=new Date().toISOString();for(const sec of due){if(sec.status!=="outstanding")throw Error("Security is no longer outstanding: "+sec.id);sec.status="repaid";sec.repaidAt=now;sec.repaymentAmount=Number(sec.maturityTotal);sec.repaidSeason=season;f.cash=Math.round((Number(f.cash)-Number(sec.maturityTotal)+Number.EPSILON)*100)/100;f.treasuryLedger.push({id:sec.id+"-repayment",type:"security_repaid",securityId:sec.id,season,principal:sec.principal,interest:sec.interest,total:sec.maturityTotal,federalReserveCashAfter:f.cash,timestamp:now});}if(!save())throw Error("Could not save maturity repayments.");const saved=getState(),sf=saved&&saved.federalReserve;if(!sf||due.some(x=>{const sec=sf.treasurySecurities.find(y=>y&&y.id===x.id);return !sec||sec.status!=="repaid"||!sec.repaidAt;}))throw Error("Post-save maturity verification failed.");status("Maturity processing saved and verified: "+due.length+" securities repaid for a combined "+fmt(total)+" principal and interest.");render();}catch(e){try{const old=JSON.parse(before);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,old);save();}catch(_e){}status("Maturity processing stopped: "+e.message+". No partial repayment should be relied on; inspect the ledger before retrying.");}}
-$("fedTreasuryReleaseType")?.addEventListener("change",()=>{const t=Number($("fedTreasuryReleaseType").value);if(draft&&["recommended","verified"].includes(draft.status)&&t!==Number(draft.term)){if($("fedTreasuryVerify"))$("fedTreasuryVerify").disabled=true;if($("fedTreasuryApprove"))$("fedTreasuryApprove").disabled=true;status("Selected security changed. Prepare a fresh offering before verification or approval.");}const defaults={1:2,3:3,5:4};if(!draft||["draft","recommended"].includes(draft.status))$("fedTreasuryRate").value=String(defaults[t]??2);});$("fedTreasuryRecommend")?.addEventListener("click",generate);$("fedTreasuryVerify")?.addEventListener("click",verify);$("fedTreasuryApprove")?.addEventListener("click",approve);$("fedTreasuryIssue")?.addEventListener("click",issue);$("fedTreasuryBuy")?.addEventListener("click",buy);$("fedTreasuryProcessMaturities")?.addEventListener("click",processMaturities);$("cityFederalReserveTab")?.addEventListener("click",()=>setTimeout(render,0));
+$("fedTreasuryReleaseType")?.addEventListener("change",()=>{if(draft&&["recommended","verified"].includes(draft.status)&&Number($("fedTreasuryReleaseType").value)!==Number(draft.term)){if($("fedTreasuryVerify"))$("fedTreasuryVerify").disabled=true;if($("fedTreasuryApprove"))$("fedTreasuryApprove").disabled=true;status("Selected security changed. Generate a fresh Board recommendation before verification or approval.");}});$("fedTreasuryRecommend")?.addEventListener("click",generate);$("fedTreasuryVerify")?.addEventListener("click",verify);$("fedTreasuryApprove")?.addEventListener("click",approve);$("fedTreasuryIssue")?.addEventListener("click",issue);$("fedTreasuryBuy")?.addEventListener("click",buy);$("fedTreasuryProcessMaturities")?.addEventListener("click",processMaturities);$("cityFederalReserveTab")?.addEventListener("click",()=>setTimeout(render,0));
 (function restore(){const st=getState();if(!st)return;const f=fedState(st),season=getSeason(st);const found=f.treasuryOfferings.find(o=>o&&Number(o.season)===season&&["recommended","verified","approved","open"].includes(o.status));if(found){draft=found;$("fedTreasuryTarget").value=String(found.target);if(found.term&&$("fedTreasuryReleaseType"))$("fedTreasuryReleaseType").value=String(found.term);$("fedTreasuryRate").value=String((found.rates&&found.rates[Number(found.term)])||0);$("fedTreasurySecurity").value=String(found.term||1);$("fedTreasuryVerify").disabled=found.status!=="recommended";$("fedTreasuryApprove").disabled=found.status!=="verified";$("fedTreasuryIssue").disabled=found.status!=="approved";status("Restored Season "+season+" Treasury offering in status: "+found.status+". Check the saved offering and ledger before proceeding.");}render();})();
 })();
 </script>
