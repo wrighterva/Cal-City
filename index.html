@@ -11,6 +11,8 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
+<!-- CALVIN'S CITY — VERSION 5.8.19: Federal Reserve interaction repair. Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
+ 
 <head>
  
 <script>
@@ -135,7 +137,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.14</title>
+<title>Calvin's City 5.8.19</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -706,6 +708,16 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 .fed-popup-heading h2{font-size:1.15rem;margin:0;flex:1 1 auto;min-width:0;overflow-wrap:anywhere;line-height:1.25}
 .fed-popup-heading button{display:inline-flex!important;flex:0 0 auto!important;width:auto!important;min-width:max-content;max-width:none;white-space:nowrap;align-items:center;justify-content:center;margin:0!important;padding:10px 14px!important;font-size:14px}
 .fed-tool-content{display:block;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px 16px 18px;scrollbar-gutter:stable}
+ 
+/* 5.8.19: Fix actual DOM structure, not just styling. The heading is a non-scrolling
+  flex sibling; all tool content (including the tax input and buttons) lives in the
+  dedicated scroll area. Keep mobile form controls above decoration and touchable. */
+.fed-tool-modal>.fed-tool-content{position:relative;z-index:2;flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overflow-x:auto;pointer-events:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.fed-tool-content .card{position:relative;z-index:1;overflow:visible;pointer-events:auto}
+.fed-tool-content input,.fed-tool-content select,.fed-tool-content textarea{position:relative;z-index:3;pointer-events:auto;user-select:text;-webkit-user-select:text;touch-action:manipulation}
+#fedTaxRateInput{display:block;min-height:48px;opacity:1;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:manipulation!important}
+.fed-tool-content button{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;min-height:46px}
+ 
 .fed-tool-content>.card{margin:0;min-width:0;box-sizing:border-box}
 .fed-tool-content .grid{min-width:0}
 .fed-tool-content table{max-width:100%}
@@ -713,6 +725,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 #fedTaxRateInput{pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:manipulation!important}
 #fedTaxGenerateRecommendation,#fedTaxVerifyPlan,#fedTaxApprovePlan,#fedTaxCollectPlan{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation;min-height:46px;white-space:normal}
 @media(max-width:520px){.fed-tool-popup{padding:6px}.fed-tool-modal{width:100%!important;max-width:100%;height:calc(100dvh - 12px);max-height:calc(100dvh - 12px);border-radius:14px}.fed-popup-heading{gap:8px;align-items:center;padding:12px 10px}.fed-popup-heading h2{font-size:1rem;line-height:1.2}.fed-popup-heading button{font-size:13px;padding:9px 10px!important}.fed-tool-content{padding:10px 10px 16px}.fed-tool-content .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,135px),1fr))!important}}
+@media(max-width:520px){.fed-tool-modal>.fed-tool-content{min-height:0;flex:1 1 0;overflow-y:auto;overflow-x:auto}.fed-tool-content input,.fed-tool-content select{font-size:16px!important}}
  
 #stockExchangeCard{color:#f8fafc;background:#111827;border:1px solid #39465a}
 #stockExchangeCard .tiny,#stockExchangeCard .muted,#stockExchangeCard p{color:#d5deea}
@@ -6815,22 +6828,23 @@ currentPlan=null;setStatus("Collection did not complete safely: "+String(e&&e.me
 }
 const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
 if(gen)gen.addEventListener("click",generate);if(ver)ver.addEventListener("click",verify);if(app)app.addEventListener("click",approve);if(col)col.addEventListener("click",collect);
+/* Defensive mobile binding: report the action if a click reaches a step control. */
+[[gen,"Generate Recommendation"],[ver,"Verify Assessment"],[app,"Approve Plan"],[col,"Collect Approved Tax"]].forEach(([button,label])=>{if(button){button.type="button";button.style.pointerEvents="auto";button.style.touchAction="manipulation";button.addEventListener("pointerup",function(){if(!button.disabled)setStatus(label+" selected. Check the workflow result below.");},{passive:true});}});
 /* Restore the current season's saved plan for review; approved records remain immutable in this workflow. */
-(function restoreSavedPlan(){const st=getState();if(!st)return;const plans=st.federalReserve&&Array.isArray(st.federalReserve.seasonalTaxPlans)?st.federalReserve.seasonalTaxPlans:[];const saved=plans.find(p=>p&&Number(p.season)===(Number(st.year)||0));if(saved){currentPlan=saved;$("fedTaxRateInput").value=String(saved.rate);renderPlan(saved);if(saved.status==="approved")setStatus("Previously approved plan restored for Season "+saved.season+". Recheck live balances before collection.");else setStatus("Saved "+saved.status+" plan restored for Season "+saved.season+". Re-verify if balances have changed.");}})();
+(function restoreSavedPlan(){const st=getState();if(!st)return;const plans=st.federalReserve&&Array.isArray(st.federalReserve.seasonalTaxPlans)?st.federalReserve.seasonalTaxPlans:[];const saved=plans.find(p=>p&&Number(p.season)===(Number(st.year)||0));if(saved){currentPlan=saved;$("fedTaxRateInput").value=String(saved.rate);renderPlan(saved);if(saved.status==="approved")setStatus("Previously approved plan restored for Season "+saved.season+". Recheck live balances before collection.");else setStatus("Saved "+saved.status+" plan restored for Season "+saved.season+". Re-verify if balances have changed.");const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");if(gen)gen.disabled=false;if(ver)ver.disabled=saved.status!=="recommended";if(app)app.disabled=saved.status!=="verified";if(col)col.disabled=saved.status!=="approved";}})();
 const input=$("fedTaxRateInput");
 if(input){
- input.disabled=false; input.readOnly=false; input.removeAttribute("readonly");
- const rateEdited=()=>{
-   const value=input.value.trim(),rate=Number(value),valid=value!==""&&Number.isFinite(rate)&&rate>=0&&rate<=100;
-   const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
-   if(gen)gen.disabled=!valid;
-   if(currentPlan&&(!valid||Math.abs(rate-Number(currentPlan.rate))>1e-9)){
-     if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
-     setStatus(valid?"Rate changed. Step 1 is ready: generate a new recommendation at the selected rate, then complete steps 2–4 in order.":"Enter a rate from 0% through 100% to enable Step 1.");
-   }
- };
- input.addEventListener("input",rateEdited);input.addEventListener("change",rateEdited);
- rateEdited();
+input.disabled=false;input.readOnly=false;input.removeAttribute("readonly");
+const rateEdited=()=>{
+  const raw=String(input.value||"").trim(),rate=Number(raw),valid=raw!==""&&Number.isFinite(rate)&&rate>=0&&rate<=100;
+  const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
+  if(gen)gen.disabled=!valid;
+  if(currentPlan&&(!valid||Math.abs(rate-Number(currentPlan.rate))>1e-9)){
+    if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
+    setStatus(valid?"Tax rate changed. Generate a new recommendation (Step 1), then verify, approve, and collect in order.":"Enter a tax rate from 0% through 100% to enable Step 1.");
+  }
+};
+input.addEventListener("input",rateEdited);input.addEventListener("change",rateEdited);rateEdited();
 }
 })();
  
