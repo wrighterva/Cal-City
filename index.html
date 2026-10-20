@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.11: Adds Fed-selected Treasury security type for each offering; preserves v5.8.8 Treasury accounting and v5.8.7 tax collection. -->
+<!-- CALVIN'S CITY — VERSION 5.8.12: Adds Fed-selected Treasury security type for each offering; preserves v5.8.8 Treasury accounting and v5.8.7 tax collection. -->
 <!-- CALVIN'S CITY — VERSION 5.8.2: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
@@ -136,7 +136,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.11</title>
+<title>Calvin's City 5.8.12</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -258,7 +258,7 @@ t:1.3}.verify-decision{padding:8px 12px;font-size:11px;background:#246b46!import
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.11</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.12</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -6180,7 +6180,9 @@ requestAnimationFrame(function(){window.scrollTo(0,recordsScrollY);});
 }
 function openRecords(){renderRecords();document.getElementById("recordsModal").classList.add("show");lockRecordsScroll()}
 function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));const s=document.getElementById(id);if(s)s.classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));window.scrollTo(0,0);if(id==="markets"){try{const market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();else{const out=document.getElementById("stockMarketTable");if(out)out.innerHTML='<p class="muted">Markets are still initializing. Your saved company records have not been changed. Please wait a moment and reopen Markets.</p>';setTimeout(()=>{try{const lateMarket=window.calvinsCityStockMarket;if(lateMarket&&typeof lateMarket.render==="function")lateMarket.render();}catch(err){console.error("Market refresh retry failed:",err);}},250);}}catch(err){console.error("Market screen refresh failed:",err);const out=document.getElementById("stockMarketTable");if(out)out.innerHTML='<p class="muted">Markets could not refresh. Saved company records were not intentionally changed.</p>';}}}
-document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));sbReconcileSportsBetsOpeningCash();renderBetsSection();document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
+document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.nav)));
+try{sbReconcileSportsBetsOpeningCash();renderBetsSection();}catch(betsStartupError){console.error("Sports Bets startup failed; core app controls continue initializing.",betsStartupError);window.__calvinsCityBetsStartupError=String(betsStartupError);}
+document.querySelectorAll("[data-navjump]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.navjump)));
 document.getElementById("runGame").addEventListener("click",()=>{const g=playGame("Lions","Rims");document.getElementById("gameOutput").innerHTML=gameText(g)});document.getElementById("openBasketballInfo").addEventListener("click",function(){
 document.getElementById("basketballInfoModal").classList.add("show");
 });
@@ -6537,22 +6539,58 @@ There is no City/stadium event-binding layer. Each arena button
 calls the existing global openTeamPage() directly. */
  
  
-/* 5.8.11 startup repair: hydrate the visible season chips from the already-loaded
-  saved game state. This is display-only and does not write or reset saved data. */
-try {
- const startupSeason = Number(state && state.year);
- if (Number.isFinite(startupSeason) && startupSeason > 0) {
-   const homeSeasonNode = document.getElementById("homeSeason");
-   if (homeSeasonNode) homeSeasonNode.textContent = "Season " + startupSeason;
-   const basketballSeasonNode = document.getElementById("basketballSeasonTop");
-   if (basketballSeasonNode) basketballSeasonNode.textContent = "Season " + startupSeason;
-   window.__calvinsCityStartupRepair = { version: "5.8.11", status: "season-display-initialized", season: startupSeason };
- } else {
-   window.__calvinsCityStartupRepair = { version: "5.8.11", status: "saved-season-unavailable" };
- }
-} catch (startupRepairError) {
- console.error("Calvin's City startup season display could not initialize.", startupRepairError);
+</script>
+ 
+<script>
+/* 5.8.12: Non-destructive navigation and season display recovery.
+  Runs independently of the main game script so optional module startup
+  failures cannot leave the homepage stuck. Does not modify saved state. */
+(function(){
+"use strict";
+function season(){
+ try{
+   const bridge=window.__calvinsCityBridge;
+   if(bridge&&typeof bridge.getState==="function"){
+     const state=bridge.getState();
+     if(state&&Number(state.year)>0)return Number(state.year);
+   }
+ }catch(err){console.warn("Game state bridge unavailable for season display.",err);}
+ try{
+   const raw=localStorage.getItem("calvins_city_v24");
+   if(raw){const saved=JSON.parse(raw);if(saved&&Number(saved.year)>0)return Number(saved.year);}
+ }catch(err){console.warn("Saved season could not be read; no data was modified.",err);}
+ return null;
 }
+function refreshSeason(){
+const n=season();if(!n)return;
+for(const id of ["homeSeason","basketballSeasonTop"]){
+ const el=document.getElementById(id);if(el)el.textContent="Season "+n;
+}
+window.__calvinsCityStartupRepair={version:"5.8.12",status:"season-display-initialized",season:n};
+}
+function show(id){
+const target=document.getElementById(id);
+if(!target||!target.classList.contains("screen"))return;
+document.querySelectorAll(".screen").forEach(el=>el.classList.toggle("active",el===target));
+document.querySelectorAll(".nav button[data-nav]").forEach(el=>el.classList.toggle("active",el.dataset.nav===id));
+}
+function init(){
+refreshSeason();
+document.addEventListener("click",function(event){
+ const btn=event.target&&event.target.closest&&event.target.closest("[data-nav],[data-navjump]");
+ if(!btn)return;
+ const id=btn.dataset.nav||btn.dataset.navjump;
+ if(!id)return;
+ // Run after the original handler. If it failed or was never attached,
+ // recover the requested screen without changing the game state.
+ setTimeout(function(){
+  const target=document.getElementById(id);
+  if(target&&target.classList.contains("screen")&&!target.classList.contains("active"))show(id);
+ },0);
+});
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
 </script>
  
 <div id="shoeDealNeedsModal" class="modal"><div class="modalbox">
