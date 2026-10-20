@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.17: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
+<!-- CALVIN'S CITY — VERSION 5.8.18: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -540,8 +540,8 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="metric"><small>Projected Tax</small><strong id="fedTaxProjectedTotal">—</strong></div>
 </div>
 <label for="fedTaxRateInput" style="display:block;margin:12px 0 5px;font-weight:700">Board recommended tax rate (%)</label>
-<input id="fedTaxRateInput" type="number" min="0" max="100" step="0.01" value="1" style="max-width:220px;width:100%;padding:10px;border-radius:8px;border:1px solid #64748b;background:#fff;color:#111827">
-<p class="tiny">The initial 1.00% is provisional, not a finalized tax policy. Change the rate before generating a recommendation. Tax amount is calculated from the cash balance captured at assessment.</p>
+<input id="fedTaxRateInput" type="number" min="0" max="100" step="0.01" value="1" inputmode="decimal" autocomplete="off" aria-describedby="fedTaxRateHelp" style="display:block;position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;max-width:220px;width:100%;min-height:46px;padding:10px;border-radius:8px;border:1px solid #64748b;background:#fff;color:#111827;opacity:1">
+<p id="fedTaxRateHelp" class="tiny">The initial 1.00% is provisional, not a finalized tax policy. Change the rate before generating a recommendation. Tax amount is calculated from the cash balance captured at assessment.</p>
 <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0">
 <button type="button" class="secondary" id="fedTaxGenerateRecommendation">1. Generate Recommendation</button>
 <button type="button" class="secondary" id="fedTaxVerifyPlan" disabled>2. Verify Assessment</button>
@@ -710,6 +710,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 .fed-tool-content .grid{min-width:0}
 .fed-tool-content table{max-width:100%}
 .fed-tool-content button,.fed-popup-heading button{max-width:100%;box-sizing:border-box}
+#fedTaxRateInput{pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:manipulation!important}
+#fedTaxGenerateRecommendation,#fedTaxVerifyPlan,#fedTaxApprovePlan,#fedTaxCollectPlan{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation;min-height:46px;white-space:normal}
 @media(max-width:520px){.fed-tool-popup{padding:6px}.fed-tool-modal{width:100%!important;max-width:100%;height:calc(100dvh - 12px);max-height:calc(100dvh - 12px);border-radius:14px}.fed-popup-heading{gap:8px;align-items:center;padding:12px 10px}.fed-popup-heading h2{font-size:1rem;line-height:1.2}.fed-popup-heading button{font-size:13px;padding:9px 10px!important}.fed-tool-content{padding:10px 10px 16px}.fed-tool-content .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,135px),1fr))!important}}
  
 #stockExchangeCard{color:#f8fafc;background:#111827;border:1px solid #39465a}
@@ -6743,7 +6745,7 @@ const plan={id:"season-"+season+"-tax-plan",season,rate,base:"cash_balance_at_as
 plan.projectedTotal=Math.round((plan.accounts.reduce((sum,a)=>sum+a.tax,0)+Number.EPSILON)*100)/100;
 const index=existingIndex;
 if(index>=0)plans[index]=plan;else plans.push(plan);
-const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function")b.save();
+const b=window.__calvinsCityBridge;try{if(!b||typeof b.save!=="function"||b.save()===false){setStatus("Recommendation calculated, but saving failed. Do not proceed to collection; reload and inspect the saved game.");return;}}catch(e){setStatus("Recommendation calculated, but saving failed: "+String(e&&e.message||e)+". Do not proceed to collection.");return;}
 renderPlan(plan);setStatus("Recommendation generated for Season "+season+" at "+rate.toFixed(2)+"%. This is a proposal only; no cash was changed. Verify the captured balances before approval.");
 }
 function verify(){
@@ -6756,7 +6758,7 @@ const captured=currentPlan.accounts.map(a=>({type:a.type,name:a.name,cash:a.cash
 if(signature(live)!==signature(captured)){setStatus("Verification failed: eligible cash balances or accounts changed since assessment. Generate a fresh recommendation.");return;}
 currentPlan.status="verified";currentPlan.verifiedAt=new Date().toISOString();
 const plans=getSavedPlans(st);const i=plans.findIndex(p=>p&&p.id===currentPlan.id);if(i<0){setStatus("Verification failed: saved plan not found. Generate a fresh recommendation.");return;}plans[i]=currentPlan;
-const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function")b.save();
+const b=window.__calvinsCityBridge;try{if(!b||typeof b.save!=="function"||b.save()===false){currentPlan.status="recommended";setStatus("Verification passed in memory, but saving failed. Retry after checking the saved game.");return;}}catch(e){currentPlan.status="recommended";setStatus("Verification could not be saved: "+String(e&&e.message||e));return;}
 renderPlan(currentPlan);setStatus("Verification passed: season, rate, eligible accounts, and captured balances match. No taxes were collected. Approval is now available.");
 }
 function approve(){
@@ -6766,7 +6768,7 @@ const live=getAccounts(st);const signature=a=>JSON.stringify(a.map(x=>({type:x.t
 if(signature(live)!==signature(currentPlan.accounts.map(a=>({type:a.type,name:a.name,cash:a.cash})))){setStatus("Approval blocked: cash balances changed after verification. Generate a fresh recommendation.");return;}
 currentPlan.status="approved";currentPlan.approvedAt=new Date().toISOString();currentPlan.collectionEnabled=false;
 const plans=getSavedPlans(st);const i=plans.findIndex(p=>p&&p.id===currentPlan.id);if(i<0){setStatus("Approval failed: saved plan not found.");return;}plans[i]=currentPlan;
-const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function")b.save();
+const b=window.__calvinsCityBridge;try{if(!b||typeof b.save!=="function"||b.save()===false){currentPlan.status="verified";setStatus("Approval was not saved. Verify the saved state before continuing.");return;}}catch(e){currentPlan.status="verified";setStatus("Approval could not be saved: "+String(e&&e.message||e));return;}
 renderPlan(currentPlan);$("fedTaxVerifyPlan").disabled=true;$("fedTaxApprovePlan").disabled=true;
 setStatus("Plan approved and recorded for Season "+currentPlan.season+". Recheck live balances before collection; no cash has moved yet.");
 }
@@ -6815,7 +6817,21 @@ const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fed
 if(gen)gen.addEventListener("click",generate);if(ver)ver.addEventListener("click",verify);if(app)app.addEventListener("click",approve);if(col)col.addEventListener("click",collect);
 /* Restore the current season's saved plan for review; approved records remain immutable in this workflow. */
 (function restoreSavedPlan(){const st=getState();if(!st)return;const plans=st.federalReserve&&Array.isArray(st.federalReserve.seasonalTaxPlans)?st.federalReserve.seasonalTaxPlans:[];const saved=plans.find(p=>p&&Number(p.season)===(Number(st.year)||0));if(saved){currentPlan=saved;$("fedTaxRateInput").value=String(saved.rate);renderPlan(saved);if(saved.status==="approved")setStatus("Previously approved plan restored for Season "+saved.season+". Recheck live balances before collection.");else setStatus("Saved "+saved.status+" plan restored for Season "+saved.season+". Re-verify if balances have changed.");}})();
-const input=$("fedTaxRateInput");if(input)input.addEventListener("input",()=>{if(currentPlan&&Number(input.value)!==currentPlan.rate){$("fedTaxVerifyPlan").disabled=true;$("fedTaxApprovePlan").disabled=true;setStatus("Rate edited. Generate a new recommendation before verification or approval.");}});
+const input=$("fedTaxRateInput");
+if(input){
+ input.disabled=false; input.readOnly=false; input.removeAttribute("readonly");
+ const rateEdited=()=>{
+   const value=input.value.trim(),rate=Number(value),valid=value!==""&&Number.isFinite(rate)&&rate>=0&&rate<=100;
+   const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
+   if(gen)gen.disabled=!valid;
+   if(currentPlan&&(!valid||Math.abs(rate-Number(currentPlan.rate))>1e-9)){
+     if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
+     setStatus(valid?"Rate changed. Step 1 is ready: generate a new recommendation at the selected rate, then complete steps 2–4 in order.":"Enter a rate from 0% through 100% to enable Step 1.");
+   }
+ };
+ input.addEventListener("input",rateEdited);input.addEventListener("change",rateEdited);
+ rateEdited();
+}
 })();
  
 </script>
