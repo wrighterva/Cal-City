@@ -11,7 +11,7 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.19: Federal Reserve interaction repair. Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
+<!-- CALVIN'S CITY — VERSION 5.8.20: Federal Reserve touch target repair.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
  
@@ -671,7 +671,7 @@ modal.classList.add("show");modal.setAttribute("aria-hidden","false");
 document.body.dataset.fedPopupOpen=id;
 if(id==="fedLedgerPopup"&&typeof window.refreshFederalReserveLedger==="function")window.refreshFederalReserveLedger();
 if(id==="fedEconomicReviewPopup"){const b=document.getElementById("fedBoardRefresh");if(b)b.click();}
-const close=modal.querySelector("[data-fed-popup-close]");if(close)close.focus();
+/* Do not force focus on open: it can trigger mobile Safari scroll/focus conflicts with form controls. */
 }
 function closeFedPopup(id){
 const modal=document.getElementById(id);if(!modal)return;
@@ -726,6 +726,24 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 #fedTaxGenerateRecommendation,#fedTaxVerifyPlan,#fedTaxApprovePlan,#fedTaxCollectPlan{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation;min-height:46px;white-space:normal}
 @media(max-width:520px){.fed-tool-popup{padding:6px}.fed-tool-modal{width:100%!important;max-width:100%;height:calc(100dvh - 12px);max-height:calc(100dvh - 12px);border-radius:14px}.fed-popup-heading{gap:8px;align-items:center;padding:12px 10px}.fed-popup-heading h2{font-size:1rem;line-height:1.2}.fed-popup-heading button{font-size:13px;padding:9px 10px!important}.fed-tool-content{padding:10px 10px 16px}.fed-tool-content .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,135px),1fr))!important}}
 @media(max-width:520px){.fed-tool-modal>.fed-tool-content{min-height:0;flex:1 1 0;overflow-y:auto;overflow-x:auto}.fed-tool-content input,.fed-tool-content select{font-size:16px!important}}
+ 
+/* 5.8.20: Native mobile form interaction fix.
+  Keep one scroll owner (the popup content); allow native input/select focus and
+  taps rather than forcing gesture handling on every control. Give form controls
+  a high local hit-test priority without changing the global app controls. */
+.fed-tool-popup{overflow:hidden!important;touch-action:auto!important;overscroll-behavior:none}
+.fed-tool-popup.show{display:flex!important;pointer-events:auto!important}
+.fed-tool-modal{display:flex!important;flex-direction:column!important;min-height:0!important;overflow:hidden!important;touch-action:auto!important;isolation:isolate}
+.fed-popup-heading{position:relative!important;top:auto!important;flex:0 0 auto!important;z-index:10!important}
+.fed-tool-modal>.fed-tool-content{position:relative!important;z-index:2!important;flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;overflow-x:auto!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important}
+.fed-tool-content .card{position:relative!important;z-index:auto!important;overflow:visible!important;transform:none!important}
+.fed-tool-content label{position:relative;z-index:4;display:block;touch-action:manipulation}
+.fed-tool-content input,.fed-tool-content select,.fed-tool-content textarea{position:relative!important;z-index:5!important;display:block;min-height:48px;max-width:100%;box-sizing:border-box;pointer-events:auto!important;touch-action:auto!important;user-select:text!important;-webkit-user-select:text!important;appearance:auto;-webkit-appearance:auto}
+.fed-tool-content input[type=number]{-webkit-appearance:auto;appearance:auto}
+.fed-tool-content button{position:relative!important;z-index:5!important;pointer-events:auto!important;touch-action:manipulation!important;min-height:46px}
+#fedTaxRateInput,#fedTreasuryTarget,#fedTreasuryRate,#fedTreasuryReleaseType{pointer-events:auto!important;touch-action:auto!important;user-select:text!important;-webkit-user-select:text!important;position:relative!important;z-index:8!important}
+@media(max-width:520px){.fed-tool-popup{padding:6px!important}.fed-tool-modal{height:calc(100dvh - 12px)!important;max-height:calc(100dvh - 12px)!important}.fed-tool-content{overscroll-behavior:contain!important}.fed-tool-content input,.fed-tool-content select{font-size:16px!important;min-height:48px!important}}
+ 
  
 #stockExchangeCard{color:#f8fafc;background:#111827;border:1px solid #39465a}
 #stockExchangeCard .tiny,#stockExchangeCard .muted,#stockExchangeCard p{color:#d5deea}
