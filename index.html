@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.5: Adds guarded Federal Reserve season snapshots and read-only cash history/ledger foundation. No taxes or Treasury transactions activated. Based on v5.8.4. -->
+<!-- CALVIN'S CITY — VERSION 5.8.6: Adds Federal Reserve seasonal tax recommendation, verification, and approval records only. Tax collection and cash movement remain disabled. Based on verified v5.8.4 tracker source. -->
 <!-- CALVIN'S CITY — VERSION 5.8.2: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
@@ -252,7 +252,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.5</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.3</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -520,30 +520,26 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <p id="fedCashTrackerStatus" class="tiny" role="status" aria-live="polite">Reading current saved game balances. No balances will be changed.</p>
 <div class="tiny">Accounting note: CalSims is counted as one separate consumer pool. Its cash is not added to citizen or company balances. Teams are read from teamCash and excluded from business totals.</div>
 </div>
-<div class="card" id="fedCashHistoryCard">
-<h3>🗓️ Seasonal Cash Snapshots</h3>
-<p>Save one point-in-time cash snapshot for the current season. A season can only have one snapshot; recording it again will not overwrite the original. CalSims is included as a separate consumer pool and is not taxed by this feature.</p>
+<div class="card" id="fedSeasonalTaxCard">
+<h3>🧾 Seasonal Tax Recommendation & Approval</h3>
+<p>Tax base: each eligible business and team’s cash balance at assessment. Citizens, CalSims, and the Federal Reserve are excluded from this initial tax plan.</p>
 <div class="grid">
-<div class="metric"><small>Saved Snapshots</small><strong id="fedSnapshotCount">0</strong></div>
-<div class="metric"><small>Last Snapshot</small><strong id="fedLastSnapshotSeason">None</strong></div>
+<div class="metric"><small>Assessment Season</small><strong id="fedTaxSeason">—</strong></div>
+<div class="metric"><small>Recommended Rate</small><strong id="fedTaxRateDisplay">1.00% (provisional)</strong></div>
+<div class="metric"><small>Eligible Accounts</small><strong id="fedTaxEligibleCount">—</strong></div>
+<div class="metric"><small>Projected Tax</small><strong id="fedTaxProjectedTotal">—</strong></div>
 </div>
-<button type="button" class="goodbtn" id="fedRecordSeasonSnapshot">📸 Record Season Snapshot</button>
-<p id="fedSnapshotStatus" class="tiny" role="status" aria-live="polite">No new historical snapshot has been recorded by this version.</p>
-<div id="fedCashSnapshotHistory"><p class="tiny">No saved cash snapshots yet.</p></div>
+<label for="fedTaxRateInput" style="display:block;margin:12px 0 5px;font-weight:700">Board recommended tax rate (%)</label>
+<input id="fedTaxRateInput" type="number" min="0" max="100" step="0.01" value="1" style="max-width:220px;width:100%;padding:10px;border-radius:8px;border:1px solid #64748b;background:#fff;color:#111827">
+<p class="tiny">The initial 1.00% is provisional, not a finalized tax policy. Change the rate before generating a recommendation. Tax amount is calculated from the cash balance captured at assessment.</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0">
+<button type="button" class="secondary" id="fedTaxGenerateRecommendation">1. Generate Recommendation</button>
+<button type="button" class="secondary" id="fedTaxVerifyPlan" disabled>2. Verify Assessment</button>
+<button type="button" id="fedTaxApprovePlan" disabled>3. Approve Plan</button>
 </div>
-<div class="card" id="fedTransactionLedgerCard">
-<h3>📒 Federal Reserve Ledger</h3>
-<p>This ledger will record future Fed transactions with a unique reference, season, type, source, destination, amount, and status. Snapshot history is separate from transaction history.</p>
-<div class="grid">
-<div class="metric"><small>Fed Transactions</small><strong id="fedTransactionCount">0</strong></div>
-<div class="metric"><small>Outstanding Obligations</small><strong id="fedOutstandingObligations">$0M</strong></div>
-</div>
-<div id="fedTransactionLedgerList"><p class="tiny">No Federal Reserve transactions recorded. Snapshot entries do not move money and are not transactions.</p></div>
-</div>
-<div class="card">
-<h3>🧾 Seasonal Taxes</h3>
-<p>The Fed Board will recommend a seasonal tax plan for your approval. Taxes will not be collected automatically without approval.</p>
-<div class="tiny">Tax controls remain inactive until the calculation, eligibility, reserve safeguards, and once-per-season processing rules are implemented.</div>
+<p id="fedTaxWorkflowStatus" class="tiny" role="status" aria-live="polite">No seasonal tax recommendation has been generated. No taxes will be collected by this workflow.</p>
+<div id="fedTaxAssessmentDetails" style="overflow-x:auto"></div>
+<div class="tiny">Safety lock: this build does not collect taxes, deduct cash, or move funds. Approval records authorization only. A separate implementation and verification step is required before collection can ever be enabled. Recalculate and re-verify if account balances or the rate change.</div>
 </div>
 <div class="card">
 <h3>💵 Treasury Bills & Bonds</h3>
@@ -6512,57 +6508,11 @@ setCityTab(tab);
 })();
 </script>
 <script>
-/* 5.8.5: Federal Reserve cash history foundation. Snapshots are append-only and
-  idempotent by season. This feature never moves cash or collects taxes. */
+/* 5.8.4: Read-only Federal Reserve live cash tracker. No cash mutation, tax, or debt actions. */
 (function(){
 "use strict";
-const el=id=>document.getElementById(id);
 const fmt=n=>"$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2})+"M";
-function getState(){const b=window.__calvinsCityBridge;return b&&typeof b.getState==="function"?b.getState():null;}
-function summarize(st){
-const citizens=Array.isArray(st.citizens)?st.citizens:[];
-const citizenAccounts=citizens.filter(c=>c&&c.cash!==null&&c.cash!==""&&Number.isFinite(Number(c.cash)));
-const citizenCash=citizenAccounts.reduce((sum,c)=>sum+Number(c.cash),0);
-const teamMap=st.teamCash&&typeof st.teamCash==="object"?st.teamCash:{};
-const teamEntries=Object.entries(teamMap).filter(([name,value])=>['Lions','Rims','Dunks'].includes(name)&&Number.isFinite(Number(value)));
-const teamCash=teamEntries.reduce((sum,[,v])=>sum+Number(v),0);
-const businessMap=st.businessCash&&typeof st.businessCash==="object"?st.businessCash:{};
-const businessEntries=Object.entries(businessMap).filter(([name,value])=>!['Lions','Rims','Dunks'].includes(name)&&Number.isFinite(Number(value)));
-const businessCash=businessEntries.reduce((sum,[,v])=>sum+Number(v),0);
-const cal=st.calSimsEconomy&&typeof st.calSimsEconomy==="object"?st.calSimsEconomy:{};
-const hasCalSims=Number.isFinite(Number(cal.totalCash));const calSimsCash=hasCalSims?Number(cal.totalCash):0;
-const fed=st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:{};const fedCash=Number.isFinite(Number(fed.cash))?Number(fed.cash):0;
-return {season:Number(st.year)||1,citizenCash,businessCash,teamCash,calSimsCash:hasCalSims?calSimsCash:null,fedCash,totalCash:citizenCash+businessCash+teamCash+calSimsCash+fedCash,accountCount:citizenAccounts.length+businessEntries.length+teamEntries.length+(hasCalSims?1:0)+1,citizenAccounts:citizenAccounts.length,businessAccounts:businessEntries.length,teamAccounts:teamEntries.length};
-}
-function renderHistory(st){
-const fed=st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:{};
-const snapshots=Array.isArray(fed.cashSnapshots)?fed.cashSnapshots:[];
-const ledger=Array.isArray(fed.ledger)?fed.ledger:[];
-const count=el('fedSnapshotCount'),last=el('fedLastSnapshotSeason'),history=el('fedCashSnapshotHistory');
-if(count)count.textContent=String(snapshots.length);
-if(last)last.textContent=snapshots.length?'Season '+snapshots[snapshots.length-1].season:'None';
-if(history){if(!snapshots.length){history.innerHTML='<p class="tiny">No saved cash snapshots yet. Record one to begin historical comparisons.</p>';}else{history.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Season</th><th>Total Cash</th><th>Change</th><th>Recorded</th></tr></thead><tbody>'+snapshots.slice().reverse().map((x,i,a)=>{const prev=snapshots[snapshots.indexOf(x)-1];const delta=prev?Number(x.totalCash)-Number(prev.totalCash):null;return '<tr><td>Season '+Number(x.season)+'</td><td>'+fmt(x.totalCash)+'</td><td>'+(delta===null?'Baseline':(delta>=0?'+':'')+fmt(delta))+'</td><td>'+new Date(x.createdAt).toLocaleString()+'</td></tr>';}).join('')+'</tbody></table></div>';}}
-const txCount=el('fedTransactionCount'),oblig=el('fedOutstandingObligations'),txList=el('fedTransactionLedgerList');
-if(txCount)txCount.textContent=String(ledger.length);
-if(oblig)oblig.textContent=fmt(ledger.filter(x=>x&&x.status==='outstanding'&&x.direction==='liability').reduce((a,x)=>a+(Number(x.amount)||0),0));
-if(txList){if(!ledger.length)txList.innerHTML='<p class="tiny">No Federal Reserve transactions recorded. Snapshot entries do not move money and are not transactions.</p>';else txList.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Season</th><th>Type</th><th>From → To</th><th>Amount</th><th>Status</th></tr></thead><tbody>'+ledger.slice().reverse().map(x=>'<tr><td>'+Number(x.season||0)+'</td><td>'+String(x.type||'Transaction')+'</td><td>'+String(x.source||'—')+' → '+String(x.destination||'—')+'</td><td>'+fmt(x.amount)+'</td><td>'+String(x.status||'recorded')+'</td></tr>').join('')+'</tbody></table></div>';}
-}
-function recordSnapshot(){
-const b=window.__calvinsCityBridge,st=getState(),status=el('fedSnapshotStatus');
-if(!st||!b||typeof b.save!=="function"){if(status)status.textContent='Game state or save service is unavailable. Nothing was changed.';return false;}
-const season=Number(st.year)||1;
-st.federalReserve=st.federalReserve&&typeof st.federalReserve==='object'?st.federalReserve:{};
-const fed=st.federalReserve;fed.cashSnapshots=Array.isArray(fed.cashSnapshots)?fed.cashSnapshots:[];fed.ledger=Array.isArray(fed.ledger)?fed.ledger:[];
-if(fed.cashSnapshots.some(x=>Number(x.season)===season)){if(status)status.textContent='Season '+season+' already has a snapshot. The original was preserved; no duplicate was added.';renderHistory(st);return false;}
-const data=summarize(st);const previous=fed.cashSnapshots.length?fed.cashSnapshots[fed.cashSnapshots.length-1]:null;
-const snap={id:'FED-SNAPSHOT-S'+season,season,createdAt:new Date().toISOString(),...data,previousSnapshotSeason:previous?Number(previous.season):null,changeFromPrevious:previous?data.totalCash-Number(previous.totalCash):null,calSimsTaxable:false};
-fed.cashSnapshots.push(snap);
-if(b.save()===false){fed.cashSnapshots.pop();if(status)status.textContent='Save was not confirmed. The snapshot was rolled back in memory; no cash was changed.';return false;}
-if(status)status.textContent='Saved snapshot for Season '+season+'. No cash balances were changed.';
-renderHistory(st);return true;
-}
-const snapBtn=el('fedRecordSeasonSnapshot');if(snapBtn)snapBtn.addEventListener('click',recordSnapshot);
- 
+const el=id=>document.getElementById(id);
 function runFederalReserveCashTracker(){
 const bridge=window.__calvinsCityBridge;
 const st=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
@@ -6586,14 +6536,96 @@ const fedCash=Number.isFinite(Number(fed.cash))?Number(fed.cash):0;
 const total=citizenCash+teamCash+businessCash+calSimsCash+fedCash;
 const values={fedTotalTrackedCash:fmt(total),fedCashSeason:String(Number(st.year)||'—'),fedCitizensCash:fmt(citizenCash),fedBusinessesCash:fmt(businessCash),fedTeamsCash:fmt(teamCash),fedCalSimsCash:hasCalSims?fmt(calSimsCash):'Not initialized',fedInstitutionCash:fmt(fedCash),fedAccountCount:(citizenAccounts.length+businessEntries.length+teamEntries.length+(hasCalSims?1:0)+1).toLocaleString('en-US')};
 Object.entries(values).forEach(([id,value])=>{const node=el(id);if(node)node.textContent=value;});
-if(status)status.textContent="Updated "+new Date().toLocaleTimeString()+". Live balances only; no game balances were changed.";
-renderHistory(st);
+if(status)status.textContent="Updated "+new Date().toLocaleTimeString()+". Read-only snapshot; no game balances or records were changed.";
 return true;
 }
 window.refreshFederalReserveCashTracker=runFederalReserveCashTracker;
 const button=el('fedRefreshCashTracker');if(button)button.addEventListener('click',runFederalReserveCashTracker);
 const tab=el('cityFederalReserveTab');if(tab)tab.addEventListener('click',()=>setTimeout(runFederalReserveCashTracker,0));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',runFederalReserveCashTracker);else setTimeout(runFederalReserveCashTracker,0);
+})();
+</script>
+<script>
+/* 5.8.6: Seasonal tax plan workflow only. Never collects taxes or changes account cash. */
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const fmt=n=>"$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2})+"M";
+let currentPlan=null;
+function getState(){const b=window.__calvinsCityBridge;return b&&typeof b.getState==="function"?b.getState():null;}
+function getAccounts(st){
+const out=[];
+const teams=st&&st.teamCash&&typeof st.teamCash==="object"?st.teamCash:{};
+for(const [name,cash] of Object.entries(teams)) if(["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash))) out.push({type:"Team",name,cash:Number(cash)});
+const businesses=st&&st.businessCash&&typeof st.businessCash==="object"?st.businessCash:{};
+for(const [name,cash] of Object.entries(businesses)) if(!["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash))) out.push({type:"Business",name,cash:Number(cash)});
+return out;
+}
+function getSavedPlans(st){
+if(!st.federalReserve||typeof st.federalReserve!=="object")st.federalReserve={cash:0};
+if(!Array.isArray(st.federalReserve.seasonalTaxPlans))st.federalReserve.seasonalTaxPlans=[];
+return st.federalReserve.seasonalTaxPlans;
+}
+function setStatus(text){const e=$("fedTaxWorkflowStatus");if(e)e.textContent=text;}
+function renderPlan(plan){
+currentPlan=plan;
+$("fedTaxSeason").textContent=String(plan.season);
+$("fedTaxRateDisplay").textContent=plan.rate.toFixed(2)+"%"+(plan.status==="recommended"?" (provisional)":"");
+$("fedTaxEligibleCount").textContent=String(plan.accounts.length);
+$("fedTaxProjectedTotal").textContent=fmt(plan.projectedTotal);
+const details=$("fedTaxAssessmentDetails");
+let html='<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #64748b">Eligible account</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Cash at assessment</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Projected tax</th></tr></thead><tbody>';
+for(const a of plan.accounts)html+='<tr><td style="padding:8px;border-bottom:1px solid #475569">'+escapeHtml(a.type+": "+a.name)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(a.cash)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(a.tax)+'</td></tr>';
+html+='</tbody></table>';
+details.innerHTML=html;
+$("fedTaxVerifyPlan").disabled=plan.status!=="recommended";
+$("fedTaxApprovePlan").disabled=plan.status!=="verified";
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function generate(){
+const st=getState();if(!st){setStatus("Game state is unavailable. No recommendation was created.");return;}
+const raw=Number($("fedTaxRateInput").value);
+if(!Number.isFinite(raw)||raw<0||raw>100){setStatus("Enter a tax rate from 0% through 100%. No recommendation was created.");return;}
+const accounts=getAccounts(st);if(!accounts.length){setStatus("No eligible business or team cash accounts were found. No recommendation was created.");return;}
+const season=Number(st.year)||0;const rate=raw;
+const plans=getSavedPlans(st);const existingIndex=plans.findIndex(p=>p&&p.id==="season-"+season+"-tax-plan");
+if(existingIndex>=0&&plans[existingIndex].status==="approved") {setStatus("This season's plan is already approved and preserved. It cannot be overwritten. Tax collection remains disabled.");return;}
+const plan={id:"season-"+season+"-tax-plan",season,rate,base:"cash_balance_at_assessment",status:"recommended",createdAt:new Date().toISOString(),verifiedAt:null,approvedAt:null,collectionEnabled:false,accounts:accounts.map(a=>({...a,tax:Math.round((a.cash*rate/100+Number.EPSILON)*100)/100})),excluded:{citizens:true,calSims:true,federalReserve:true}};
+plan.projectedTotal=Math.round((plan.accounts.reduce((sum,a)=>sum+a.tax,0)+Number.EPSILON)*100)/100;
+const index=existingIndex;
+if(index>=0)plans[index]=plan;else plans.push(plan);
+const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function")b.save();
+renderPlan(plan);setStatus("Recommendation generated for Season "+season+" at "+rate.toFixed(2)+"%. This is a proposal only; no cash was changed. Verify the captured balances before approval.");
+}
+function verify(){
+const st=getState();if(!st||!currentPlan){setStatus("Generate a recommendation before verification.");return;}
+if(Number(st.year)!==Number(currentPlan.season)){setStatus("Verification blocked: the season changed. Generate a new recommendation.");return;}
+const rate=Number($("fedTaxRateInput").value);if(!Number.isFinite(rate)||Math.abs(rate-currentPlan.rate)>1e-9){setStatus("Verification blocked: the rate changed. Generate a new recommendation again.");return;}
+const live=getAccounts(st);
+const signature=a=>JSON.stringify(a.map(x=>({type:x.type,name:x.name,cash:x.cash})).sort((a,b)=>(a.type+a.name).localeCompare(b.type+b.name)));
+const captured=currentPlan.accounts.map(a=>({type:a.type,name:a.name,cash:a.cash}));
+if(signature(live)!==signature(captured)){setStatus("Verification failed: eligible cash balances or accounts changed since assessment. Generate a fresh recommendation.");return;}
+currentPlan.status="verified";currentPlan.verifiedAt=new Date().toISOString();
+const plans=getSavedPlans(st);const i=plans.findIndex(p=>p&&p.id===currentPlan.id);if(i<0){setStatus("Verification failed: saved plan not found. Generate a fresh recommendation.");return;}plans[i]=currentPlan;
+const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function")b.save();
+renderPlan(currentPlan);setStatus("Verification passed: season, rate, eligible accounts, and captured balances match. No taxes were collected. Approval is now available.");
+}
+function approve(){
+const st=getState();if(!st||!currentPlan||currentPlan.status!=="verified"){setStatus("Approval blocked: verify the recommendation first.");return;}
+const rate=Number($("fedTaxRateInput").value);if(Number(st.year)!==Number(currentPlan.season)||!Number.isFinite(rate)||Math.abs(rate-currentPlan.rate)>1e-9){setStatus("Approval blocked: season or rate changed. Generate and verify a fresh recommendation.");return;}
+const live=getAccounts(st);const signature=a=>JSON.stringify(a.map(x=>({type:x.type,name:x.name,cash:x.cash})).sort((a,b)=>(a.type+a.name).localeCompare(b.type+b.name)));
+if(signature(live)!==signature(currentPlan.accounts.map(a=>({type:a.type,name:a.name,cash:a.cash})))){setStatus("Approval blocked: cash balances changed after verification. Generate a fresh recommendation.");return;}
+currentPlan.status="approved";currentPlan.approvedAt=new Date().toISOString();currentPlan.collectionEnabled=false;
+const plans=getSavedPlans(st);const i=plans.findIndex(p=>p&&p.id===currentPlan.id);if(i<0){setStatus("Approval failed: saved plan not found.");return;}plans[i]=currentPlan;
+const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function")b.save();
+renderPlan(currentPlan);$("fedTaxVerifyPlan").disabled=true;$("fedTaxApprovePlan").disabled=true;
+setStatus("Plan approved and recorded for Season "+currentPlan.season+". IMPORTANT: approval does not collect taxes; collection remains disabled in this build.");
+}
+const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan");
+if(gen)gen.addEventListener("click",generate);if(ver)ver.addEventListener("click",verify);if(app)app.addEventListener("click",approve);
+/* Restore the current season's saved plan for review; approved records remain immutable in this workflow. */
+(function restoreSavedPlan(){const st=getState();if(!st)return;const plans=st.federalReserve&&Array.isArray(st.federalReserve.seasonalTaxPlans)?st.federalReserve.seasonalTaxPlans:[];const saved=plans.find(p=>p&&Number(p.season)===(Number(st.year)||0));if(saved){currentPlan=saved;$("fedTaxRateInput").value=String(saved.rate);renderPlan(saved);if(saved.status==="approved")setStatus("Previously approved plan restored for Season "+saved.season+". Approval is preserved; tax collection remains disabled.");else setStatus("Saved "+saved.status+" plan restored for Season "+saved.season+". Re-verify if balances have changed.");}})();
+const input=$("fedTaxRateInput");if(input)input.addEventListener("input",()=>{if(currentPlan&&Number(input.value)!==currentPlan.rate){$("fedTaxVerifyPlan").disabled=true;$("fedTaxApprovePlan").disabled=true;setStatus("Rate edited. Generate a new recommendation before verification or approval.");}});
 })();
 </script>
 <script>
