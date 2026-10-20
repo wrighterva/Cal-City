@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.4: Adds read-only live Federal Reserve cash tracker; no money movement, taxes, or Treasury transactions activated. Based on v5.8.3. -->
+<!-- CALVIN'S CITY — VERSION 5.8.5: Adds guarded Federal Reserve season snapshots and read-only cash history/ledger foundation. No taxes or Treasury transactions activated. Based on v5.8.4. -->
 <!-- CALVIN'S CITY — VERSION 5.8.2: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
@@ -252,7 +252,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.4</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.5</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -519,6 +519,26 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <button type="button" class="secondary" id="fedRefreshCashTracker">↻ Refresh Cash Tracker</button>
 <p id="fedCashTrackerStatus" class="tiny" role="status" aria-live="polite">Reading current saved game balances. No balances will be changed.</p>
 <div class="tiny">Accounting note: CalSims is counted as one separate consumer pool. Its cash is not added to citizen or company balances. Teams are read from teamCash and excluded from business totals.</div>
+</div>
+<div class="card" id="fedCashHistoryCard">
+<h3>🗓️ Seasonal Cash Snapshots</h3>
+<p>Save one point-in-time cash snapshot for the current season. A season can only have one snapshot; recording it again will not overwrite the original. CalSims is included as a separate consumer pool and is not taxed by this feature.</p>
+<div class="grid">
+<div class="metric"><small>Saved Snapshots</small><strong id="fedSnapshotCount">0</strong></div>
+<div class="metric"><small>Last Snapshot</small><strong id="fedLastSnapshotSeason">None</strong></div>
+</div>
+<button type="button" class="goodbtn" id="fedRecordSeasonSnapshot">📸 Record Season Snapshot</button>
+<p id="fedSnapshotStatus" class="tiny" role="status" aria-live="polite">No new historical snapshot has been recorded by this version.</p>
+<div id="fedCashSnapshotHistory"><p class="tiny">No saved cash snapshots yet.</p></div>
+</div>
+<div class="card" id="fedTransactionLedgerCard">
+<h3>📒 Federal Reserve Ledger</h3>
+<p>This ledger will record future Fed transactions with a unique reference, season, type, source, destination, amount, and status. Snapshot history is separate from transaction history.</p>
+<div class="grid">
+<div class="metric"><small>Fed Transactions</small><strong id="fedTransactionCount">0</strong></div>
+<div class="metric"><small>Outstanding Obligations</small><strong id="fedOutstandingObligations">$0M</strong></div>
+</div>
+<div id="fedTransactionLedgerList"><p class="tiny">No Federal Reserve transactions recorded. Snapshot entries do not move money and are not transactions.</p></div>
 </div>
 <div class="card">
 <h3>🧾 Seasonal Taxes</h3>
@@ -6492,11 +6512,57 @@ setCityTab(tab);
 })();
 </script>
 <script>
-/* 5.8.4: Read-only Federal Reserve live cash tracker. No cash mutation, tax, or debt actions. */
+/* 5.8.5: Federal Reserve cash history foundation. Snapshots are append-only and
+  idempotent by season. This feature never moves cash or collects taxes. */
 (function(){
 "use strict";
-const fmt=n=>"$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2})+"M";
 const el=id=>document.getElementById(id);
+const fmt=n=>"$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2})+"M";
+function getState(){const b=window.__calvinsCityBridge;return b&&typeof b.getState==="function"?b.getState():null;}
+function summarize(st){
+const citizens=Array.isArray(st.citizens)?st.citizens:[];
+const citizenAccounts=citizens.filter(c=>c&&c.cash!==null&&c.cash!==""&&Number.isFinite(Number(c.cash)));
+const citizenCash=citizenAccounts.reduce((sum,c)=>sum+Number(c.cash),0);
+const teamMap=st.teamCash&&typeof st.teamCash==="object"?st.teamCash:{};
+const teamEntries=Object.entries(teamMap).filter(([name,value])=>['Lions','Rims','Dunks'].includes(name)&&Number.isFinite(Number(value)));
+const teamCash=teamEntries.reduce((sum,[,v])=>sum+Number(v),0);
+const businessMap=st.businessCash&&typeof st.businessCash==="object"?st.businessCash:{};
+const businessEntries=Object.entries(businessMap).filter(([name,value])=>!['Lions','Rims','Dunks'].includes(name)&&Number.isFinite(Number(value)));
+const businessCash=businessEntries.reduce((sum,[,v])=>sum+Number(v),0);
+const cal=st.calSimsEconomy&&typeof st.calSimsEconomy==="object"?st.calSimsEconomy:{};
+const hasCalSims=Number.isFinite(Number(cal.totalCash));const calSimsCash=hasCalSims?Number(cal.totalCash):0;
+const fed=st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:{};const fedCash=Number.isFinite(Number(fed.cash))?Number(fed.cash):0;
+return {season:Number(st.year)||1,citizenCash,businessCash,teamCash,calSimsCash:hasCalSims?calSimsCash:null,fedCash,totalCash:citizenCash+businessCash+teamCash+calSimsCash+fedCash,accountCount:citizenAccounts.length+businessEntries.length+teamEntries.length+(hasCalSims?1:0)+1,citizenAccounts:citizenAccounts.length,businessAccounts:businessEntries.length,teamAccounts:teamEntries.length};
+}
+function renderHistory(st){
+const fed=st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:{};
+const snapshots=Array.isArray(fed.cashSnapshots)?fed.cashSnapshots:[];
+const ledger=Array.isArray(fed.ledger)?fed.ledger:[];
+const count=el('fedSnapshotCount'),last=el('fedLastSnapshotSeason'),history=el('fedCashSnapshotHistory');
+if(count)count.textContent=String(snapshots.length);
+if(last)last.textContent=snapshots.length?'Season '+snapshots[snapshots.length-1].season:'None';
+if(history){if(!snapshots.length){history.innerHTML='<p class="tiny">No saved cash snapshots yet. Record one to begin historical comparisons.</p>';}else{history.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Season</th><th>Total Cash</th><th>Change</th><th>Recorded</th></tr></thead><tbody>'+snapshots.slice().reverse().map((x,i,a)=>{const prev=snapshots[snapshots.indexOf(x)-1];const delta=prev?Number(x.totalCash)-Number(prev.totalCash):null;return '<tr><td>Season '+Number(x.season)+'</td><td>'+fmt(x.totalCash)+'</td><td>'+(delta===null?'Baseline':(delta>=0?'+':'')+fmt(delta))+'</td><td>'+new Date(x.createdAt).toLocaleString()+'</td></tr>';}).join('')+'</tbody></table></div>';}}
+const txCount=el('fedTransactionCount'),oblig=el('fedOutstandingObligations'),txList=el('fedTransactionLedgerList');
+if(txCount)txCount.textContent=String(ledger.length);
+if(oblig)oblig.textContent=fmt(ledger.filter(x=>x&&x.status==='outstanding'&&x.direction==='liability').reduce((a,x)=>a+(Number(x.amount)||0),0));
+if(txList){if(!ledger.length)txList.innerHTML='<p class="tiny">No Federal Reserve transactions recorded. Snapshot entries do not move money and are not transactions.</p>';else txList.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Season</th><th>Type</th><th>From → To</th><th>Amount</th><th>Status</th></tr></thead><tbody>'+ledger.slice().reverse().map(x=>'<tr><td>'+Number(x.season||0)+'</td><td>'+String(x.type||'Transaction')+'</td><td>'+String(x.source||'—')+' → '+String(x.destination||'—')+'</td><td>'+fmt(x.amount)+'</td><td>'+String(x.status||'recorded')+'</td></tr>').join('')+'</tbody></table></div>';}
+}
+function recordSnapshot(){
+const b=window.__calvinsCityBridge,st=getState(),status=el('fedSnapshotStatus');
+if(!st||!b||typeof b.save!=="function"){if(status)status.textContent='Game state or save service is unavailable. Nothing was changed.';return false;}
+const season=Number(st.year)||1;
+st.federalReserve=st.federalReserve&&typeof st.federalReserve==='object'?st.federalReserve:{};
+const fed=st.federalReserve;fed.cashSnapshots=Array.isArray(fed.cashSnapshots)?fed.cashSnapshots:[];fed.ledger=Array.isArray(fed.ledger)?fed.ledger:[];
+if(fed.cashSnapshots.some(x=>Number(x.season)===season)){if(status)status.textContent='Season '+season+' already has a snapshot. The original was preserved; no duplicate was added.';renderHistory(st);return false;}
+const data=summarize(st);const previous=fed.cashSnapshots.length?fed.cashSnapshots[fed.cashSnapshots.length-1]:null;
+const snap={id:'FED-SNAPSHOT-S'+season,season,createdAt:new Date().toISOString(),...data,previousSnapshotSeason:previous?Number(previous.season):null,changeFromPrevious:previous?data.totalCash-Number(previous.totalCash):null,calSimsTaxable:false};
+fed.cashSnapshots.push(snap);
+if(b.save()===false){fed.cashSnapshots.pop();if(status)status.textContent='Save was not confirmed. The snapshot was rolled back in memory; no cash was changed.';return false;}
+if(status)status.textContent='Saved snapshot for Season '+season+'. No cash balances were changed.';
+renderHistory(st);return true;
+}
+const snapBtn=el('fedRecordSeasonSnapshot');if(snapBtn)snapBtn.addEventListener('click',recordSnapshot);
+ 
 function runFederalReserveCashTracker(){
 const bridge=window.__calvinsCityBridge;
 const st=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
@@ -6520,7 +6586,8 @@ const fedCash=Number.isFinite(Number(fed.cash))?Number(fed.cash):0;
 const total=citizenCash+teamCash+businessCash+calSimsCash+fedCash;
 const values={fedTotalTrackedCash:fmt(total),fedCashSeason:String(Number(st.year)||'—'),fedCitizensCash:fmt(citizenCash),fedBusinessesCash:fmt(businessCash),fedTeamsCash:fmt(teamCash),fedCalSimsCash:hasCalSims?fmt(calSimsCash):'Not initialized',fedInstitutionCash:fmt(fedCash),fedAccountCount:(citizenAccounts.length+businessEntries.length+teamEntries.length+(hasCalSims?1:0)+1).toLocaleString('en-US')};
 Object.entries(values).forEach(([id,value])=>{const node=el(id);if(node)node.textContent=value;});
-if(status)status.textContent="Updated "+new Date().toLocaleTimeString()+". Read-only snapshot; no game balances or records were changed.";
+if(status)status.textContent="Updated "+new Date().toLocaleTimeString()+". Live balances only; no game balances were changed.";
+renderHistory(st);
 return true;
 }
 window.refreshFederalReserveCashTracker=runFederalReserveCashTracker;
