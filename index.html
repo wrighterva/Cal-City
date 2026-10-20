@@ -222,6 +222,12 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 @media(max-width:480px){.sports-bets-debt-overlay{padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))}.sports-bets-debt-dialog{width:100%;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);padding:12px;border-radius:15px}.sports-bets-debt-header{top:-12px;padding-top:2px}.sports-bets-debt-header h3{font-size:19px!important}.sports-bets-debt-header button#sportsBetsDebtClose{padding:8px 10px!important}.sports-bets-debt-dialog .grid{grid-template-columns:minmax(0,1fr)!important}}
  
 .city-fed-tab-row{display:flex;justify-content:center;margin:0 0 14px}.city-fed-tab{width:min(100%,260px);background:#344255;border:1px solid #4f8dca}.city-fed-tab.active{background:#245b8e;border-color:#7db7ed}
+ 
+/* 5.8.25: Treasury workflow state is visually explicit on mobile. */
+#fedTreasuryRecommend,#fedTreasuryVerify,#fedTreasuryApprove,#fedTreasuryIssue{display:block;width:100%;min-height:64px;margin:12px 0;padding:16px;border-radius:18px;touch-action:manipulation;pointer-events:auto;position:relative;z-index:2;}
+#fedTreasuryRecommend:disabled,#fedTreasuryVerify:disabled,#fedTreasuryApprove:disabled,#fedTreasuryIssue:disabled{opacity:.48!important;filter:grayscale(.45);cursor:not-allowed!important;box-shadow:none!important;}
+#fedTreasuryRecommend:not(:disabled),#fedTreasuryVerify:not(:disabled),#fedTreasuryApprove:not(:disabled),#fedTreasuryIssue:not(:disabled){opacity:1!important;filter:none;cursor:pointer;}
+ 
 </style>
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 <style id="rouletteRealTableStyles">
@@ -6941,6 +6947,10 @@ function processMaturities(){const st=getState();if(!st){status("Maturity proces
 /* 5.8.24: single direct action owner for each Treasury workflow button. */
 const treasuryActions={fedTreasuryRecommend:generate,fedTreasuryVerify:verify,fedTreasuryApprove:approve,fedTreasuryIssue:issue,fedTreasuryBuy:buy,fedTreasuryProcessMaturities:processMaturities};
 Object.entries(treasuryActions).forEach(([id,action])=>{const b=$(id);if(!b)return;b.type="button";b.style.pointerEvents="auto";b.style.touchAction="manipulation";b.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}if(b.disabled){status("This Treasury step is locked. Complete the previous step and read the status message.");return false;}action();return false;};});
+/* 5.8.25: capture-phase tap routing is the only click entry point for the four steps. */
+const treasuryStepIds=new Set(["fedTreasuryRecommend","fedTreasuryVerify","fedTreasuryApprove","fedTreasuryIssue"]);
+document.addEventListener("click",function(ev){const button=ev.target&&ev.target.closest?ev.target.closest("button[id]"):null;if(!button||!treasuryStepIds.has(button.id))return;ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();const action=treasuryActions[button.id];if(!action)return;if(button.disabled){status("Step unavailable. Follow the status below the buttons; no Treasury cash was moved.");return;}try{action();}catch(err){status("Treasury action failed: "+String(err&&err.message||err));console.error("Treasury workflow action failed",err);}},true);
+ 
 $("fedTreasuryReleaseType")?.addEventListener("change",()=>{if(draft&&["recommended","verified"].includes(draft.status)&&Number($("fedTreasuryReleaseType").value)!==Number(draft.term)){if($("fedTreasuryVerify"))$("fedTreasuryVerify").disabled=true;if($("fedTreasuryApprove"))$("fedTreasuryApprove").disabled=true;status("Selected security changed. Generate a fresh Board recommendation before verification or approval.");}});
 $("cityFederalReserveTab")?.addEventListener("click",()=>setTimeout(render,0));
 (function restore(){const st=getState();if(!st)return;const f=fedState(st),season=getSeason(st);const found=f.treasuryOfferings.find(o=>o&&Number(o.season)===season&&["recommended","verified","approved","open","closed"].includes(o.status));if(found){draft=found;const targetInput=$("fedTreasuryTarget"),typeInput=$("fedTreasuryReleaseType"),rateInputEl=$("fedTreasuryRate"),securityInput=$("fedTreasurySecurity");if(targetInput)targetInput.value=String(found.target);if(found.term&&typeInput)typeInput.value=String(found.term);if(rateInputEl)rateInputEl.value=String((found.rates&&found.rates[Number(found.term)])||0);if(securityInput)securityInput.value=String(found.term||1);status("Restored Season "+season+" Treasury offering: "+found.status+". Button availability is based on this saved status.");}else{draft=null;status("No Treasury offering has been prepared for Season "+season+". Step 1 is available; no investor cash has moved.");}render();})();
