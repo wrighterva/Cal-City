@@ -11,7 +11,7 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
 
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.61: Refines Federal Reserve-CalBank transfer controls; preserves stable mobile navigation and existing transfer accounting. -->
+<!-- CALVIN'S CITY — VERSION 5.8.62: Refines Federal Reserve-CalBank transfer controls; preserves stable mobile navigation and existing transfer accounting. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
 
 <head>
@@ -10611,7 +10611,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 <script>
 
-/* 5.8.61: CalBank customer loan and repayment verification.
+/* 5.8.62: CalBank borrower dropdown and active-loan selection fix.
   Uses the existing CalBank database and core game state. Every disbursement,
   principal payment, and seasonal interest collection is validated, saved,
   and verified; failures attempt to restore both in-memory and saved state. */
@@ -10623,23 +10623,25 @@ const round=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 const money=n=>"$"+round(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+"M";
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function read(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch(e){return null;}}
-function bank(){let d=read(BANK_KEY);if(!d||typeof d!=="object")throw Error("CalBank data is unavailable.");if(!Array.isArray(d.customerLoans))d.customerLoans=[];if(!Array.isArray(d.customerLoanLedger))d.customerLoanLedger=[];return d;}
-function game(){const b=window.__calvinsCityBridge;if(b&&typeof b.getState==="function")return b.getState();return read(GAME_KEY);}
+function bank(){let d=read(BANK_KEY);if(!d||typeof d!=="object"||Array.isArray(d))d={version:1,depositRate:1,accounts:[],ledger:[],debts:[],debtLedger:[],bankCash:0,createdAt:new Date().toISOString()};if(!Array.isArray(d.customerLoans))d.customerLoans=[];if(!Array.isArray(d.customerLoanLedger))d.customerLoanLedger=[];if(!Number.isFinite(Number(d.bankCash)))d.bankCash=0;return d;}
+function game(){const b=window.__calvinsCityBridge;if(b&&typeof b.getState==="function"){const live=b.getState();if(live&&typeof live==="object")return live;}const saved=read(GAME_KEY);return saved&&typeof saved==="object"?saved:null;}
 function saveGame(st){const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function"){if(b.save()===false)throw Error("Game state save failed.");}else{const raw=JSON.stringify(st);localStorage.setItem(GAME_KEY,raw);if(localStorage.getItem(GAME_KEY)!==raw)throw Error("Game save verification failed.");}}
 function saveBank(d){const raw=JSON.stringify(d);localStorage.setItem(BANK_KEY,raw);if(localStorage.getItem(BANK_KEY)!==raw)throw Error("CalBank save verification failed.");}
 function season(st){return Math.max(1,Math.floor(Number(st&&st.year)||1));}
 function accounts(st){
-const a=[];
-(Array.isArray(st&&st.citizens)?st.citizens:[]).forEach(c=>{if(c&&c.id!=null&&c.name&&Number.isFinite(Number(c.cash)))a.push({type:"Citizen",id:String(c.id),name:String(c.name),cash:Number(c.cash)});});
-Object.entries(st&&st.teamCash||{}).forEach(([name,cash])=>{if(["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))a.push({type:"Team",id:name,name,cash:Number(cash)});});
-Object.entries(st&&st.businessCash||{}).forEach(([name,cash])=>{if(!["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))a.push({type:"Business",id:name,name,cash:Number(cash)});});
+const a=[];if(!st||typeof st!=="object")return a;
+(Array.isArray(st.citizens)?st.citizens:[]).forEach(c=>{if(!c||c.id==null)return;const cash=Number(c.cash??c.currentCash);if(!Number.isFinite(cash))return;a.push({type:"Citizen",id:String(c.id),name:String(c.name||c.id),cash});});
+const tc=st.teamCash&&typeof st.teamCash==="object"?st.teamCash:{};
+Object.entries(tc).forEach(([name,value])=>{if(!["Lions","Rims","Dunks"].includes(name))return;const cash=Number(value&&typeof value==="object"?(value.cash??value.currentCash):value);if(Number.isFinite(cash))a.push({type:"Team",id:name,name,cash});});
+const bc=st.businessCash&&typeof st.businessCash==="object"?st.businessCash:{};
+Object.entries(bc).forEach(([name,value])=>{if(["Lions","Rims","Dunks"].includes(name))return;const cash=Number(value&&typeof value==="object"?(value.cash??value.currentCash):value);if(Number.isFinite(cash))a.push({type:"Business",id:name,name,cash});});
 return a;
 }
 function getAccount(st,loan){if(loan.borrowerType==="Citizen")return (st.citizens||[]).find(c=>c&&String(c.id)===String(loan.borrowerId));const map=loan.borrowerType==="Team"?st.teamCash:st.businessCash;if(!map||!Object.prototype.hasOwnProperty.call(map,loan.borrowerName))return null;return {get cash(){return map[loan.borrowerName];},set cash(v){map[loan.borrowerName]=v;}};}
 function row(d,type,loan,amount,extra={}){d.customerLoanLedger.push({id:"CBL-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),loanId:loan.id,type,borrowerType:loan.borrowerType,borrowerName:loan.borrowerName,amount:round(amount),principalAfter:round(loan.principalOutstanding),season:extra.season,bankCashAfter:round(d.bankCash),borrowerCashAfter:extra.borrowerCashAfter==null?null:round(extra.borrowerCashAfter),interest:round(extra.interest||0),createdAt:new Date().toISOString()});}
 function status(s){const e=$("calBankCustomerLoanStatus");if(e)e.textContent=s;}
 function render(){
-const st=game();if(!st)return;let d;try{d=bank();}catch(e){status(e.message);return;}
+const st=game();if(!st){status("Game state is not ready yet. Open CalBank again in a moment.");return;}let d;try{d=bank();}catch(e){status("CalBank data could not be loaded: "+e.message);return;}
 const loans=d.customerLoans,active=loans.filter(l=>l.status==="active"&&Number(l.principalOutstanding)>0);
 const total=round(active.reduce((s,l)=>s+(Number(l.principalOutstanding)||0),0));
 const interest=round(d.customerLoanLedger.filter(x=>x.type==="interest_collected").reduce((s,x)=>s+(Number(x.interest)||0),0));
@@ -10650,7 +10652,7 @@ const mainLoanMetric=$("calBankLoans");if(mainLoanMetric)mainLoanMetric.textCont
 const borrower=$("calBankLoanBorrower"),prior=borrower?borrower.value:"";
 if(borrower){const opts=accounts(st);borrower.innerHTML='<option value="">Choose a borrower</option>'+opts.map(a=>'<option value="'+esc(a.type+"|"+a.id)+'">'+esc(a.type+" — "+a.name)+" ("+money(a.cash)+")</option>").join("");if(opts.some(a=>a.type+"|"+a.id===prior))borrower.value=prior;}
 const sel=$("calBankLoanRepaySelect"),priorLoan=sel?sel.value:"";
-if(sel){sel.innerHTML=active.map(l=>'<option value="'+esc(l.id)+'">'+esc(l.borrowerType+" — "+l.borrowerName)+" · "+money(l.principalOutstanding)+" due · "+Number(l.apr).toFixed(2)+"% APR</option>").join("");if(active.some(l=>l.id===priorLoan))sel.value=priorLoan;}
+if(sel){sel.innerHTML=active.length?active.map(l=>'<option value="'+esc(l.id)+'">'+esc(l.borrowerType+" — "+l.borrowerName)+" · "+money(l.principalOutstanding)+" due · "+Number(l.apr).toFixed(2)+"% APR</option>").join(""):'<option value="">No active loans yet — issue a loan first</option>';if(active.some(l=>l.id===priorLoan))sel.value=priorLoan;}
 const reg=$("calBankCustomerLoanRegister");if(reg)reg.innerHTML=loans.length?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th>Borrower</th><th>Original principal</th><th>Outstanding</th><th>APR</th><th>Term</th><th>Issued</th><th>Maturity</th><th>Status</th></tr></thead><tbody>'+loans.slice().reverse().map(l=>'<tr><td>'+esc(l.borrowerType+" — "+l.borrowerName)+'</td><td>'+money(l.originalPrincipal)+'</td><td>'+money(l.principalOutstanding)+'</td><td>'+Number(l.apr).toFixed(2)+'%</td><td>'+l.termSeasons+'</td><td>'+l.issuedSeason+'</td><td>'+l.maturitySeason+'</td><td>'+esc(l.status)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No customer loans recorded.</p>';
 const led=$("calBankCustomerLoanLedger");if(led)led.innerHTML=d.customerLoanLedger.length?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th>Date</th><th>Action</th><th>Borrower</th><th>Amount</th><th>Interest</th><th>Principal After</th><th>CalBank Cash After</th></tr></thead><tbody>'+d.customerLoanLedger.slice().reverse().slice(0,100).map(x=>'<tr><td>'+esc((x.createdAt||"").slice(0,16).replace("T"," "))+'</td><td>'+esc(x.type.replaceAll("_"," "))+'</td><td>'+esc(x.borrowerType+" — "+x.borrowerName)+'</td><td>'+money(x.amount)+'</td><td>'+money(x.interest||0)+'</td><td>'+money(x.principalAfter)+'</td><td>'+money(x.bankCashAfter)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No customer loan transactions recorded.</p>';
 }
@@ -10707,10 +10709,10 @@ try{
 }
 render();if(typeof window.renderCalBankDeposits==="function")window.renderCalBankDeposits();if(typeof window.renderCalBankDebt==="function")window.renderCalBankDebt();
 }
-function bind(){const issue=$("calBankLoanIssue"),repay=$("calBankLoanRepay"),interest=$("calBankLoanInterest");if(issue)issue.addEventListener("click",()=>transact("issue"));if(repay)repay.addEventListener("click",()=>transact("repay"));if(interest)interest.addEventListener("click",()=>transact("interest"));const tab=$("cityCalBankTab");if(tab)tab.addEventListener("click",()=>setTimeout(render,0));render();}
+function bind(){const issue=$("calBankLoanIssue"),repay=$("calBankLoanRepay"),interest=$("calBankLoanInterest");if(issue)issue.addEventListener("click",()=>transact("issue"));if(repay)repay.addEventListener("click",()=>transact("repay"));if(interest)interest.addEventListener("click",()=>transact("interest"));const tab=$("cityCalBankTab");if(tab){tab.addEventListener("click",()=>{render();setTimeout(render,50);setTimeout(render,250);});}render();setTimeout(render,100);setTimeout(render,500);window.addEventListener("focus",render);}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
 window.renderCalBankCustomerLoans=render;
 })();
 
 </script>
-</body></html> 
+</body></html>
