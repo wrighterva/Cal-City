@@ -11,7 +11,7 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
 
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.62: Refines Federal Reserve-CalBank transfer controls; preserves stable mobile navigation and existing transfer accounting. -->
+<!-- CALVIN'S CITY — VERSION 5.8.63: Refines Federal Reserve-CalBank transfer controls; preserves stable mobile navigation and existing transfer accounting. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
 
 <head>
@@ -10611,7 +10611,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 <script>
 
-/* 5.8.62: CalBank borrower dropdown and active-loan selection fix.
+/* 5.8.63: CalBank loan maturity alerts and capped overdue APR adjustment.
   Uses the existing CalBank database and core game state. Every disbursement,
   principal payment, and seasonal interest collection is validated, saved,
   and verified; failures attempt to restore both in-memory and saved state. */
@@ -10653,7 +10653,7 @@ const borrower=$("calBankLoanBorrower"),prior=borrower?borrower.value:"";
 if(borrower){const opts=accounts(st);borrower.innerHTML='<option value="">Choose a borrower</option>'+opts.map(a=>'<option value="'+esc(a.type+"|"+a.id)+'">'+esc(a.type+" — "+a.name)+" ("+money(a.cash)+")</option>").join("");if(opts.some(a=>a.type+"|"+a.id===prior))borrower.value=prior;}
 const sel=$("calBankLoanRepaySelect"),priorLoan=sel?sel.value:"";
 if(sel){sel.innerHTML=active.length?active.map(l=>'<option value="'+esc(l.id)+'">'+esc(l.borrowerType+" — "+l.borrowerName)+" · "+money(l.principalOutstanding)+" due · "+Number(l.apr).toFixed(2)+"% APR</option>").join(""):'<option value="">No active loans yet — issue a loan first</option>';if(active.some(l=>l.id===priorLoan))sel.value=priorLoan;}
-const reg=$("calBankCustomerLoanRegister");if(reg)reg.innerHTML=loans.length?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th>Borrower</th><th>Original principal</th><th>Outstanding</th><th>APR</th><th>Term</th><th>Issued</th><th>Maturity</th><th>Status</th></tr></thead><tbody>'+loans.slice().reverse().map(l=>'<tr><td>'+esc(l.borrowerType+" — "+l.borrowerName)+'</td><td>'+money(l.originalPrincipal)+'</td><td>'+money(l.principalOutstanding)+'</td><td>'+Number(l.apr).toFixed(2)+'%</td><td>'+l.termSeasons+'</td><td>'+l.issuedSeason+'</td><td>'+l.maturitySeason+'</td><td>'+esc(l.status)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No customer loans recorded.</p>';
+const reg=$("calBankCustomerLoanRegister");if(reg)reg.innerHTML=loans.length?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th>Borrower</th><th>Original principal</th><th>Outstanding</th><th>APR</th><th>Term</th><th>Issued</th><th>Maturity</th><th>Status</th><th>Action</th></tr></thead><tbody>'+loans.slice().reverse().map(l=>{const overdue=Number(l.principalOutstanding)>0&&season(st)>=Number(l.maturitySeason);const closed=Number(l.principalOutstanding)<=0||l.status==="repaid";const originalApr=Number.isFinite(Number(l.originalApr))?Number(l.originalApr):Number(l.apr);const cap=round(originalApr*2);const rateRoom=overdue&&!closed&&originalApr>0&&Number(l.apr)<cap-.001;const shownStatus=closed?"Paid":overdue?"OVERDUE — PAYMENT REQUIRED":l.status;return '<tr'+(overdue&&!closed?' style="color:#ff5b62;font-weight:700"':'')+'><td>'+esc(l.borrowerType+" — "+l.borrowerName)+'</td><td>'+money(l.originalPrincipal)+'</td><td>'+money(l.principalOutstanding)+'</td><td>'+Number(l.apr).toFixed(2)+'%</td><td>'+l.termSeasons+'</td><td>'+l.issuedSeason+'</td><td>'+l.maturitySeason+'</td><td>'+esc(shownStatus)+'</td><td>'+(rateRoom?'<button type="button" data-calbank-raise-rate="'+esc(l.id)+'" style="white-space:nowrap">Raise APR</button>':overdue&&!closed&&originalApr<=0?'<span style="font-size:.85em">0% original APR</span>':"—")+'</td></tr>';}).join("")+'</tbody></table></div>':'<p class="muted">No customer loans recorded.</p>';
 const led=$("calBankCustomerLoanLedger");if(led)led.innerHTML=d.customerLoanLedger.length?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th>Date</th><th>Action</th><th>Borrower</th><th>Amount</th><th>Interest</th><th>Principal After</th><th>CalBank Cash After</th></tr></thead><tbody>'+d.customerLoanLedger.slice().reverse().slice(0,100).map(x=>'<tr><td>'+esc((x.createdAt||"").slice(0,16).replace("T"," "))+'</td><td>'+esc(x.type.replaceAll("_"," "))+'</td><td>'+esc(x.borrowerType+" — "+x.borrowerName)+'</td><td>'+money(x.amount)+'</td><td>'+money(x.interest||0)+'</td><td>'+money(x.principalAfter)+'</td><td>'+money(x.bankCashAfter)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No customer loan transactions recorded.</p>';
 }
 function transact(action){
@@ -10675,7 +10675,7 @@ try{
   const account=target||((type==="Team"?st.teamCash:st.businessCash)&&{});
   if(type==="Citizen"&&!target)throw Error("Borrower account no longer exists.");
   if(type!=="Citizen"){const map=type==="Team"?st.teamCash:st.businessCash;if(!map||!Object.prototype.hasOwnProperty.call(map,borrowerInfo.name))throw Error("Borrower account no longer exists.");}
-  const loan={id:"CBL-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8),...borrower,originalPrincipal:amount,principalOutstanding:amount,apr,termSeasons:term,issuedSeason:s,maturitySeason:s+term,status:"active",lastInterestSeason:null,createdAt:new Date().toISOString()};
+  const loan={id:"CBL-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8),...borrower,originalPrincipal:amount,principalOutstanding:amount,apr,originalApr:apr,termSeasons:term,issuedSeason:s,maturitySeason:s+term,status:"active",lastInterestSeason:null,createdAt:new Date().toISOString()};
   if(target)target.cash=round(Number(target.cash)-0); // validate object before committing; borrower receives below
   if(type==="Citizen")target.cash=round(Number(target.cash)+amount);else{const map=type==="Team"?st.teamCash:st.businessCash;map[borrowerInfo.name]=round(Number(map[borrowerInfo.name])+amount);}
   d.bankCash=round(beforeBank-amount);d.customerLoans.push(loan);row(d,"loan_disbursed",loan,amount,{season:s,borrowerCashAfter:borrowerInfo.cash+amount});
@@ -10709,7 +10709,27 @@ try{
 }
 render();if(typeof window.renderCalBankDeposits==="function")window.renderCalBankDeposits();if(typeof window.renderCalBankDebt==="function")window.renderCalBankDebt();
 }
-function bind(){const issue=$("calBankLoanIssue"),repay=$("calBankLoanRepay"),interest=$("calBankLoanInterest");if(issue)issue.addEventListener("click",()=>transact("issue"));if(repay)repay.addEventListener("click",()=>transact("repay"));if(interest)interest.addEventListener("click",()=>transact("interest"));const tab=$("cityCalBankTab");if(tab){tab.addEventListener("click",()=>{render();setTimeout(render,50);setTimeout(render,250);});}render();setTimeout(render,100);setTimeout(render,500);window.addEventListener("focus",render);}
+function raiseRate(loanId){
+const st=game();let d;try{d=bank();}catch(e){status(e.message);return;}
+const loan=d.customerLoans.find(l=>l.id===loanId);if(!loan){status("Loan not found.");return;}
+const s=season(st),principal=round(Number(loan.principalOutstanding)),originalApr=Number.isFinite(Number(loan.originalApr))?Number(loan.originalApr):Number(loan.apr),currentApr=Number(loan.apr),cap=round(originalApr*2);
+if(principal<=0||s<Number(loan.maturitySeason)){status("Only unpaid loans at or past maturity can have their rate increased.");return;}
+if(originalApr<=0){status("This loan's original APR is 0%. The overdue-rate feature does not automatically add interest to a zero-interest loan.");return;}
+if(currentApr>=cap-.001){status("This loan is already at its maximum overdue APR of "+cap.toFixed(2)+"%.");return;}
+const raw=window.prompt("Raise APR for "+loan.borrowerName+". Original APR: "+originalApr.toFixed(2)+"%. Current APR: "+currentApr.toFixed(2)+"%. Maximum allowed: "+cap.toFixed(2)+"%. Enter a new APR higher than current and no higher than maximum.",String(Math.min(cap,round(currentApr+1))));
+if(raw===null)return;
+const next=Number(raw);if(!Number.isFinite(next)||next<=currentApr||next>cap||next<0){status("Rate change rejected. Enter a rate higher than the current APR and no higher than "+cap.toFixed(2)+"%.");return;}
+const oldBank=JSON.stringify(d),oldApr=loan.apr;
+try{
+ loan.originalApr=originalApr;loan.apr=round(next);
+ d.customerLoanLedger.push({id:"CBL-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),loanId:loan.id,type:"overdue_rate_increased",borrowerType:loan.borrowerType,borrowerName:loan.borrowerName,amount:0,principalAfter:principal,season:s,bankCashAfter:round(d.bankCash),borrowerCashAfter:null,interest:0,previousApr:round(currentApr),newApr:round(next),originalApr:round(originalApr),createdAt:new Date().toISOString()});
+ saveBank(d);const verify=read(BANK_KEY),v=verify&&verify.customerLoans.find(x=>x.id===loan.id);
+ if(!v||Math.abs(Number(v.apr)-round(next))>.001||!verify.customerLoanLedger.some(x=>x.loanId===loan.id&&x.type==="overdue_rate_increased"&&Math.abs(Number(x.newApr)-round(next))<.001))throw Error("Saved rate change could not be verified.");
+ status("Overdue APR updated from "+currentApr.toFixed(2)+"% to "+round(next).toFixed(2)+"%. No fee was charged. The new rate applies to future interest collections only.");
+}catch(e){try{localStorage.setItem(BANK_KEY,oldBank);loan.apr=oldApr;}catch(_){}status("Rate change failed: "+String(e.message||e));}
+render();
+}
+function bind(){const issue=$("calBankLoanIssue"),repay=$("calBankLoanRepay"),interest=$("calBankLoanInterest");if(issue)issue.addEventListener("click",()=>transact("issue"));if(repay)repay.addEventListener("click",()=>transact("repay"));if(interest)interest.addEventListener("click",()=>transact("interest"));const reg=$("calBankCustomerLoanRegister");if(reg)reg.addEventListener("click",ev=>{const b=ev.target.closest("[data-calbank-raise-rate]");if(b)raiseRate(b.getAttribute("data-calbank-raise-rate"));});const tab=$("cityCalBankTab");if(tab){tab.addEventListener("click",()=>{render();setTimeout(render,50);setTimeout(render,250);});}render();setTimeout(render,100);setTimeout(render,500);window.addEventListener("focus",render);}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
 window.renderCalBankCustomerLoans=render;
 })();
