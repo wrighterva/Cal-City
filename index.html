@@ -137,7 +137,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.46</title>
+<title>Calvin's City 5.8.47</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -274,7 +274,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.46</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.47</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -532,10 +532,35 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="metric"><small>Outstanding Loans</small><strong id="calBankLoans">Not connected</strong></div>
 <div class="metric"><small>Investment Portfolio</small><strong id="calBankPortfolio">Not connected</strong></div>
 </div>
-<div class="card" style="margin-top:12px">
+<div class="card" style="margin-top:12px" id="calBankDepositsCard">
 <h3>💳 Deposits</h3>
-<p>Planned: customer accounts, configurable deposit interest rates, withdrawals, interest credits, and account-level history. Customer deposits will be tracked as bank liabilities, separate from bank-owned capital.</p>
-<span class="badge">Planned</span>
+<p>Manage customer deposit accounts and the bank's deposit rate. Customer balances are liabilities of CalBank and are kept separate from bank-owned capital. Interest accrual is not automatic in this foundation version.</p>
+<div class="grid" style="margin-bottom:12px">
+<div class="metric"><small>Deposit Interest Rate (% per season)</small><input id="calBankDepositRate" type="number" min="0" max="100" step="0.01" value="1.00" style="width:100%;box-sizing:border-box"></div>
+<div class="metric"><small>Total Customer Deposits</small><strong id="calBankDepositsTotal">$0M</strong></div>
+<div class="metric"><small>Deposit Accounts</small><strong id="calBankDepositAccountCount">0</strong></div>
+<div class="metric"><small>Bank Cash (deposit activity)</small><strong id="calBankDepositCash">$0M</strong></div>
+</div>
+<div class="grid" style="margin-bottom:12px">
+<div><label for="calBankDepositCustomer">Customer</label><select id="calBankDepositCustomer" style="width:100%;box-sizing:border-box"></select></div>
+<div><label for="calBankDepositAmount">Amount (M)</label><input id="calBankDepositAmount" type="number" min="0.01" step="0.01" placeholder="e.g. 25" style="width:100%;box-sizing:border-box"></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0">
+<button type="button" id="calBankOpenDepositAccount">Open Deposit Account</button>
+<button type="button" id="calBankDepositFunds">Deposit</button>
+<button type="button" id="calBankWithdrawFunds">Withdraw</button>
+<button type="button" id="calBankSaveDepositRate">Save Deposit Rate</button>
+</div>
+<p id="calBankDepositStatus" class="tiny" role="status" aria-live="polite">Deposit accounts are not yet connected. Opening an account does not move money.</p>
+<h4>Customer Accounts</h4>
+<div id="calBankDepositAccountsList"><p class="muted">No CalBank deposit accounts yet.</p></div>
+<h4>Deposit Ledger</h4>
+<div id="calBankDepositLedger"><p class="muted">No deposit transactions recorded.</p></div>
+</div>
+<div class="card">
+<h3>🏦 Debt &amp; Borrowing</h3>
+<p>CalBank will be able to borrow from eligible lenders under recorded terms. Borrowed funds increase cash and debt liabilities equally; borrowing is not profit. Fed-provided investment capital without interest remains a separate arrangement. Borrowing transactions are not enabled in this version.</p>
+<span class="badge">Foundation planned</span>
 </div>
 <div class="card">
 <h3>🤝 Loans</h3>
@@ -6776,6 +6801,98 @@ setCityTab(tab);
 })();
 </script>
 <script>
+ 
+ 
+/* 5.8.47 CalBank deposit foundation.
+  Account records are stored separately from the core game state. Customer cash
+  changes are committed only through a validated, rollback-protected transfer.
+  All amounts use the game's M units. */
+(function(){
+"use strict";
+const STORAGE_KEY="calvins_city_calbank_v1";
+const $=id=>document.getElementById(id);
+function round(n){return Math.round((Number(n)+Number.EPSILON)*100)/100;}
+function money(n){return "$"+round(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+"M";}
+function escapeHTML(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function gameState(){try{return JSON.parse(localStorage.getItem("calvins_city_v24")||"null");}catch(e){return null;}}
+function saveGame(st){const raw=JSON.stringify(st);localStorage.setItem("calvins_city_v24",raw);if(localStorage.getItem("calvins_city_v24")!==raw)throw Error("Game state save verification failed.");}
+function fresh(){return {version:1,depositRate:1,accounts:[],ledger:[],createdAt:new Date().toISOString()};}
+function db(){let d;try{d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");}catch(e){d=null;}if(!d||typeof d!=="object")d=fresh();if(!Array.isArray(d.accounts))d.accounts=[];if(!Array.isArray(d.ledger))d.ledger=[];if(!Number.isFinite(Number(d.depositRate)))d.depositRate=1;return d;}
+function saveDB(d){const raw=JSON.stringify(d);localStorage.setItem(STORAGE_KEY,raw);if(localStorage.getItem(STORAGE_KEY)!==raw)throw Error("CalBank deposit database save verification failed.");}
+function accounts(st){
+const out=[];
+(Array.isArray(st&&st.citizens)?st.citizens:[]).forEach(c=>{if(c&&c.id!=null&&c.name&&Number.isFinite(Number(c.cash)))out.push({type:"Citizen",id:String(c.id),name:String(c.name),cash:Number(c.cash)});});
+Object.entries(st&&st.teamCash||{}).forEach(([name,cash])=>{if(["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))out.push({type:"Team",id:name,name,cash:Number(cash)});});
+Object.entries(st&&st.businessCash||{}).forEach(([name,cash])=>{if(!["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))out.push({type:"Business",id:name,name,cash:Number(cash)});});
+return out;
+}
+function key(a){return a.type+":"+a.id;}
+function find(st,a){if(a.type==="Citizen")return (st.citizens||[]).find(c=>c&&String(c.id)===a.id);const map=a.type==="Team"?st.teamCash:st.businessCash;return map&&Object.prototype.hasOwnProperty.call(map,a.name)?{get cash(){return map[a.name];},set cash(v){map[a.name]=v;}}:null;}
+function totalDeposits(d){return round(d.accounts.reduce((s,a)=>s+(Number(a.balance)||0),0));}
+function status(msg){const el=$("calBankDepositStatus");if(el)el.textContent=msg;}
+function render(){
+const st=gameState(),d=db();if(!st)return;
+const rate=$("calBankDepositRate"),sel=$("calBankDepositCustomer");if(rate&&document.activeElement!==rate)rate.value=String(d.depositRate);
+if(sel){const prior=sel.value,opts=accounts(st);sel.innerHTML='<option value="">Choose a customer</option>'+opts.map(a=>'<option value="'+escapeHTML(key(a))+'">'+escapeHTML(a.type+" — "+a.name+" (cash "+money(a.cash)+")")+'</option>').join("");if(opts.some(a=>key(a)===prior))sel.value=prior;}
+const total=$("calBankDepositsTotal"),count=$("calBankDepositAccountCount"),bankCash=$("calBankDepositCash");
+if(total)total.textContent=money(totalDeposits(d));if(count)count.textContent=String(d.accounts.length);
+if(bankCash){const cash=Number(d.bankCash)||0;bankCash.textContent=money(cash);}
+const list=$("calBankDepositAccountsList");
+if(list)list.innerHTML=d.accounts.length?'<div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>Customer</th><th>Balance</th><th>Opened</th></tr></thead><tbody>'+d.accounts.map(a=>'<tr><td>'+escapeHTML(a.customerType+" — "+a.customerName)+'</td><td>'+money(a.balance)+'</td><td>'+escapeHTML((a.openedAt||"").slice(0,10))+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No CalBank deposit accounts yet.</p>';
+const ledger=$("calBankDepositLedger");
+if(ledger)ledger.innerHTML=d.ledger.length?'<div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>Time</th><th>Type</th><th>Customer</th><th>Amount</th><th>Balance after</th></tr></thead><tbody>'+d.ledger.slice().reverse().slice(0,50).map(t=>'<tr><td>'+escapeHTML((t.createdAt||"").replace("T"," ").slice(0,16))+'</td><td>'+escapeHTML(t.type)+'</td><td>'+escapeHTML(t.customerName)+'</td><td>'+money(t.amount)+'</td><td>'+money(t.balanceAfter)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No deposit transactions recorded.</p>';
+const metric=$("calBankDeposits");if(metric)metric.textContent=money(totalDeposits(d));
+}
+function selectedCustomer(st){const v=String(($("calBankDepositCustomer")||{}).value||"");const [type,...idparts]=v.split(":");const id=idparts.join(":");return accounts(st).find(a=>a.type===type&&a.id===id)||null;}
+function commit(type){
+let st=gameState(),d=db();if(!st){status("Game state unavailable. No transaction was made.");return;}
+const customer=selectedCustomer(st);if(!customer){status("Choose a valid customer account.");return;}
+const amount=round(Number(($("calBankDepositAmount")||{}).value));if(!Number.isFinite(amount)||amount<=0){status("Enter an amount greater than zero.");return;}
+let account=d.accounts.find(a=>a.customerKey===key(customer));
+if(type==="Deposit"&&!account){status("Open a CalBank deposit account for this customer first.");return;}
+if(type==="Withdraw"&&!account){status("This customer has no CalBank deposit account.");return;}
+if(type==="Deposit"&&amount>customer.cash){status("Insufficient customer cash. Available: "+money(customer.cash)+".");return;}
+if(type==="Withdraw"&&amount>Number(account.balance)){status("Insufficient deposit balance. Available: "+money(account.balance)+".");return;}
+const beforeState=JSON.stringify(st),beforeDB=JSON.stringify(d);
+try{
+ const live=find(st,customer);if(!live)throw Error("Customer account could not be resolved.");
+ const customerBefore=round(Number(live.cash));if(!Number.isFinite(customerBefore))throw Error("Customer cash is invalid.");
+ const bankBefore=round(Number(d.bankCash)||0),depositBefore=account?round(Number(account.balance)||0):0;
+ const at=new Date().toISOString(),id="CB-DEP-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
+ if(type==="Deposit"){live.cash=round(customerBefore-amount);d.bankCash=round(bankBefore+amount);account.balance=round(depositBefore+amount);}
+ else {live.cash=round(customerBefore+amount);d.bankCash=round(bankBefore-amount);account.balance=round(depositBefore-amount);}
+ if(d.bankCash < -0.001)throw Error("CalBank cash cannot become negative.");
+ const tx={id,type,customerKey:key(customer),customerType:customer.type,customerId:customer.id,customerName:customer.name,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),bankCashBefore:bankBefore,bankCashAfter:round(Number(d.bankCash)),balanceBefore:depositBefore,balanceAfter:round(Number(account.balance)),createdAt:at,season:Number(st.year)||null};
+ d.ledger.push(tx);
+ saveGame(st);saveDB(d);
+ if(localStorage.getItem("calvins_city_v24")!==JSON.stringify(st))throw Error("Game state verification failed after save.");
+ status(type+" completed: "+money(amount)+" "+(type==="Deposit"?"moved from":"returned to")+" "+customer.name+". Customer balance: "+money(account.balance)+".");
+ const amt=$("calBankDepositAmount");if(amt)amt.value="";render();
+}catch(e){
+ try{localStorage.setItem("calvins_city_v24",beforeState);localStorage.setItem(STORAGE_KEY,beforeDB);}catch(rollbackError){}
+ status(type+" failed and was rolled back: "+String(e&&e.message||e));
+}
+}
+function openAccount(){
+const st=gameState(),d=db();if(!st){status("Game state unavailable.");return;}
+const customer=selectedCustomer(st);if(!customer){status("Choose a valid customer.");return;}
+if(d.accounts.some(a=>a.customerKey===key(customer))){status(customer.name+" already has a CalBank deposit account.");return;}
+const account={id:"CB-ACCT-"+Date.now()+"-"+Math.random().toString(36).slice(2,6),customerKey:key(customer),customerType:customer.type,customerId:customer.id,customerName:customer.name,balance:0,openedAt:new Date().toISOString()};
+d.accounts.push(account);d.ledger.push({id:account.id+"-OPEN",type:"Account Opened",customerKey:key(customer),customerType:customer.type,customerId:customer.id,customerName:customer.name,amount:0,balanceBefore:0,balanceAfter:0,createdAt:account.openedAt,season:Number(st.year)||null});
+try{saveDB(d);status("Deposit account opened for "+customer.name+". No cash moved.");render();}catch(e){status("Account creation failed: "+e.message);}
+}
+function saveRate(){
+const d=db(),value=Number(($("calBankDepositRate")||{}).value);if(!Number.isFinite(value)||value<0||value>100){status("Enter a deposit rate between 0% and 100% per season.");return;}
+d.depositRate=round(value);try{saveDB(d);status("Deposit rate saved at "+d.depositRate.toFixed(2)+"% per season. Interest credits are not automatic in this version.");render();}catch(e){status("Rate save failed: "+e.message);}
+}
+function bind(){
+const open=$("calBankOpenDepositAccount"),deposit=$("calBankDepositFunds"),withdraw=$("calBankWithdrawFunds"),rate=$("calBankSaveDepositRate");
+if(open)open.addEventListener("click",openAccount);if(deposit)deposit.addEventListener("click",()=>commit("Deposit"));if(withdraw)withdraw.addEventListener("click",()=>commit("Withdraw"));if(rate)rate.addEventListener("click",saveRate);
+render();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
+window.renderCalBankDeposits=render;
+})();
  
 /* 5.8.4: Read-only Federal Reserve live cash tracker. No cash mutation, tax, or debt actions. */
 (function(){
