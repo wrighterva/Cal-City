@@ -137,7 +137,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.45</title>
+<title>Calvin's City 5.8.46</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -259,17 +259,22 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 <style>
 /* v5.8.45: CalBank opens as a centered modal rather than an inline page section. */
-#cityCalBankPanel.calbank-popup-panel{display:none;position:fixed!important;z-index:10060;left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(900px,94vw)!important;max-width:94vw;max-height:88vh;overflow:auto;box-sizing:border-box;margin:0!important;padding:18px;background:var(--card-bg,#fff);color:var(--text-color,#111);border:1px solid rgba(128,128,128,.4);border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,0,0,.62),0 18px 60px rgba(0,0,0,.35)}
+#cityCalBankPanel.calbank-popup-panel{display:none;position:fixed!important;z-index:10060;left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(900px,94vw)!important;max-width:94vw;max-height:88vh;overflow:auto;box-sizing:border-box;margin:0!important;padding:18px;background:#101722!important;color:#f5f7fa!important;border:1px solid #344255;border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,0,0,.62),0 18px 60px rgba(0,0,0,.35)}
 #cityCalBankPanel.calbank-popup-panel[style*="display: block"]{display:block!important}
-.calbank-popup-header{position:sticky;top:-18px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-18px -18px 14px;padding:12px 16px;background:inherit;border-bottom:1px solid rgba(128,128,128,.25);z-index:2}
-.calbank-popup-header h2{margin:0;font-size:1.15rem}
-.calbank-popup-close{border:0;border-radius:8px;background:rgba(128,128,128,.15);font-size:1.6rem;line-height:1;padding:4px 10px;cursor:pointer}
-@media(max-width:600px){#cityCalBankPanel.calbank-popup-panel{width:96vw!important;max-width:96vw;max-height:92vh;padding:12px;border-radius:12px}.calbank-popup-header{top:-12px;margin:-12px -12px 12px;padding:10px 12px}}
+#cityCalBankPanel.calbank-popup-panel p{color:#b7c2cf;font-size:14px;line-height:1.45}
+#cityCalBankPanel.calbank-popup-panel .card{background:#1b2635;border:1px solid #344255;border-radius:14px;padding:14px;margin:0 0 12px}
+#cityCalBankPanel.calbank-popup-panel .metric{background:#121b27;border:1px solid #2d3a4d;border-radius:12px;padding:12px;min-width:0;overflow-wrap:anywhere}
+#cityCalBankPanel.calbank-popup-panel .metric small{color:#9eabba;display:block;margin-bottom:5px}
+#cityCalBankPanel.calbank-popup-panel .metric strong{color:#f5f7fa;font-size:18px}
+.calbank-popup-header{position:sticky;top:-18px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-18px -18px 14px;padding:12px 16px;background:#182230;border-bottom:1px solid #334155;z-index:2}
+.calbank-popup-header h2{margin:0;font-size:1.15rem;color:#f5f7fa}
+.calbank-popup-close{flex:0 0 auto!important;width:42px!important;min-width:42px;height:42px;margin:0!important;padding:0!important;border:1px solid #46556b;border-radius:10px;background:#344255!important;color:#fff!important;font-size:1.6rem;line-height:1;cursor:pointer}
+@media(max-width:600px){#cityCalBankPanel.calbank-popup-panel{width:96vw!important;max-width:96vw;max-height:92vh;padding:12px;border-radius:12px}#cityCalBankPanel.calbank-popup-panel .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#cityCalBankPanel.calbank-popup-panel .metric{padding:10px}.calbank-popup-header{top:-12px;margin:-12px -12px 12px;padding:10px 12px}}
 </style>
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.45</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.46</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
