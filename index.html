@@ -137,7 +137,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.51</title>
+<title>Calvin's City 5.8.52</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -304,7 +304,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.51</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.52</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -582,7 +582,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <button type="button" id="calBankSaveDepositRate">Save APR</button>
 <button type="button" id="calBankProcessInterest">Process Season-End Interest</button>
 </div>
-<p id="calBankDepositStatus" class="tiny" role="status" aria-live="polite">One complete season equals one year. Season-end interest is available as a manual action in this foundation build; it is not yet automatically tied to season advancement.</p>
+<p id="calBankDepositStatus" class="tiny" role="status" aria-live="polite">One complete season equals one year. Process and verify deposit interest before finalizing the offseason and starting the next season.</p>
 <h4>Customer Accounts</h4>
 <div id="calBankDepositAccountsList"><p class="muted">No CalBank deposit accounts yet.</p></div>
 <h4>Deposit Ledger</h4>
@@ -5360,6 +5360,44 @@ return false;
 };
 function finalizeOffseason(){
 if(!state.seasonPlayed||!state.offseasonOpen)return;
+/* 5.8.52: Gate season advancement on verified CalBank interest settlement.
+  If interest has already been credited, verify against the recorded expense
+  (not the now-increased deposit balances). Otherwise, calculate the current
+  season's obligation and require settlement before any offseason mutation. */
+try{
+const cbRaw=localStorage.getItem("calvins_city_calbank_v1");
+const cb=cbRaw?JSON.parse(cbRaw):null;
+if(cb&&Array.isArray(cb.accounts)){
+ const cbSeason=Number(state.year)||1;
+ const apr=Math.max(0,Number(cb.depositRate)||0);
+ const entries=Array.isArray(cb.ledger)?cb.ledger:[];
+ if(Number(cb.lastInterestSeason)===cbSeason){
+  const credited=entries.filter(t=>t&&t.type==="Interest Credited"&&Number(t.season)===cbSeason).reduce((sum,t)=>sum+(Number(t.amount)||0),0);
+  const expense=entries.find(t=>t&&t.type==="Season Interest Expense"&&Number(t.season)===cbSeason);
+  const zeroDue=entries.some(t=>t&&t.type==="Season Interest Processed"&&Number(t.season)===cbSeason);
+  if(expense){
+   if(Math.abs(credited-(Number(expense.amount)||0))>0.011){
+    alert("CalBank interest settlement could not be verified for this season. The next season remains locked. Review the CalBank deposit ledger before retrying.");
+    return;
+   }
+  }else if(!zeroDue){
+   alert("CalBank interest settlement is marked processed, but its ledger confirmation is missing. The next season remains locked.");
+   return;
+  }
+ }else{
+  const due=Math.round(entries.length>=0?cb.accounts.reduce((sum,a)=>sum+Math.round((Math.max(0,Number(a.balance)||0)*apr/100+Number.EPSILON)*100)/100,0)*100:0)/100;
+  if(due>0.000001){
+   alert("CalBank interest must be processed before the next season can begin. Open CalBank, click “Process Season-End Interest,” confirm the settlement succeeds, then finalize the offseason again. No season advancement was made.");
+   const bankTab=document.querySelector('.city-tab[data-city-tab="calBank"]');
+   if(bankTab&&typeof bankTab.click==="function")bankTab.click();
+   return;
+  }
+ }
+}
+}catch(calBankGateError){
+alert("CalBank season-end interest status could not be verified. The next season remains locked to protect saved financial records. Error: "+String(calBankGateError&&calBankGateError.message||calBankGateError));
+return;
+}
  
 state.offseasonDecisions=state.offseasonDecisions||{};
 state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
@@ -6924,7 +6962,7 @@ try{saveDB(d);status("Deposit account opened for "+customer.name+". No cash move
 }
 function saveRate(){
 const d=db(),value=Number(($("calBankDepositRate")||{}).value);if(!Number.isFinite(value)||value<0||value>100){status("Enter an APR between 0% and 100%.");return;}
-d.depositRate=round(value);try{saveDB(d);status("Deposit APR saved at "+d.depositRate.toFixed(2)+"%. One complete season equals one year; season-end interest processing is not enabled in this version.");render();}catch(e){status("Rate save failed: "+e.message);}
+d.depositRate=round(value);try{saveDB(d);status("Deposit APR saved at "+d.depositRate.toFixed(2)+"%. One complete season equals one year; interest must be processed before the next season can start.");render();}catch(e){status("Rate save failed: "+e.message);}
 }
 function processSeasonInterest(){
 const st=gameState(),d=db();if(!st){status("Game state unavailable.");return;}
@@ -10323,4 +10361,4 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 }
 </style>
  
-</body></html>
+</body></html> 
