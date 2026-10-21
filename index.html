@@ -11,7 +11,7 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
 
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.60: Refines Federal Reserve-CalBank transfer controls; preserves stable mobile navigation and existing transfer accounting. -->
+<!-- CALVIN'S CITY — VERSION 5.8.61: Refines Federal Reserve-CalBank transfer controls; preserves stable mobile navigation and existing transfer accounting. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
 
 <head>
@@ -10611,7 +10611,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 <script>
 
-/* 5.8.60: CalBank customer loan foundation.
+/* 5.8.61: CalBank customer loan and repayment verification.
   Uses the existing CalBank database and core game state. Every disbursement,
   principal payment, and seasonal interest collection is validated, saved,
   and verified; failures attempt to restore both in-memory and saved state. */
@@ -10646,8 +10646,9 @@ const interest=round(d.customerLoanLedger.filter(x=>x.type==="interest_collected
 if($("calBankCustomerLoanPrincipal"))$("calBankCustomerLoanPrincipal").textContent=money(total);
 if($("calBankCustomerLoanCount"))$("calBankCustomerLoanCount").textContent=String(active.length);
 if($("calBankCustomerLoanInterest"))$("calBankCustomerLoanInterest").textContent=money(interest);
+const mainLoanMetric=$("calBankLoans");if(mainLoanMetric)mainLoanMetric.textContent=money(total);
 const borrower=$("calBankLoanBorrower"),prior=borrower?borrower.value:"";
-if(borrower){const opts=accounts(st);borrower.innerHTML=opts.map(a=>'<option value="'+esc(a.type+"|"+a.id)+'">'+esc(a.type+" — "+a.name)+" ("+money(a.cash)+")</option>").join("");if(opts.some(a=>a.type+"|"+a.id===prior))borrower.value=prior;}
+if(borrower){const opts=accounts(st);borrower.innerHTML='<option value="">Choose a borrower</option>'+opts.map(a=>'<option value="'+esc(a.type+"|"+a.id)+'">'+esc(a.type+" — "+a.name)+" ("+money(a.cash)+")</option>").join("");if(opts.some(a=>a.type+"|"+a.id===prior))borrower.value=prior;}
 const sel=$("calBankLoanRepaySelect"),priorLoan=sel?sel.value:"";
 if(sel){sel.innerHTML=active.map(l=>'<option value="'+esc(l.id)+'">'+esc(l.borrowerType+" — "+l.borrowerName)+" · "+money(l.principalOutstanding)+" due · "+Number(l.apr).toFixed(2)+"% APR</option>").join("");if(active.some(l=>l.id===priorLoan))sel.value=priorLoan;}
 const reg=$("calBankCustomerLoanRegister");if(reg)reg.innerHTML=loans.length?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th>Borrower</th><th>Original principal</th><th>Outstanding</th><th>APR</th><th>Term</th><th>Issued</th><th>Maturity</th><th>Status</th></tr></thead><tbody>'+loans.slice().reverse().map(l=>'<tr><td>'+esc(l.borrowerType+" — "+l.borrowerName)+'</td><td>'+money(l.originalPrincipal)+'</td><td>'+money(l.principalOutstanding)+'</td><td>'+Number(l.apr).toFixed(2)+'%</td><td>'+l.termSeasons+'</td><td>'+l.issuedSeason+'</td><td>'+l.maturitySeason+'</td><td>'+esc(l.status)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No customer loans recorded.</p>';
@@ -10667,7 +10668,7 @@ try{
   if(!Number.isFinite(apr)||apr<0||apr>100)throw Error("APR must be between 0% and 100%.");
   if(!Number.isInteger(term)||term<1||term>20)throw Error("Term must be a whole number from 1 to 20 seasons.");
   if(beforeBank<amount)throw Error("CalBank does not have enough available cash to fund this loan.");
-  const borrower={borrowerType:type,borrowerId:id,borrowerName:borrowerInfo.name};
+  const borrower={borrowerType:type,borrowerId:id,borrowerName:borrowerInfo.name};const borrowerCashBefore=round(borrowerInfo.cash);
   const target=type==="Citizen"?(st.citizens||[]).find(c=>String(c.id)===id):null;
   const account=target||((type==="Team"?st.teamCash:st.businessCash)&&{});
   if(type==="Citizen"&&!target)throw Error("Borrower account no longer exists.");
@@ -10678,7 +10679,7 @@ try{
   d.bankCash=round(beforeBank-amount);d.customerLoans.push(loan);row(d,"loan_disbursed",loan,amount,{season:s,borrowerCashAfter:borrowerInfo.cash+amount});
   saveGame(st);saveBank(d);
   const vg=read(GAME_KEY),vd=read(BANK_KEY),vb=accounts(vg||{}).find(a=>a.type===type&&a.id===id);
-  if(!vg||!vd||Math.abs(round(vd.bankCash)-(beforeBank-amount))>.001||!vd.customerLoans.some(l=>l.id===loan.id)||!vb||Math.abs(round(vb.cash)-(round(borrowerInfo.cash)+amount))>.011)throw Error("Disbursement reconciliation failed.");
+  if(!vg||!vd||Math.abs(round(vd.bankCash)-(beforeBank-amount))>.001||!vd.customerLoans.some(l=>l.id===loan.id)||!vb||Math.abs(round(vb.cash)-(borrowerCashBefore+amount))>.011)throw Error("Disbursement reconciliation failed.");
   status("Loan disbursed and verified: "+money(amount)+" to "+borrowerInfo.name+". CalBank cash decreased by the same amount; principal is tracked as a loan asset, not income.");
   $("calBankLoanAmount").value="";
  }else{
@@ -10695,8 +10696,8 @@ try{
   if(action==="repay"){loan.principalOutstanding=round(Number(loan.principalOutstanding)-amount);if(loan.principalOutstanding<=.001){loan.principalOutstanding=0;loan.status="repaid";}row(d,"principal_repaid",loan,amount,{season:s,borrowerCashAfter:borrower.cash});$("calBankLoanRepayAmount").value="";}
   else{loan.lastInterestSeason=s;row(d,"interest_collected",loan,amount,{season:s,interest:amount,borrowerCashAfter:borrower.cash});}
   saveGame(st);saveBank(d);
-  const vg=read(GAME_KEY),vd=read(BANK_KEY),vl=vd&&vd.customerLoans.find(l=>l.id===loan.id);
-  if(!vg||!vd||!vl||Math.abs(round(vd.bankCash)-(beforeBank+amount))>.001||Math.abs(round(vl.principalOutstanding)-round(loan.principalOutstanding))>.001||!vd.customerLoanLedger.some(x=>x.loanId===loan.id&&x.type===(action==="repay"?"principal_repaid":"interest_collected")&&Math.abs(Number(x.amount)-amount)<.001))throw Error("Repayment reconciliation failed.");
+  const vg=read(GAME_KEY),vd=read(BANK_KEY),vl=vd&&vd.customerLoans.find(l=>l.id===loan.id),savedBorrower=getAccount(vg||{},loan);
+  if(!vg||!vd||!vl||!savedBorrower||Math.abs(round(Number(savedBorrower.cash))-(borrowerBefore-amount))>.011||Math.abs(round(vd.bankCash)-(beforeBank+amount))>.001||Math.abs(round(vl.principalOutstanding)-round(loan.principalOutstanding))>.001||!vd.customerLoanLedger.some(x=>x.loanId===loan.id&&x.type===(action==="repay"?"principal_repaid":"interest_collected")&&Math.abs(Number(x.amount)-amount)<.001))throw Error("Repayment reconciliation failed: borrower cash, CalBank cash, principal, and ledger must all verify.");
   status(action==="repay"?"Principal repayment verified: "+money(amount)+". Outstanding principal: "+money(loan.principalOutstanding)+".":"Interest collected and verified: "+money(amount)+". Principal was not reduced.");
  }
 }catch(e){
