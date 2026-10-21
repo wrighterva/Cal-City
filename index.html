@@ -11,7 +11,7 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.42: Federal Reserve touch target repair.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
+<!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
  
@@ -137,7 +137,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.42</title>
+<title>Calvin's City 5.8.45</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -222,6 +222,8 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 @media(max-width:480px){.sports-bets-debt-overlay{padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))}.sports-bets-debt-dialog{width:100%;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);padding:12px;border-radius:15px}.sports-bets-debt-header{top:-12px;padding-top:2px}.sports-bets-debt-header h3{font-size:19px!important}.sports-bets-debt-header button#sportsBetsDebtClose{padding:8px 10px!important}.sports-bets-debt-dialog .grid{grid-template-columns:minmax(0,1fr)!important}}
  
 .city-fed-tab-row{display:flex;justify-content:center;margin:0 0 14px}.city-fed-tab{width:min(100%,260px);background:#344255;border:1px solid #4f8dca}.city-fed-tab.active{background:#245b8e;border-color:#7db7ed}
+/* 5.8.44: CalBank stays centered directly beneath Federal Reserve, with a smaller visual footprint. */
+.city-calbank-tab-row{margin-top:-6px;margin-bottom:14px}.city-fed-tab.city-calbank-tab{width:min(100%,220px);font-size:.92em;padding:8px 12px;}
  
 /* 5.8.25: Treasury workflow state is visually explicit on mobile. */
 #fedTreasuryRecommend,#fedTreasuryVerify,#fedTreasuryApprove,#fedTreasuryIssue{display:block;width:100%;min-height:64px;margin:12px 0;padding:16px;border-radius:18px;touch-action:manipulation;pointer-events:auto;position:relative;z-index:2;}
@@ -254,9 +256,20 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 #rouletteLiveTable .roulette-bet-spot.selected{outline:3px solid #ffe58c!important;outline-offset:1px!important;box-shadow:0 0 10px #facc15!important;position:relative!important;z-index:1}
 @media(max-width:480px){#rouletteLiveTable .roulette-chip{width:53px!important;height:53px!important;min-width:53px!important;min-height:53px!important;max-width:53px!important;flex-basis:53px!important}#rouletteNumberTable .roulette-number-grid .roulette-bet-spot{min-height:39px!important;font-size:14px!important}}
 </style>
+ 
+<style>
+/* v5.8.45: CalBank opens as a centered modal rather than an inline page section. */
+#cityCalBankPanel.calbank-popup-panel{display:none;position:fixed!important;z-index:10060;left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(900px,94vw)!important;max-width:94vw;max-height:88vh;overflow:auto;box-sizing:border-box;margin:0!important;padding:18px;background:var(--card-bg,#fff);color:var(--text-color,#111);border:1px solid rgba(128,128,128,.4);border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,0,0,.62),0 18px 60px rgba(0,0,0,.35)}
+#cityCalBankPanel.calbank-popup-panel[style*="display: block"]{display:block!important}
+.calbank-popup-header{position:sticky;top:-18px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-18px -18px 14px;padding:12px 16px;background:inherit;border-bottom:1px solid rgba(128,128,128,.25);z-index:2}
+.calbank-popup-header h2{margin:0;font-size:1.15rem}
+.calbank-popup-close{border:0;border-radius:8px;background:rgba(128,128,128,.15);font-size:1.6rem;line-height:1;padding:4px 10px;cursor:pointer}
+@media(max-width:600px){#cityCalBankPanel.calbank-popup-panel{width:96vw!important;max-width:96vw;max-height:92vh;padding:12px;border-radius:12px}.calbank-popup-header{top:-12px;margin:-12px -12px 12px;padding:10px 12px}}
+</style>
+ 
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.42</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.45</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -274,6 +287,9 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </div>
 <div class="city-fed-tab-row">
 <button type="button" id="cityFederalReserveTab" class="city-tab city-fed-tab" data-city-tab="federalReserve" role="tab" aria-controls="cityFederalReservePanel" aria-selected="false">🏛️ Federal Reserve</button>
+</div>
+<div class="city-fed-tab-row city-calbank-tab-row">
+<button type="button" id="cityCalBankTab" class="city-tab city-fed-tab city-calbank-tab" data-city-tab="calBank" role="tab" aria-controls="cityCalBankPanel" aria-selected="false">🏦 CalBank</button>
 </div>
  
 <div id="cityTeamsPanel" class="city-panel">
@@ -498,6 +514,43 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div id="tvBroadcastRegister"><p class="muted">No broadcasting deals recorded.</p></div>
 </div>
 <div id="poweredByCalSims" style="margin-top:18px;padding:14px 10px;border-top:1px solid #344255;text-align:center;color:#9eabba;font-size:12px;letter-spacing:.04em"><strong style="display:block;color:#d5deea;font-size:14px;margin-bottom:4px">⚙️ Powered by CalSims</strong><span>The independent consumer economy powering product demand and purchases across Calvin's City.</span></div>
+</div>
+</div>
+<div id="cityCalBankPanel" class="city-panel calbank-popup-panel" style="display:none" role="dialog" aria-modal="true" aria-labelledby="calBankPopupHeading">
+<div class="calbank-popup-header"><h2 id="calBankPopupHeading">🏦 CalBank</h2><button type="button" class="calbank-popup-close" aria-label="Close CalBank" onclick="closeCalBankPopup()">×</button></div>
+<p>CalBank is Calvin’s City’s commercial bank. This first setup screen establishes the bank’s separate dashboard only. Cash transfers to and from the Federal Reserve, customer transactions, lending, and investment actions are not enabled in this version.</p>
+<div class="grid">
+<div class="metric"><small>Institution</small><strong>CalBank</strong></div>
+<div class="metric"><small>Operating Status</small><strong id="calBankOperatingStatus">Setup phase</strong></div>
+<div class="metric"><small>Bank Cash</small><strong id="calBankCash">Not connected</strong></div>
+<div class="metric"><small>Customer Deposits</small><strong id="calBankDeposits">Not connected</strong></div>
+<div class="metric"><small>Outstanding Loans</small><strong id="calBankLoans">Not connected</strong></div>
+<div class="metric"><small>Investment Portfolio</small><strong id="calBankPortfolio">Not connected</strong></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h3>💳 Deposits</h3>
+<p>Planned: customer accounts, configurable deposit interest rates, withdrawals, interest credits, and account-level history. Customer deposits will be tracked as bank liabilities, separate from bank-owned capital.</p>
+<span class="badge">Planned</span>
+</div>
+<div class="card">
+<h3>🤝 Loans</h3>
+<p>Planned: loans to eligible citizens and businesses, configurable rates and terms, repayment tracking, interest income, and default handling.</p>
+<span class="badge">Planned</span>
+</div>
+<div class="card">
+<h3>📈 Investment Portfolio</h3>
+<p>Planned: investment holdings, purchase cost, current market value, realized and unrealized gains or losses, and portfolio performance. Each investment will identify whether CalBank or the Federal Reserve owns the capital and returns.</p>
+<span class="badge">Planned</span>
+</div>
+<div class="card">
+<h3>🎲 Speculative Investments</h3>
+<p>Planned: CalBank chooses how much available capital to risk, including Federal Reserve-provided funds once the funding connection is implemented. Outcomes may produce gains, partial losses, or a total loss of the amount committed. Transactions and ownership attribution must be recorded.</p>
+<span class="badge">Planned</span>
+</div>
+<div class="card">
+<h3>📒 CalBank Ledger</h3>
+<p>Every future deposit, withdrawal, loan, repayment, investment, gamble, and inter-institution transfer will need a traceable ledger record. The Fed–CalBank cash transfer feature will be added after the bank foundation is established.</p>
+<p id="calBankSetupStatus" class="tiny" role="status" aria-live="polite">Setup foundation added. No money has moved and no new bank balance has been created.</p>
 </div>
 </div>
 <div id="cityFederalReservePanel" class="city-panel" style="display:none" role="tabpanel" aria-labelledby="cityFederalReserveTab">
@@ -6673,9 +6726,28 @@ else bindContractVerifyModal();
 Arena buttons use ONLY their direct HTML onclick="openTeamPage(...)"
 action. No click/touchend handlers are attached to arena cards. */
  
+function openCalBankPopup(){
+const panel=document.getElementById("cityCalBankPanel");
+if(!panel)return;
+panel.style.display="block";
+document.body.dataset.calBankPreviousOverflow=document.body.style.overflow||"";
+document.body.style.overflow="hidden";
+const close=panel.querySelector(".calbank-popup-close");
+if(close)close.focus();
+}
+function closeCalBankPopup(){
+const panel=document.getElementById("cityCalBankPanel");
+if(!panel)return;
+panel.style.display="none";
+document.body.style.overflow=document.body.dataset.calBankPreviousOverflow||"";
+}
+document.addEventListener("keydown",function(event){
+if(event.key==="Escape")closeCalBankPopup();
+});
 (function(){
 function setCityTab(tab){
 const target=tab.getAttribute("data-city-tab");
+if(target==="calBank"){openCalBankPopup();return;}
 document.querySelectorAll(".city-tab[data-city-tab]").forEach(function(t){
 t.classList.toggle("active",t===tab);
 t.setAttribute("aria-selected",t===tab?"true":"false");
@@ -6683,9 +6755,11 @@ t.setAttribute("aria-selected",t===tab?"true":"false");
 const teams=document.getElementById("cityTeamsPanel");
 const businesses=document.getElementById("cityBusinessesPanel");
 const federalReserve=document.getElementById("cityFederalReservePanel");
+const calBank=document.getElementById("cityCalBankPanel");
 if(teams)teams.style.display=target==="teams"?"block":"none";
 if(businesses)businesses.style.display=target==="businesses"?"block":"none";
 if(federalReserve)federalReserve.style.display=target==="federalReserve"?"block":"none";
+if(calBank)calBank.style.display=target==="calBank"?"block":"none";
 }
 document.querySelectorAll(".city-tab").forEach(function(tab){
 tab.addEventListener("click",function(e){
