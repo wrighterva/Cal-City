@@ -137,7 +137,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.49</title>
+<title>Calvin's City 5.8.51</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -270,7 +270,27 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 .calbank-popup-header h2{margin:0;font-size:1.15rem;color:#f5f7fa}
 .calbank-popup-close{flex:0 0 auto!important;width:42px!important;min-width:42px;height:42px;margin:0!important;padding:0!important;border:1px solid #46556b;border-radius:10px;background:#344255!important;color:#fff!important;font-size:1.6rem;line-height:1;cursor:pointer}
 @media(max-width:600px){#cityCalBankPanel.calbank-popup-panel{width:96vw!important;max-width:96vw;max-height:92vh;padding:12px;border-radius:12px}#cityCalBankPanel.calbank-popup-panel .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#cityCalBankPanel.calbank-popup-panel .metric{padding:10px}.calbank-popup-header{top:-12px;margin:-12px -12px 12px;padding:10px 12px}}
-/* v5.8.49: keep CalBank header in normal flow so the first controls cannot slide underneath it. */
+/* v5.8.51: isolate CalBank action buttons from inherited app button rules and reserve header clearance. */
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{position:sticky!important;top:0!important;z-index:1000!important}
+#cityCalBankPanel.calbank-popup-panel .calbank-popup-header~button,
+#cityCalBankPanel.calbank-popup-panel .calbank-popup-header~div button,
+#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard button{position:relative!important;top:auto!important;bottom:auto!important;transform:none!important;float:none!important;clear:both!important;display:block!important;box-sizing:border-box!important;max-width:100%!important;margin-top:12px!important;margin-bottom:12px!important;z-index:1!important}
+#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard>div[style*="display:flex"]{display:flex!important;position:relative!important;top:auto!important;transform:none!important;clear:both!important;gap:8px!important;flex-wrap:wrap!important;margin-top:12px!important;margin-bottom:12px!important}
+#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard>div[style*="display:flex"] button{flex:1 1 180px!important;width:auto!important;min-height:44px!important}
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header~*{z-index:auto}
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{margin-bottom:0!important}
+#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard{margin-top:14px!important}
+@media(max-width:600px){#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard>div[style*="display:flex"] button{flex:1 1 100%!important;width:100%!important;margin-top:8px!important;margin-bottom:8px!important}#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard button{position:relative!important;top:auto!important;transform:none!important}}
+ 
+#cityCalBankPanel.calbank-popup-panel{padding:0 0 12px!important;overflow-y:auto!important;overscroll-behavior:contain}
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{position:sticky!important;top:0!important;z-index:100!important;display:flex!important;flex:0 0 84px!important;min-height:84px!important;height:84px!important;box-sizing:border-box!important;margin:0!important;padding:12px 16px!important;background:#182230!important;border-bottom:1px solid #334155!important;border-radius:15px 15px 0 0!important}
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header~*{position:relative}
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header+h2,
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header+p{margin-top:14px!important}
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header~*:not(.calbank-popup-header){margin-left:12px!important;margin-right:12px!important}
+#cityCalBankPanel.calbank-popup-panel .card{clear:both}
+#cityCalBankPanel.calbank-popup-panel .calbank-popup-header h2{line-height:1.25!important}
+@media(max-width:600px){#cityCalBankPanel.calbank-popup-panel{padding-bottom:10px!important}#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{height:84px!important;min-height:84px!important;flex-basis:84px!important;padding:12px!important}#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header~*:not(.calbank-popup-header){margin-left:12px!important;margin-right:12px!important}}
 #cityCalBankPanel.calbank-popup-panel{padding:0!important}
 #cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{position:sticky;top:0;margin:0 0 14px!important;padding:12px 16px!important;box-sizing:border-box;border-radius:15px 15px 0 0;min-height:72px}
 #cityCalBankPanel.calbank-popup-panel>.calbank-popup-header h2{line-height:1.25;min-width:0}
@@ -284,7 +304,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.49</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.51</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -10303,4 +10323,4 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 }
 </style>
  
-</body></html> 
+</body></html>
