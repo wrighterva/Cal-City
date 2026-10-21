@@ -137,7 +137,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.52</title>
+<title>Calvin's City 5.8.53</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -304,7 +304,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.52</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.53</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -588,10 +588,27 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <h4>Deposit Ledger</h4>
 <div id="calBankDepositLedger"><p class="muted">No deposit transactions recorded.</p></div>
 </div>
-<div class="card">
+<div class="card" id="calBankDebtCard">
 <h3>🏦 Debt &amp; Borrowing</h3>
-<p>CalBank will be able to borrow from eligible lenders under recorded terms. Borrowed funds increase cash and debt liabilities equally; borrowing is not profit. Fed-provided investment capital without interest remains a separate arrangement. Borrowing transactions are not enabled in this version.</p>
-<span class="badge">Foundation planned</span>
+<p>Borrowing increases CalBank cash and debt liabilities by the same amount; it is not income. Fed-provided investment capital remains a separate, interest-free arrangement and is not enabled here.</p>
+<div class="grid" style="margin-bottom:12px">
+<div class="metric"><small>Outstanding Debt</small><strong id="calBankDebtTotal">$0M</strong></div>
+<div class="metric"><small>Active Loans</small><strong id="calBankDebtCount">0</strong></div>
+</div>
+<div class="grid" style="margin-bottom:12px">
+<div><label for="calBankLender">Lender</label><select id="calBankLender" style="width:100%;box-sizing:border-box"></select></div>
+<div><label for="calBankBorrowAmount">Borrow Amount (M)</label><input id="calBankBorrowAmount" type="number" min="0.01" step="0.01" placeholder="e.g. 50" style="width:100%;box-sizing:border-box"></div>
+<div><label for="calBankBorrowAPR">Interest Rate (APR %)</label><input id="calBankBorrowAPR" type="number" min="0" max="100" step="0.01" value="3.00" style="width:100%;box-sizing:border-box"></div>
+<div><label for="calBankBorrowTerm">Term (seasons)</label><input id="calBankBorrowTerm" type="number" min="1" max="100" step="1" value="1" style="width:100%;box-sizing:border-box"></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0">
+<button type="button" id="calBankBorrowFunds">Borrow from Lender</button>
+</div>
+<p id="calBankDebtStatus" class="tiny" role="status" aria-live="polite">Choose an eligible lender and terms. Borrowing is recorded as a liability, not profit.</p>
+<h4>Debt Register</h4>
+<div id="calBankDebtList"><p class="muted">No CalBank debt recorded.</p></div>
+<h4>Debt Ledger</h4>
+<div id="calBankDebtLedger"><p class="muted">No borrowing transactions recorded.</p></div>
 </div>
 <div class="card">
 <h3>🤝 Loans</h3>
@@ -6885,8 +6902,8 @@ function money(n){return "$"+round(n).toLocaleString("en-US",{minimumFractionDig
 function escapeHTML(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function gameState(){try{return JSON.parse(localStorage.getItem("calvins_city_v24")||"null");}catch(e){return null;}}
 function saveGame(st){const raw=JSON.stringify(st);localStorage.setItem("calvins_city_v24",raw);if(localStorage.getItem("calvins_city_v24")!==raw)throw Error("Game state save verification failed.");}
-function fresh(){return {version:1,depositRate:1,accounts:[],ledger:[],createdAt:new Date().toISOString()};}
-function db(){let d;try{d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");}catch(e){d=null;}if(!d||typeof d!=="object")d=fresh();if(!Array.isArray(d.accounts))d.accounts=[];if(!Array.isArray(d.ledger))d.ledger=[];if(!Number.isFinite(Number(d.depositRate)))d.depositRate=1;return d;}
+function fresh(){return {version:1,depositRate:1,accounts:[],ledger:[],debts:[],debtLedger:[],bankCash:0,createdAt:new Date().toISOString()};}
+function db(){let d;try{d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");}catch(e){d=null;}if(!d||typeof d!=="object")d=fresh();if(!Array.isArray(d.accounts))d.accounts=[];if(!Array.isArray(d.ledger))d.ledger=[];if(!Array.isArray(d.debts))d.debts=[];if(!Array.isArray(d.debtLedger))d.debtLedger=[];if(!Number.isFinite(Number(d.bankCash)))d.bankCash=0;if(!Number.isFinite(Number(d.depositRate)))d.depositRate=1;return d;}
 function saveDB(d){const raw=JSON.stringify(d);localStorage.setItem(STORAGE_KEY,raw);if(localStorage.getItem(STORAGE_KEY)!==raw)throw Error("CalBank deposit database save verification failed.");}
 function accounts(st){
 const out=[];
@@ -6982,13 +6999,56 @@ try{
  status("Credited "+money(total)+" in season "+season+" interest at "+rate.toFixed(2)+"% APR. One season equals one year.");render();
 }catch(e){try{localStorage.setItem(STORAGE_KEY,prior);}catch(x){}status("Interest processing failed and CalBank records were restored where storage permitted: "+e.message);}
 }
+function debtStatus(msg){const el=$("calBankDebtStatus");if(el)el.textContent=msg;}
+function lenderOptions(st){
+const out=[];
+(Array.isArray(st&&st.citizens)?st.citizens:[]).forEach(c=>{if(c&&c.id!=null&&c.name&&Number.isFinite(Number(c.cash)))out.push({type:"Citizen",id:String(c.id),name:String(c.name),cash:Number(c.cash)});});
+Object.entries(st&&st.businessCash||{}).forEach(([name,cash])=>{if(!["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))out.push({type:"Business",id:name,name,cash:Number(cash)});});
+Object.entries(st&&st.teamCash||{}).forEach(([name,cash])=>{if(["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))out.push({type:"Team",id:name,name,cash:Number(cash)});});
+return out;
+}
+function renderDebt(){
+const st=gameState(),d=db();if(!st)return;
+const sel=$("calBankLender"),prior=sel?sel.value:"";
+if(sel){const opts=lenderOptions(st);sel.innerHTML='<option value="">Choose lender</option>'+opts.map(a=>'<option value="'+escapeHTML(a.type+":"+a.id)+'">'+escapeHTML(a.type+" — "+a.name+" (cash "+money(a.cash)+")")+'</option>').join("");if(opts.some(a=>a.type+":"+a.id===prior))sel.value=prior;}
+const total=d.debts.reduce((s,x)=>s+(x.status==="outstanding"?Number(x.principalOutstanding)||0:0),0);
+const t=$("calBankDebtTotal"),c=$("calBankDebtCount");if(t)t.textContent=money(total);if(c)c.textContent=String(d.debts.filter(x=>x.status==="outstanding").length);
+const list=$("calBankDebtList");if(list)list.innerHTML=d.debts.length?'<div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>Lender</th><th>Principal outstanding</th><th>APR</th><th>Term</th><th>Status</th></tr></thead><tbody>'+d.debts.slice().reverse().map(x=>'<tr><td>'+escapeHTML(x.lenderType+" — "+x.lenderName)+'</td><td>'+money(x.principalOutstanding)+'</td><td>'+Number(x.apr).toFixed(2)+'%</td><td>'+x.termSeasons+' season(s)</td><td>'+escapeHTML(x.status)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No CalBank debt recorded.</p>';
+const led=$("calBankDebtLedger");if(led)led.innerHTML=d.debtLedger.length?'<div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>Date</th><th>Action</th><th>Lender</th><th>Amount</th><th>Debt balance</th></tr></thead><tbody>'+d.debtLedger.slice().reverse().slice(0,50).map(x=>'<tr><td>'+escapeHTML((x.createdAt||"").slice(0,16).replace("T"," "))+'</td><td>'+escapeHTML(x.type)+'</td><td>'+escapeHTML(x.lenderName)+'</td><td>'+money(x.amount)+'</td><td>'+money(x.balanceAfter)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No borrowing transactions recorded.</p>';
+}
+function borrowFunds(){
+const st=gameState(),d=db();if(!st){debtStatus("Game state unavailable. No borrowing occurred.");return;}
+const value=String(($("calBankLender")||{}).value||""),[lenderType,...rest]=value.split(":"),lenderId=rest.join(":");
+const lender=lenderOptions(st).find(x=>x.type===lenderType&&x.id===lenderId);
+const amount=round(Number(($("calBankBorrowAmount")||{}).value)),apr=Number(($("calBankBorrowAPR")||{}).value),term=Number(($("calBankBorrowTerm")||{}).value);
+if(!lender){debtStatus("Choose a valid lender.");return;}
+if(!Number.isFinite(amount)||amount<=0||!Number.isFinite(apr)||apr<0||apr>100||!Number.isInteger(term)||term<1||term>100){debtStatus("Enter a positive amount, APR from 0% to 100%, and a whole-number term of 1–100 seasons.");return;}
+if(amount>lender.cash){debtStatus("The selected lender does not have enough cash. Available: "+money(lender.cash)+".");return;}
+const beforeState=JSON.stringify(st),beforeDB=JSON.stringify(d);
+try{
+ let live;if(lender.type==="Citizen")live=(st.citizens||[]).find(c=>c&&String(c.id)===lender.id);
+ else {const map=lender.type==="Team"?st.teamCash:st.businessCash;if(map&&Object.prototype.hasOwnProperty.call(map,lender.name)){live={get cash(){return map[lender.name];},set cash(v){map[lender.name]=v;}};}}
+ if(!live)throw Error("Lender account could not be resolved.");
+ const lenderBefore=round(Number(live.cash));if(lenderBefore<amount)throw Error("Lender cash changed; refresh and retry.");
+ const at=new Date().toISOString(),id="CB-DEBT-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
+ live.cash=round(lenderBefore-amount);d.bankCash=round((Number(d.bankCash)||0)+amount);
+ const debt={id,lenderType,lenderId,lenderName:lender.name,originalPrincipal:amount,principalOutstanding:amount,apr,termSeasons:term,openedSeason:Number(st.year)||1,createdAt:at,status:"outstanding",source:"external_lender"};
+ d.debts.push(debt);d.debtLedger.push({id:id+"-BORROW",type:"Borrowed",debtId:id,lenderType,lenderId,lenderName:lender.name,amount,balanceAfter:amount,createdAt:at,season:Number(st.year)||1,lenderCashBefore:lenderBefore,lenderCashAfter:round(Number(live.cash)),bankCashAfter:d.bankCash});
+ saveGame(st);saveDB(d);
+ const verify=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null"),savedGame=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+ if(!verify||!verify.debts.some(x=>x.id===id)||!verify.debtLedger.some(x=>x.id===id+"-BORROW")||Math.abs(Number(verify.bankCash)-Number(d.bankCash))>.001)throw Error("CalBank debt save verification failed.");
+ debtStatus("Borrowing recorded: "+money(amount)+" received from "+lender.name+". Outstanding debt increased by the same amount; no profit was recorded.");
+ const amountEl=$("calBankBorrowAmount");if(amountEl)amountEl.value="";
+ render();renderDebt();
+}catch(e){try{localStorage.setItem("calvins_city_v24",beforeState);localStorage.setItem(STORAGE_KEY,beforeDB);}catch(x){}debtStatus("Borrowing failed; saved game and CalBank records were restored where storage permitted: "+String(e&&e.message||e));}
+}
 function bind(){
-const open=$("calBankOpenDepositAccount"),deposit=$("calBankDepositFunds"),withdraw=$("calBankWithdrawFunds"),rate=$("calBankSaveDepositRate"),interest=$("calBankProcessInterest");
-if(open)open.addEventListener("click",openAccount);if(deposit)deposit.addEventListener("click",()=>commit("Deposit"));if(withdraw)withdraw.addEventListener("click",()=>commit("Withdraw"));if(rate)rate.addEventListener("click",saveRate);if(interest)interest.addEventListener("click",processSeasonInterest);
-render();
+const open=$("calBankOpenDepositAccount"),deposit=$("calBankDepositFunds"),withdraw=$("calBankWithdrawFunds"),rate=$("calBankSaveDepositRate"),interest=$("calBankProcessInterest"),borrow=$("calBankBorrowFunds");
+if(open)open.addEventListener("click",openAccount);if(deposit)deposit.addEventListener("click",()=>commit("Deposit"));if(withdraw)withdraw.addEventListener("click",()=>commit("Withdraw"));if(rate)rate.addEventListener("click",saveRate);if(interest)interest.addEventListener("click",processSeasonInterest);if(borrow)borrow.addEventListener("click",borrowFunds);
+render();renderDebt();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
-window.renderCalBankDeposits=render;
+window.renderCalBankDeposits=render;window.renderCalBankDebt=renderDebt;
 })();
  
 /* 5.8.4: Read-only Federal Reserve live cash tracker. No cash mutation, tax, or debt actions. */
@@ -10361,4 +10421,4 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 }
 </style>
  
-</body></html> 
+</body></html>
