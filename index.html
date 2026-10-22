@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.94: CalBank Treasury dropdown and casino betting-account support; preserves Graphite, Platinum & Copper styling. Preserve game mechanics and saved data. -->
-<!-- CALVIN'S CITY — VERSION 5.8.94: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
+<!-- CALVIN'S CITY — VERSION 5.8.95: CalBank Treasury dropdown and casino betting-account support; preserves Graphite, Platinum & Copper styling. Preserve game mechanics and saved data. -->
+<!-- CALVIN'S CITY — VERSION 5.8.95: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
@@ -18,7 +18,7 @@
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
 
 <head>
-<meta name="calvins-city-build" content="5.8.94">
+<meta name="calvins-city-build" content="5.8.95">
 
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
@@ -216,7 +216,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.94</title>
+<title>Calvin's City 5.8.95</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -302,7 +302,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 
 .city-fed-tab-row{display:flex;justify-content:center;margin:0 0 14px}.city-fed-tab{width:min(100%,260px);background:#344255;border:1px solid #4f8dca}.city-fed-tab.active{background:#245b8e;border-color:#7db7ed}
 
-/* v5.8.94: CalBank's tools are grouped behind compact section tabs inside the existing centered popup. */
+/* v5.8.95: CalBank's tools are grouped behind compact section tabs inside the existing centered popup. */
 .calbank-section-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin:0 12px 8px;background:#151d28;border:1px solid #344255;border-radius:12px}
 .calbank-section-tab{flex:1 1 145px;min-height:42px;margin:0!important;padding:9px 11px!important;border:1px solid #46556b!important;border-radius:9px!important;background:#222c39!important;color:#d5deea!important;font-weight:700;line-height:1.25;white-space:normal}
 .calbank-section-tab.active{background:#c58b59!important;border-color:#e0ad7e!important;color:#111315!important;box-shadow:0 0 0 1px rgba(197,139,89,.18)}
@@ -393,7 +393,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 
 
 <style id="calvins-city-premium-theme-v5-8-87">
-/* v5.8.94 — visual-only theme layer. No game logic, storage keys, or data transformations. */
+/* v5.8.95 — visual-only theme layer. No game logic, storage keys, or data transformations. */
 :root{color-scheme:dark;--cc-bg:#111315;--cc-card:#1D2126;--cc-raised:#2B3138;--cc-border:#3B424B;--cc-copper:#C58B59;--cc-platinum:#C7D2DF;--cc-text:#F4F4F5;--cc-muted:#AAB3BD;--cc-green:#42B883;--cc-red:#E57373;--cc-blue:#557EA8}
 html{background:var(--cc-bg)!important}
 body{background:radial-gradient(ellipse at top,#1a2026 0%,var(--cc-bg) 54%)!important;color:var(--cc-text)!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.005em}
@@ -446,7 +446,7 @@ th,td{border-bottom-color:#343B43!important}
 
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.94</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.95</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -5654,7 +5654,7 @@ alert("The Offseason screen was opened, but its contract board encountered an er
 }
 return false;
 };
-/* v5.8.94: Shared economic phase engine. One saved phase drives both the Fed and CalBank displays.
+/* v5.8.95: Shared economic phase engine. One saved phase drives both the Fed and CalBank displays.
   A season transition occurs only when the offseason is finalized; the season marker prevents duplicates. */
 function ensureEconomicPhase(){
  const valid=["Bull","Normal","Recession"];
@@ -7223,7 +7223,7 @@ if(!panel)return;
 panel.style.display="none";
 document.body.style.overflow=document.body.dataset.calBankPreviousOverflow||"";
 }
-/* v5.8.94: switch visible CalBank section without moving or rebuilding existing controls. */
+/* v5.8.95: switch visible CalBank section without moving or rebuilding existing controls. */
 function setCalBankSection(section){
 const panel=document.getElementById("cityCalBankPanel");
 if(!panel)return;
@@ -7326,6 +7326,7 @@ const txs=d.ledger.filter(t=>t&&t.customerType==="Citizen"&&String(t.customerNam
 window.__calBankCitizenCashAudit={version:"5.8.81",status:"read-only-historical-checkpoint",customer:"Bic",customerId:bic?String(bic.id):null,currentLiveCash:bic?Number(bic.cash):null,depositAccountBalance:(d.accounts.find(a=>a.customerType==="Citizen"&&String(a.customerName||"").trim().toLowerCase()==="bic")||{}).balance??null,transactionCount:txs.length,totalDeposited:round(txs.filter(t=>t.type==="Deposit").reduce((s,t)=>s+(Number(t.amount)||0),0)),totalWithdrawn:round(txs.filter(t=>t.type==="Withdraw").reduce((s,t)=>s+(Number(t.amount)||0),0)),latestRecordedCashAfter:txs.length?txs[txs.length-1].customerCashAfter:null,latestRecordedAt:txs.length?txs[txs.length-1].createdAt:null,note:"Historical ledger totals are diagnostic only. Current cash was not automatically overwritten because unrelated income, expenses, contracts, and prior transactions may have occurred after a deposit."};
 }catch(auditError){}
 }
+window.renderCalBankCore=render;
 function selectedCustomer(st){const v=String(($("calBankDepositCustomer")||{}).value||"");const [type,...idparts]=v.split(":");const id=idparts.join(":");return accounts(st).find(a=>a.type===type&&a.id===id)||null;}
 function commit(type){
 let st=gameState(),d=db();if(!st){status("Game state unavailable. No transaction was made.");return;}
@@ -8615,7 +8616,7 @@ localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
 }
 return db;
 }
-/* v5.8.94: var is intentional here because loadDB() can call saveDB() before this initializer returns. */
+/* v5.8.95: var is intentional here because loadDB() can call saveDB() before this initializer returns. */
 var db=loadDB();
 /* v5.8.85: CalBank-to-market bridge. CalBank writes the shared market storage key;
   reload the canonical in-memory market record before refreshing shareholder views. */
@@ -11184,7 +11185,7 @@ if(season&&/Season\s*[—-]/.test(season.textContent||""))missing.push("season c
 if(missing.length){
   var panel=byId("cc5874RecoveryNotice");
   if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
-  panel.textContent="Calvin's City startup recovery 5.8.94\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+  panel.textContent="Calvin's City startup recovery 5.8.95\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",diagnose,{once:true});else setTimeout(diagnose,0);
@@ -11192,7 +11193,7 @@ window.addEventListener("error",function(e){
 try{
   var panel=byId("cc5874RecoveryNotice");
   if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
-  panel.textContent="Calvin's City startup recovery 5.8.94\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+  panel.textContent="Calvin's City startup recovery 5.8.95\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 }catch(ignore){}
 },true);
 })();
@@ -11264,6 +11265,9 @@ add(d.investmentLedger,"Stock Investments",x=>({id:x.id,date:x.createdAt||x.at,s
 return out.sort((a,b)=>String(b.sortDate).localeCompare(String(a.sortDate)));
 }
 function render(){
+// Refresh the overview from the canonical saved CalBank record before rendering ledger metrics.
+// This prevents a stale overview card from disagreeing with the ledger after another bank action.
+try{if(typeof window.renderCalBankCore==="function")window.renderCalBankCore();}catch(e){}
 const d=bank(),st=game(),m=market();
 const cash=num(d.bankCash);
 const deposits=(Array.isArray(d.accounts)?d.accounts:[]).reduce((s,a)=>s+num(a&&a.balance),0);
