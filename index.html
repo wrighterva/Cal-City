@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.81: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
-<!-- CALVIN'S CITY — VERSION 5.8.81: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
+<!-- CALVIN'S CITY — VERSION 5.8.82: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
+<!-- CALVIN'S CITY — VERSION 5.8.82: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
+<!-- CALVIN'S CITY — VERSION 5.8.82: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -12,11 +13,11 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.81: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
+<!-- CALVIN'S CITY — VERSION 5.8.82: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
-<meta name="calvins-city-build" content="5.8.81">
+<meta name="calvins-city-build" content="5.8.82">
  
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
@@ -214,7 +215,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.81</title>
+<title>Calvin's City 5.8.82</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -382,7 +383,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.81</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.82</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -5860,10 +5861,21 @@ if(!kept.status&&c.status)kept.status=c.status;
 baseline below sets opening roster cash explicitly. */
 });
 state.citizens=mergedCitizens;
+/* 5.8.82: Once CalBank has recorded any citizen deposit or withdrawal,
+the Season 29 opening-balance repair must stop overriding live citizen cash.
+This is read-only and does not modify CalBank accounts or transaction history. */
+let citizenLedgerHasCalBankCashActivity=false;
+try{
+const calBankDb=JSON.parse(localStorage.getItem("calvins_city_calbank_v1")||"null");
+citizenLedgerHasCalBankCashActivity=!!(calBankDb&&Array.isArray(calBankDb.ledger)&&calBankDb.ledger.some(tx=>tx&&tx.customerType==="Citizen"&&["Deposit","Withdraw"].includes(String(tx.type||""))));
+}catch(calBankReadError){
+console.warn("CalBank cash-activity guard could not read the bank ledger; opening cash repairs will be skipped safely.",calBankReadError);
+citizenLedgerHasCalBankCashActivity=true;
+}
 /* 4.17.118: Authoritative Season 29 opening data is applied immediately
 before every Ledger render, after saved-state loading and old migrations.
 These are starting balances, not new payments; never sum contract history. */
-if(!citizenLedgerHasSportsBetsCashActivity && Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
+if(!citizenLedgerHasSportsBetsCashActivity && !citizenLedgerHasCalBankCashActivity && Number(state.year)===29 && (state.gamesPlayed||[]).length===0 && !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const opening={
 Lions_C:{name:"Wall",cash:787,value:787,years:2,teamValue:497,rookie:false},
 Lions_SG:{name:"Diggs",cash:0,value:0,years:2,teamValue:0,rookie:true},
@@ -5904,7 +5916,7 @@ the stale saved balance after an earlier repair. This is a narrow, one-time
 correction: it only matches the exact diagnostic signature and approved
 starting-contract cash. It does not reset games, alter contracts, pay money,
 or touch Seasons 1–28. */
-if(state.season29LedgerCashRepairVersion!=="4.17.123" &&
+if(!citizenLedgerHasCalBankCashActivity && state.season29LedgerCashRepairVersion!=="4.17.123" &&
 Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 &&
 state.seasonPhase==="regular" && !state.seasonPlayed &&
 !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
@@ -5943,7 +5955,7 @@ immediately before the ledger rows and diagnostics read state. This is an openin
 baseline restoration, not a payment. It runs only before any Season 29 game exists.
 Preserve all historical records and never change team/game results. */
 let season29FinalCashRepaired=false;
-if(!citizenLedgerHasSportsBetsCashActivity && Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 && state.seasonPhase==="regular" &&
+if(!citizenLedgerHasSportsBetsCashActivity && !citizenLedgerHasCalBankCashActivity && Number(state.year)===29 && Array.isArray(state.gamesPlayed) && state.gamesPlayed.length===0 && state.seasonPhase==="regular" &&
 !((state.businessOwnershipRegistry&&Array.isArray(state.businessOwnershipRegistry.transactions))&&state.businessOwnershipRegistry.transactions.length>0)){
 const finalOpeningCash={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
 Object.entries(finalOpeningCash).forEach(([name,amount])=>{
