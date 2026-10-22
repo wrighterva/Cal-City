@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.84: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
-<!-- CALVIN'S CITY — VERSION 5.8.84: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
-<!-- CALVIN'S CITY — VERSION 5.8.84: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
+<!-- CALVIN'S CITY — VERSION 5.8.85: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
+<!-- CALVIN'S CITY — VERSION 5.8.85: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
+<!-- CALVIN'S CITY — VERSION 5.8.85: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -13,11 +13,11 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.84: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
+<!-- CALVIN'S CITY — VERSION 5.8.85: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
-<meta name="calvins-city-build" content="5.8.84">
+<meta name="calvins-city-build" content="5.8.85">
  
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
@@ -215,7 +215,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.84</title>
+<title>Calvin's City 5.8.85</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -383,7 +383,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.84</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.85</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -5134,8 +5134,8 @@ out.innerHTML=h;
 }
 function renderProgress(){const b=document.getElementById("nextGameBox"),btn=document.getElementById("playNextGame");b.innerHTML='<div class="metric"><small>Next</small><strong>'+nextGameDescription()+'</strong></div>';btn.style.display=state.seasonPhase==="offseason"?"none":"block";btn.textContent=state.seasonPhase==="championship"?"🏆 PLAY CHAMPIONSHIP":"▶️ PLAY GAME";const s=document.getElementById("seasonStatus"),o=document.getElementById("offseasonStatus");if(state.seasonPhase==="regular"){const played=reconcileRegularSeasonStandings();s.textContent=played+' of 3 regular-season games played';o.textContent="Locked"}else if(state.seasonPhase==="semifinal"){s.textContent="Regular Season Complete";o.textContent="Locked"}else if(state.seasonPhase==="championship"){s.textContent="Semifinal Complete";o.textContent="Locked"}else{s.textContent="Season Complete";o.textContent="Ready"}renderStandings();renderFreeAgentMarket()}
 function renderStandings(){const out=document.getElementById("standingsOutput");const uniquePlayed=reconcileRegularSeasonStandings();if(!uniquePlayed){out.innerHTML='<p class="muted">Game 1 is ready. Nothing has been played yet.</p>';return}let h='<p><b>Regular-Season Matchups Counted:</b> '+uniquePlayed+' / 3</p><p class="tiny">Duplicate matchup records remain in the permanent game history, but count only once in standings.</p><table><tr><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr>';TEAMS.slice().sort((a,b)=>state.standings[b].w-state.standings[a].w).forEach(t=>h+='<tr><td>'+t+'</td><td>'+state.standings[t].w+'</td><td>'+state.standings[t].l+'</td><td>'+state.standings[t].ptsFor+'</td><td>'+state.standings[t].ptsAgainst+'</td></tr>');h+='</table>';if(state.playoff.bye)h+='<p><b>Playoff Bye:</b> '+state.playoff.bye+'</p>';if(state.lastSeason)h+='<p class="gold"><b>Champion:</b> '+state.lastSeason.champion+' • <b>MVP:</b> '+state.lastSeason.championship.mvp+'</p>';out.innerHTML=h}
-function buildRosterInputs(){let h='<table><tr><th>Team</th><th>C</th><th>SG</th><th>PG</th></tr>';TEAMS.forEach(t=>
-{h+='<tr><td>'+t+'</td>';POSITIONS.forEach(p=>{const k=t+"_"+p;h+='<td><input id="r_'+k+'" placeholder="'+p+'" value="'+(state.roster[k]||"")+'"></td>'});h+='</tr>'});document.getElementById("rosterInputs").innerHTML=h+'</table>'}
+function buildRosterInputs(){const rosterTarget=document.getElementById("rosterInputs");if(!rosterTarget)return;let h='<table><tr><th>Team</th><th>C</th><th>SG</th><th>PG</th></tr>';TEAMS.forEach(t=>
+{h+='<tr><td>'+t+'</td>';POSITIONS.forEach(p=>{const k=t+"_"+p;h+='<td><input id="r_'+k+'" placeholder="'+p+'" value="'+(state.roster[k]||"")+'"></td>'});h+='</tr>'});rosterTarget.innerHTML=h+'</table>'}
 function saveRoster(){
 const proposed={...state.roster},seen={};
 TEAMS.forEach(t=>POSITIONS.forEach(p=>{const k=t+"_"+p,e=document.getElementById("r_"+k);if(e&&e.value.trim()){const name=e.value.trim();if(seen[name]&&seen[name]!==k){alert("Each citizen name must be unique. "+name+" is already assigned.");return}seen[name]=k;proposed[k]=name}}));
@@ -5890,7 +5890,7 @@ if(!kept.status&&c.status)kept.status=c.status;
 baseline below sets opening roster cash explicitly. */
 });
 state.citizens=mergedCitizens;
-/* 5.8.84: Once CalBank has recorded any citizen deposit or withdrawal,
+/* 5.8.85: Once CalBank has recorded any citizen deposit or withdrawal,
 the Season 29 opening-balance repair must stop overriding live citizen cash.
 This is read-only and does not modify CalBank accounts or transaction history. */
 let citizenLedgerHasCalBankCashActivity=false;
@@ -8443,7 +8443,7 @@ localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
 return db;
 }
 let db=loadDB();
-/* v5.8.84: CalBank-to-market bridge. CalBank writes the shared market storage key;
+/* v5.8.85: CalBank-to-market bridge. CalBank writes the shared market storage key;
   reload the canonical in-memory market record before refreshing shareholder views. */
 window.addEventListener("calvinsCityStockMarketChanged",function(ev){
 try{
@@ -10938,7 +10938,7 @@ window.renderCalBankCustomerLoans=render;
  
  
 <script id="ccStartupRecovery5876">
-/* CALVIN'S CITY 5.8.76 — startup/navigation fail-safe; no synchronous storage migration.
+/* CALVIN'S CITY 5.8.85 — startup/navigation fail-safe; no synchronous storage migration.
  This is deliberately read-only with respect to localStorage and game records.
  It does not reset state, rewrite ledgers, or replace the core game logic. */
 (function(){
@@ -10973,7 +10973,7 @@ document.querySelectorAll(".screen").forEach(function(el){el.classList.toggle("a
 document.querySelectorAll(".nav button[data-nav]").forEach(function(btn){btn.classList.toggle("active",btn.getAttribute("data-nav")===id);});
 try{window.scrollTo(0,0);}catch(e){}
 if(id==="markets"){
-  try{var market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();}catch(e){console.error("5.8.76 market refresh failed",e);}
+  try{var market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();}catch(e){console.error("5.8.85 market refresh failed",e);}
 }
 refreshReadOnlyHomeSummary();
 return true;
@@ -10999,7 +10999,7 @@ if(season&&/Season\s*[—-]/.test(season.textContent||""))missing.push("season c
 if(missing.length){
   var panel=byId("cc5874RecoveryNotice");
   if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
-  panel.textContent="Calvin's City startup recovery 5.8.76\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+  panel.textContent="Calvin's City startup recovery 5.8.85\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",diagnose,{once:true});else setTimeout(diagnose,0);
@@ -11007,7 +11007,7 @@ window.addEventListener("error",function(e){
 try{
   var panel=byId("cc5874RecoveryNotice");
   if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
-  panel.textContent="Calvin's City startup recovery 5.8.76\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+  panel.textContent="Calvin's City startup recovery 5.8.85\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 }catch(ignore){}
 },true);
 })();
@@ -11046,7 +11046,7 @@ if($("calBankInvestmentStatus")&& !$("calBankInvestmentStatus").textContent)$("c
 function transact(action){const st=game();if(!st){$("calBankInvestmentStatus").textContent="Game state is unavailable. No trade was made.";return}let d,db;try{d=bank();db=market()}catch(e){$("calBankInvestmentStatus").textContent=e.message;return}const name=$("calBankInvestmentCompany").value,shares=Number($("calBankInvestmentShares").value),co=db.companies[name],price=Number(co&&co.price),total=round4(shares*price);if(!co){$("calBankInvestmentStatus").textContent="Choose a valid stock listing.";return}if(!Number.isInteger(shares)||shares<1){$("calBankInvestmentStatus").textContent="Enter a whole number of shares greater than zero.";return}if(!Number.isFinite(price)||price<=0||!Number.isFinite(total)||total<=0){$("calBankInvestmentStatus").textContent="The current share price is invalid. No trade was made.";return}if(co.needsAllocationReview){$("calBankInvestmentStatus").textContent="Trading is paused for this listing until its existing shareholder allocation is confirmed.";return}
 const oldBank=JSON.stringify(d),oldMarket=JSON.stringify(db),oldGame=JSON.stringify(st),before=round(Number(d.bankCash)||0),qty=held(db,name),available=Math.max(0,Number(co.totalShares||500)-totalHeld(co));let tradeGain=0;try{if(action==="buy"){if(shares>available)throw Error("Only "+available+" shares are available from the existing market reserve.");if(before+0.0001<total)throw Error("CalBank does not have enough cash. Required: "+money(total)+".");const issuerBefore=stockCash(st,name);if(!Number.isFinite(issuerBefore))throw Error("The issuer cash balance is unavailable; no trade was made.");d.bankCash=round(before-total);const newQty=qty+shares,oldInv=d.investments[name]||{shares:qty,costBasis:0};oldInv.shares=newQty;oldInv.costBasis=round4((Number(oldInv.costBasis)||0)+total);d.investments[name]=oldInv;holdingsFor(db,name)[OWNER_KEY]=newQty;co.ownerNames[OWNER_KEY]="CalBank";setStockCash(st,name,round4(issuerBefore+total));if(!Array.isArray(st.businessCashLedger))st.businessCashLedger=[];st.businessCashLedger.push({id:"CBI-ISSUE-"+Date.now(),season:Number(st.year)||29,type:"Stock Issuance Proceeds",company:name,amount:total,before:issuerBefore,after:stockCash(st,name),reason:"CalBank purchased "+shares+" newly issued share(s) at market price",createdAt:new Date().toISOString(),accountType:["Lions","Rims","Dunks"].includes(name)?"arena-team":"business"});
 const tx={id:"CBI-"+Date.now()+"-"+Math.random().toString(36).slice(2,6),at:new Date().toISOString(),season:Number(st.year)||29,company:name,shares,price:round4(price),total,action:"calbank_buy_reserve",reservePurchase:true,buyerId:OWNER_KEY,buyer:"CalBank",buyerType:"calbank",sellerId:null,seller:"Market Reserve",sellerType:"market-reserve",buyerCashBefore:before,buyerCashAfter:d.bankCash,companyCashBefore:issuerBefore,companyCashAfter:stockCash(st,name),status:"completed"};db.transactions.push(tx);if(!Array.isArray(st.stockMarketCashLedger))st.stockMarketCashLedger=[];st.stockMarketCashLedger.push({...tx});ledger(d,{type:"Buy",company:name,shares,price:round4(price),cashFlow:-total,realizedGain:0,bankCashBefore:before,bankCashAfter:d.bankCash,stockTransactionId:tx.id});}
-else{if(qty<shares)throw Error("CalBank owns only "+qty+" share(s) of "+name+".");const inv=d.investments[name]||{shares:qty,costBasis:0};const oldShares=Number(inv.shares)||qty,oldCost=Math.max(0,Number(inv.costBasis)||0),allocatedCost=oldShares>0?round4(oldCost*shares/oldShares):0,proceeds=total,gain=round4(proceeds-allocatedCost);d.bankCash=round(before+proceeds);const nextShares=qty-shares;holdingsFor(db,name)[OWNER_KEY]=nextShares;if(nextShares===0)delete holdingsFor(db,name)[OWNER_KEY];inv.shares=nextShares;inv.costBasis=round4(Math.max(0,oldCost-allocatedCost));if(nextShares===0)delete d.investments[name];else d.investments[name]=inv;d.realizedInvestmentGain=round4((Number(d.realizedInvestmentGain)||0)+gain);const tx={id:"CBI-"+Date.now()+"-"+Math.random().toString(36).slice(2,6),at:new Date().toISOString(),season:Number(st.year)||29,company:name,shares,price:round4(price),total,action:"calbank_sell_to_market_reserve",reservePurchase:false,buyerId:null,buyer:"Market Reserve",buyerType:"market-reserve",sellerId:OWNER_KEY,seller:"CalBank",sellerType:"calbank",status:"completed",realizedGain:gain};db.transactions.push(tx);if(!Array.isArray(st.stockMarketCashLedger))st.stockMarketCashLedger=[];st.stockMarketCashLedger.push({...tx});ledger(d,{type:"Sell",company:name,shares,price:round4(price),cashFlow:proceeds,realizedGain:gain,allocatedCostBasis:allocatedCost,bankCashBefore:before,bankCashAfter:d.bankCash,stockTransactionId:tx.id});}
+else{if(qty<shares)throw Error("CalBank owns only "+qty+" share(s) of "+name+".");const inv=d.investments[name]||{shares:qty,costBasis:0};const oldShares=Number(inv.shares)||qty,oldCost=Math.max(0,Number(inv.costBasis)||0),allocatedCost=oldShares>0?round4(oldCost*shares/oldShares):0,proceeds=total,gain=round4(proceeds-allocatedCost);tradeGain=gain;d.bankCash=round(before+proceeds);const nextShares=qty-shares;holdingsFor(db,name)[OWNER_KEY]=nextShares;if(nextShares===0)delete holdingsFor(db,name)[OWNER_KEY];inv.shares=nextShares;inv.costBasis=round4(Math.max(0,oldCost-allocatedCost));if(nextShares===0)delete d.investments[name];else d.investments[name]=inv;d.realizedInvestmentGain=round4((Number(d.realizedInvestmentGain)||0)+gain);const tx={id:"CBI-"+Date.now()+"-"+Math.random().toString(36).slice(2,6),at:new Date().toISOString(),season:Number(st.year)||29,company:name,shares,price:round4(price),total,action:"calbank_sell_to_market_reserve",reservePurchase:false,buyerId:null,buyer:"Market Reserve",buyerType:"market-reserve",sellerId:OWNER_KEY,seller:"CalBank",sellerType:"calbank",status:"completed",realizedGain:gain};db.transactions.push(tx);if(!Array.isArray(st.stockMarketCashLedger))st.stockMarketCashLedger=[];st.stockMarketCashLedger.push({...tx});ledger(d,{type:"Sell",company:name,shares,price:round4(price),cashFlow:proceeds,realizedGain:gain,allocatedCostBasis:allocatedCost,bankCashBefore:before,bankCashAfter:d.bankCash,stockTransactionId:tx.id});}
 const verifyBank=JSON.stringify(d),verifyMarket=JSON.stringify(db);saveJson(BANK_KEY,d);saveJson(MARKET_KEY,db);saveGame(st);const vb=read(BANK_KEY),vm=read(MARKET_KEY),vg=game();if(!vb||!vm||!vg||Math.abs(round(Number(vb.bankCash))-round(Number(d.bankCash)))>.001||!vm.transactions.some(x=>x.id===(d.investmentLedger[d.investmentLedger.length-1]||{}).stockTransactionId)||Math.abs(held(vm,name)-(action==="buy"?qty+shares:qty-shares))>.001)throw Error("Post-trade verification failed. A rollback will be attempted.");try{window.dispatchEvent(new CustomEvent("calvinsCityStockMarketChanged",{detail:{source:"CalBank",company:name,transactionId:(d.investmentLedger[d.investmentLedger.length-1]||{}).stockTransactionId||""}}));}catch(refreshError){console.warn("Stock-market view refresh notification failed:",refreshError);} $("calBankInvestmentStatus").textContent=(action==="buy"?"Purchase":"Sale")+" verified: "+shares+" share(s) of "+name+" at "+money(price)+" per share. "+(action==="buy"?"Cost "+money(total)+"; issuing company/team cash credited.":"Proceeds "+money(total)+"; realized gain/loss "+money(tradeGain)+".");render();if(typeof window.renderCalBankCustomerLoans==="function")window.renderCalBankCustomerLoans();}
 catch(e){try{saveJson(BANK_KEY,JSON.parse(oldBank));saveJson(MARKET_KEY,JSON.parse(oldMarket));const prior=JSON.parse(oldGame);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,prior);saveGame(st)}catch(rb){console.error("CalBank investment rollback needs review",rb)}$("calBankInvestmentStatus").textContent="Trade failed validation: "+e.message+". A rollback was attempted; verify cash, shares, and ledgers before retrying.";render();}}
 function bind(){const buy=$("calBankInvestmentBuy"),sell=$("calBankInvestmentSell"),refresh=$("calBankInvestmentRefresh"),select=$("calBankInvestmentCompany"),shares=$("calBankInvestmentShares"),tab=$("cityCalBankTab");if(buy)buy.addEventListener("click",()=>transact("buy"));if(sell)sell.addEventListener("click",()=>transact("sell"));if(refresh)refresh.addEventListener("click",render);if(select)select.addEventListener("change",updateQuote);if(shares)shares.addEventListener("input",updateQuote);if(tab)tab.addEventListener("click",()=>{render();setTimeout(render,80);setTimeout(render,300)});render();setTimeout(render,150);setTimeout(render,600);window.addEventListener("focus",render)}
@@ -11056,7 +11056,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  
  
 <script>
-/* v5.8.84 — Unified CalBank ledger view. Read-only aggregation; source ledgers remain authoritative. */
+/* v5.8.85 — Unified CalBank ledger view. Read-only aggregation; source ledgers remain authoritative. */
 (function(){
 "use strict";
 const BANK_KEY="calvins_city_calbank_v1", GAME_KEY="calvins_city_v24", MARKET_KEY="calvins_city_stock_market_v1";
