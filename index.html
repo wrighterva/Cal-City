@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.80: guarded Kap state access; CalBank live-state cash and Citizen Ledger synchronization. -->
-<!-- CALVIN'S CITY — VERSION 5.8.80: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
+<!-- CALVIN'S CITY — VERSION 5.8.81: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
+<!-- CALVIN'S CITY — VERSION 5.8.81: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -12,11 +12,11 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.80: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
+<!-- CALVIN'S CITY — VERSION 5.8.81: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
-<meta name="calvins-city-build" content="5.8.80">
+<meta name="calvins-city-build" content="5.8.81">
  
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
@@ -214,7 +214,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.80</title>
+<title>Calvin's City 5.8.81</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -382,7 +382,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.80</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.81</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -6919,32 +6919,23 @@ try{
 const bridge=window.__calvinsCityBridge;
 const state=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
 if(!state||typeof state!=="object"){
-window.__kapMvpRepairDiagnostic={version:"5.8.80",status:"skipped-state-unavailable",reason:"Live game-state bridge unavailable; no game values changed."};
-console.warn("Kap MVP repair skipped because live state is unavailable.",window.__kapMvpRepairDiagnostic);
+window.__kapMvpRepairDiagnostic={version:"5.8.81",status:"skipped-state-unavailable",reason:"Live state bridge unavailable; no game values changed."};
+console.warn("Kap MVP repair skipped safely.",window.__kapMvpRepairDiagnostic);
 return;
 }
 if(state.kapMvpCountRecoveryVersion===marker)return;
 const citizens=Array.isArray(state.citizens)?state.citizens:[];
 const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
 const roster=state.roster&&state.roster.Lions_PG;
-if(!kap){
-window.__kapMvpRepairDiagnostic={version:"5.8.80",status:"skipped",reason:"Kap citizen record not found; no values changed."};
-console.warn("Kap MVP repair skipped.",window.__kapMvpRepairDiagnostic);
-return;
-}
+if(!kap){window.__kapMvpRepairDiagnostic={version:"5.8.81",status:"skipped",reason:"Kap citizen record not found; no values changed."};return;}
 const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null};
-/* Preserve the confirmed two-MVP result; this narrow repair does not touch other stats or records. */
 kap.mvps=2;
 if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=2;
 state.kapMvpCountRecoveryVersion=marker;
-let saved=false;
-try{if(bridge&&typeof bridge.save==="function")saved=bridge.save()!==false;else if(typeof save==="function")saved=save()!==false;}catch(err){saved=false;}
-window.__kapMvpRepairDiagnostic={version:"5.8.80",status:saved?"save-attempted":"save-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},saved};
-console.info("Calvin's City 5.8.80 Kap MVP repair",window.__kapMvpRepairDiagnostic);
-}catch(err){
-window.__kapMvpRepairDiagnostic={version:"5.8.80",status:"guarded-error",reason:String(err&&err.message||err)};
-console.error("Kap MVP repair encountered a guarded error; startup continues.",window.__kapMvpRepairDiagnostic);
-}
+let saved=false;try{saved=bridge&&typeof bridge.save==="function"?bridge.save()!==false:(typeof save==="function"&&save()!==false);}catch(e){saved=false;}
+window.__kapMvpRepairDiagnostic={version:"5.8.81",status:saved?"save-attempted":"save-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},saved};
+console.info("Calvin's City Kap MVP repair",window.__kapMvpRepairDiagnostic);
+}catch(err){window.__kapMvpRepairDiagnostic={version:"5.8.81",status:"guarded-error",reason:String(err&&err.message||err)};console.error("Kap MVP repair guarded error; startup continues.",window.__kapMvpRepairDiagnostic);}
 })();
  
 /* VERSION 5.3.7: Refresh player-selection dropdown after startup reconciliation.
@@ -7134,6 +7125,11 @@ if(list)list.innerHTML=d.accounts.length?'<div style="overflow-x:auto"><table st
 const ledger=$("calBankDepositLedger");
 if(ledger)ledger.innerHTML=d.ledger.length?'<div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>Time</th><th>Type</th><th>Customer</th><th>Amount</th><th>Balance after</th></tr></thead><tbody>'+d.ledger.slice().reverse().slice(0,50).map(t=>'<tr><td>'+escapeHTML((t.createdAt||"").replace("T"," ").slice(0,16))+'</td><td>'+escapeHTML(t.type)+'</td><td>'+escapeHTML(t.customerName)+'</td><td>'+money(t.amount)+'</td><td>'+money(t.balanceAfter)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No deposit transactions recorded.</p>';
 const metric=$("calBankDeposits");if(metric)metric.textContent=money(totalDeposits(d));
+try{
+const bic=(Array.isArray(st.citizens)?st.citizens:[]).find(c=>c&&String(c.name||"").trim().toLowerCase()==="bic");
+const txs=d.ledger.filter(t=>t&&t.customerType==="Citizen"&&String(t.customerName||"").trim().toLowerCase()==="bic"&&["Deposit","Withdraw"].includes(t.type)).slice().sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
+window.__calBankCitizenCashAudit={version:"5.8.81",status:"read-only-historical-checkpoint",customer:"Bic",customerId:bic?String(bic.id):null,currentLiveCash:bic?Number(bic.cash):null,depositAccountBalance:(d.accounts.find(a=>a.customerType==="Citizen"&&String(a.customerName||"").trim().toLowerCase()==="bic")||{}).balance??null,transactionCount:txs.length,totalDeposited:round(txs.filter(t=>t.type==="Deposit").reduce((s,t)=>s+(Number(t.amount)||0),0)),totalWithdrawn:round(txs.filter(t=>t.type==="Withdraw").reduce((s,t)=>s+(Number(t.amount)||0),0)),latestRecordedCashAfter:txs.length?txs[txs.length-1].customerCashAfter:null,latestRecordedAt:txs.length?txs[txs.length-1].createdAt:null,note:"Historical ledger totals are diagnostic only. Current cash was not automatically overwritten because unrelated income, expenses, contracts, and prior transactions may have occurred after a deposit."};
+}catch(auditError){}
 }
 function selectedCustomer(st){const v=String(($("calBankDepositCustomer")||{}).value||"");const [type,...idparts]=v.split(":");const id=idparts.join(":");return accounts(st).find(a=>a.type===type&&a.id===id)||null;}
 function commit(type){
@@ -7156,18 +7152,14 @@ else {live.cash=round(customerBefore+amount);d.bankCash=round(bankBefore-amount)
 if(d.bankCash < -0.001)throw Error("CalBank cash cannot become negative.");
 const tx={id,type,customerKey:key(customer),customerType:customer.type,customerId:customer.id,customerName:customer.name,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),bankCashBefore:bankBefore,bankCashAfter:round(Number(d.bankCash)),balanceBefore:depositBefore,balanceAfter:round(Number(account.balance)),createdAt:at,season:Number(st.year)||null};
 d.ledger.push(tx);
-/* Citizen cash movement must also appear in the Citizen Ledger. */
+/* The live game state is authoritative. Record the same signed cash movement
+   in the Citizen Ledger; do not apply a second cash deduction. */
 if(customer.type==="Citizen"){
-  const b=window.__calvinsCityBridge;
-  if(!b||typeof b.recordPlayerLedgerTransaction!=="function")throw Error("Citizen Ledger transaction recorder is unavailable.");
-  b.recordPlayerLedgerTransaction({player:customer.name,amount:type==="Deposit"?-amount:amount,type:type==="Deposit"?"Bank Deposit":"Bank Withdrawal",reason:type==="Deposit"?"Cash transferred from citizen cash to CalBank deposit account":"Cash returned from CalBank deposit account to citizen cash",payer:type==="Deposit"?customer.name:"CalBank",recipient:type==="Deposit"?"CalBank":customer.name,source:"CalBank deposit workflow",before:customerBefore,after:round(Number(live.cash)),delta:type==="Deposit"?-amount:amount,codeLocation:"CalBank deposit foundation"});
+  const bridge=window.__calvinsCityBridge;
+  if(!bridge||typeof bridge.recordPlayerLedgerTransaction!=="function")throw Error("Citizen Ledger recorder unavailable; transaction cancelled.");
+  bridge.recordPlayerLedgerTransaction({player:customer.name,amount:type==="Deposit"?-amount:amount,type:type==="Deposit"?"Bank Deposit":"Bank Withdrawal",reason:type==="Deposit"?"Cash moved from citizen cash into CalBank deposit account":"Cash returned from CalBank deposit account to citizen cash",payer:type==="Deposit"?customer.name:"CalBank",recipient:type==="Deposit"?"CalBank":customer.name,source:"CalBank deposit workflow",before:customerBefore,after:round(Number(live.cash)),delta:type==="Deposit"?-amount:amount,codeLocation:"CalBank deposit foundation"});
 }
-/* Persist the authoritative game state and verify the citizen cash balance. */
 saveGame(st);
-const persistedState=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
-const persistedCustomer=customer.type==="Citizen"?(persistedState&&persistedState.citizens||[]).find(c=>c&&String(c.id)===customer.id):null;
-const persistedCash=customer.type==="Citizen"?Number(persistedCustomer&&persistedCustomer.cash):Number((customer.type==="Team"?persistedState.teamCash:persistedState.businessCash||{})[customer.name]);
-if(!persistedState||Math.abs(round(persistedCash)-round(Number(live.cash)))>0.001)throw Error("Live game cash did not persist or verify.");
 saveDB(d);
 const savedState=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
 const savedDB=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
@@ -7176,11 +7168,19 @@ const savedCash=customer.type==="Citizen"?Number(savedCustomer&&savedCustomer.ca
 const savedAccount=(savedDB.accounts||[]).find(a=>a.customerKey===key(customer));
 const savedTx=(savedDB.ledger||[]).find(t=>t.id===id);
 if(!savedTx||!savedAccount||Math.abs(round(savedCash)-round(Number(live.cash)))>0.001||Math.abs(round(Number(savedAccount.balance))-round(Number(account.balance)))>0.001||Math.abs(round(Number(savedDB.bankCash))-round(Number(d.bankCash)))>0.001)throw Error("Post-save reconciliation failed.");
-status(type+" completed: "+money(amount)+" "+(type==="Deposit"?"moved from":"returned to")+" "+customer.name+". Customer balance: "+money(account.balance)+".");
-const amt=$("calBankDepositAmount");if(amt)amt.value="";render();
+status(type+" completed and verified: "+money(amount)+" "+(type==="Deposit"?"moved from":"returned to")+" "+customer.name+". Customer cash: "+money(live.cash)+".");
+const amt=$("calBankDepositAmount");if(amt)amt.value="";
+render();renderDebt();
+window.__calBankCitizenCashAudit={version:"5.8.81",status:"verified-current-transaction",customer:customer.name,customerId:customer.id,type,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),depositAccountBalance:round(Number(account.balance)),calBankCash:round(Number(d.bankCash)),transactionId:id,checkedAt:new Date().toISOString()};
+ 
 }catch(e){
-try{localStorage.setItem("calvins_city_v24",beforeState);localStorage.setItem(STORAGE_KEY,beforeDB);}catch(rollbackError){}
-status(type+" failed; saved game and CalBank records were restored where storage permitted: "+String(e&&e.message||e));
+try{
+  const prior=JSON.parse(beforeState),bridge=window.__calvinsCityBridge,liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
+  if(liveState&&typeof liveState==="object"){Object.keys(liveState).forEach(k=>delete liveState[k]);Object.assign(liveState,prior);if(bridge&&typeof bridge.save==="function")bridge.save();}
+  else localStorage.setItem("calvins_city_v24",beforeState);
+  localStorage.setItem(STORAGE_KEY,beforeDB);
+}catch(rollbackError){console.error("CalBank transaction rollback needs review",rollbackError);}
+status(type+" failed; transaction was not confirmed. Restore was attempted: "+String(e&&e.message||e));
 }
 }
 function openAccount(){
