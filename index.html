@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.88: CalBank Treasury investor and casino betting-account support; preserves Graphite, Platinum & Copper styling. Preserve game mechanics and saved data. -->
-<!-- CALVIN'S CITY — VERSION 5.8.88: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
+<!-- CALVIN'S CITY — VERSION 5.8.90: CalBank Treasury dropdown and casino betting-account support; preserves Graphite, Platinum & Copper styling. Preserve game mechanics and saved data. -->
+<!-- CALVIN'S CITY — VERSION 5.8.90: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
@@ -302,7 +302,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 
 .city-fed-tab-row{display:flex;justify-content:center;margin:0 0 14px}.city-fed-tab{width:min(100%,260px);background:#344255;border:1px solid #4f8dca}.city-fed-tab.active{background:#245b8e;border-color:#7db7ed}
 
-/* v5.8.88: CalBank's tools are grouped behind compact section tabs inside the existing centered popup. */
+/* v5.8.90: CalBank's tools are grouped behind compact section tabs inside the existing centered popup. */
 .calbank-section-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin:0 12px 8px;background:#151d28;border:1px solid #344255;border-radius:12px}
 .calbank-section-tab{flex:1 1 145px;min-height:42px;margin:0!important;padding:9px 11px!important;border:1px solid #46556b!important;border-radius:9px!important;background:#222c39!important;color:#d5deea!important;font-weight:700;line-height:1.25;white-space:normal}
 .calbank-section-tab.active{background:#c58b59!important;border-color:#e0ad7e!important;color:#111315!important;box-shadow:0 0 0 1px rgba(197,139,89,.18)}
@@ -393,7 +393,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 
 
 <style id="calvins-city-premium-theme-v5-8-87">
-/* v5.8.88 — visual-only theme layer. No game logic, storage keys, or data transformations. */
+/* v5.8.90 — visual-only theme layer. No game logic, storage keys, or data transformations. */
 :root{color-scheme:dark;--cc-bg:#111315;--cc-card:#1D2126;--cc-raised:#2B3138;--cc-border:#3B424B;--cc-copper:#C58B59;--cc-platinum:#C7D2DF;--cc-text:#F4F4F5;--cc-muted:#AAB3BD;--cc-green:#42B883;--cc-red:#E57373;--cc-blue:#557EA8}
 html{background:var(--cc-bg)!important}
 body{background:radial-gradient(ellipse at top,#1a2026 0%,var(--cc-bg) 54%)!important;color:var(--cc-text)!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.005em}
@@ -7166,7 +7166,7 @@ if(!panel)return;
 panel.style.display="none";
 document.body.style.overflow=document.body.dataset.calBankPreviousOverflow||"";
 }
-/* v5.8.88: switch visible CalBank section without moving or rebuilding existing controls. */
+/* v5.8.90: switch visible CalBank section without moving or rebuilding existing controls. */
 function setCalBankSection(section){
 const panel=document.getElementById("cityCalBankPanel");
 if(!panel)return;
@@ -7728,7 +7728,25 @@ function getState(){const b=bridge();return b&&typeof b.getState==="function"?b.
 function save(){const b=bridge();return !!(b&&typeof b.save==="function"&&b.save()!==false);}
 function status(t){const e=$("fedTreasuryStatus");if(e)e.textContent=t;}
 function fedState(st){if(!st.federalReserve||typeof st.federalReserve!=="object")st.federalReserve={cash:0};const f=st.federalReserve;if(!Number.isFinite(Number(f.cash)))f.cash=0;if(!Array.isArray(f.treasuryOfferings))f.treasuryOfferings=[];if(!Array.isArray(f.treasurySecurities))f.treasurySecurities=[];if(!Array.isArray(f.treasuryLedger))f.treasuryLedger=[];return f;}
-function getAccounts(st){const a=[];for(const c of (Array.isArray(st.citizens)?st.citizens:[])){if(c&&c.name&&Number.isFinite(Number(c.cash)))a.push({type:"Citizen",name:String(c.name),cash:Number(c.cash),id:c.id||null});}const teams=st.teamCash&&typeof st.teamCash==="object"?st.teamCash:{};for(const [name,cash] of Object.entries(teams))if(["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))a.push({type:"Team",name,cash:Number(cash)});const businesses=st.businessCash&&typeof st.businessCash==="object"?st.businessCash:{};for(const [name,cash] of Object.entries(businesses))if(!["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))a.push({type:"Business",name,cash:Number(cash)});try{const cb=JSON.parse(localStorage.getItem("calvins_city_calbank_v1")||"null");if(cb&&Number.isFinite(Number(cb.bankCash)))a.push({type:"CalBank",name:"CalBank",cash:Number(cb.bankCash)});}catch(_){}return a;}
+function getAccounts(st){
+const a=[];
+for(const c of (Array.isArray(st.citizens)?st.citizens:[])){if(c&&c.name&&Number.isFinite(Number(c.cash)))a.push({type:"Citizen",name:String(c.name),cash:Number(c.cash),id:c.id||null});}
+const teams=st.teamCash&&typeof st.teamCash==="object"?st.teamCash:{};
+for(const [name,cash] of Object.entries(teams))if(["Lions","Rims","Dunks"].includes(name)&&Number.isFinite(Number(cash)))a.push({type:"Team",name,cash:Number(cash)});
+const businesses=st.businessCash&&typeof st.businessCash==="object"?st.businessCash:{};
+for(const [name,cash] of Object.entries(businesses))if(!["Lions","Rims","Dunks"].includes(name)) {
+ if(Number.isFinite(Number(cash)))a.push({type:"Business",name,cash:Number(cash)});
+}
+// Always list CalBank as a distinct investor type. The dedicated bank record is
+// authoritative; if it cannot be read, show a zero balance rather than hide the option.
+let bankCash=0;
+try {
+ const cb=JSON.parse(localStorage.getItem("calvins_city_calbank_v1")||"null");
+ if(cb&&Number.isFinite(Number(cb.bankCash)))bankCash=Number(cb.bankCash);
+} catch(_){}
+a.push({type:"CalBank",name:"CalBank",cash:bankCash});
+return a;
+}
 function accountMap(st,a){if(a.type==="CalBank")return null;if(a.type==="Citizen")return (Array.isArray(st.citizens)?st.citizens:[]).find(c=>c&&String(c.name)===a.name&&(a.id==null||String(c.id)===String(a.id)));const map=a.type==="Team"?st.teamCash:st.businessCash;return map&&Object.prototype.hasOwnProperty.call(map,a.name)?{get cash(){return map[a.name];},set cash(v){map[a.name]=v;}}:null;}
 function getCash(st,a){if(a.type==="CalBank"){try{const d=JSON.parse(localStorage.getItem("calvins_city_calbank_v1")||"null");return d?Number(d.bankCash):NaN;}catch(_){return NaN;}}if(a.type==="Citizen"){const c=accountMap(st,a);return c?Number(c.cash):NaN;}const map=a.type==="Team"?st.teamCash:st.businessCash;return map?Number(map[a.name]):NaN;}
 function setCash(st,a,v){if(a.type==="CalBank"){const key="calvins_city_calbank_v1",d=JSON.parse(localStorage.getItem(key)||"null");if(!d||!Number.isFinite(Number(d.bankCash)))throw Error("CalBank cash account is unavailable.");d.bankCash=Math.round((Number(v)+Number.EPSILON)*100)/100;const raw=JSON.stringify(d);localStorage.setItem(key,raw);if(localStorage.getItem(key)!==raw)throw Error("CalBank cash save could not be verified.");return;}if(a.type==="Citizen"){const c=accountMap(st,a);if(!c)throw Error("Investor citizen not found: "+a.name);c.cash=v;return;}const map=a.type==="Team"?st.teamCash:st.businessCash;if(!map||!Object.prototype.hasOwnProperty.call(map,a.name))throw Error("Investor account not found: "+a.name);map[a.name]=v;}
@@ -10238,6 +10256,7 @@ function raised(f){return cents(f.loans.reduce((a,l)=>a+(Number(l.principal)||0)
 function cashOf(state,kind,ref){
 if(kind==='citizen'){const c=(state.citizens||[]).find(x=>x&&String(x.id)===String(ref));return c?Number(c.cash)||0:null;}
 if(kind==='business')return state.businessCash&&Number.isFinite(Number(state.businessCash[ref]))?Number(state.businessCash[ref]):null;
+if(kind==='calbank'){try{const d=JSON.parse(localStorage.getItem('calvins_city_calbank_v1')||'null');return d&&Number.isFinite(Number(d.bankCash))?Number(d.bankCash):null;}catch(_){return null;}}
 return null;
 }
 function getLenders(state){
@@ -10277,8 +10296,17 @@ window.casinoLend=function(){const state=st();if(!state)return;const f=ensureFin
 try{if(kind==='citizen'){const c=(state.citizens||[]).find(x=>x&&String(x.id)===String(ref));if(!c)throw Error('Lender account disappeared');c.cash=cents(beforeL-amount);}else{if(!state.businessCash||!Object.prototype.hasOwnProperty.call(state.businessCash,ref))throw Error('Business lender account disappeared');state.businessCash[ref]=cents(beforeL-amount);}state.businessCash[CASINO]=cents(beforeC+amount);const maturity=season+Number(f.offering.termSeasons||3);const loan={transactionId:txid,lenderKind:kind,lenderRef:ref,lenderLabel:getLenders(state).find(l=>l.kind===kind&&l.ref===ref)?.label||ref,principal:amount,outstandingPrincipal:amount,interestRate:Number(f.offering.interestRate)||0,issuedSeason:season,maturitySeason:maturity,lastInterestSeason:null,status:'active'};f.loans.push(loan);ledgerRow(state,{transactionId:txid,type:'loan_funded',season,amount,lenderKind:kind,lenderRef:ref,counterparty:CASINO,lenderBefore:beforeL,lenderAfter:cents(beforeL-amount),casinoBefore:beforeC,casinoAfter:cents(beforeC+amount),timestamp:new Date().toISOString()});if(!saveVerified(state))throw Error('Save could not be verified');refresh();$('casinoFinanceMessage').textContent='Loan transfer saved and verified. Lender cash decreased by '+money(amount)+' and casino cash increased by the same amount.';$('casinoLendAmount').value='';}catch(e){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);}catch(rollbackError){}alert('Casino loan was not committed: '+String(e.message||e)+'. Account changes were rolled back in memory; please verify storage before retrying.');console.error('Casino loan transaction failed',e);}};
 window.processCasinoSeasonFinance=function(){const state=st();if(!state)return;const f=ensureFinance(state),season=currentSeason(state);if(f.processedSeasons.includes(season)){alert('Casino finance for Season '+season+' has already been processed. No duplicate payments were made.');return;}const active=f.loans.filter(l=>l.status==='active'&&(Number(l.outstandingPrincipal)||0)>0);if(!active.length){alert('There are no active casino loans to process.');return;}const obligations=[];let total=0;for(const l of active){const principal=Number(l.outstandingPrincipal)||0;const interest=(l.lastInterestSeason===season)?0:cents(principal*(Number(l.interestRate)||0)/100);const maturityDue=season>=Number(l.maturitySeason);const principalDue=maturityDue?principal:0;obligations.push({loan:l,interest,principalDue});total=cents(total+interest+principalDue);}const cash=Number(state.businessCash&&state.businessCash[CASINO])||0;if(cash<total){alert('Casino has '+money(cash)+' cash but scheduled obligations total '+money(total)+'. Nothing was paid; no partial settlement.');return;}const old=JSON.stringify(state),before=cash;try{let remaining=cents(cash-total);state.businessCash[CASINO]=remaining;for(const o of obligations){const l=o.loan;l.lastInterestSeason=season;if(o.principalDue>0){l.outstandingPrincipal=0;l.status='repaid';}ledgerRow(state,{transactionId:'CASINO-PAY-'+season+'-'+l.transactionId,type:'interest_and_or_maturity_payment',season,amount:cents(o.interest+o.principalDue),interest:o.interest,principal:o.principalDue,lenderKind:l.lenderKind,lenderRef:l.lenderRef,casinoBefore:before,casinoAfter:remaining,timestamp:new Date().toISOString()});if(o.interest+o.principalDue>0){if(l.lenderKind==='citizen'){const c=(state.citizens||[]).find(x=>x&&String(x.id)===String(l.lenderRef));if(!c)throw Error('A lender account could not be found; transaction aborted');c.cash=cents((Number(c.cash)||0)+o.interest+o.principalDue);}else{if(!state.businessCash||!Object.prototype.hasOwnProperty.call(state.businessCash,l.lenderRef))throw Error('A lender business account could not be found; transaction aborted');state.businessCash[l.lenderRef]=cents((Number(state.businessCash[l.lenderRef])||0)+o.interest+o.principalDue);}}}f.processedSeasons.push(season);if(!saveVerified(state))throw Error('Save could not be verified');refresh();$('casinoFinanceMessage').textContent='Season '+season+' finance processed and verified. Total paid: '+money(total)+'.';}catch(e){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);}catch(rollbackError){}alert('Season finance was not committed: '+String(e.message||e)+'. In-memory state was restored; verify storage before retrying.');console.error('Casino season finance failed',e);}};
 function getBettingAccounts(state){
-const out=[];(Array.isArray(state.citizens)?state.citizens:[]).forEach(c=>{if(c&&c.id!=null&&c.name)out.push({kind:'citizen',ref:String(c.id),label:'Citizen — '+c.name,cash:Number(c.cash)||0});});
-const excluded=new Set(['Lions','Rims','Dunks',CASINO,'']);Object.keys(state.businessCash||{}).forEach(name=>{if(excluded.has(name))return;const n=Number(state.businessCash[name]);if(Number.isFinite(n))out.push({kind:'business',ref:name,label:'Business — '+name,cash:n});});try{const cb=JSON.parse(localStorage.getItem('calvins_city_calbank_v1')||'null');if(cb&&Number.isFinite(Number(cb.bankCash)))out.push({kind:'calbank',ref:'CalBank',label:'Business — CalBank',cash:Number(cb.bankCash)});}catch(_){}return out.sort((a,b)=>a.label.localeCompare(b.label));
+const out=[];
+(Array.isArray(state.citizens)?state.citizens:[]).forEach(c=>{if(c&&c.id!=null&&c.name)out.push({kind:'citizen',ref:String(c.id),label:'Citizen — '+c.name,cash:Number(c.cash)||0});});
+const excluded=new Set(['Lions','Rims','Dunks',CASINO,'']);
+Object.keys(state.businessCash||{}).forEach(name=>{if(excluded.has(name))return;const n=Number(state.businessCash[name]);if(Number.isFinite(n))out.push({kind:'business',ref:name,label:'Business — '+name,cash:n});});
+// Always expose CalBank in the roulette account selector. Its actual balance remains sourced
+// from the dedicated CalBank record; this avoids silently omitting it when bankCash is absent
+// or malformed in an imported bank record.
+let bankCash=0;
+try{const cb=JSON.parse(localStorage.getItem('calvins_city_calbank_v1')||'null');if(cb&&Number.isFinite(Number(cb.bankCash)))bankCash=Number(cb.bankCash);}catch(_){}
+out.push({kind:'calbank',ref:'CalBank',label:'CalBank',cash:bankCash});
+return out.sort((a,b)=>a.label.localeCompare(b.label));
 }
 function accountLabel(state,kind,ref){const a=getBettingAccounts(state).find(x=>x.kind===kind&&x.ref===ref);return a?a.label:ref;}
 function updateRoulettePlayerCash(){const state=st(),sel=$('casinoRoulettePlayer'),out=$('casinoRoulettePlayerCash');if(!state||!sel||!out)return;const prior=String(sel.value||'');const accounts=getBettingAccounts(state);sel.innerHTML='';accounts.forEach(a=>{const o=document.createElement('option');o.value=a.kind+'|'+a.ref;o.textContent=a.label+' ('+money(a.cash)+')';sel.appendChild(o);});if(accounts.some(a=>a.kind+'|'+a.ref===prior))sel.value=prior;const p=String(sel.value||'').split('|'),n=cashOf(state,p[0],p.slice(1).join('|'));out.textContent=n==null?'Player account unavailable.':'Available cash: '+money(n)+'.';}
@@ -11097,7 +11125,7 @@ if(season&&/Season\s*[—-]/.test(season.textContent||""))missing.push("season c
 if(missing.length){
   var panel=byId("cc5874RecoveryNotice");
   if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
-  panel.textContent="Calvin's City startup recovery 5.8.88\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+  panel.textContent="Calvin's City startup recovery 5.8.90\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",diagnose,{once:true});else setTimeout(diagnose,0);
@@ -11105,7 +11133,7 @@ window.addEventListener("error",function(e){
 try{
   var panel=byId("cc5874RecoveryNotice");
   if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
-  panel.textContent="Calvin's City startup recovery 5.8.88\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+  panel.textContent="Calvin's City startup recovery 5.8.90\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 }catch(ignore){}
 },true);
 })();
