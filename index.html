@@ -1,24 +1,25 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.85: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
+<!-- CALVIN'S CITY — VERSION 5.8.86: CalBank section tabs and popup navigation; preserve existing bank and game mechanics. Based on v5.8.85. -->
+<!-- CALVIN'S CITY — VERSION 5.8.86: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
- 
+
 <!-- CALVIN'S CITY — VERSION 4.29.3 -->
 <!-- 4.28.86: Adds audited, idempotent $60M bye, $100M champion, and $50M runner-up team cash payouts. -->
 <!-- 4.29.5: Corrected debt popup layout, header, and viewport sizing. -->
 <!-- Sports Bets rebuild: real-money wagers, manual/automatic histories, 2% post-game cash interest, shared debt issuance and holder repayment registry. -->
 <!-- Share-trade rejection fix: guarded reversal resolves cash accounts for citizens and businesses. -->
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
- 
+
 <html lang="en">
 <!-- CALVIN'S CITY — VERSION 5.8.85: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
- 
+
 <head>
-<meta name="calvins-city-build" content="5.8.85">
- 
+<meta name="calvins-city-build" content="5.8.86">
+
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
 (function(){
@@ -89,9 +90,9 @@ document.addEventListener("DOMContentLoaded", function(){
 }, {once:true});
 })();
 </script>
- 
- 
- 
+
+
+
 <script>
 /* CALVIN'S CITY 5.1.7 — transparent synchronous compression for large localStorage
 records. The application continues reading/writing ordinary JSON through the
@@ -212,15 +213,15 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 }
 })();
 </script>
- 
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.85</title>
+<title>Calvin's City 5.8.86</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
 #shareOwnershipLedgerModal [data-share-ledger-view]{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;cursor:pointer}
- 
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101722;color:#f5f7fa;min-height:100vh;overscroll-behavior:none}
 header{padding:16px;background:#182230;border-bottom:1px solid #334155;position:sticky;top:0;z-index:90;isolation:isolate}
@@ -264,7 +265,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 .basketball-info-btn{width:auto;flex:0 0 auto;margin:0;padding:10px 12px;font-size:12px;white-space:nowrap}
 .basketball-badges{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 12px}
 .basketball-badges .badge{margin:0}
- 
+
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
 .team-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #2d3a4d;border-radius:10px}.team-table{width:100%;min-width:620px;border-collapse:collapse;font-size:12px}.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left;white-space:nowrap}.team-table th:nth-child(2),.team-table td:nth-child(2){min-width:125px}.team-player-name{font-weight:900!important;font-size:14px!important;color:#fff!important;background:#182230!important;border:1px solid #526176!important;border-radius:8px!important;min-height:38px!important}.team-note{color:#9eabba;font-size:11px;margin-top:10px}.offseason-board{display:flex;flex-direction:column;gap:12px}.offseason-team{min-width:0}.offseason-roster-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.offseason-slot{min-width:0;background:#121b27;border:1px solid #2d3a4d;border-radius:9px;padding:9px}.offseason-slot-head{display:flex;justify-content:space-between;align-items:center;gap:7px;margin-bottom:7px}.offseason-position{font-weight:900;font-size:12px}.offseason-contract{font-size:10px;color:#9eabba;text-align:right}.offseason-field{display:flex;flex-direction:column;gap:4px;min-width:0}.offseason-field>span,.offseason-verify-wrap>span{font-size:9px;color:#9eabba;text-transform:uppercase;letter-spacing:.04em}.offseason-field select{width:100%;min-width:0;box-sizing:border-box}.offseason-action-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:end;margin-top:7px}.offseason-verify-wrap{display:flex;flex-direction:column;gap:4px;align-items:stretch}.offseason-verify-wrap .verify-decision{margin:0}.offseason-decision{min-width:0}.resign-fields{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.resign-fields input,.resign-fields select{width:88px;min-width:0;box-sizing:border-box;padding:6px;font-size:11px}.shoe-deal-fields{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;width:100%}.shoe-deal-fields select{flex:1 1 120px;min-width:0;box-sizing:border-box;padding:6px;font-size:11px}.shoe-deal-fields input{flex:0 1 105px;min-width:0;box-sizing:border-box;padding:6px;font-size:11px}.shoe-deal-hint{flex-basis:100%;font-size:9px;color:#9eabba}.decision-note{font-size:10px;color:#9eabba;margin-top:5px;line-height:1.3}.verify-decision{padding:8px 12px;font-size:11px;background:#246b46!important;white-space:nowrap}.offseason-save{width:100%;margin-top:2px}.offseason-instructions{margin-bottom:9px}
 .offseason-slot.locked{border-color:#246b46;opacity:.92}.offseason-slot.replacement-needed{border-color:#d4a72c;background:#151d2a}.replacement-note{font-size:10px;color:#f1d37a;margin-top:7px;line-height:1.35}.replacement-new-name{width:100%;box-sizing:border-box;margin-top:6px}.offseason-slot.locked .offseason-position::after{content:" • VERIFIED / LOCKED";color:#9ff0b5;font-size:9px}.offseason-slot.locked select:disabled,.offseason-slot.locked input:disabled{opacity:.65}.contract-verify-summary{background:#121b27;border:1px solid #3a4960;border-radius:10px;padding:11px;margin:10px 0;font-size:13px}.contract-verify-summary div{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #2d3a4d}.contract-verify-summary div:last-child{border-bottom:0}.contract-verify-summary b{color:#f1d37a}.contract-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.contract-confirm-actions button{margin:0}
@@ -284,11 +285,11 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 .citizen-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.citizen-head b{font-size:14px}
 .citizen-meta{font-size:10px;color:#9eabba;margin:3px 0 7px}.citizen-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;font-size:10px}.citizen-grid span{background:#121b27;border:1px solid #2d3a4d;border-radius:7px;padding:6px}.citizen-grid b{float:right;color:#f1d37a}.citizen-business{font-size:10px;color:#9eabba;margin-top:7px}
 .player-ledger-btn{width:100%;margin-top:9px;background:#344255}.player-ledger-panel{display:none;margin-top:8px;padding:10px;background:#121b27;border:1px solid #3a4960;border-radius:9px;font-size:11px}.player-ledger-panel.open{display:block}.ledger-entry{padding:7px 0;border-bottom:1px solid #334155}.ledger-entry:last-child{border-bottom:0}.ledger-diagnostic-panel{margin-top:12px;padding:10px;border:1px solid #526176;border-radius:10px}.ledger-diagnostic-panel summary{font-weight:800;cursor:pointer}
- 
- 
- 
+
+
+
 @media (max-width:760px){.offseason-roster-grid{grid-template-columns:1fr}.offseason-slot{padding:10px}.offseason-slot-head{align-items:flex-start}.offseason-contract{max-width:55%;line-height:1.25}.offseason-action-row{grid-template-columns:minmax(0,1fr) auto}.offseason-verify-wrap .verify-decision{min-width:76px}.offseason-save{min-height:42px}}
- 
+
 /* 4.29.8: Debt dialog is placed above every business modal layer. */
 .sports-bets-debt-overlay{position:fixed!important;inset:0!important;z-index:2147483647!important;display:none;align-items:center;justify-content:center;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(0,0,0,.78);overflow:hidden}
 .sports-bets-debt-dialog{width:min(100%,680px);max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);max-height:calc(100vh - 24px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;background:#1b2635;border:1px solid #526176;border-radius:18px;padding:clamp(12px,3.5vw,22px);color:#f3f6fb;box-shadow:0 18px 60px rgba(0,0,0,.45)}
@@ -298,16 +299,25 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 .sports-bets-debt-dialog>.card{padding:clamp(12px,3vw,18px);margin:12px 0;border-radius:14px}
 .sports-bets-debt-dialog .grid{gap:10px}
 @media(max-width:480px){.sports-bets-debt-overlay{padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))}.sports-bets-debt-dialog{width:100%;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);padding:12px;border-radius:15px}.sports-bets-debt-header{top:-12px;padding-top:2px}.sports-bets-debt-header h3{font-size:19px!important}.sports-bets-debt-header button#sportsBetsDebtClose{padding:8px 10px!important}.sports-bets-debt-dialog .grid{grid-template-columns:minmax(0,1fr)!important}}
- 
+
 .city-fed-tab-row{display:flex;justify-content:center;margin:0 0 14px}.city-fed-tab{width:min(100%,260px);background:#344255;border:1px solid #4f8dca}.city-fed-tab.active{background:#245b8e;border-color:#7db7ed}
+
+/* v5.8.86: CalBank's tools are grouped behind compact section tabs inside the existing centered popup. */
+.calbank-section-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin:0 12px 8px;background:#151d28;border:1px solid #344255;border-radius:12px}
+.calbank-section-tab{flex:1 1 145px;min-height:42px;margin:0!important;padding:9px 11px!important;border:1px solid #46556b!important;border-radius:9px!important;background:#222c39!important;color:#d5deea!important;font-weight:700;line-height:1.25;white-space:normal}
+.calbank-section-tab.active{background:#c58b59!important;border-color:#e0ad7e!important;color:#111315!important;box-shadow:0 0 0 1px rgba(197,139,89,.18)}
+.calbank-section-help{margin:4px 14px 12px!important;font-size:12px!important;color:#9eabba!important}
+.calbank-section-card{display:none}
+@media(max-width:600px){.calbank-section-tabs{gap:6px;padding:8px}.calbank-section-tab{flex:1 1 calc(50% - 6px);min-width:0;font-size:13px;padding:9px 7px!important}.calbank-section-help{margin:4px 12px 10px!important}}
+
 /* 5.8.44: CalBank stays centered directly beneath Federal Reserve, with a smaller visual footprint. */
 .city-calbank-tab-row{margin-top:-6px;margin-bottom:14px}.city-fed-tab.city-calbank-tab{width:min(100%,220px);font-size:.92em;padding:8px 12px;}
- 
+
 /* 5.8.25: Treasury workflow state is visually explicit on mobile. */
 #fedTreasuryRecommend,#fedTreasuryVerify,#fedTreasuryApprove,#fedTreasuryIssue{display:block;width:100%;min-height:64px;margin:12px 0;padding:16px;border-radius:18px;touch-action:manipulation;pointer-events:auto;position:relative;z-index:2;}
 #fedTreasuryRecommend:disabled,#fedTreasuryVerify:disabled,#fedTreasuryApprove:disabled,#fedTreasuryIssue:disabled{opacity:.48!important;filter:grayscale(.45);cursor:not-allowed!important;box-shadow:none!important;}
 #fedTreasuryRecommend:not(:disabled),#fedTreasuryVerify:not(:disabled),#fedTreasuryApprove:not(:disabled),#fedTreasuryIssue:not(:disabled){opacity:1!important;filter:none;cursor:pointer;}
- 
+
 </style>
 <!-- 4.28.77: Team arena championship count no longer references a const from another script scope. -->
 <style id="rouletteRealTableStyles">
@@ -334,7 +344,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 #rouletteLiveTable .roulette-bet-spot.selected{outline:3px solid #ffe58c!important;outline-offset:1px!important;box-shadow:0 0 10px #facc15!important;position:relative!important;z-index:1}
 @media(max-width:480px){#rouletteLiveTable .roulette-chip{width:53px!important;height:53px!important;min-width:53px!important;min-height:53px!important;max-width:53px!important;flex-basis:53px!important}#rouletteNumberTable .roulette-number-grid .roulette-bet-spot{min-height:39px!important;font-size:14px!important}}
 </style>
- 
+
 <style>
 /* v5.8.45: CalBank opens as a centered modal rather than an inline page section. */
 #cityCalBankPanel.calbank-popup-panel{display:none;position:fixed!important;z-index:10060;left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(900px,94vw)!important;max-width:94vw;max-height:88vh;overflow:auto;box-sizing:border-box;margin:0!important;padding:18px;background:#101722!important;color:#f5f7fa!important;border:1px solid #344255;border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,0,0,.62),0 18px 60px rgba(0,0,0,.35)}
@@ -359,7 +369,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 #cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{margin-bottom:0!important}
 #cityCalBankPanel.calbank-popup-panel #calBankDepositsCard{margin-top:14px!important}
 @media(max-width:600px){#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard>div[style*="display:flex"] button{flex:1 1 100%!important;width:100%!important;margin-top:8px!important;margin-bottom:8px!important}#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard button{position:relative!important;top:auto!important;transform:none!important}}
- 
+
 #cityCalBankPanel.calbank-popup-panel{padding:0 0 12px!important;overflow-y:auto!important;overscroll-behavior:contain}
 #cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{position:sticky!important;top:0!important;z-index:100!important;display:flex!important;flex:0 0 84px!important;min-height:84px!important;height:84px!important;box-sizing:border-box!important;margin:0!important;padding:12px 16px!important;background:#182230!important;border-bottom:1px solid #334155!important;border-radius:15px 15px 0 0!important}
 #cityCalBankPanel.calbank-popup-panel>.calbank-popup-header~*{position:relative}
@@ -379,22 +389,22 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 #cityCalBankPanel.calbank-popup-panel>*:last-child{margin-bottom:12px}
 @media(max-width:600px){#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{top:0;margin-bottom:14px!important;padding:12px!important;min-height:72px}#cityCalBankPanel.calbank-popup-panel>*:not(.calbank-popup-header){margin-left:12px;margin-right:12px}}
 </style>
- 
- 
+
+
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.85</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.86</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
 <div class="card"><h2>📚 Record & History</h2><p>Permanent history plus the Citizen Ledger. Every person gets one identity that connects basketball, cash, businesses and future financial systems.</p><div class="grid"><div class="metric"><small>Citizens</small><strong id="citizenCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button><button id="openCitizenLedgerHome" class="secondary">👤 Open Citizen Ledger</button><button id="openShareOwnershipLedgerHome" class="secondary">📒 Open Share &amp; Ownership Ledger</button></div>
 <div class="card" id="importExportHomeCard"><h2>💾 Import / Export</h2><p>Save a backup of Calvin’s City to your iPhone Files app, or restore a previously exported backup.</p><div class="grid"><div class="metric"><small>Backup contents</small><strong>Game + Records</strong></div><div class="metric"><small>Format</small><strong>JSON</strong></div></div><button type="button" id="exportCityBackup" class="goodbtn">⬇️ Export All Data</button><button type="button" id="chooseCityBackup" class="secondary">⬆️ Import Backup</button><input type="file" id="cityBackupFile" accept=".json,application/json" style="display:none"><p id="cityBackupStatus" class="tiny" role="status" aria-live="polite">Export creates a downloadable backup of this browser’s Calvin’s City local storage. Import validates the file and saves a recovery snapshot before restoring.</p></div></section>
- 
+
 <section id="city" class="screen">
 <div class="card city-hub">
 <h2>🏙️ Calvin's City</h2>
 <p>City businesses and teams. Select a section below to manage it.</p>
- 
+
 <div class="city-tabs" role="tablist" aria-label="City sections">
 <button type="button" class="city-tab active" data-city-tab="teams" role="tab" aria-controls="cityTeamsPanel" aria-selected="true">🏀 Teams</button>
 <button type="button" class="city-tab" data-city-tab="businesses" role="tab" aria-controls="cityBusinessesPanel" aria-selected="false">🏢 Businesses</button>
@@ -405,30 +415,30 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div class="city-fed-tab-row city-calbank-tab-row">
 <button type="button" id="cityCalBankTab" class="city-tab city-fed-tab city-calbank-tab" data-city-tab="calBank" role="tab" aria-controls="cityCalBankPanel" aria-selected="false">🏦 CalBank</button>
 </div>
- 
+
 <div id="cityTeamsPanel" class="city-panel">
 <h3>🏀 Teams</h3>
 <p class="tiny">Open a team to view its current roster, contracts and team information. Lions roster is seeded into the permanent Citizen Ledger.</p>
- 
+
 <button type="button" class="city-place-card" onclick="openTeamPage('lions')">
 <div class="city-place-icon"><img src="data:image/png;base64,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" alt="Lions team logo"></div>
 <div class="city-place-copy"><strong>Lions Arena</strong><span>Lions Basketball Team</span></div>
 <div class="city-place-arrow">›</div>
 </button>
- 
+
 <button type="button" class="city-place-card" onclick="openTeamPage('rims')">
 <div class="city-place-icon"><img src="data:image/png;base64,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" alt="Rims team logo"></div>
 <div class="city-place-copy"><strong>Rims Arena</strong><span>Rims Basketball Team</span></div>
 <div class="city-place-arrow">›</div>
 </button>
- 
+
 <button type="button" class="city-place-card" onclick="openTeamPage('dunks')">
 <div class="city-place-icon"><img src="data:image/png;base64,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" alt="Dunks team logo"></div>
 <div class="city-place-copy"><strong>Dunks Arena</strong><span>Dunks Basketball Team</span></div>
 <div class="city-place-arrow">›</div>
 </button>
 </div>
- 
+
 <div id="cityBusinessesPanel" class="city-panel" style="display:none">
 <h3>🏢 Businesses</h3>
 <p class="tiny">Businesses operating in Calvin's City.</p>
@@ -485,7 +495,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <h3>Recent Lucy 7s Results</h3><div id="lucyHistory" class="lucy-history">No spins yet.</div>
 </div>
 <div id="casinoRoulettePanel" class="card" style="display:none;margin-top:10px">
- 
+
 <div id="rouletteRoomTop" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
 <div><h2 style="margin:0">🎡 American Roulette</h2><p class="tiny" style="margin:5px 0 0">Live-style table · American wheel · 0, 00, 1–36</p></div>
 <button type="button" class="secondary" onclick="window.closeRouletteRoom()">Back to Casino</button>
@@ -512,11 +522,11 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#d8bd78;margin-bottom:7px">Recent Numbers</div>
 <div id="rouletteRecentNumbersList" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex-wrap:wrap;min-height:30px"><span style="font-size:12px;color:#aab4bf">No results yet</span></div>
 </div>
- 
+
 <div id="rouletteLiveTable" class="card" style="margin:10px 0;padding:10px;background:#075235;border:2px solid #c6a65d">
 <h3 style="margin:0 0 8px;color:white">Roulette Betting Table</h3>
 <p class="tiny" style="color:#e7f3e9">Choose a citizen or business, place their chips, then press Place Bets. Select another account and repeat. Press Spin once everyone’s bets are placed.</p>
- 
+
 <div id="rouletteNumberTable" class="roulette-felt-layout">
 <div class="roulette-zero-row">
 <button type="button" class="roulette-bet-spot green" data-type="number" data-target="0">0</button>
@@ -537,7 +547,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <button type="button" class="roulette-bet-spot red" data-type="number" data-target="34">34</button><button type="button" class="roulette-bet-spot black" data-type="number" data-target="35">35</button><button type="button" class="roulette-bet-spot red" data-type="number" data-target="36">36</button>
 </div>
 </div>
- 
+
 <div class="roulette-outside-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:8px">
 <button type="button" class="roulette-bet-spot outside" data-type="dozen1">1st 12</button><button type="button" class="roulette-bet-spot outside" data-type="dozen2">2nd 12</button><button type="button" class="roulette-bet-spot outside" data-type="dozen3">3rd 12</button>
 <button type="button" class="roulette-bet-spot outside" data-type="low">1–18</button><button type="button" class="roulette-bet-spot outside" data-type="even">Even</button><button type="button" class="roulette-bet-spot outside" data-type="high">19–36</button>
@@ -632,16 +642,24 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 </div>
 <div id="cityCalBankPanel" class="city-panel calbank-popup-panel" style="display:none" role="dialog" aria-modal="true" aria-labelledby="calBankPopupHeading">
 <div class="calbank-popup-header"><h2 id="calBankPopupHeading">🏦 CalBank</h2><button type="button" class="calbank-popup-close" aria-label="Close CalBank" onclick="closeCalBankPopup()">×</button></div>
-<p>CalBank is Calvin’s City’s commercial bank. Fed-provided investment capital is tracked separately from ordinary borrowing and carries no interest. Investment actions will be added in a later step.</p>
+<div class="calbank-section-tabs" role="tablist" aria-label="CalBank sections">
+<button type="button" class="calbank-section-tab active" data-calbank-tab="deposits" role="tab" aria-selected="true">💳 Deposits</button>
+<button type="button" class="calbank-section-tab" data-calbank-tab="debt" role="tab" aria-selected="false">🏦 Debt &amp; Borrowing</button>
+<button type="button" class="calbank-section-tab" data-calbank-tab="loans" role="tab" aria-selected="false">🤝 Customer Loans</button>
+<button type="button" class="calbank-section-tab" data-calbank-tab="portfolio" role="tab" aria-selected="false">📈 CalBank Portfolio</button>
+<button type="button" class="calbank-section-tab" data-calbank-tab="ledger" role="tab" aria-selected="false">📒 Ledger</button>
+</div>
+<p class="calbank-section-help">Choose a section above to open its tools here. The CalBank Ledger remains separate and read-only.</p>
+<p>CalBank is Calvin’s City’s commercial bank. Use the section tabs to manage deposits, borrowing, customer loans, and the bank’s stock portfolio. Federal Reserve capital remains separately tracked and interest-free.</p>
 <div class="grid">
 <div class="metric"><small>Institution</small><strong>CalBank</strong></div>
 <div class="metric"><small>Operating Status</small><strong id="calBankOperatingStatus">Setup phase</strong></div>
 <div class="metric"><small>Bank Cash</small><strong id="calBankCash">Not connected</strong></div>
 <div class="metric"><small>Customer Deposits</small><strong id="calBankDeposits">Not connected</strong></div>
 <div class="metric"><small>Outstanding Loans</small><strong id="calBankLoans">Not connected</strong></div>
- 
+
 </div>
-<div class="card" style="margin-top:12px" id="calBankFedCapitalCard">
+<div class="card calbank-section-card" data-calbank-section="deposits" style="margin-top:12px" id="calBankFedCapitalCard">
 <h3>🏛️ Federal Reserve Investment Capital</h3>
 <p>Transfer capital between the Federal Reserve and CalBank. This is interest-free Fed investment funding, not an ordinary loan and not bank profit. Capital already invested will be unavailable to return until it is released from investments in a later feature.</p>
 <div class="grid" style="margin-bottom:12px">
@@ -656,7 +674,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <p id="calBankFedCapitalStatus" class="tiny" role="status" aria-live="polite">No Fed capital transfers recorded.</p>
 <h4>Fed Capital Ledger</h4><div id="calBankFedCapitalLedger"><p class="muted">No Fed capital transactions recorded.</p></div>
 </div>
-<div class="card" style="margin-top:12px" id="calBankDepositsCard">
+<div class="card calbank-section-card" data-calbank-section="deposits" style="margin-top:12px" id="calBankDepositsCard">
 <h3>💳 Deposits</h3>
 <p>Manage customer deposit accounts and the bank's deposit rate. Customer balances are liabilities of CalBank and are kept separate from bank-owned capital. Interest accrual is not automatic in this foundation version.</p>
 <div class="grid" style="margin-bottom:12px">
@@ -682,7 +700,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <h4>Deposit Ledger</h4>
 <div id="calBankDepositLedger"><p class="muted">No deposit transactions recorded.</p></div>
 </div>
-<div class="card" id="calBankDebtCard">
+<div class="card calbank-section-card" data-calbank-section="debt" id="calBankDebtCard">
 <h3>🏦 Debt &amp; Borrowing</h3>
 <p>Borrowing increases CalBank cash and debt liabilities by the same amount; it is not income. Fed-provided investment capital remains a separate, interest-free arrangement and is not enabled here.</p>
 <div class="grid" style="margin-bottom:12px">
@@ -715,7 +733,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <h4>Debt Ledger</h4>
 <div id="calBankDebtLedger"><p class="muted">No borrowing transactions recorded.</p></div>
 </div>
-<div class="card" id="calBankCustomerLoansCard">
+<div class="card calbank-section-card" data-calbank-section="loans" id="calBankCustomerLoansCard">
 <h3>🤝 CalBank Customer Loans</h3>
 <p>Issue loans from CalBank cash to citizens, teams, or businesses. Loan principal is tracked as a bank asset, not income. Principal repayments reduce the outstanding balance; collected interest is recorded separately as interest income.</p>
 <div class="grid" style="margin-bottom:12px">
@@ -746,8 +764,8 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <h4>Customer Loan Register</h4><div id="calBankCustomerLoanRegister"><p class="muted">No customer loans recorded.</p></div>
 <h4>Customer Loan Ledger</h4><div id="calBankCustomerLoanLedger"><p class="muted">No customer loan transactions recorded.</p></div>
 </div>
- 
-<div class="card" id="calBankInvestmentPortfolioCard">
+
+<div class="card calbank-section-card" data-calbank-section="portfolio" id="calBankInvestmentPortfolioCard">
 <h3>📈 CalBank Investment Portfolio</h3>
 <p>CalBank-only stock investments using the existing Calvin’s City stock market. Purchases use CalBank cash; new-share purchases follow the market’s available-share rules and credit the issuing company or team. Portfolio assets, cash, and gains remain separate from customer deposits, customer loans, and Federal Reserve capital.</p>
 <div class="grid" style="margin-bottom:12px">
@@ -766,7 +784,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <h4>Portfolio Holdings</h4><div id="calBankInvestmentHoldings"><p class="muted">No stock holdings yet.</p></div>
 <h4>Investment Ledger</h4><div id="calBankInvestmentLedger"><p class="muted">No investment transactions recorded.</p></div>
 </div>
-<div class="card" id="calBankMasterLedgerCard">
+<div class="card calbank-section-card" data-calbank-section="ledger" id="calBankMasterLedgerCard">
 <h3>📒 CalBank Ledger</h3>
 <p>Combined read-only history of CalBank customer deposits and withdrawals, debt, customer loans, Federal Reserve capital transfers, and stock trades. Records are displayed from their existing ledgers; this view does not rewrite or delete historical transactions.</p>
 <div class="grid" style="margin-bottom:12px">
@@ -874,7 +892,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
 <button type="button" class="secondary" id="fedTreasuryVerify" disabled>2. Verify Offering</button>
 <button type="button" id="fedTreasuryApprove" disabled>3. Approve Offering</button>
 <button type="button" class="secondary"
- 
+
 id="fedTreasuryIssue" disabled>4. Issue Securities</button>
 </div>
 <section id="fedTreasuryOfferingsPanel" style="margin:14px 0;padding:12px;border:1px solid #475569;border-radius:12px;overflow-x:auto">
@@ -991,10 +1009,10 @@ function bindCloseButtons(){document.querySelectorAll("[data-fed-popup-close]").
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindCloseButtons,{once:true});else bindCloseButtons();
 })();
 </script>
- 
+
 </section>
 <style>
- 
+
 /* 5.8.17: Federal Reserve popup scrolling/header repair. The heading and Close control
  are fixed within the dialog; only .fed-tool-content scrolls. Prevents content bleed. */
 .fed-tools-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
@@ -1005,7 +1023,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 .fed-popup-heading h2{font-size:1.15rem;margin:0;flex:1 1 auto;min-width:0;overflow-wrap:anywhere;line-height:1.25}
 .fed-popup-heading button{display:inline-flex!important;flex:0 0 auto!important;width:auto!important;min-width:max-content;max-width:none;white-space:nowrap;align-items:center;justify-content:center;margin:0!important;padding:10px 14px!important;font-size:14px}
 .fed-tool-content{display:block;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px 16px 18px;scrollbar-gutter:stable}
- 
+
 /* 5.8.19: Fix actual DOM structure, not just styling. The heading is a non-scrolling
  flex sibling; all tool content (including the tax input and buttons) lives in the
  dedicated scroll area. Keep mobile form controls above decoration and touchable. */
@@ -1014,7 +1032,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 .fed-tool-content input,.fed-tool-content select,.fed-tool-content textarea{position:relative;z-index:3;pointer-events:auto;user-select:text;-webkit-user-select:text;touch-action:manipulation}
 #fedTaxRateInput{display:block;min-height:48px;opacity:1;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:manipulation!important}
 .fed-tool-content button{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;min-height:46px}
- 
+
 .fed-tool-content>.card{margin:0;min-width:0;box-sizing:border-box}
 .fed-tool-content .grid{min-width:0}
 .fed-tool-content table{max-width:100%}
@@ -1024,7 +1042,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 #fedTaxGenerateRecommendation:disabled,#fedTaxVerifyPlan:disabled,#fedTaxApprovePlan:disabled,#fedTaxCollectPlan:disabled{opacity:.48;filter:saturate(.45);cursor:not-allowed;pointer-events:none}
 @media(max-width:520px){.fed-tool-popup{padding:6px}.fed-tool-modal{width:100%!important;max-width:100%;height:calc(100dvh - 12px);max-height:calc(100dvh - 12px);border-radius:14px}.fed-popup-heading{gap:8px;align-items:center;padding:12px 10px}.fed-popup-heading h2{font-size:1rem;line-height:1.2}.fed-popup-heading button{font-size:13px;padding:9px 10px!important}.fed-tool-content{padding:10px 10px 16px}.fed-tool-content .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,135px),1fr))!important}}
 @media(max-width:520px){.fed-tool-modal>.fed-tool-content{min-height:0;flex:1 1 0;overflow-y:auto;overflow-x:auto}.fed-tool-content input,.fed-tool-content select{font-size:16px!important}}
- 
+
 /* 5.8.20: Native mobile form interaction fix.
  Keep one scroll owner (the popup content); allow native input/select focus and
  taps rather than forcing gesture handling on every control. Give form controls
@@ -1041,8 +1059,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 .fed-tool-content button{position:relative!important;z-index:5!important;pointer-events:auto!important;touch-action:manipulation!important;min-height:46px}
 #fedTaxRateInput,#fedTreasuryTarget,#fedTreasuryRate,#fedTreasuryReleaseType{pointer-events:auto!important;touch-action:auto!important;user-select:text!important;-webkit-user-select:text!important;position:relative!important;z-index:8!important}
 @media(max-width:520px){.fed-tool-popup{padding:6px!important}.fed-tool-modal{height:calc(100dvh - 12px)!important;max-height:calc(100dvh - 12px)!important}.fed-tool-content{overscroll-behavior:contain!important}.fed-tool-content input,.fed-tool-content select{font-size:16px!important;min-height:48px!important}}
- 
- 
+
+
 #stockExchangeCard{color:#f8fafc;background:#111827;border:1px solid #39465a}
 #stockExchangeCard .tiny,#stockExchangeCard .muted,#stockExchangeCard p{color:#d5deea}
 #stockExchangeCard .metric{background:#263449;border:1px solid #53647c;color:#fff}
@@ -1179,7 +1197,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 <div id="betsSlipHistory"><p class="muted">No manually placed bets yet.</p></div>
 <button type="button" id="betsHistoryToggle" style="display:none;margin:10px 0">View Full Betting History</button>
 </div>
- 
+
 <div class="card">
 <h3>Permanent Game Results</h3>
 <p class="tiny">Each completed season game is saved here immediately. These records are stored separately from the basketball season data and survive Season 29 resets and normal game resets.</p>
@@ -1187,7 +1205,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 <button type="button" id="betsGameHistoryToggle" style="display:none;margin:10px 0">View Full Game History</button>
 </div>
 </section>
- 
+
 <section id="basketball" class="screen">
 <div class="card basketball-overview">
 <div class="basketball-card-head"><h2>🏀 Calvin's City Basketball</h2><button id="openBasketballInfo" class="secondary basketball-info-btn" type="button" aria-label="Basketball Information">ℹ️ Information</button></div>
@@ -1198,10 +1216,10 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 <div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div id="contractBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
 <div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 </section></main>
- 
+
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button><button data-nav="bets">🎲<br>BETS</button></nav>
- 
- 
+
+
 <div id="shoeCompanyModal" class="modal">
 <div class="modalbox">
 <h2 id="shoeCompanyTitle">👟 Shoe Company</h2>
@@ -1230,7 +1248,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 <li>Best record normally receives the championship bye.</li>
 <li>If tied for best record, the defending champion gets the bye when involved.</li>
 <li>If all three tie, the previous champion gets the bye.</li>
- 
+
 <li>Season 29 starts from the permanent Season 28 championship record; Season 28 champion Dunks enters as defending champion.</li>
 <li>The other two teams play the semifinal.</li>
 <li>Semifinal winner plays the bye team for the championship.</li>
@@ -1260,7 +1278,7 @@ if(liveState&&liveState.teamCash&&liveState.teamCash[team]!=null)return Number(l
 return Number(TEAM_CASH[team])||0;
 }
 let teamPageScrollY=0;
- 
+
 function lockTeamPageScroll(){
 teamPageScrollY=window.scrollY||window.pageYOffset||0;
 document.documentElement.style.overflow="hidden";
@@ -1271,8 +1289,8 @@ document.documentElement.style.overflow="";
 document.body.style.overflow="";
 requestAnimationFrame(function(){window.scrollTo(0,teamPageScrollY);});
 }
- 
- 
+
+
 function openTeamPage(k){
 const t=TEAM_PAGE[k]; if(!t)return;
 const bridge=window.__calvinsCityBridge;
@@ -1306,17 +1324,17 @@ snr:Number(citizen.currentChampStreak??hist.currentChampStreak??0)||0,
 titles:Number(citizen.championships??hist.championships??0)||0
 };
 });
- 
+
 document.getElementById("teamPageTitle").textContent=t.name;
 const rosterTable='<h3>Roster &amp; Contracts</h3><div class="team-table-wrap"><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th><th>TNR</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:14px;font-weight:900;width:100%;box-sizing:border-box"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td><td>'+p.snr+'</td></tr>').join('')+'</table></div><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the same live contract database used by Offseason and the Citizen Ledger.</p>';
- 
+
 const marketDB=(()=>{try{return JSON.parse(localStorage.getItem("calvins_city_stock_market_v1")||"null")}catch(e){return null}})();
 const stockRecord=marketDB&&marketDB.companies?marketDB.companies[t.key]:null;
 const teamHolders=stockRecord?Object.entries(stockRecord.holdings||{}).filter(([key,n])=>Number(n)>0).map(([key,n])=>({name:(stockRecord.ownerNames&&stockRecord.ownerNames[key])||key.replace(/^LEGACY:/,"").replace(/\b\w/g,m=>m.toUpperCase()),shares:Number(n),stake:Number(n)/5})).sort((a,b)=>b.shares-a.shares):[];
 const stakePanel='<div class="card" data-public-share-stakes="'+t.key+'" style="margin:10px 0;padding:12px"><h3 style="margin:0 0 8px">📊 Public Share Stakes</h3><p class="team-note">Public stockholders own shares in this team; this is separate from team cash and business ownership.</p>'+(teamHolders.length?'<div class="team-table-wrap"><table class="team-table"><tr><th>Shareholder</th><th>Shares</th><th>Stake</th></tr>'+teamHolders.map(h=>'<tr><td>'+String(h.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</td><td>'+h.shares+'</td><td>'+h.stake.toFixed(2)+'%</td></tr>').join('')+'</table></div>':'<p class="team-note">No public shares are currently recorded as purchased.</p>')+'<p class="team-note">Shares available: '+(stockRecord?Math.max(0,500-teamHolders.reduce((sum,h)=>sum+h.shares,0)):500)+' / 500</p></div>';
 document.getElementById("teamPageBody").innerHTML=
 '<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+getLiveTeamCash(t.key)+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div><div class="team-stat"><small>🏆 Champs</small><strong>'+((({Lions:12,Rims:9,Dunks:7})[t.key]||0)+(Array.isArray(pageState.championshipAwards)?pageState.championshipAwards.filter(a=>Number(a&&a.season||0)>28&&a.champion===t.key).length:0))+'</strong></div></div>'+stakePanel+rosterTable;
- 
+
 lockTeamPageScroll();
 document.getElementById("teamPageModal").classList.add("show");
 const saveTeamRoster=document.getElementById("saveTeamRoster");
@@ -1333,11 +1351,11 @@ openTeamPage(k);
 };
 }
 window.openTeamPage=openTeamPage;
- 
+
 const citizenLedgerHomeBtn=document.getElementById("openCitizenLedgerHome");
 const citizenLedgerModalEl=document.getElementById("citizenLedgerModal");
 const citizenLedgerCloseBtn=document.getElementById("citizenLedgerClose");
- 
+
 function openCitizenLedger(){
 if(citizenLedgerModalEl){citizenLedgerModalEl.classList.add("show");lockCitizenLedgerScroll();}
 const out=document.getElementById("citizenLedgerBody");
@@ -1349,11 +1367,11 @@ console.error("Citizen Ledger render error:",err);
 if(out)out.innerHTML='<p class="muted">Citizen Ledger opened, but the citizen data could not be loaded.</p><p class="tiny">'+String(err&&err.message||err)+'</p>';
 }
 }
- 
+
 function closeCitizenLedger(){
 if(citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show");unlockCitizenLedgerScroll();}
 }
- 
+
 if(citizenLedgerHomeBtn){
 citizenLedgerHomeBtn.onclick=function(e){
 e.preventDefault();
@@ -1385,7 +1403,7 @@ e.stopPropagation();
 },{passive:false});
 }
 }
- 
+
 /* 4.17.105: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */
 /* 4.17.105: Team stadium modal interaction fix.
 The stadium/team page gets the same protected modal behavior as Records.
@@ -1404,7 +1422,7 @@ const modal=document.getElementById("teamPageModal");
 const close=document.getElementById("teamPageClose");
 const basketball=document.getElementById("teamPageBasketball");
 const box=modal?modal.querySelector(".modalbox"):null;
- 
+
 if(close){
 close.type="button";
 close.onclick=closeTeamSafely;
@@ -1447,7 +1465,7 @@ if(document.readyState!=="loading")bindTeamModal();
 })();
 })();
 </script>
- 
+
 <script>
 /* v5.8.77 EARLY UI RESCUE
  Independent, read-only fallback. Does not save, clear, or reset game data.
@@ -1487,7 +1505,7 @@ else restoreSeasonLabel();
 window.__calvinsCityEarlyUIRescue={version:"5.8.77",showScreen:show};
 })();
 </script>
- 
+
 <script>
 (function(){
 "use strict";
@@ -1507,16 +1525,16 @@ HISTORICAL_CHAMPIONSHIPS=[
 [28,"Dunks","Vico",43,25]
 ],
 CHAMP_STREAKS={"Benmack":4,"Fox":3,"Mason":3,"Hall":2,"House":2,"June":2,"West":2,"Carter":2,"Corva":4,"Reese":4},
- 
- 
+
+
 REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
 // 4.17.105: Seasons 1–28 are permanent historical seasons. Season 28 was won by Dunks, so Dunks is the defending champion entering Season 29.
 const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS.length-1][1];
- 
+
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},openRosterSpots:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
- 
+
 /* 5.3.9: A duplicate game record remains in the permanent audit/history list,
 but a scheduled matchup contributes to regular-season standings only once.
 This is a read/aggregate repair: it does not delete or edit gamesPlayed,
@@ -1558,7 +1576,7 @@ state.standings=standings;
 return getUniqueRegularSeasonGames().length;
 }
 reconcileRegularSeasonStandings();
- 
+
 /* 5.1.8: Idempotent title-count reconciliation from permanent championship awards.
 It only raises a player's count when the saved award ledger proves a higher total.
 Seasons 1–28 remain represented by the established opening career baselines.
@@ -1615,7 +1633,7 @@ window.__calvinsCityTitleRepair={version:"5.1.9",status:"failed",message:String(
 console.error("5.1.8 title reconciliation did not complete; no championship records were deleted.",err);
 }
 })();
- 
+
 /* VERSION 5.0.9: Recover an invalid/missing season number without resetting game data.
 This is intentionally based on the known-working 5.0.7 code. It does NOT include
 the 5.0.8 retired-shoe startup routine that froze the app. A valid saved year is
@@ -1702,10 +1720,10 @@ existingSnapshot.state.records&&Array.isArray(existingSnapshot.state.records.gam
 console.warn("Existing Season 29 recovery snapshot could not be validated; it was not overwritten or deleted.",snapshotReadError);
 }
 const season29ResetBlockedByBackup=!season29RestoreBackupReady;
- 
+
 /* 4.29.20 SAFETY: Removed automatic fresh-start mutation. The recovery snapshot
 above is retained, but page startup must never reset the season or accounts. */
- 
+
 const BETS_STORAGE_KEY="calvins_city_bets_v1";
 const BETS_BACKUP_KEY="calvins_city_bets_backup_v1";
 const BETS_SCHEMA_VERSION=3;
@@ -1763,7 +1781,7 @@ let betsRawSavedAtLoad=null;
 let betsDatabase={schemaVersion:BETS_SCHEMA_VERSION,nextId:1,games:[],nextBetId:1,bets:[],sportsBetsInterestAccruals:[],sportsBetsDebtIssues:[],sportsBetsCashTransactions:[]};
 function isValidBetsDatabase(value){return !!value&&typeof value==="object"&&Array.isArray(value.games)&&Array.isArray(value.bets);}
 function ensureBetsFinanceCollections(){betsDatabase.sportsBetsInterestAccruals=Array.isArray(betsDatabase.sportsBetsInterestAccruals)?betsDatabase.sportsBetsInterestAccruals:[];betsDatabase.sportsBetsDebtIssues=Array.isArray(betsDatabase.sportsBetsDebtIssues)?betsDatabase.sportsBetsDebtIssues:[];betsDatabase.sportsBetsCashTransactions=Array.isArray(betsDatabase.sportsBetsCashTransactions)?betsDatabase.sportsBetsCashTransactions:[];betsDatabase.bets=Array.isArray(betsDatabase.bets)?betsDatabase.bets:[];}
- 
+
 function betsRecordCount(db){return (Array.isArray(db&&db.games)?db.games.length:0)+(Array.isArray(db&&db.bets)?db.bets.length:0);}
 function mergeBetsDatabases(primary,secondary){
 const out={schemaVersion:BETS_SCHEMA_VERSION,nextId:1,games:[],nextBetId:1,bets:[],sportsBetsInterestAccruals:[],sportsBetsDebtIssues:[],sportsBetsCashTransactions:[]};
@@ -1888,10 +1906,10 @@ another full duplicate backup when that backup has been reclaimed. */
 console.warn("4.29.38 storage repair skipped or partially completed safely; saved records were not intentionally deleted.",storageRepairError);
 }
 })();
- 
+
 /* 4.29.20 SAFETY: Legacy startup reset routines were removed above.
 Saved state and permanent records must remain unchanged during page load. */
- 
+
 // v4.28.85: game-start confirmation gates automatic citizen bets before the next game.
 function sbRound(v){return Math.round((Number(v)||0)*100)/100;}
 function sbEsc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -2029,7 +2047,7 @@ const priorCashTraceSuppression=window.__suppressCitizenCashTrace;
 const priorAuditBusy=window.__cashIntegrityAuditBusy;
 try{
 tx.createdAt=new Date().toISOString();
- 
+
 // Resolve both accounts and validate the paired movement before mutating either balance.
 const companyBefore=issuer.get(),companyDelta=Number(tx.companyDelta||0);
 if(!Number.isFinite(companyBefore)||!Number.isFinite(companyDelta))throw new Error("Sports Bets Company cash validation failed.");
@@ -2047,11 +2065,11 @@ window.__suppressCitizenCashTrace=true;
 window.__cashIntegrityAuditBusy=true;
 issuer.set(sbRound(companyBefore+companyDelta));
 if(other)other.set(sbRound(otherBefore+otherDelta));
- 
+
 // Verify the live account objects really changed before recording the transaction.
 if(Math.abs(issuer.get()-sbRound(companyBefore+companyDelta))>0.000001)throw new Error("Sports Bets Company cash did not update.");
 if(other&&Math.abs(other.get()-sbRound(otherBefore+otherDelta))>0.000001)throw new Error("Citizen cash did not update; transaction cancelled.");
- 
+
 sbLedgerMove(issuer,tx.id+"-COMPANY",companyDelta,tx.companyType||tx.type,tx.companyReason||tx.reason,companyBefore,issuer.get(),{sportsBetsTransactionId:tx.id});
 if(other){
 sbLedgerMove(other,tx.id+"-OTHER",otherDelta,tx.counterpartyType||tx.type,tx.counterpartyReason||tx.reason,otherBefore,other.get(),{sportsBetsTransactionId:tx.id});
@@ -2246,7 +2264,7 @@ citizen.cash=citizenAfter;state.businessCash["Sports Bets Company"]=companyAfter
 sbLedgerMove({kind:"citizen",name:citizen.name},txId+"-CITIZEN",payout,"Sports Bet Payout",outcome==="win"?"Winning bet payout (stake plus equal profit)":"push"===outcome?"Bet push refund":"No payout on losing bet",citizenBefore,citizenAfter,{betId:bet.id,gameId:row.id,outcome});
 sbLedgerMove(company,txId+"-COMPANY",-payout,"Sports Bet Settlement Payout",outcome==="win"?"Paid winning bet to "+citizen.name:outcome==="push"?"Refunded pushed bet to "+citizen.name:"Loss retained by company",companyBefore,companyAfter,{betId:bet.id,gameId:row.id,outcome});
 betsDatabase.sportsBetsCashTransactions.push({id:txId,type:"Sports Bet Settlement",betId:bet.id,gameId:row.id,citizenId:bet.citizenId,
- 
+
 citizenName:bet.citizenName,outcome,stake:Number(bet.stake),payout,companyBefore,companyAfter,citizenBefore,citizenAfter,createdAt:new Date().toISOString()});
 bet.cashSettlementTransactionId=txId;bet.cashPayout=payout;
 if(!sbSaveState())throw new Error("Main financial state could not be saved.");
@@ -2373,7 +2391,7 @@ let sbGameStartConfirmationOpen=false,sbGameStartProcessing=false;
 function sbRequestPlayNextGame(){
 if(sbGameStartProcessing)return;
 const match=sbCurrentPendingGame
- 
+
 ();
 if(!match){playNextGame();return;}
 const modal=document.getElementById("betsDoneBettingModal"),status=document.getElementById("betsDoneBettingStatus"),yes=document.getElementById("betsDoneBettingYes");
@@ -2463,7 +2481,7 @@ betsDatabase=mergeBetsDatabases(betsDatabase,currentDb);
 }
 betsDatabase.schemaVersion=BETS_SCHEMA_VERSION;
 const serialized=JSON.stringify(betsDatabase);
- 
+
 /* 4.29.37: Commit and verify the authoritative BETS database FIRST.
 Previously the full recovery copy (another ~400 KB) was rewritten first.
 On constrained Safari/localStorage quotas that could consume the remaining
@@ -2472,7 +2490,7 @@ must never invalidate a successful primary write. */
 localStorage.setItem(BETS_STORAGE_KEY,serialized);
 if(localStorage.getItem(BETS_STORAGE_KEY)!==serialized)throw new Error("Primary BETS database write could not be verified.");
 betsRawSavedAtLoad=serialized;
- 
+
 let backupUpdated=false,backupPresent=false;
 try{
 const priorBackupRaw=localStorage.getItem(BETS_BACKUP_KEY);
@@ -2558,7 +2576,7 @@ if(!g||!g.A||!g.B||!g.A.team||!g.B.team)return null;
 if(g.__betsRecordId&&betsDatabase.games.some(x=>x&&x.id===g.__betsRecordId))return betsDatabase.games.find(x=>x&&x.id===g.__betsRecordId)||null;
 const scoreA=Number(g.A.score),scoreB=Number(g.B.score);
 if(!Number.isFinite(scoreA)||
- 
+
 !Number.isFinite(scoreB)||scoreA<0||scoreB<0)return null;
 const teamA=String(g.A.team),teamB=String(g.B.team),recordedAt=new Date().toISOString();
 const row={id:"BETS-"+betsDatabase.nextId++,teamA,scoreA,teamB,scoreB,margin:Math.abs(scoreA-scoreB),total:scoreA+scoreB,winner:scoreA===scoreB?"Tie":(scoreA>scoreB?teamA:teamB),recordedAt,source:"live-game",eventKey:betsCurrentEventKey({teamA,teamB})};
@@ -2589,7 +2607,7 @@ betsDatabase.games.push({id:"BETS-"+betsDatabase.nextId++,teamA,scoreA,teamB,sco
 });
 if(imported)saveBetsDatabase();return imported;
 }
- 
+
 function betsNextMatchup(){
 if(state.seasonPhase==="regular"){
 const p=REGULAR_SCHEDULE[state.regularGameIndex];
@@ -2689,12 +2707,12 @@ out.innerHTML='<label for="betsSelection">Pick Over or Under (combined points)</
 }
 renderBetsBetForm();
 }
- 
+
 // 4.17.105: Bind BETS market changes inside this private IIFE.
 // Inline HTML handlers cannot reach this private function by name.
 const betsMarketSelect=document.getElementById("betsMarket");
 if(betsMarketSelect)betsMarketSelect.addEventListener("change",handleBetsMarketChange);
- 
+
 function renderBetsBetForm(){
 const match=betsNextMatchup(),out=document.getElementById("betsBetOptions"),next=document.getElementById("betsNextGame");
 const market=document.getElementById("betsMarket");
@@ -2731,7 +2749,7 @@ picker.value="over";
 const button=document.getElementById("betsPlaceBet");if(button)button.disabled=false;
 }
 let pendingPracticeBetDraft=null;
- 
+
 function requestConfirmPracticeBet(){
 const match=betsNextMatchup(),marketEl=document.getElementById("betsMarket"),
 selectionEl=document.getElementById("betsSelection"),stakeEl=document.getElementById("betsStake"),
@@ -2754,12 +2772,12 @@ details.textContent="Game: "+match.teamA+" vs "+match.teamB+". Bet: "+descriptio
 modal.style.display="flex";
 const yes=document.getElementById("betsConfirmYes");if(yes)yes.focus();
 }
- 
+
 function closeBetsConfirmModal(){
 const modal=document.getElementById("betsConfirmModal");if(modal)modal.style.display="none";
 pendingPracticeBetDraft=null;
 }
- 
+
 function confirmPracticeBet(){
 const message=document.getElementById("betsBetMessage"),draft=pendingPracticeBetDraft;
 if(!draft||!message){closeBetsConfirmModal();return;}
@@ -2773,7 +2791,7 @@ if(!saveBetsDatabase()){betsDatabase.bets.pop();message.textContent="The bet was
 renderBetsSection();
 message.textContent="Bet saved. It will settle automatically when "+draft.teamA+" vs "+draft.teamB+" finishes.";
 }
- 
+
 // Legacy practice-bet handler retained for backward compatibility; live button is rebound to real-money betting.
 const betsPlaceButton=document.getElementById("betsPlaceBet");
 if(betsPlaceButton)betsPlaceButton.addEventListener("click",()=>requestConfirmPracticeBet());
@@ -2785,7 +2803,7 @@ const betsConfirmModal=document.getElementById("betsConfirmModal");
 if(betsConfirmModal)betsConfirmModal.addEventListener("click",function(event){
 if(event.target===betsConfirmModal)closeBetsConfirmModal();
 });
- 
+
 function settleBetsForGame(game,row){
 const samePair=bet=>((bet.teamA===row.teamA&&bet.teamB===row.teamB)||(bet.teamA===row.teamB&&bet.teamB===row.teamA));
 let changed=false;
@@ -2897,7 +2915,7 @@ historyOut.innerHTML=h+'</table></div>';
 renderBetsBetForm();
 renderBetsSlipHistory();
 }
- 
+
 // 4.17.105: Historical Seasons 1–28 remain permanent Records; live play begins at Season 29.
 if(Number(state.year)<29 && !state.gamesPlayed.length && !state.seasonPlayed && state.seasonPhase==="regular"){
 state.year=29;
@@ -2908,12 +2926,12 @@ state.playoff={bye:null,semifinal:null,championship:null};
 state.lastSeason=null;
 state.lastGame=null;
 }
- 
+
 // Season 29 specifically starts with the Season 28 champion as defending champion.
 if(Number(state.year)===29 && !state.seasonPlayed && state.seasonPhase==="regular" && !state.lastSeason){
 state.defendingChampion=HISTORICAL_LAST_CHAMPION;
 }
- 
+
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
 state.citizens=Array.isArray(state.citizens)?state.citizens:[];state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};state.openRosterSpots=state.openRosterSpots||{};
 /* 4.17.119: Read-only snapshot immediately after saved localStorage is loaded,
@@ -2937,7 +2955,7 @@ Adidas:[["Wallace",50],["Poley",50]],
 const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3300,"TV Company":3650,"Sports Bets Company":430};
 const TEAM_OPENING_CASH={Lions:4430,Rims:4470,Dunks:4450};
 const FINANCIAL_TRANSACTIONS_STORAGE_KEY="calvins_city_financial_transactions_v1";
- 
+
 /* 4.24.25: Season 29 Game 0 opening cash restoration for every team and business.
 Existing ledger history is preserved. Each changed balance creates an explicit
 before/after adjustment entry; this migration runs once and never overwrites later seasons. */
@@ -2973,7 +2991,7 @@ state.season29AllAccountOpeningCashReconciliation={version,at,status:"Applied",r
 state.season29AllAccountOpeningCashReconciledVersion=version;
 try{save();}catch(e){console.error("All-account opening cash reconciliation could not be saved.",e);}
 })();
- 
+
 /* 4.23.1: Permanent citizen/business ownership registry.
 Initial valuations are seeded from the existing listed business figures,
 but business cash is never changed by a secondary ownership transfer. */
@@ -3096,7 +3114,7 @@ return "$"+n.toLocaleString("en-US",{maximumFractionDigits:2})+"M";
 function ownershipEscapeHTML(value){
 return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 }
- 
+
 const INITIAL_LIONS_PLAYERS={
 Lions_C:{name:"Wall",position:"C",careerPts:568,careerRebs:549,mvps:1,championships:2},
 Lions_SG:{name:"Diggs",position:"SG",careerPts:83,careerRebs:80,mvps:0,championships:0},
@@ -3188,7 +3206,7 @@ rec.paymentModel=String(live.paymentModel||"upfront-total");
 state.contractPaymentModelVersion=3;
 save();
 }
- 
+
 function seedInitialLionsRoster(){
 state.roster=state.roster||{};
 state.contracts=state.contracts||{};
@@ -3288,7 +3306,7 @@ openingRec.season29OpeningCash=Number(SEASON_29_OPENING_CASH[name])||0;
 }
 });
 }
- 
+
 /* 4.17.105: Complete the Season 29 Arena roster database for Rims and Dunks.
 These are opening Season 29 contracts, not re-sign transactions. Existing
 live contract terms are preserved after play begins or a season is completed. */
@@ -3350,12 +3368,12 @@ c.arenaRosterSeeded=true;
 });
 }
 seedInitialArenaRosters();
- 
+
 /* 5.2.9 DIGGS CAREER STAT PROTECTION
 The legacy v8 startup repair hardcoded career totals for Wall, Diggs and Kap.
 It is intentionally removed. Career totals must come from saved records or
 verified box scores, never from a startup target table. */
- 
+
 /* 4.17.105: All nine Season 29 contracts supplied as the opening roster are
 already fully paid. They are not future salary obligations and are not new
 re-sign transactions. This migration normalizes their live contract records
@@ -3386,7 +3404,7 @@ const name=o.name;
 /* If the live contract is still the supplied opening contract, mark it as
 already paid. Do not alter player cash or team cash. */
 if(Number(c.value)===value &&
- 
+
 (Number(c.contractYears||originalTerm)===originalTerm || Number(c.years)<=originalTerm)){
 c.value=value;
 c.totalPackage=value;
@@ -3427,7 +3445,7 @@ state.startingContractModelVersion=2;
 save();
 }
 normalizeSeason29StartingContracts();
- 
+
 /* 4.17.105: Reconcile the nine Season 29 opening player cash balances.
 These contracts were already paid in the paper game. Cash therefore starts
 at the paid contract amount and must not inherit inflated test payments from
@@ -3470,7 +3488,7 @@ and current-season records to the established Season 29 opening baseline.
 Keep Seasons 1–28 permanent history and do not reset non-basketball
 financial/business data stored on Citizen records. */
 /* 4.29.20 SAFETY: legacy full Season 29 baseline reset permanently disabled. */
- 
+
 /* 4.17.105: Reset both streak fields for the Season 29 opening baseline.
 The records display reads champStreak first, so resetting only
 currentChampStreak left stale “Titles in a Row” values visible. */
@@ -3487,7 +3505,7 @@ citizen.currentChampStreak=0;
 state.season29ShipsInRowResetVersion="4.17.105";
 save();
 }
- 
+
 /* 4.17.105: Repair Rims and Dunks Season 29 opening career totals.
 Earlier builds could retain test totals because arenaRosterSeeded prevented
 the opening baseline from being reapplied. This one-time repair is limited
@@ -3520,16 +3538,16 @@ citizen.champStreak=Number(citizen.champStreak)||0;
 state.season29RimsDunksBaselineFixVersion="4.17.105";
 save();
 }
- 
+
 const CITIZEN_NAMES=()=>Array.from(new Set([...(state.records&&state.records.retiredPlayers||[]).map(x=>x.name),...Object.values(state.roster||{}).filter(Boolean)]));
- 
- 
+
+
 /* 4.17.105: Reset CrazBo's test data once.
 CrazBo is a test citizen. Clear all prior test cash and contract data so
 the next test starts from a clean Free Agent state. The Citizen identity
 itself is preserved for the next test. */
 /* 4.29.20 SAFETY: test-citizen cash/contract reset permanently disabled. */
- 
+
 function citizenByName(name){const key=String(name||"").trim().toLowerCase();return state.citizens.find(c=>String(c&&c.name||"").trim().toLowerCase()===key)}
 function citizenBusinessSummary(name){
 ensureBusinessOwnershipRegistry();
@@ -3691,7 +3709,7 @@ Object.entries(expected).forEach(([name,opening])=>{const list=byPlayer.get(name
 return {diagnosticVersion:"4.22.1",createdAt:new Date().toISOString(),mode:"Read-only; no cash or contracts changed",season:Number(state.year)||null,gamesPlayed:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:null,transactionTracking:"Records only instrumented actions from this build onward; pre-existing cash history is not inferred.",citizenCount:(state.citizens||[]).length,transactionCount:tx.length,finalCashReconciliationVersion:state.season29FinalCashReconciliationVersion??null,gameBoundaryAudit:Array.isArray(state.season29GameCashAudit)?state.season29GameCashAudit:[],findings};
 }
 seedInitialLionsRoster();
- 
+
 /* 4.17.105: Keep the Citizen Ledger synchronized to the exact Season 29
 starting cash while Season 29 has not started. Starting contracts live in
 state.contracts and are displayed as the player's current contract, but
@@ -3719,15 +3737,15 @@ c.position=p.position;
 }
 });
 }
- 
+
 /* 4.17.105: Complete Season 29 live-state reset.
 This runs once for the 4.17.105 build. It restores every live-game setting
 to the beginning of Season 29 while preserving permanent historical
 Records for Seasons 1–28. */
 const season29Marker=String(state.season29StartingPointVersion||"");
 /* 4.29.20 SAFETY: Disabled legacy automatic Season 29 reset migration. */
- 
- 
+
+
 /* 4.17.105: Connect the five known shoe deals to their actual players.
 This migration records existing deals only; it does not pay them or alter player cash. */
 if(state.shoeDealSetupVersion!=="4.17.105"){
@@ -3747,14 +3765,14 @@ citizen.shoeDeals=[{...deal,originalYears:deal.years,yearsRemaining:deal.years,s
 state.shoeDealSetupVersion="4.17.105";
 save();
 }
- 
+
 /* 4.17.108: Shoe deals are effective when the team re-signing is approved.
 Remove future-start test records from the citizen ledger and mirrored contracts. */
 if(state.shoeDealFutureCleanupVersion!=="4.17.108"){
 const currentShoeSeason=Number(state.year)||0;
 (state.citizens||[]).forEach(c=>{
 if(!c||!Array
- 
+
 .isArray(c.shoeDeals))return;
 c.shoeDeals=c.shoeDeals.filter(d=>{
 if(!d||d.startYear==null)return true;
@@ -3773,7 +3791,7 @@ return !Number.isFinite(start)||start<=currentShoeSeason;
 state.shoeDealFutureCleanupVersion="4.17.108";
 save();
 }
- 
+
 /* 4.17.108: Remove duplicate test shoe contracts that share the same player,
 company, value, and start season. Keep the record with the longest original
 term so Wall's established Reebok deal remains 2 years / $290M rather than
@@ -3802,7 +3820,7 @@ Object.values(state.contracts||{}).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))
 state.shoeDealDuplicateCleanupVersion="4.17.108";
 save();
 }
- 
+
 /* 4.29.24: Repair duplicate active shoe deals after offseason verification.
 The legacy Wall initializer checked for an exact 2-year deal, so when the
 legitimate deal advanced to 1 year it could append a second 2-year record.
@@ -3845,13 +3863,13 @@ Object.values(state.contracts||{}).forEach(c=>{if(c&&Array.isArray(c.shoeDeals))
 state.shoeDealDuplicateCleanupVersion="4.29.24";
 save();
 }
- 
+
 /* 4.18.2: Restore the LIVE basketball game to the opening of Season 29 exactly once for this build.
 Permanent Seasons 1–28 records and non-basketball business data remain untouched. This migration resets live game state only. Permanent Seasons 1–28 records and
 non-basketball business data remain untouched. Opening team contracts and
 their paired shoe deals start with matching terms. */
 /* 4.29.20 SAFETY: legacy Season 29 opening reset permanently disabled. */
- 
+
 /* 4.17.110: Reset unrostered, non-retired citizens to rookie/free-agent state
 at the Season 29 opening. This removes test-created cash and contracts from
 players such as Carson who are not on one of the nine opening roster slots.
@@ -3885,7 +3903,7 @@ state.season29UnrosteredRookieResetVersion="4.17.110";
 syncCitizenLedger();
 save();
 }
- 
+
 /* 4.17.111: Repair the complete Season 29 opening contract baseline.
 The prior reset could leave Rims/Dunks contract slots missing or with zero
 years. Restore all nine opening contracts only while Season 29 is still at
@@ -3895,7 +3913,7 @@ Number(state.year)===29 && !state.seasonPlayed &&
 (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
 const openingContracts={
 Lions_C:{name:"Wall",team:"Lions",position:"C",value:787,years:2,rookie:false,teamValue:497,
- 
+
 shoe:{company:"Reebok",years:2,value:290}},
 Lions_SG:{name:"Diggs",team:"Lions",position:"SG",value:0,years:2,rookie:true,teamValue:0},
 Lions_PG:{name:"Kap",team:"Lions",position:"PG",value:450,years:2,rookie:false,teamValue:450,shoe:{company:"Puma",years:2,value:190}},
@@ -3925,7 +3943,7 @@ state.season29OpeningContractRepairVersion="4.17.111";
 syncCitizenLedger();
 save();
 }
- 
+
 /* 4.17.116: Reconcile Season 29 opening Citizen Ledger cash against the
 authoritative paper-game baseline. Earlier test contract payments could
 leave player cash above their opening contract amount. At game zero only,
@@ -3962,7 +3980,7 @@ c.contracts=(Array.isArray(c.contracts)?c.contracts:[]).filter(r=>r&&Number(r.ye
 state.season29OpeningCashCleanupVersion="4.17.116";
 save();
 }
- 
+
 /* 4.17.116: Final authoritative cash reconciliation.
 The previous cleanup could be bypassed by saved migration flags / stale
 seasonPlayed state, leaving old test payments such as +$100M in the Ledger.
@@ -3983,8 +4001,8 @@ citizen.season29OpeningCashInitialized=true;
 state.season29CashBaselineRepairVersion="4.17.116";
 save();
 }
- 
- 
+
+
 /* 4.23.1: Load permanent ownership transfers before Season 29 cash repairs,
 so an ownership purchase cannot be overwritten by opening-balance logic. */
 ensureBusinessOwnershipRegistry();
@@ -4029,7 +4047,7 @@ c.shoeDeals=p.shoe?[{company:p.shoe.company,value:p.shoe.value,years:p.shoe.year
 state.season29AuthoritativeOpeningVersion="4.17.116";
 save();
 }
- 
+
 /* 4.17.105: Season 28 champion streak carry-forward.
 Vico and Bic won the Season 28 championship, so they begin Season 29
 with one consecutive title. This updates only the two players' streak fields. */
@@ -4043,7 +4061,7 @@ if(c){c.champStreak=1;c.currentChampStreak=1;}
 state.season29VicoBicStreakCarryVersion="4.17.105";
 save();
 }
- 
+
 /* 4.29.14: Team contract years and shoe-deal years advance once per
 completed championship season. Shoe deals are citizen/business contracts,
 so advance them across ALL citizens, including retired or off-roster players.
@@ -4082,7 +4100,7 @@ if(deal.yearsRemaining===0)deal.endYear=completedYear;
 });
 state.contractYearsAdvancedForSeason=completedYear;
 }
- 
+
 function setActivePlayerContract(key,team,name,contract,options={}){
 const c=state.contracts=state.contracts||{};
 const normalized={
@@ -4132,17 +4150,17 @@ paySeasonContractInstallments(). This function intentionally performs
 no cash payment during sync/refresh. */
 return false;
 }
- 
+
 function paySeasonContractInstallments(completedSeason){
 /* 4.17.105: Contracts are paid in full when verified. There is no yearly
 installment payment. This function remains as a compatibility no-op so
 older saved state cannot trigger duplicate payments. */
 return false;
 }
- 
+
 function syncActivePlayerContracts(){
- 
- 
+
+
 const roster=state.roster||{};
 const contracts=state.contracts=state.contracts||{};
 Object.entries(roster).forEach(([key,name])=>{
@@ -4153,7 +4171,7 @@ setActivePlayerContract(key,team,name,contract);
 applyActivePlayerContractCash(key,team,name);
 });
 }
- 
+
 function syncCitizenLedger(){
 const retiredMap={};(state.records.retiredPlayers||[]).forEach(p=>retiredMap[p.name]=p);
 CITIZEN_NAMES().forEach(name=>{
@@ -4194,7 +4212,7 @@ syncActivePlayerContracts();
 state.citizens.forEach(c=>{c.businesses=citizenBusinessSummary(c.name)});
 }
 function citizenCount(){return state.citizens.length}
- 
+
 function seedRecords(){
 /* 4.17.105: Historical paper records are the authoritative baseline for
 Years 1–28. Existing saved records are preserved, but malformed entries
@@ -4202,7 +4220,7 @@ are ignored and historical championship rows are repaired by year. */
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
 state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.records.retiredPlayers:[];
 state.records.gameRecords=Array.isArray(state.records.gameRecords)?state.records.gameRecords:[];
- 
+
 const cleanPlayers=[];
 const playerMap={};
 state.records.retiredPlayers.forEach(p=>{
@@ -4210,7 +4228,7 @@ if(!p||!p.name)return;
 if(!playerMap[p.name]){playerMap[p.name]=p;cleanPlayers.push(p);}
 });
 state.records.retiredPlayers=cleanPlayers;
- 
+
 HISTORICAL_RETIRED.forEach(x=>{
 const [name,pts,reb,mvp,titles]=x;
 let p=playerMap[name];
@@ -4228,39 +4246,39 @@ p.currentChampStreak=CHAMP_STREAKS[name]||0;
 p.status="Retired";
 p.retirementCash=RETIREMENT_CASH[name]??null;
 });
- 
+
 /*
 4.17.105: Prevent duplicate championship seasons in Records.
 Years 1–28 are permanent historical records and must have exactly one
 championship row per year. Older saved browser data can contain duplicate
 Championship rows from previous versions, so historical rows are rebuilt
 from HISTORICAL_CHAMPIONSHIPS instead of trusting saved duplicates.
- 
+
 Live seasons (29+) keep at most one Championship row per year as well.
 */
 const cleanGames=[];
 const liveChampionships={};
- 
+
 state.records.gameRecords.forEach(g=>{
 if(!g||typeof g!=="object")return;
- 
+
 const year=Number(g.year)||0;
- 
+
 // Historical championship rows are authoritative and are recreated below.
 if(g.stage==="Championship" && year>=1 && year<=28)return;
- 
+
 // A live season should only have one championship record for its year.
 if(g.stage==="Championship"){
 liveChampionships[year]=g;
 return;
 }
- 
+
 cleanGames.push(g);
 });
- 
+
 Object.keys(liveChampionships).forEach(y=>cleanGames.push(liveChampionships[y]));
 state.records.gameRecords=cleanGames;
- 
+
 HISTORICAL_CHAMPIONSHIPS.forEach(x=>{
 const [year,winner,mvp,winnerPts,loserPts]=x;
 let row=state.records.gameRecords.find(g=>Number(g.year)===year&&g.stage==="Championship");
@@ -4286,7 +4304,7 @@ row.moneylineB=null;
 row.winningMoneyline=null;
 row.bettingResult=null;
 });
- 
+
 // Keep the permanent database in chronological order after rebuilding history.
 state.records.gameRecords.sort((a,b)=>{
 const ay=Number(a.year)||0, by=Number(b.year)||0;
@@ -4315,7 +4333,7 @@ citizen.startingContractCash=amount;citizen.season29OpeningCash=amount;citizen.s
 state.season29OpeningCashIntegrityVersion="4.18.9";
 save();
 }
- 
+
 seedRecords();
 seedConfirmedFreeAgents();
 importExistingRecordedGamesToBets();
@@ -4435,8 +4453,8 @@ if(state.teamCash[team]==null)state.teamCash[team]=base[team];
 });
 return state.teamCash;
 }
- 
- 
+
+
 /* 4.17.105: Season 29 opening team cash reconciliation.
 The nine opening player contracts were already paid before the live game
 began. Those contract amounts must NOT be deducted from team cash again.
@@ -4450,7 +4468,7 @@ state.teamCash.Dunks=4450;
 state.season29OpeningTeamCashReconciledVersion="4.17.105";
 save();
 }
- 
+
 function die(){return Math.floor(Math.random()*6)+1} function money(n){return "$"+n.toFixed(0)+"M"} function ticketRevenue(){return(die()+die())*10} function shoeRevenue(){return(die()+die())*10} function playerName(t,p){return state.roster[t+"_"+p]||p}
 function rollPlayer(){let pts=0,rebs=0;for(let q=1;q<=4;q++){pts+=die()+die();rebs+=die()+die()}return{pts,rebs}}
 function playTeam(team){const players=POSITIONS.map(pos=>({team,pos,name:playerName(team,pos),...rollPlayer()}));return{team,players,score:players.reduce((a,p)=>a+p.pts,0),rebs:players.reduce((a,p)=>a+p.rebs,0)}}
@@ -4550,7 +4568,7 @@ g.ticketRevenueApplied=true;
 g.ticketRevenueDistribution={total,winner, winnerAmount,loser,loserAmount,season,stage:String(stage||g.stage||"")};
 return true;
 }
- 
+
 /* 4.24.2: Credit shoe-company revenue and TV Company revenue for each completed game.
 TV gets its own two-dice revenue roll plus an additional 10% of the total shoe revenue.
 The TV share is additive and is never deducted from shoe-company cash. Separate flags
@@ -4646,11 +4664,11 @@ catch(marketMoneyInterestError){console.error("Market Money interest accrual fai
 /*
 4.17.105: Bye logic searches the permanent Championship history for the
 most recent completed championship BEFORE the current season.
- 
+
 This is the authoritative source for the defending champion. We do not
 rely on a stale localStorage defendingChampion or lastSeason value when
 deciding a tie-break bye.
- 
+
 Season 29 -> searches Season 28 -> Dunks.
 Season 30 -> searches Season 29 champion.
 Season 39 -> searches Season 38 champion.
@@ -4659,64 +4677,64 @@ function getLastChampionshipWinner(){
 const currentYear=Number(state.year)||29;
 let latestYear=-1;
 let latestWinner=null;
- 
+
 // Search the permanent/live game database first.
 const records=state.records&&Array.isArray(state.records.gameRecords)
 ? state.records.gameRecords
 : [];
- 
+
 records.forEach(g=>{
 if(!g||g.stage!=="Championship")return;
- 
+
 const y=Number(g.year)||0;
 const winner=String(g.winner||"").trim();
- 
+
 if(y<currentYear && winner && y>latestYear){
 latestYear=y;
 latestWinner=winner;
 }
 });
- 
+
 // Years 1–28 are permanent historical records.
 // Use them as the fallback if a live championship record is missing.
 if(!latestWinner){
 HISTORICAL_CHAMPIONSHIPS.forEach(x=>{
 const y=Number(x[0])||0;
 const winner=String(x[1]||"").trim();
- 
+
 if(y<currentYear && winner && y>latestYear){
 latestYear=y;
 latestWinner=winner;
 }
 });
 }
- 
+
 return latestWinner||HISTORICAL_LAST_CHAMPION;
 }
- 
+
 function chooseBye(){
- 
+
 const max=Math.max(...TEAMS.map(t=>state.standings[t].w));
- 
+
 const leaders=TEAMS.filter(t=>state.standings[t].w===max);
- 
+
 const defending=getLastChampionshipWinner();
- 
+
 // Keep the saved defending-champion field synchronized with the
 // championship record actually found in permanent history.
 state.defendingChampion=defending;
- 
+
 if(leaders.length===1)return leaders[0];
- 
+
 // Any tie, including a three-way tie, goes to the most recent champion
 // when that champion is one of the tied leaders.
 if(defending && leaders.includes(defending))return defending;
- 
+
 // Safety fallback: never give the bye to a team outside the tied leaders.
 return leaders[0];
- 
+
 }
- 
+
 /* 4.28.86: Idempotent team playoff payouts. Each award is a single cash
 transfer recorded in the append-only Team Cash Ledger. Deterministic IDs
 and prior-ledger checks prevent repeat clicks/re-entry from paying twice. */
@@ -4753,7 +4771,7 @@ const winnerPaid=applyTeamSeasonPayout("Championship Winner",championName,100);
 const runnerPaid=applyTeamSeasonPayout("Championship Runner-Up",runnerUpName,50);
 return winnerPaid||runnerPaid;
 }
- 
+
 function finishRegularSeason(){
 state.defendingChampion=getLastChampionshipWinner();
 state.playoff.bye=chooseBye();
@@ -4778,7 +4796,7 @@ state.records.gameRecords=Array.isArray(state.records.gameRecords)?state.records
 state.championshipAwards=Array.isArray(state.championshipAwards)?state.championshipAwards:[];
 const season=Number(state.year)||0;
 if(state.championshipAwards.some(x=>x&&Number(x.season)===season))return;
- 
+
 const winnerTeam=winningTeamGame.team;
 const winnerNames=winningTeamGame.players.map(p=>p&&p.name).filter(Boolean);
 const mvpPlayer=winningTeamGame.players.slice().sort((a,b)=>
@@ -4786,7 +4804,7 @@ const mvpPlayer=winningTeamGame.players.slice().sort((a,b)=>
 (Number(b.rebs)||0)-(Number(a.rebs)||0)
 )[0];
 const mvpName=mvpPlayer&&mvpPlayer.name?mvpPlayer.name:null;
- 
+
 /* 4.17.105: TNR shown in the Ledger, team pages, Records, and Hall of Fame
 means the player's CURRENT consecutive championship run. Every active
 player who is not on this championship-winning roster has their active
@@ -4798,7 +4816,7 @@ const isActivePlayer=c.status==="Active Player" || !!c.currentTeam ||
 Object.values(state.roster||{}).includes(c.name);
 if(isActivePlayer && !winnerNameSet.has(c.name)) c.currentChampStreak=0;
 });
- 
+
 winnerNames.forEach(name=>{
 const citizen=ensureCitizen(name,{status:"Active Player",currentTeam:winnerTeam});
 if(!citizen)return;
@@ -4809,7 +4827,7 @@ citizen.currentChampStreak=(Number(citizen.currentChampStreak)||0)+1;
 citizen.champStreak=Math.max(Number(citizen.champStreak)||0,Number(citizen.currentChampStreak)||0);
 citizen.lastChampionshipSeason=season;
 });
- 
+
 if(mvpName){
 const mvpCitizen=ensureCitizen(mvpName,{status:"Active Player",currentTeam:winnerTeam});
 if(mvpCitizen){
@@ -4819,7 +4837,7 @@ mvpCitizen.lastChampionshipMvpPts=Number(mvpPlayer.pts)||0;
 mvpCitizen.lastChampionshipMvpRebs=Number(mvpPlayer.rebs)||0;
 }
 }
- 
+
 state.championshipAwards.push({
 season,
 champion:winnerTeam,
@@ -4828,7 +4846,7 @@ mvp:mvpName,
 mvpPts:mvpPlayer?Number(mvpPlayer.pts)||0:0,
 mvpRebs:mvpPlayer?Number(mvpPlayer.rebs)||0:0
 });
- 
+
 /* Keep the permanent season ledger and live totals aligned. */
 state.records.gameRecords=Array.isArray(state.records.gameRecords)?state.records.gameRecords:[];
 const championshipRow=state.records.gameRecords.find(x=>x&&Number(x.year)===season&&x.stage==="Championship");
@@ -4986,7 +5004,7 @@ say(name+" was created as "+id+" and added to the Free Agent pool. They are read
 return true;
 }
 window.createOffseasonFreeAgent=createOffseasonFreeAgent;
- 
+
 /* 4.19.9: A release moves the existing citizen to Free Agent without creating
 a new identity, changing cash/stats, or deleting career/contract history. */
 function markPlayerAsFreeAgent(name,fromTeam,position){
@@ -5318,7 +5336,7 @@ entry.decision=sel.value;
 const y=document.querySelector('.resign-years[data-team="'+sel.dataset.team+'"][data-pos="'+sel.dataset.pos+'"]');
 const sal=document.querySelector('.resign-salary[data-team="'+sel.dataset.team+'"][data-pos="'+sel.dataset.pos+'"]');
 entry.years=y
- 
+
 &&y.value?Number(y.value):0;entry.salary=sal&&sal.value?Number(sal.value):0;
 state.offseasonDecisions[k]=entry;
 });
@@ -5551,7 +5569,7 @@ the popup can reach the real contract workflow. */
 window.requestVerifyOffseasonDecision=requestVerifyOffseasonDecision;
 window.closeContractVerifyModal=closeContractVerifyModal;
 window.confirmContractVerification=confirmContractVerification;
- 
+
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
 /* 4.23.1: Public bridge for the dynamically displayed shoe-deal popup.
 This function is defined in the same closure as state/openOffseason, so the
@@ -5638,12 +5656,12 @@ if(Number(cb.lastInterestSeason)===cbSeason){
 alert("CalBank season-end interest status could not be verified. The next season remains locked to protect saved financial records. Error: "+String(calBankGateError&&calBankGateError.message||calBankGateError));
 return;
 }
- 
+
 state.offseasonDecisions=state.offseasonDecisions||{};
 state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
 state.openRosterSpots=state.openRosterSpots||{};
 const errors=[];
- 
+
 /* 4.17.105: Every roster spot must be filled and every decision must be
 verified before the offseason can advance the city into the next season. */
 TEAMS.forEach(t=>POSITIONS.forEach(p=>{
@@ -5664,7 +5682,7 @@ syncCitizenLedger();
 buildContractBoard();
 return;
 }
- 
+
 TEAMS.forEach(t=>{
 POSITIONS.forEach(p=>{
 const k=t+"_"+p;
@@ -5673,7 +5691,7 @@ if(!name)return;
 const d=state.offseasonDecisions[k]||{decision:"Keep"};
 const c=state.contracts[k]||{value:0,years:0};
 if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k])return;
- 
+
 if(d.decision==="Resign"){
 const years=Math.max(1,Math.min(3,Number(d.years)||0));
 const salary=Math.max(0,Number(d.salary)||0);
@@ -5722,7 +5740,7 @@ errors.push(name+" has no contract years remaining. Use Re-sign, Release, or Ret
 }
 });
 });
- 
+
 if(errors.length){
 alert(errors.join("\n"));
 save();
@@ -5730,7 +5748,7 @@ syncCitizenLedger();
 buildContractBoard();
 return;
 }
- 
+
 syncCitizenLedger();
 state.offseasonFinalized=true;
 state.seasonPlayed=false;
@@ -5758,7 +5776,7 @@ renderBetsSection();
 if(typeof window.checkTVBroadcastingSeasonReadiness==="function")setTimeout(window.checkTVBroadcastingSeasonReadiness,250);
 alert("Offseason finalized. Calvin's City is ready for the new year.");
 }
- 
+
 /* 4.17.121: One-time correction for the three confirmed Season 29 test-payment overages.
 The diagnostic proved these exact balances existed before startup migrations:
 Holly 450 (baseline 350), Kap 750 (baseline 450), Bic 633 (baseline 533).
@@ -5785,7 +5803,7 @@ state.season29CashOverageCorrectionVersion="4.17.121";
 save();
 }
 }
- 
+
 /* 5.1.9: Reconcile title totals AFTER backup import as well as at startup.
 The prior startup-only repair could run before the user imported their backup.
 Permanent award rows are authoritative for Seasons 29+; historical opening
@@ -5845,7 +5863,7 @@ shoeDeals:Array.isArray(c.shoeDeals)?c.shoeDeals.map(d=>({...d})):[]
 const roster=state.roster||{}, liveContracts=state.contracts||{};
 const live=Object.entries(roster).filter(([k,n])=>focusNames.has(norm(n))).map(([key,name])=>({key,name,contract:liveContracts[key]?JSON.parse(JSON.stringify(liveContracts[key])):null}));
 return {diagnosticVersion:"4.22.1",capturedAt:new Date().toISOString(),note:"Captured after app startup migrations but before the Citizen Ledger render-time cash reconciliation. This report does not change financial data.",state:{year:state.year,seasonPhase:state.seasonPhase,seasonPlayed:state.seasonPlayed,gamesPlayedCount:Array.isArray(state.gamesPlayed
- 
+
 )?state.gamesPlayed.length:null,season29CashBaselineRepairVersion:state.season29CashBaselineRepairVersion??null,season29OpeningCashCleanupVersion:state.season29OpeningCashCleanupVersion??null,season29OpeningCashReconciledVersion:state.season29OpeningCashReconciledVersion??null,season29OpeningRestoreVersion:state.season29OpeningRestoreVersion??null,season29FullBaselineRestoreVersion:state.season29FullBaselineRestoreVersion??null,contractPaymentModelVersion:state.contractPaymentModelVersion??null,startingContractModelVersion:state.startingContractModelVersion??null,season29OpeningContractRepairVersion:state.season29OpeningContractRepairVersion??null},citizens,liveContracts:live};
 })();
 const cashDiagnosticSnapshot={diagnosticVersion:"4.22.1",note:"Read-only report. startupSnapshot is captured immediately after localStorage load and before payment migrations; ledgerOpenSnapshot is captured later before render-time cash reconciliation.",startupSnapshot:window.__cashDiagnosticStartupSnapshot||null,ledgerOpenSnapshot:cashDiagnosticLedgerOpenSnapshot};
@@ -6156,7 +6174,7 @@ const master=ledger.find(x=>x&&String(x.id)===String(original.id));
 if(master){master.status="voided";master.voidedByRejection=true;master.voidedAt=entry.approvalAt;master.reversalId=reversal.id;}
 if(Array.isArray(stNow.playerLedgerTransactions)){
 stNow.playerLedgerTransactions.filter(x=>x&&(String(x.transactionId||"")===String(original.id)||String(x.id||
- 
+
 "").startsWith(String(original.id)))).forEach(x=>{x.status="voided";x.voidedAt=entry.approvalAt;x.reversalId=reversal.id;});
 }
 entry.status="voided";entry.reversalId=reversal.id;
@@ -6341,7 +6359,7 @@ return;
 }
 deleteContractFromCitizenLedger({playerName,packageValue,source:"deleteContractHistoryFromCitizenLedger",activeKey:sameActive?rosterKey:null,historyIndex});
 });
- 
+
 /* 4.18.3: Per-citizen cash source report. Read-only: combines tracked transactions
 with game-boundary cash deltas so unexpected increases can be traced without
 changing balances. It cannot infer a source when no event was logged. */
@@ -6391,7 +6409,7 @@ let latestLedgerReport=null;
 const runBtn=document.getElementById("runLedgerDiagnostics"),copyBtn=document.getElementById("copyLedgerDiagnostics"),reportBox=document.getElementById("ledgerDiagnosticText"),summary=document.getElementById("ledgerDiagnosticSummary");
 if(runBtn)runBtn.addEventListener("click",()=>{latestLedgerReport=buildLedgerDiagnostics();if(reportBox)reportBox.value=JSON.stringify(latestLedgerReport,null,2);const errors=latestLedgerReport.findings.filter(x=>x.severity==="ERROR").length,warnings=latestLedgerReport.findings.filter(x=>x.severity==="WARNING").length;if(summary)summary.textContent=errors+" error(s), "+warnings+" warning(s), "+latestLedgerReport.transactionCount+" recorded transaction(s). No data changed.";});
 if(copyBtn)copyBtn.addEventListener("click",async()=>{if(!latestLedgerReport){latestLedgerReport=buildLedgerDiagnostics();if(reportBox)reportBox.value=JSON.stringify(latestLedgerReport,null,2);}const textToCopy=JSON.stringify(latestLedgerReport,null,2);try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(textToCopy);copyBtn.textContent="Copied — paste report into ChatGPT";return;}}catch(e){}if(reportBox){reportBox.focus();reportBox.select();reportBox.setSelectionRange(0,reportBox.value.length);}let copied=false;try{copied=document.execCommand("copy");}catch(e){}copyBtn.textContent=copied?"Copied — paste report into ChatGPT":"Select report text and copy it";});
- 
+
 }
 function renderRecords(){
 /* 4.17.105: Always verify/seed the permanent historical record data
@@ -6449,13 +6467,13 @@ const recordPlayers=Object.values(recordMap);
 const a=document.getElementById("retiredCount"),b=document.getElementById("recordGameCount"),cc=document.getElementById("citizenCount");
 if(a)a.textContent=r.length;if(b)b.textContent=g.length;if(cc)cc.textContent=(state.citizens||[]).length;
 const body=document.getElementById("recordsBody");if(!body)return;
- 
+
 const points=recordPlayers.slice().sort((x,y)=>(y.careerPts||0)-(x.careerPts||0)).slice(0,10);
 const rebounds=recordPlayers.slice().sort((x,y)=>(y.careerRebs||0)-(x.careerRebs||0)).slice(0,10);
 const titles=recordPlayers.slice().sort((x,y)=>(y.championships||0)-(x.championships||0)||(y.careerPts||0)-(x.careerPts||0)).slice(0,5);
 const mvps=recordPlayers.slice().sort((x,y)=>(y.mvps||0)-(x.mvps||0)||(y.careerPts||0)-(x.careerPts||0)).slice(0,5);
 const championships=g.filter(x=>x&&x.stage==="Championship"&&x.winner).slice().sort((a,b)=>(Number(a.year)||0)-(Number(b.year)||0));
- 
+
 function panel(id,title,rows,field,label){
 let h='<div id="'+id+'" class="record-panel">';
 h+='<h3>'+title+'</h3>';
@@ -6466,7 +6484,7 @@ h+='<div class="record-rank"><span class="rank">'+(i+1)+'</span><span class="nam
 });
 return h+'</div>';
 }
- 
+
 function renderHallOfFamePanel(){
 /* 4.24.12: A player currently assigned to a team is active, not retired.
 Stale/test retirement rows must not place active roster players in HOF. */
@@ -6515,7 +6533,7 @@ const loser=x.loser||"N/A";
 champHtml+='<div class="champ-record"><div class="champ-main">Year '+x.year+' — '+winnerName.toUpperCase()+'</div><div class="champ-mvp">🏆 '+mvp+' — MVP • '+pts+' PTS / '+reb+' REB</div><div class="champ-loser">'+loser+' • Final: '+finalScore+'</div></div>';
 });
 champHtml+='</div>';
- 
+
 body.innerHTML=
 panel("recordPoints","All-Time Points Leaders — Top 10",points,"careerPts","PTS")+
 panel("recordRebounds","All-Time Rebounds Leaders — Top 10",rebounds,"careerRebs","REB")+
@@ -6523,7 +6541,7 @@ panel("recordTitles","Championship Leaders — Top 5",titles,"championships","Ti
 panel("recordMvp","MVP Leaders — Top 5",mvps,"mvps","MVPs")+
 hofHtml+
 champHtml;
- 
+
 const tabs=[
 ["recordTabPoints","recordPoints"],
 ["recordTabRebounds","recordRebounds"],
@@ -6712,7 +6730,7 @@ if(open){openRecordsSafely(e);return;}
 document.addEventListener("DOMContentLoaded",bindRecordsModal);
 if(document.readyState!=="loading")bindRecordsModal();
 })();
- 
+
 /* 4.23.1: Continue from the shoe-deal warning into the actual Offseason workflow.
 Previously this button only closed the popup; it did not reliably reach the
 private Offseason function. Use the public bridge defined beside openOffseason. */
@@ -6818,7 +6836,7 @@ warning.style.display=window.__calvinsCitySaveError?"block":"none";
 }
 window.addEventListener("error",function(){setTimeout(showCitySaveWarning,0);});
 document.addEventListener("DOMContentLoaded",showCitySaveWarning);
- 
+
 /* VERSION 5.2.9: Diggs career-stat protection.
 This startup check is read-only: it deliberately does not rewrite career
 points/rebounds, does not save state, and does not touch other citizens.
@@ -6839,7 +6857,7 @@ note:"Read-only protection. Diggs totals were not forced to an unverified value;
 };
 console.info("Calvin's City 5.2.8 Diggs stats protection",window.__diggsCareerStatsProtectionDiagnostic);
 })();
- 
+
 /* VERSION 5.0.7: Refresh the offseason player dropdown after startup stats
 reconciliation. The dropdown labels are generated when buildContractBoard()
 runs, so refreshing only the team page leaves previously rendered option
@@ -6849,7 +6867,7 @@ if(typeof buildContractBoard==="function")buildContractBoard();
 }catch(err){
 console.error("Player dropdown refresh failed.",err);
 }
- 
+
 /* VERSION 5.0.7: Restore Wall's two historically earned MVPs.
 Wall won MVP in Years 27 and 31. Reconcile only his MVP career count in
 the citizen ledger and active Lions center roster record. Do not alter
@@ -6878,8 +6896,8 @@ try{if(typeof render==="function")render();}catch(err){console.error("Wall MVP c
 try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Wall MVP dropdown refresh failed.",err);}
 }
 })();
- 
- 
+
+
 /* 5.3.1 — Conservative career-stat reconciliation.
 Recovered 24 unique individual game records (deduplicated by season/stage/teams
 and box-score identity): Diggs 660 PTS / 684 REB; Kap 665 PTS / 692 REB.
@@ -6947,7 +6965,7 @@ if(!verified)console.error("Career stats were not fully persisted; inspect diagn
 try{if(typeof render==="function")render();}catch(err){console.error("Roster refresh after career-stat reconciliation failed.",err);}
 })();
 })();
- 
+
 /* VERSION 5.3.2 — Restore Kap's two known championship-game MVP awards.
 Narrow one-time repair based on the user's confirmed historical fact that Kap
 has two MVPs. Updates only Kap's citizen MVP count and the Lions PG roster MVP
@@ -6978,7 +6996,7 @@ window.__kapMvpRepairDiagnostic={version:"5.8.81",status:saved?"save-attempted":
 console.info("Calvin's City Kap MVP repair",window.__kapMvpRepairDiagnostic);
 }catch(err){window.__kapMvpRepairDiagnostic={version:"5.8.81",status:"guarded-error",reason:String(err&&err.message||err)};console.error("Kap MVP repair guarded error; startup continues.",window.__kapMvpRepairDiagnostic);}
 })();
- 
+
 /* VERSION 5.3.7: Refresh player-selection dropdown after startup reconciliation.
 The underlying fix is preserving existing career totals during roster seeding;
 rebuilding the dropdown then displays those saved citizen.careerPts/careerRebs.
@@ -6988,21 +7006,21 @@ if(typeof buildContractBoard==="function")buildContractBoard();
 }catch(err){
 console.error("Player-selection PTS/REB refresh failed.",err);
 }
- 
+
 /* 4.17.105: Championship awards now update Citizen/Arena/Ledger/Records.
- 
+
 4.17.105: Season 29 starting-point migration plus contract-year timing.
- 
+
 4.17.105: Citizen cash/contract synchronization fix.
 Season 29 opening cash is initialized once; Ledger sync never overwrites
 cash; original Season 29 contracts never trigger a new cash payment. */
- 
+
 /* 4.17.105: City uses direct HTML button actions.
 There is no City/stadium event-binding layer. Each arena button
 calls the existing global openTeamPage() directly. */
- 
+
 </script>
- 
+
 <div id="shoeDealNeedsModal" class="modal"><div class="modalbox">
 <h2>👟 Shoe Deals Needed</h2>
 <p>The season is complete. These shoe companies have no active player shoe deal and will not receive shoe revenue until they sign at least one player.</p>
@@ -7021,12 +7039,12 @@ calls the existing global openTeamPage() directly. */
 <button id="recordTabHOF" type="button">HOF</button>
 </div>
 <div id="recordsBody" class="log"></div>
- 
+
 <button id="recordsClose" class="secondary">Close</button>
 </div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:10px 0"><button type="button" class="secondary" data-share-ledger-view="all">All Events</button><button type="button" class="secondary" data-share-ledger-view="trades">Share Trades</button><button type="button" class="secondary" data-share-ledger-view="ownership">Ownership Transfers</button><button type="button" class="secondary" data-share-ledger-view="audit">Audit &amp; Reconciliation</button><button type="button" class="secondary" data-share-ledger-view="businesscash">Business Cash Ledger</button><button type="button" class="secondary" data-share-ledger-view="financial">Unified Financial Ledger</button><button type="button" class="secondary" data-share-ledger-view="cashaudit">Cash Audit &amp; Corrections</button></div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
- 
- 
- 
+
+
+
 <script>
 /* 4.17.105: Reliable Contract Verify modal controls.
 One event path owns Yes/No. The buttons are explicit type=button controls,
@@ -7075,11 +7093,11 @@ if(e.target===modal)window.closeContractVerifyModal();
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindContractVerifyModal,{once:true});
 else bindContractVerifyModal();
 })();
- 
+
 /* 4.17.105: Clean City controller.
 Arena buttons use ONLY their direct HTML onclick="openTeamPage(...)"
 action. No click/touchend handlers are attached to arena cards. */
- 
+
 function openCalBankPopup(){
 const panel=document.getElementById("cityCalBankPanel");
 if(!panel)return;
@@ -7095,6 +7113,31 @@ if(!panel)return;
 panel.style.display="none";
 document.body.style.overflow=document.body.dataset.calBankPreviousOverflow||"";
 }
+/* v5.8.86: switch visible CalBank section without moving or rebuilding existing controls. */
+function setCalBankSection(section){
+const panel=document.getElementById("cityCalBankPanel");
+if(!panel)return;
+const valid=["deposits","debt","loans","portfolio","ledger"];
+if(!valid.includes(section))section="deposits";
+panel.querySelectorAll("[data-calbank-tab]").forEach(function(tab){
+const active=tab.getAttribute("data-calbank-tab")===section;
+tab.classList.toggle("active",active);
+tab.setAttribute("aria-selected",active?"true":"false");
+});
+panel.querySelectorAll(".calbank-section-card[data-calbank-section]").forEach(function(card){
+card.style.display=card.getAttribute("data-calbank-section")===section?"block":"none";
+});
+const help=panel.querySelector(".calbank-section-help");
+if(help){const labels={deposits:"Deposits and Federal Reserve capital tools.",debt:"Debt & Borrowing: lender funding, repayment, and interest.",loans:"Customer loans issued by CalBank and their repayment records.",portfolio:"CalBank stock holdings, trade controls, and investment performance.",ledger:"Combined read-only CalBank transaction history."};help.textContent=labels[section];}
+}
+(function bindCalBankSectionTabs(){
+function bind(){const panel=document.getElementById("cityCalBankPanel");if(!panel)return;
+if(panel.dataset.sectionTabsBound==="1")return;panel.dataset.sectionTabsBound="1";
+panel.addEventListener("click",function(event){const tab=event.target.closest("[data-calbank-tab]");if(!tab||!panel.contains(tab))return;event.preventDefault();event.stopPropagation();setCalBankSection(tab.getAttribute("data-calbank-tab"));});
+setCalBankSection("deposits");
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
+})();
 document.addEventListener("keydown",function(event){
 if(event.key==="Escape")closeCalBankPopup();
 });
@@ -7125,8 +7168,8 @@ setCityTab(tab);
 })();
 </script>
 <script>
- 
- 
+
+
 /* 5.8.47 CalBank deposit foundation.
  Account records are stored separately from the core game state. Customer cash
  changes are committed only through a validated, rollback-protected transfer.
@@ -7213,7 +7256,7 @@ status(type+" completed and verified: "+money(amount)+" "+(type==="Deposit"?"mov
 const amt=$("calBankDepositAmount");if(amt)amt.value="";
 render();renderDebt();
 window.__calBankCitizenCashAudit={version:"5.8.81",status:"verified-current-transaction",customer:customer.name,customerId:customer.id,type,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),depositAccountBalance:round(Number(account.balance)),calBankCash:round(Number(d.bankCash)),transactionId:id,checkedAt:new Date().toISOString()};
- 
+
 }catch(e){
 try{
   const prior=JSON.parse(beforeState),bridge=window.__calvinsCityBridge,liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
@@ -7355,7 +7398,7 @@ render();renderDebt();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
 window.renderCalBankDeposits=render;window.renderCalBankDebt=renderDebt; })();
- 
+
 /* 5.8.55: Federal Reserve-CalBank interest-free capital transfer bridge. */
 (function(){
 "use strict";
@@ -7414,7 +7457,7 @@ status("Transfer could not be fully verified. A rollback was attempted; check bo
 }
 const receive=$("calBankFedReceive"),ret=$("calBankFedReturn");if(receive)receive.addEventListener("click",()=>transfer("receive"));if(ret)ret.addEventListener("click",()=>transfer("return"));const tab=$("cityCalBankTab");if(tab)tab.addEventListener("click",()=>setTimeout(render,0));document.addEventListener("DOMContentLoaded",render);setTimeout(render,0);window.renderCalBankFedCapital=render;
 })();
- 
+
 /* 5.8.4: Read-only Federal Reserve live cash tracker. No cash mutation, tax, or debt actions. */
 (function(){
 "use strict";
@@ -7452,10 +7495,10 @@ const button=el('fedRefreshCashTracker');if(button)button.addEventListener('clic
 const tab=el('cityFederalReserveTab');if(tab)tab.addEventListener('click',()=>setTimeout(runFederalReserveCashTracker,0));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',runFederalReserveCashTracker);else setTimeout(runFederalReserveCashTracker,0);
 })();
- 
+
 </script>
 <script>
- 
+
 /* 5.8.7: Guarded once-per-season tax collection after approval and fresh live-balance verification. */
 (function(){
 "use strict";
@@ -7572,7 +7615,7 @@ fed.cash=Math.round((fedBefore+expected+Number.EPSILON)*100)/100;
 const row={id:collectionId,season,rate:Number(currentPlan.rate),base:"cash_balance_at_assessment",total:Math.round((expected+Number.EPSILON)*100)/100,federalReserveCashBefore:fedBefore,federalReserveCashAfter:fed.cash,transactions,createdAt:new Date().toISOString(),status:"collected"};
 fed.seasonalTaxCollections.push(row);currentPlan.status="collected";currentPlan.collectedAt=row.createdAt;currentPlan.collectionId=collectionId;
 const plans=getSavedPlans(st),idx=plans.findIndex(p=>p&&p.id===currentPlan.id);if(idx<0)throw Error("Approved plan record is missing")
- 
+
 ;plans[idx]=currentPlan;
 const b=window.__calvinsCityBridge;if(!b||typeof b.save!=="function"||b.save()===false)throw Error("Game state save failed");
 const check=b.getState();const savedFed=check&&check.federalReserve;const savedRow=savedFed&&Array.isArray(savedFed.seasonalTaxCollections)?savedFed.seasonalTaxCollections.find(r=>r&&r.id===collectionId):null;
@@ -7617,10 +7660,10 @@ const details=$("fedTaxAssessmentDetails");if(details){let html='<table style="w
 }
 }
 })();
- 
+
 </script>
 <script>
- 
+
 /* 5.8.9: Fed selects one security type per offering; preserves Treasury ledger and maturity safeguards. */
 (function(){
 "use strict";
@@ -7746,14 +7789,14 @@ const securityPicker=$("fedTreasurySecurity"),investorPicker=$("fedTreasuryInves
 /* 5.8.25: capture-phase tap routing is the only click entry point for the four steps. */
 const treasuryStepIds=new Set(["fedTreasuryRecommend","fedTreasuryVerify","fedTreasuryApprove","fedTreasuryIssue"]);
 document.addEventListener("click",function(ev){const button=ev.target&&ev.target.closest?ev.target.closest("button[id]"):null;if(!button||!treasuryStepIds.has(button.id))return;ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();const action=treasuryActions[button.id];if(!action)return;if(button.disabled){status("Step unavailable. Follow the status below the buttons; no Treasury cash was moved.");return;}try{action();}catch(err){status("Treasury action failed: "+String(err&&err.message||err));console.error("Treasury workflow action failed",err);}},true);
- 
+
 $("fedTreasuryReleaseType")?.addEventListener("change",()=>{if(draft&&["recommended","verified"].includes(draft.status)&&Number($("fedTreasuryReleaseType").value)!==Number(draft.term)){if($("fedTreasuryVerify"))$("fedTreasuryVerify").disabled=true;if($("fedTreasuryApprove"))$("fedTreasuryApprove").disabled=true;status("Selected security changed. Generate a fresh Board recommendation before verification or approval.");}});
 $("cityFederalReserveTab")?.addEventListener("click",()=>setTimeout(render,0));
 (function restore(){const st=getState();if(!st)return;const f=fedState(st),season=getSeason(st);const found=f.treasuryOfferings.find(o=>o&&Number(o.season)===season&&["recommended","verified","approved"].includes(o.status));if(found){draft=found;const targetInput=$("fedTreasuryTarget"),typeInput=$("fedTreasuryReleaseType"),rateInputEl=$("fedTreasuryRate"),securityInput=$("fedTreasurySecurity");if(targetInput)targetInput.value=String(found.target);if(found.term&&typeInput)typeInput.value=String(found.term);if(rateInputEl)rateInputEl.value=String((found.rates&&found.rates[Number(found.term)])||0);/* Security selector values are offering IDs; render() selects a valid open offering below. */status("Restored Season "+season+" Treasury offering: "+found.status+". Button availability is based on this saved status.");}else{draft=null;status("No Treasury offering has been prepared for Season "+season+". Step 1 is available; no investor cash has moved.");}render();})();
 })();
- 
+
 </script>
- 
+
 <script>
 /* 5.8.15: Read-only Federal Reserve consolidated cash ledger. Does not mutate game state. */
 (function(){
@@ -7822,7 +7865,7 @@ $("fedLedgerRefresh")?.addEventListener("click",render);$("fedLedgerFilter")?.ad
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",render);else render();
 })();
 </script>
- 
+
 <script>
 /* 4.17.105: Registered shoe-company ownership and cash details. */
 const SHOE_COMPANY_DETAILS={
@@ -7952,7 +7995,7 @@ document.addEventListener("DOMContentLoaded",bindShoeCompanyModal);
 if(document.readyState!=="loading")bindShoeCompanyModal();
 })();
 </script>
- 
+
 <div id="businessOwnershipMarketplaceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="businessOwnershipMarketplaceTitle">
 <div class="modalbox">
 <h2 id="businessOwnershipMarketplaceTitle">🏢 Business Ownership Marketplace</h2>
@@ -8129,7 +8172,7 @@ const debtClose=document.getElementById("sportsBetsDebtClose");
 if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;/* Portal directly under body and force top layer over marketplace dialog. */if(panel.parentElement!==document.body)document.body.appendChild(panel);panel.style.zIndex="2147483647";panel.style.display="flex";debtTab.setAttribute("aria-expanded","true");if(typeof sbRenderFinancePanels==="function")sbRenderFinancePanels();});}
 if(debtClose){debtClose.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(panel)panel.style.display="none";const tab=document.getElementById("sportsBetsDebtTab");if(tab)tab.setAttribute("aria-expanded","false");});}
 if(debtPanel){debtPanel.addEventListener("click",e=>{if(e.target===debtPanel){debtPanel.style.display="none";const tab=document.getElementById("sportsBetsDebtTab");if(tab)tab.setAttribute("aria-expanded","false");}});}
- 
+
 const offers=activeOffers(business);
 let offerHtml='<h3>Stakes Offered for Sale</h3>';
 if(!offers.length)offerHtml+='<p class="muted">No active offers for this business.</p>';
@@ -8146,7 +8189,7 @@ offerHtml+='<tr><td>'+esc(ownerName({citizenId:offer.sellerId,name:offer.sellerN
 offerHtml+='</tbody></table></div>';
 }
 offersOut.innerHTML=offerHtml;
- 
+
 const history=registry().transactions.filter(t=>t&&t.business===business).slice().reverse().slice(0,10);
 let historyHtml='<h3>Recent Ownership Transfers</h3>';
 if(!history.length)historyHtml+='<p class="muted">No completed ownership transfers recorded yet.</p>';
@@ -8210,7 +8253,7 @@ const owner=(record.owners||[]).find(o=>String(o.citizenId)===String(seller.id))
 const available=availablePercent(business,owner);
 if(!owner||percentToSell>available+0.000001){
 message.textContent="Offer not listed. Available to offer: "+pct(
- 
+
 available)+".";
 showOwnershipValidationPopup(seller.name+" does not own enough available stake to sell "+pct(percentToSell)+".\n\nAvailable to offer: "+pct(available)+".\n\nThis offer was not created.");
 return;
@@ -8298,8 +8341,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 else initOwnershipMarketplace();
 })();
 </script>
- 
- 
+
+
 <script>
 /* 4.24.6: User-provided shareholder registers and Team Arena public stake display; independent share-trading stock market.
 Shareholders own shares, not business ownership stakes. Annual price changes use
@@ -8696,7 +8739,7 @@ const modal=document.getElementById('stockTradeModal');if(modal){const tradeCard
 const tradeCard=$('stockTradeCard')||detachedStockTradeCard;if(tradeCard){detachedStockTradeCard=tradeCard;tradeCard.style.display='none';tradeCard.remove();}
 }
 }
- 
+
 function renderCompanyOptions(){
 const companyOptions=companies.map(c=>'<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>').join("");
 ["stockTradingCompany","stockRegisterCompany"].forEach(id=>{
@@ -8715,7 +8758,7 @@ if(current&&Array.from(el.options).some(o=>o.value===current))el.value=current;
 });
 try{updateTradeControls();}catch(err){console.error("Stock-market trade controls could not refresh.",err);}
 }
- 
+
 function buildAccountOptions(excludeValue,companyName,holdersOnly){
 const list=[];
 const add=(item)=>{if(!list.some(x=>x.value===item.value))list.push(item);};
@@ -8894,7 +8937,7 @@ const st=getState(),ledger=getShareOwnershipLedger();
 if(ledger.some(x=>x&&String(x.id)===String(entry.id)))return false;
 const copy={...entry,ledgerRecordedAt:new Date().toISOString()};ledger.push(copy);
 try{window.syncShareholdersFromTrade(copy);}catch(e){console.error("Shareholder sync hook failed.",e);}
- 
+
 /* 4.24.57: mirror completed share-trade cash effects into each citizen's Player Ledger.
 The Share & Ownership Ledger remains the master trade record. Player entries reference
 that same transaction ID and are idempotent, so refreshing/replaying cannot duplicate them. */
@@ -9089,7 +9132,7 @@ if(e.target===modal)closeShareOwnershipLedger();
 getShareOwnershipLedger();
 }
 document.addEventListener("DOMContentLoaded",bindShareOwnershipLedger);if(document.readyState!=="loading")bindShareOwnershipLedger();
- 
+
 function renderMarketMoney(){
 const mm=db.marketMoney||{balance:3000,interestRate:0.75,gamesSinceBuyback:0};
 const balance=$("marketMoneyBalance"),rate=$("marketMoneyRate"),idle=$("marketMoneyIdleGames"),status=$("marketMoneyStatus");
@@ -9169,7 +9212,7 @@ const mainTx=(db.transactions||[]).find(e=>e&&String(e.id)===String(tx.id));if(m
 if(changed){save();saveDB(db);}
 }
 try{reconcilePendingMarketMoneyCitizenCredits();}catch(reconcileError){console.error("Market Money legacy cash reconciliation needs review:",reconcileError);}
- 
+
 window.processMarketMoneyGameInterest=function(season,gameCount){
 const mm=db.marketMoney;if(!mm)return false;
 const gameKey=String(Number(season)||Number(getState().year)||29)+":"+String(Number(gameCount)||0);
@@ -9284,7 +9327,7 @@ positive revenue entries. Sports Bets uses stakes retained from losing bets minu
 payouts/refunds, based only on recorded sportsbook cash ledger entries. Debt proceeds,
 share trades, opening balances, and cash interest are not operating revenue. */
 const companyDef=companies.find(c=>String(c.
- 
+
 name||"")===String(company));
 const isTeam=!!(companyDef&&companyDef.category==="Basketball Teams");
 const entries=isTeam
@@ -9549,8 +9592,8 @@ if(stockScript&&!window.__calCityStockMarketLateRetry){window.__calCityStockMark
 }
 })();
 </script>
- 
- 
+
+
 <script>
 /* 4.24.36: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
 (function(){
@@ -9641,9 +9684,9 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){const modal=$("tvCo
 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><button type="button" id="tvBroadcastAlertSign" class="goodbtn">Sign a Team Contract</button><button type="button" id="tvBroadcastAlertDismiss">Dismiss for This Season</button></div>
 </div>
 <
- 
+
 /div>
- 
+
 <style>
 body.tv-broadcast-alert-open{overflow:hidden!important;touch-action:none}
 #tvCompanyDetailModal .city-tab{background:#344255;color:#fff;box-sizing:border-box;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.2;padding:10px 6px;font-size:clamp(11px,2.8vw,14px)}
@@ -9705,8 +9748,8 @@ open(key,event);
 },{capture:true});
 })();
 </script>
- 
- 
+
+
 <script>
 /* 4.29.21 — Quota-safe import. Recovery snapshot stays in memory to avoid duplicating localStorage usage. */
 (function(){
@@ -9823,7 +9866,7 @@ restoreEntries[recoveryKey]=JSON.stringify(snap);
 }
 }
 }catch(compactError){console.warn("Recovery snapshot was retained without compaction:",compactError);}
- 
+
 /* 4.29.39 SAFE IMPORT QUOTA GUARD:
 localStorage stores strings in browser-managed storage, often with substantial
 per-origin overhead. Keep the canonical live state and ledgers. Recovery snapshots
@@ -10065,7 +10108,7 @@ if(msg){const interestMessage=" CalSims earned "+money(interestAmount)+" in inte
 render();return {ok:true,cycle,totalUnits,totalRevenue,companyPayouts,storePayout};
 }
 window.processCalSimsGameCycle=function(gameKey){try{return runCycle(gameKey);}catch(error){console.error("CalSims automatic retail cycle failed:",error);const msg=el("calSimsCycleMessage");if(msg)msg.textContent="CalSims could not complete the automatic sales cycle. The game remains recorded; check the console and save warning before continuing.";return {ok:false,reason:"exception"};}};
- 
+
 function init(){
 const st=getState();if(st){ensure(st);}
 const releaseBtn=el("shoeModelRelease");if(releaseBtn&&!releaseBtn.dataset.bound){releaseBtn.addEventListener("click",release);releaseBtn.dataset.bound="1";}
@@ -10110,7 +10153,7 @@ try{if(typeof render==="function")render();}catch(e){}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(finalizeKapMvpAfterStartup,80),{once:true});else setTimeout(finalizeKapMvpAfterStartup,80);
 })();
 </script>
- 
+
 <script>
 /* Calvin's City 5.4.0 — Casino financing foundation.
 Uses the existing live-state bridge. No casino cash account is created and no
@@ -10189,7 +10232,7 @@ function rouletteRed(n){return [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36
 function rouletteLabel(type,target){return ({red:'Red',black:'Black',odd:'Odd',even:'Even',low:'Low (1–18)',high:'High (19–36)',dozen1:'1st Dozen',dozen2:'2nd Dozen',dozen3:'3rd Dozen',number:'Number '+target})[type]||type;}
 function rouletteWins(result,type,target){const n=Number(result);if(type==='number')return String(result)===String(target);if(result==='0'||result==='00')return false;if(type==='red')return rouletteRed(n);if(type==='black')return !rouletteRed(n);if(type==='odd')return n%2===1;if(type==='even')return n%2===0;if(type==='low')return n>=1&&n<=18;if(type==='high')return n>=19&&n<=36;if(type==='dozen1')return n>=1&&n<=12;if(type==='dozen2')return n>=13&&n<=24;if(type==='dozen3')return n>=25&&n<=36;return false;}
 function rouletteProfitMultiplier(type){return type==='number'?35:(type.startsWith('dozen')?2:1);}
- 
+
 // v5.4.3: full-page roulette room and a numbered American wheel.
 window.openRouletteRoom=function(){
 const modal=$('casinoModal');if(!modal)return;
@@ -10220,7 +10263,7 @@ const rouletteRoomStyle=document.createElement('style');rouletteRoomStyle.textCo
 @keyframes roulette-wheel-spin{0%{transform:rotate(0deg)}100%{transform:rotate(1800deg)}}
 #rouletteWheelSvg.spinning{animation:roulette-wheel-spin 2.6s cubic-bezier(.12,.72,.18,1) forwards}
 `;document.head.appendChild(rouletteRoomStyle);
- 
+
 // v5.6.2: local DOM selector is required; the casino-finance IIFE's `$` is not in this scope.
 // Preserve the wheel-and-ball animation and keep visual selection synchronized with the betting controls.
 (function(){
@@ -10269,7 +10312,7 @@ const v=Number(wager.value);if(Number.isFinite(v)&&v>0){currentChip=Math.round(v
 });
 sync();
 })();
- 
+
 // v5.4.6: chip and table selection controls.
 (function(){
 let chip=1, betType='red', target='0';
@@ -10315,7 +10358,7 @@ try{if(!Array.isArray(state.casinoRouletteHistory))state.casinoRouletteHistory=[
 const row={transactionId:txid,season,accountKind:kind,accountRef:ref,accountLabel:accountLabel(state,kind,ref),wager,betType:type,betTarget:type==='number'?target:null,betLabel:rouletteLabel(type,target),result,won,profit,grossReturn,net:won?profit:-wager,casinoBefore:beforeCasino,casinoAfter:state.businessCash[CASINO],playerBefore:beforePlayer,playerAfter:kind==='citizen'?Number((state.citizens||[]).find(c=>String(c.id)===String(ref)).cash):Number(state.businessCash[ref]),timestamp:new Date().toISOString()};state.casinoRouletteHistory.push(row);state.casinoFinanceLedger.push({transactionId:txid,type:'roulette_spin_settled',season,amount:wager,result,won,profit,grossReturn,accountKind:kind,accountRef:ref,casinoBefore:beforeCasino,casinoAfter:state.businessCash[CASINO],timestamp:row.timestamp});if(!saveVerified(state))throw Error('Save could not be verified');refresh();const res=$('casinoRouletteResult');if(res)res.innerHTML='<strong>Wheel result: '+escapeHtml(result)+(result==='0'||result==='00'?' · Green':rouletteRed(result)?' · Red':' · Black')+'</strong><p class="tiny">'+(won?'You won '+money(profit)+' profit; your '+money(wager)+' stake was returned.':'You lost '+money(wager)+'.')+' Net result: '+(won?'+':'−')+money(Math.abs(row.net))+'.</p>';}
 catch(e){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);}catch(rollbackError){}alert('Roulette settlement was not committed: '+String(e.message||e)+'. State was restored in memory; verify saved data before retrying.');console.error('Roulette settlement failed',e);}
 };
- 
+
 const lender=$('casinoLender');if(lender)lender.addEventListener('change',updateLenderCash);const roulettePlayer=$('casinoRoulettePlayer');if(roulettePlayer)roulettePlayer.addEventListener('change',updateRoulettePlayerCash);const modal=$('casinoModal');if(modal)modal.addEventListener('click',e=>{if(e.target===modal)window.closeCasino();});
 })();
 </script>
@@ -10337,9 +10380,9 @@ const lender=$('casinoLender');if(lender)lender.addEventListener('change',update
 #casinoModal.roulette-room-mode #rouletteLiveTable{margin-top:12px}
 #rouletteWheelSvg{transform-origin:50% 50%;will-change:transform}
 </style>
- 
- 
- 
+
+
+
 <script>
 (function(){
 const $id=id=>document.getElementById(id);
@@ -10409,7 +10452,7 @@ style.textContent=`
 `;
 document.head.appendChild(style);
 })();
- 
+
 // v5.6.7: aggregate repeated wagers visually by spot/split edge and match chip color tiers to the rack. Bet records and settlement remain separate and unchanged.
 (function(){
 const $=id=>document.getElementById(id);
@@ -10426,7 +10469,7 @@ function rouletteRed(n){return [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36
 function rouletteLabel(type,target){return ({red:'Red',black:'Black',odd:'Odd',even:'Even',low:'Low (1–18)',high:'High (19–36)',dozen1:'1st Dozen',dozen2:'2nd Dozen',dozen3:'3rd Dozen',number:'Number '+target})[type]||type;}
 function rouletteWins(result,type,target){const n=Number(result);if(type==='number')return String(result)===String(target);if(result==='0'||result==='00')return false;if(type==='red')return rouletteRed(n);if(type==='black')return !rouletteRed(n);if(type==='odd')return n%2===1;if(type==='even')return n%2===0;if(type==='low')return n>=1&&n<=18;if(type==='high')return n>=19&&n<=36;if(type==='dozen1')return n>=1&&n<=12;if(type==='dozen2')return n>=13&&n<=24;if(type==='dozen3')return n>=25&&n<=36;return false;}
 function rouletteProfitMultiplier(type){return type==='number'?35:(type.startsWith('dozen')?2:1);}
- 
+
 function rouletteAccountLabel(state,kind,ref){
 if(kind==='citizen'){const c=(state.citizens||[]).find(x=>x&&String(x.id)===String(ref));return c?('Citizen — '+c.name):String(ref);}
 return 'Business — '+String(ref);
@@ -10459,7 +10502,7 @@ const state=rouletteState(),rows=(state&&Array.isArray(state.casinoRouletteHisto
 if(!rows.length){host.innerHTML='<span style="font-size:12px;color:#aab4bf">No results yet</span>';return;}
 host.innerHTML=rows.map(row=>{const n=String(row.result??'');const color=rouletteResultColor(n);return '<span title="Latest results first" style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 5px;box-sizing:border-box;border-radius:5px;background:'+color+';color:#fff;font-weight:800;font-size:14px;border:1px solid '+(color==='#17191c'?'#8a9299':color)+';box-shadow:inset 0 0 0 1px #ffffff12">'+rouletteEscape(n)+'</span>';}).join('');
 }
- 
+
 let chip=1,bets=[],roundBets=[],lastSettledRound=[],spinning=false;
 const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
 const numberSpots=()=>Array.from(numberTable.querySelectorAll('.roulette-bet-spot[data-type="number"]'));
@@ -10650,7 +10693,7 @@ summary();
 window.__rouletteMultiBetDiagnostic={version:'5.7.0',initialized:true,bettingControlsReady:true,multiAccountRounds:true,spinVisualsAvailable:hasSpinVisuals,splitEdgeTolerancePx:12};
 console.info('Roulette multi-bet initialized',window.__rouletteMultiBetDiagnostic);
 })();
- 
+
 </script>
 <style id="lucy7sStyles">
 #lucy7sPanel{color:#f8f0d9}.lucy-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.lucy-head h2{font-weight:1000;letter-spacing:2px;color:#e8bd5c;text-shadow:0 2px #6c351c}.lucy-head h2 span{color:#fff3ba}.lucy-cabinet{max-width:690px;margin:14px auto;padding:12px;border:3px solid #d4ad55;border-radius:20px;background:radial-gradient(ellipse at top,#402038,#13131d 57%,#07080c);box-shadow:inset 0 0 0 3px #5e4528,0 9px 24px #0008}.lucy-marquee{text-align:center;padding:8px 4px 12px;background:linear-gradient(#5a1c37,#25101f);border:1px solid #c59b4f;border-radius:13px;box-shadow:0 0 18px #f4c45b2b}.lucy-lamps{color:#ffdc77;letter-spacing:5px;font-size:12px;text-shadow:0 0 8px #ffd45c}.lucy-brand{font-size:clamp(34px,9vw,52px);font-weight:1000;letter-spacing:3px;color:#ffdf83;text-shadow:0 2px #99501d,0 4px #401725,0 0 16px #ffc451}.lucy-brand span{color:white;text-shadow:0 0 8px #fff,0 0 18px #eac15c}.lucy-tagline{font-size:9px;letter-spacing:4px;color:#f6c9d7;font-weight:800}.lucy-jackpots{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.lucy-jp{text-align:center;padding:9px 5px;border-radius:10px;border:2px solid #e0bf69;background:#090a0e;box-shadow:inset 0 0 12px #ffdc6730}.lucy-jp small,.lucy-jp em{display:block;font-size:9px;letter-spacing:.7px;color:#f5d98b;font-style:normal;font-weight:800}.lucy-jp strong{display:block;font-size:clamp(21px,5vw,31px);color:#fff2b7;text-shadow:0 0 10px #ffbf43;font-variant-numeric:tabular-nums}.lucy-jp em{font-size:8px;opacity:.8}.lucy-minor{border-color:#a981d5;box-shadow:inset 0 0 12px #a56bff2b}.lucy-minor strong{color:#e0c9ff;text-shadow:0 0 10px #a36bf5}.lucy-reels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;background:linear-gradient(#e0bd6b,#765126 10%,#1b1b22 17%,#090a0e 84%,#b98c3c);border:2px solid #f2d78d;border-radius:15px;box-shadow:inset 0 0 0 2px #4f391f}.lucy-reel{height:clamp(105px,29vw,155px);display:flex;align-items:center;justify-content:center;background:linear-gradient(#d1d3d8,#fff 18%,#fbfbfb 80%,#c3c4ca);border-radius:8px;box-shadow:inset 0 0 0 2px #a58c54,inset 0 0 14px #0003;overflow:hidden}.lucy-symbol{display:flex;align-items:center;justify-content:center;width:78%;height:76%;border-radius:12px;font-weight:1000;font-size:clamp(36px,10vw,58px);line-height:1;box-shadow:inset 0 0 0 2px #ffffff77,0 3px 6px #0005}.s-seven{color:white;background:linear-gradient(145deg,#ed3444,#820c23);border:2px solid #ffdc7b;text-shadow:0 2px #5b0612,0 0 10px #fff5}.s-wild{font-size:clamp(15px,4vw,24px);color:white;background:linear-gradient(145deg,#b98aff,#452077);border:2px solid #f1d8ff;text-shadow:0 2px #30104e}.s-crown{color:#fff4ae;background:linear-gradient(145deg,#ffd86b,#a96808);border:2px solid #fff0ad}.s-diamond{color:#efffff;background:linear-gradient(145deg,#53e5ef,#1763ad);border:2px solid #d5ffff}.s-cherry,.s-lemon{font-size:clamp(28px,8vw,43px);background:linear-gradient(145deg,#fff,#e6e7ed);border:2px solid #d02d43}.s-lemon{border-color:#d9b72e}.s-freespin{background:linear-gradient(145deg,#ffeaa0,#d18b24);color:#4b2100;border:2px solid #fff0a3;font-size:clamp(18px,5vw,27px);letter-spacing:-1px}.lucy-symbols{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-top:10px}.lucy-symbols>div{display:flex;flex-direction:column;align-items:center;gap:4px}.lucy-symbols .lucy-symbol{width:38px;height:38px;border-radius:8px;font-size:20px}.lucy-symbols small{font-size:8px;color:#e8dcb8;font-weight:800;letter-spacing:.3px}.lucy-payline{text-align:center;color:#e4c87f;font-size:10px;font-weight:900;letter-spacing:3px;margin:6px 0}.lucy-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.lucy-controls label{font-size:12px;color:var(--muted,#aaa);display:flex;flex-direction:column;gap:5px}.lucy-controls select,.lucy-controls input{width:100%;min-width:0;box-sizing:border-box;padding:9px;border-radius:8px}.lucy-status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.lucy-status>div{padding:10px;border:1px solid var(--border,#555);border-radius:10px}.lucy-status small,.lucy-status strong{display:block}.lucy-status small{font-size:10px;color:var(--muted,#aaa)}.lucy-status strong{font-size:18px;margin-top:4px}.lucy-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.lucy-actions button{flex:1;min-height:48px;font-weight:900}.lucy-rules{display:block;margin-top:8px;line-height:1.5}.lucy-history>div{padding:7px 0;border-bottom:1px solid #ffffff18}.lucy-reel.spinning .lucy-symbol{animation:lucyRoll .12s linear infinite}@keyframes lucyRoll{0%{transform:translateY(-7px);filter:blur(2px)}50%{transform:translateY(7px);filter:blur(1px)}100%{transform:translateY(0);filter:blur(0)}}@media(max-width:420px){.lucy-symbols{grid-template-columns:repeat(3,minmax(0,1fr))}.lucy-cabinet{padding:8px}.lucy-jp small{font-size:8px}}
@@ -10674,7 +10717,7 @@ let payout=0,outcome='No win',jp=null;if(freeSpinBonus){x2.freeSpins[c.id]=(Numb
 const sel=$('lucyCitizen');if(sel)sel.addEventListener('change',update);
 })();
 </script>
- 
+
 <script>
 /* 5.8.16: Read-only Federal Reserve Board economic review with explicit, append-only season snapshots. */
 (function(){
@@ -10730,8 +10773,8 @@ $("fedBoardRefresh")?.addEventListener("click",render);$("fedBoardSaveSnapshot")
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",render);else setTimeout(render,0);
 })();
 </script>
- 
- 
+
+
 <style id="cc-treasury-popup-mobile-only-5840">
 /* v5.8.40: Narrow mobile layout adjustment scoped ONLY to the Treasury popup.
  Does not override shared Federal Reserve popup/modal rules or application layout. */
@@ -10807,9 +10850,9 @@ max-width: 100%;
 }
 }
 </style>
- 
+
 <script>
- 
+
 /* 5.8.63: CalBank loan maturity alerts and capped overdue APR adjustment.
  Uses the existing CalBank database and core game state. Every disbursement,
  principal payment, and seasonal interest collection is validated, saved,
@@ -10932,13 +10975,13 @@ function bind(){const issue=$("calBankLoanIssue"),repay=$("calBankLoanRepay"),in
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
 window.renderCalBankCustomerLoans=render;
 })();
- 
+
 </script>
- 
- 
- 
+
+
+
 <script id="ccStartupRecovery5876">
-/* CALVIN'S CITY 5.8.85 — startup/navigation fail-safe; no synchronous storage migration.
+/* CALVIN'S CITY 5.8.86 — bank tab navigation; startup/navigation fail-safe; no synchronous storage migration.
  This is deliberately read-only with respect to localStorage and game records.
  It does not reset state, rewrite ledgers, or replace the core game logic. */
 (function(){
@@ -11012,7 +11055,7 @@ try{
 },true);
 })();
 </script>
- 
+
 <script>
 /* v5.8.64 — CalBank stock-only investment portfolio.
   Uses the existing stock-market database and the existing CalBank cash account.
@@ -11053,8 +11096,8 @@ function bind(){const buy=$("calBankInvestmentBuy"),sell=$("calBankInvestmentSel
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();window.renderCalBankInvestmentPortfolio=render;
 })();
 </script>
- 
- 
+
+
 <script>
 /* v5.8.85 — Unified CalBank ledger view. Read-only aggregation; source ledgers remain authoritative. */
 (function(){
@@ -11099,5 +11142,5 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 window.renderCalBankMasterLedger=render;
 })();
 </script>
- 
+
 </body></html>
