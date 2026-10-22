@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.77: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
+<!-- CALVIN'S CITY — VERSION 5.8.78: Guarded Kap MVP state-bridge repair and startup-scope safety. -->
+<!-- CALVIN'S CITY — VERSION 5.8.78: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
  
@@ -11,80 +12,80 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.77: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
+<!-- CALVIN'S CITY — VERSION 5.8.78: Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
-<meta name="calvins-city-build" content="5.8.77">
+<meta name="calvins-city-build" content="5.8.78">
  
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
 (function(){
- "use strict";
- var logs = [];
- function record(kind, message, source, line, column) {
-   var item = {
-     time: new Date().toISOString(),
-     kind: kind,
-     message: String(message || ""),
-     source: String(source || ""),
-     line: Number(line || 0),
-     column: Number(column || 0),
-     readyState: document.readyState,
-     seasonText: (document.getElementById("homeSeason") || document.getElementById("seasonLabel") || {}).textContent || "",
-     navButtons: document.querySelectorAll(".nav button").length,
-     activeScreens: document.querySelectorAll(".screen.active").length,
-     recordsText: (document.getElementById("retiredCount") || {}).textContent || ""
-   };
-   logs.push(item);
-   window.__calvinsCityStartupDiagnostics = logs;
-   try { console.error("[Calvin's City startup diagnostic]", item); } catch (_) {}
-   var box = document.getElementById("startupDiagnosticPanel");
-   if (!box) {
-     box = document.createElement("div");
-     box.id = "startupDiagnosticPanel";
-     box.style.cssText = "position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;background:#240f12;color:#fff;border:2px solid #ff7777;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-shadow:0 4px 20px #0008";
-     var close = document.createElement("button");
-     close.textContent = "Hide diagnostics";
-     close.style.cssText = "float:right;padding:5px 8px";
-     close.onclick = function(){ box.remove(); };
-     box.appendChild(close);
-     var body = document.createElement("div");
-     body.id = "startupDiagnosticText";
-     box.appendChild(body);
-     (document.body || document.documentElement).appendChild(box);
-   }
-   var out = document.getElementById("startupDiagnosticText");
-   if (out) out.textContent = logs.map(function(x){
-     return x.kind + ": " + x.message + (x.source ? "\n" + x.source + ":" + x.line + ":" + x.column : "") +
-       "\nreadyState=" + x.readyState + " navButtons=" + x.navButtons +
-       " activeScreens=" + x.activeScreens + " records=" + x.recordsText;
-   }).join("\n\n");
- }
- window.addEventListener("error", function(e) {
-   record("uncaught error", e.message || (e.error && e.error.stack) || "Unknown error", e.filename, e.lineno, e.colno);
- }, true);
- window.addEventListener("unhandledrejection", function(e) {
-   var r = e.reason;
-   record("unhandled rejection", r && (r.stack || r.message) || r || "Unknown rejection", "", 0, 0);
- });
- window.__calvinsCityRecordStartupDiagnostic = record;
- document.addEventListener("DOMContentLoaded", function(){
-   setTimeout(function(){
-     if (!document.querySelector(".nav button") || !document.querySelector(".screen.active")) {
-       record("startup checkpoint", "DOM ready but navigation or active screen is missing.", "", 0, 0);
-     }
-     var season = document.getElementById("homeSeason") || document.getElementById("seasonLabel");
-     if (season && /—|-/.test(season.textContent || "")) {
-       record("startup checkpoint", "Season label still shows a placeholder after DOM ready.", "", 0, 0);
-     }
-     var records = document.getElementById("retiredCount");
-     var citizens = document.getElementById("citizenCount");
-     if (records && citizens && records.textContent === "0" && citizens.textContent === "0") {
-       record("startup checkpoint", "Record counters are both zero after DOM ready; this is a symptom, not proof that saved records were deleted.", "", 0, 0);
-     }
-   }, 1500);
- }, {once:true});
+"use strict";
+var logs = [];
+function record(kind, message, source, line, column) {
+  var item = {
+    time: new Date().toISOString(),
+    kind: kind,
+    message: String(message || ""),
+    source: String(source || ""),
+    line: Number(line || 0),
+    column: Number(column || 0),
+    readyState: document.readyState,
+    seasonText: (document.getElementById("homeSeason") || document.getElementById("seasonLabel") || {}).textContent || "",
+    navButtons: document.querySelectorAll(".nav button").length,
+    activeScreens: document.querySelectorAll(".screen.active").length,
+    recordsText: (document.getElementById("retiredCount") || {}).textContent || ""
+  };
+  logs.push(item);
+  window.__calvinsCityStartupDiagnostics = logs;
+  try { console.error("[Calvin's City startup diagnostic]", item); } catch (_) {}
+  var box = document.getElementById("startupDiagnosticPanel");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "startupDiagnosticPanel";
+    box.style.cssText = "position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;background:#240f12;color:#fff;border:2px solid #ff7777;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-shadow:0 4px 20px #0008";
+    var close = document.createElement("button");
+    close.textContent = "Hide diagnostics";
+    close.style.cssText = "float:right;padding:5px 8px";
+    close.onclick = function(){ box.remove(); };
+    box.appendChild(close);
+    var body = document.createElement("div");
+    body.id = "startupDiagnosticText";
+    box.appendChild(body);
+    (document.body || document.documentElement).appendChild(box);
+  }
+  var out = document.getElementById("startupDiagnosticText");
+  if (out) out.textContent = logs.map(function(x){
+    return x.kind + ": " + x.message + (x.source ? "\n" + x.source + ":" + x.line + ":" + x.column : "") +
+      "\nreadyState=" + x.readyState + " navButtons=" + x.navButtons +
+      " activeScreens=" + x.activeScreens + " records=" + x.recordsText;
+  }).join("\n\n");
+}
+window.addEventListener("error", function(e) {
+  record("uncaught error", e.message || (e.error && e.error.stack) || "Unknown error", e.filename, e.lineno, e.colno);
+}, true);
+window.addEventListener("unhandledrejection", function(e) {
+  var r = e.reason;
+  record("unhandled rejection", r && (r.stack || r.message) || r || "Unknown rejection", "", 0, 0);
+});
+window.__calvinsCityRecordStartupDiagnostic = record;
+document.addEventListener("DOMContentLoaded", function(){
+  setTimeout(function(){
+    if (!document.querySelector(".nav button") || !document.querySelector(".screen.active")) {
+      record("startup checkpoint", "DOM ready but navigation or active screen is missing.", "", 0, 0);
+    }
+    var season = document.getElementById("homeSeason") || document.getElementById("seasonLabel");
+    if (season && /—|-/.test(season.textContent || "")) {
+      record("startup checkpoint", "Season label still shows a placeholder after DOM ready.", "", 0, 0);
+    }
+    var records = document.getElementById("retiredCount");
+    var citizens = document.getElementById("citizenCount");
+    if (records && citizens && records.textContent === "0" && citizens.textContent === "0") {
+      record("startup checkpoint", "Record counters are both zero after DOM ready; this is a symptom, not proof that saved records were deleted.", "", 0, 0);
+    }
+  }, 1500);
+}, {once:true});
 })();
 </script>
  
@@ -114,7 +115,7 @@ return out;
 };
 function compressBytes(input){
 /* Fast hash-chain LZ encoder. Keeps the existing __CCZ1__ byte format so
-  previously compressed game saves remain readable. */
+ previously compressed game saves remain readable. */
 const out=[], n=input.length, chains=new Map();
 let pos=0;
 function keyAt(i){return (input[i]<<16)|(input[i+1]<<8)|input[i+2];}
@@ -196,10 +197,10 @@ nativeSet.call(this,k,packed);
 proto.removeItem=function(key){return nativeRemove.call(this,key);};
 Object.defineProperty(proto,"__ccCompressionInstalled",{value:true,configurable:false});
 /* Startup safety: deliberately do not migrate/compress existing saved records
-  during page load. Migration performs synchronous work proportional to the
-  full saved database and can freeze the UI before navigation initializes.
-  Existing __CCZ1__ records remain readable via getItem; new writes are packed
-  by setItem. This does not clear, rewrite, or reset any existing saved value. */
+ during page load. Migration performs synchronous work proportional to the
+ full saved database and can freeze the UI before navigation initializes.
+ Existing __CCZ1__ records remain readable via getItem; new writes are packed
+ by setItem. This does not clear, rewrite, or reset any existing saved value. */
 const store=window.localStorage;
 let keysChecked=0;
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
@@ -213,7 +214,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.77</title>
+<title>Calvin's City 5.8.78</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -381,7 +382,7 @@ body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!impor
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.59</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.78</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -965,7 +966,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 <style>
  
 /* 5.8.17: Federal Reserve popup scrolling/header repair. The heading and Close control
-  are fixed within the dialog; only .fed-tool-content scrolls. Prevents content bleed. */
+ are fixed within the dialog; only .fed-tool-content scrolls. Prevents content bleed. */
 .fed-tools-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
 .fed-tools-grid button{min-height:54px;font-weight:750}
 .fed-tool-popup{z-index:220;background:rgba(3,8,18,.82);padding:12px;overflow:hidden;align-items:center;justify-content:center;box-sizing:border-box;overscroll-behavior:contain}
@@ -976,8 +977,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 .fed-tool-content{display:block;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px 16px 18px;scrollbar-gutter:stable}
  
 /* 5.8.19: Fix actual DOM structure, not just styling. The heading is a non-scrolling
-  flex sibling; all tool content (including the tax input and buttons) lives in the
-  dedicated scroll area. Keep mobile form controls above decoration and touchable. */
+ flex sibling; all tool content (including the tax input and buttons) lives in the
+ dedicated scroll area. Keep mobile form controls above decoration and touchable. */
 .fed-tool-modal>.fed-tool-content{position:relative;z-index:2;flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overflow-x:auto;pointer-events:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .fed-tool-content .card{position:relative;z-index:1;overflow:visible;pointer-events:auto}
 .fed-tool-content input,.fed-tool-content select,.fed-tool-content textarea{position:relative;z-index:3;pointer-events:auto;user-select:text;-webkit-user-select:text;touch-action:manipulation}
@@ -995,9 +996,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 @media(max-width:520px){.fed-tool-modal>.fed-tool-content{min-height:0;flex:1 1 0;overflow-y:auto;overflow-x:auto}.fed-tool-content input,.fed-tool-content select{font-size:16px!important}}
  
 /* 5.8.20: Native mobile form interaction fix.
-  Keep one scroll owner (the popup content); allow native input/select focus and
-  taps rather than forcing gesture handling on every control. Give form controls
-  a high local hit-test priority without changing the global app controls. */
+ Keep one scroll owner (the popup content); allow native input/select focus and
+ taps rather than forcing gesture handling on every control. Give form controls
+ a high local hit-test priority without changing the global app controls. */
 .fed-tool-popup{overflow:hidden!important;touch-action:auto!important;overscroll-behavior:none}
 .fed-tool-popup.show{display:flex!important;pointer-events:auto!important}
 .fed-tool-modal{display:flex!important;flex-direction:column!important;min-height:0!important;overflow:hidden!important;touch-action:auto!important;isolation:isolate}
@@ -1419,37 +1420,37 @@ if(document.readyState!=="loading")bindTeamModal();
  
 <script>
 /* v5.8.77 EARLY UI RESCUE
-  Independent, read-only fallback. Does not save, clear, or reset game data.
-  Allows screen navigation even if later app initialization fails after parsing. */
+ Independent, read-only fallback. Does not save, clear, or reset game data.
+ Allows screen navigation even if later app initialization fails after parsing. */
 (function(){
 "use strict";
 const allowed=new Set(["home","city","markets","bets","basketball"]);
 function show(id){
- if(!allowed.has(id))return;
- document.querySelectorAll(".screen").forEach(el=>el.classList.toggle("active",el.id===id));
- document.querySelectorAll(".nav button").forEach(el=>el.classList.toggle("active",el.dataset.nav===id));
- try{window.scrollTo(0,0)}catch(_){}
+if(!allowed.has(id))return;
+document.querySelectorAll(".screen").forEach(el=>el.classList.toggle("active",el.id===id));
+document.querySelectorAll(".nav button").forEach(el=>el.classList.toggle("active",el.dataset.nav===id));
+try{window.scrollTo(0,0)}catch(_){}
 }
 document.addEventListener("click",function(e){
- const target=e.target;
- const button=target&&target.closest?target.closest("[data-nav],[data-navjump]"):null;
- if(!button)return;
- const id=button.dataset.nav||button.dataset.navjump;
- if(!allowed.has(id))return;
- show(id);
+const target=e.target;
+const button=target&&target.closest?target.closest("[data-nav],[data-navjump]"):null;
+if(!button)return;
+const id=button.dataset.nav||button.dataset.navjump;
+if(!allowed.has(id))return;
+show(id);
 },true);
 function restoreSeasonLabel(){
- const el=document.getElementById("homeSeason");
- if(!el)return;
- try{
-   const raw=localStorage.getItem("calvins_city_v24");
-   if(!raw)return;
-   const saved=JSON.parse(raw);
-   const year=Number(saved&&saved.year);
-   if(Number.isFinite(year)&&year>0&&/—|-/.test(el.textContent||""))el.textContent="Season "+year;
- }catch(err){
-   console.warn("[Calvin's City] Read-only season fallback could not read saved state.",err);
- }
+const el=document.getElementById("homeSeason");
+if(!el)return;
+try{
+  const raw=localStorage.getItem("calvins_city_v24");
+  if(!raw)return;
+  const saved=JSON.parse(raw);
+  const year=Number(saved&&saved.year);
+  if(Number.isFinite(year)&&year>0&&/—|-/.test(el.textContent||""))el.textContent="Season "+year;
+}catch(err){
+  console.warn("[Calvin's City] Read-only season fallback could not read saved state.",err);
+}
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",restoreSeasonLabel,{once:true});
 else restoreSeasonLabel();
@@ -4309,16 +4310,16 @@ state.season29BHallOpeningCashRepairVersion="4.22.3";
 save();
 }
 /* 5.8.69 startup isolation: optional Records/Bets display failures must not
-  abort the core game script before navigation handlers and season labels initialize. */
+ abort the core game script before navigation handlers and season labels initialize. */
 try{renderRecords();}catch(err){
- window.__calvinsCityStartupErrors=window.__calvinsCityStartupErrors||[];
- window.__calvinsCityStartupErrors.push({area:"Records startup render",message:String(err&&err.message||err),at:new Date().toISOString()});
- console.error("Records startup render failed; preserving saved history and continuing app startup.",err);
+window.__calvinsCityStartupErrors=window.__calvinsCityStartupErrors||[];
+window.__calvinsCityStartupErrors.push({area:"Records startup render",message:String(err&&err.message||err),at:new Date().toISOString()});
+console.error("Records startup render failed; preserving saved history and continuing app startup.",err);
 }
 try{renderBetsStorageStatus();}catch(err){
- window.__calvinsCityStartupErrors=window.__calvinsCityStartupErrors||[];
- window.__calvinsCityStartupErrors.push({area:"Bets storage status render",message:String(err&&err.message||err),at:new Date().toISOString()});
- console.error("Bets storage status render failed; continuing app startup.",err);
+window.__calvinsCityStartupErrors=window.__calvinsCityStartupErrors||[];
+window.__calvinsCityStartupErrors.push({area:"Bets storage status render",message:String(err&&err.message||err),at:new Date().toISOString()});
+console.error("Bets storage status render failed; continuing app startup.",err);
 }
 /* 4.24.31: Unified append-only financial transaction ledger.
 The existing team/business ledgers remain intact as source records. This central ledger
@@ -5553,55 +5554,55 @@ return false;
 function finalizeOffseason(){
 if(!state.seasonPlayed||!state.offseasonOpen)return;
 /* 5.8.52: Gate season advancement on verified CalBank interest settlement.
-  If interest has already been credited, verify against the recorded expense
-  (not the now-increased deposit balances). Otherwise, calculate the current
-  season's obligation and require settlement before any offseason mutation. */
+ If interest has already been credited, verify against the recorded expense
+ (not the now-increased deposit balances). Otherwise, calculate the current
+ season's obligation and require settlement before any offseason mutation. */
 try{
 /* 5.8.54: Require debt-interest settlement before season advancement when any interest is due. */
 const debtRaw=localStorage.getItem("calvins_city_calbank_v1");
 const debtDB=debtRaw?JSON.parse(debtRaw):null;
 if(debtDB&&Array.isArray(debtDB.debts)){
- const debtSeason=Number(state.year)||1;
- const due=Math.round(debtDB.debts.reduce((sum,x)=>sum+(x.status==="outstanding"&&Number(x.principalOutstanding)>0?Math.round((Number(x.principalOutstanding)*Math.max(0,Number(x.apr)||0)/100+Number.EPSILON)*100)/100:0),0)*100)/100;
- const debtRows=Array.isArray(debtDB.debtLedger)?debtDB.debtLedger:[];
- if(due>0.000001&&Number(debtDB.lastDebtInterestSeason)!==debtSeason){
-  alert("CalBank debt interest must be processed before the next season can begin. Open CalBank, click ‘Process Season-End Debt Interest’, confirm it succeeds, then finalize the offseason again. No season advancement was made.");
-  const debtTab=document.querySelector('.city-tab[data-city-tab="calBank"]');if(debtTab&&typeof debtTab.click==="function")debtTab.click();return;
- }
- if(Number(debtDB.lastDebtInterestSeason)===debtSeason){
-  const summary=debtRows.find(t=>t&&t.type==="Season Debt Interest Processed"&&Number(t.season)===debtSeason);
-  const paid=debtRows.filter(t=>t&&t.type==="Debt Interest Paid"&&Number(t.season)===debtSeason).reduce((sum,t)=>sum+(Number(t.amount)||0),0);
-  if(!summary||Math.abs(paid-(Number(summary.amount)||0))>0.011){alert("CalBank debt-interest settlement could not be verified. The next season remains locked. Review the CalBank debt ledger before retrying.");return;}
- }
+const debtSeason=Number(state.year)||1;
+const due=Math.round(debtDB.debts.reduce((sum,x)=>sum+(x.status==="outstanding"&&Number(x.principalOutstanding)>0?Math.round((Number(x.principalOutstanding)*Math.max(0,Number(x.apr)||0)/100+Number.EPSILON)*100)/100:0),0)*100)/100;
+const debtRows=Array.isArray(debtDB.debtLedger)?debtDB.debtLedger:[];
+if(due>0.000001&&Number(debtDB.lastDebtInterestSeason)!==debtSeason){
+ alert("CalBank debt interest must be processed before the next season can begin. Open CalBank, click ‘Process Season-End Debt Interest’, confirm it succeeds, then finalize the offseason again. No season advancement was made.");
+ const debtTab=document.querySelector('.city-tab[data-city-tab="calBank"]');if(debtTab&&typeof debtTab.click==="function")debtTab.click();return;
+}
+if(Number(debtDB.lastDebtInterestSeason)===debtSeason){
+ const summary=debtRows.find(t=>t&&t.type==="Season Debt Interest Processed"&&Number(t.season)===debtSeason);
+ const paid=debtRows.filter(t=>t&&t.type==="Debt Interest Paid"&&Number(t.season)===debtSeason).reduce((sum,t)=>sum+(Number(t.amount)||0),0);
+ if(!summary||Math.abs(paid-(Number(summary.amount)||0))>0.011){alert("CalBank debt-interest settlement could not be verified. The next season remains locked. Review the CalBank debt ledger before retrying.");return;}
+}
 }
 const cbRaw=localStorage.getItem("calvins_city_calbank_v1");
 const cb=cbRaw?JSON.parse(cbRaw):null;
 if(cb&&Array.isArray(cb.accounts)){
- const cbSeason=Number(state.year)||1;
- const apr=Math.max(0,Number(cb.depositRate)||0);
- const entries=Array.isArray(cb.ledger)?cb.ledger:[];
- if(Number(cb.lastInterestSeason)===cbSeason){
-  const credited=entries.filter(t=>t&&t.type==="Interest Credited"&&Number(t.season)===cbSeason).reduce((sum,t)=>sum+(Number(t.amount)||0),0);
-  const expense=entries.find(t=>t&&t.type==="Season Interest Expense"&&Number(t.season)===cbSeason);
-  const zeroDue=entries.some(t=>t&&t.type==="Season Interest Processed"&&Number(t.season)===cbSeason);
-  if(expense){
-   if(Math.abs(credited-(Number(expense.amount)||0))>0.011){
-    alert("CalBank interest settlement could not be verified for this season. The next season remains locked. Review the CalBank deposit ledger before retrying.");
-    return;
-   }
-  }else if(!zeroDue){
-   alert("CalBank interest settlement is marked processed, but its ledger confirmation is missing. The next season remains locked.");
+const cbSeason=Number(state.year)||1;
+const apr=Math.max(0,Number(cb.depositRate)||0);
+const entries=Array.isArray(cb.ledger)?cb.ledger:[];
+if(Number(cb.lastInterestSeason)===cbSeason){
+ const credited=entries.filter(t=>t&&t.type==="Interest Credited"&&Number(t.season)===cbSeason).reduce((sum,t)=>sum+(Number(t.amount)||0),0);
+ const expense=entries.find(t=>t&&t.type==="Season Interest Expense"&&Number(t.season)===cbSeason);
+ const zeroDue=entries.some(t=>t&&t.type==="Season Interest Processed"&&Number(t.season)===cbSeason);
+ if(expense){
+  if(Math.abs(credited-(Number(expense.amount)||0))>0.011){
+   alert("CalBank interest settlement could not be verified for this season. The next season remains locked. Review the CalBank deposit ledger before retrying.");
    return;
   }
- }else{
-  const due=Math.round(entries.length>=0?cb.accounts.reduce((sum,a)=>sum+Math.round((Math.max(0,Number(a.balance)||0)*apr/100+Number.EPSILON)*100)/100,0)*100:0)/100;
-  if(due>0.000001){
-   alert("CalBank interest must be processed before the next season can begin. Open CalBank, click “Process Season-End Interest,” confirm the settlement succeeds, then finalize the offseason again. No season advancement was made.");
-   const bankTab=document.querySelector('.city-tab[data-city-tab="calBank"]');
-   if(bankTab&&typeof bankTab.click==="function")bankTab.click();
-   return;
-  }
+ }else if(!zeroDue){
+  alert("CalBank interest settlement is marked processed, but its ledger confirmation is missing. The next season remains locked.");
+  return;
  }
+}else{
+ const due=Math.round(entries.length>=0?cb.accounts.reduce((sum,a)=>sum+Math.round((Math.max(0,Number(a.balance)||0)*apr/100+Number.EPSILON)*100)/100,0)*100:0)/100;
+ if(due>0.000001){
+  alert("CalBank interest must be processed before the next season can begin. Open CalBank, click “Process Season-End Interest,” confirm the settlement succeeds, then finalize the offseason again. No season advancement was made.");
+  const bankTab=document.querySelector('.city-tab[data-city-tab="calBank"]');
+  if(bankTab&&typeof bankTab.click==="function")bankTab.click();
+  return;
+ }
+}
 }
 }catch(calBankGateError){
 alert("CalBank season-end interest status could not be verified. The next season remains locked to protect saved financial records. Error: "+String(calBankGateError&&calBankGateError.message||calBankGateError));
@@ -6912,22 +6913,36 @@ has two MVPs. Updates only Kap's citizen MVP count and the Lions PG roster MVP
 count. Does not edit championship/game history, points, rebounds, titles,
 contracts, cash, bets, or any other player. */
 (function repairKapMvpCountOnce(){
+"use strict";
 const marker="kap-career-mvp-count-recovery-v1";
-if(state.kapMvpCountRecoveryVersion===marker)return;
-const citizens=Array.isArray(state.citizens)?state.citizens:[];
+try{
+const bridge=window.__calvinsCityBridge;
+const liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
+if(!liveState||typeof liveState!=="object"){
+window.__kapMvpRepairDiagnostic={version:"5.8.78",status:"skipped-state-unavailable",reason:"Live game-state bridge is unavailable; no game values changed."};
+console.warn("Kap MVP repair skipped because live state is unavailable.",window.__kapMvpRepairDiagnostic);
+return;
+}
+if(liveState.kapMvpCountRecoveryVersion===marker)return;
+const citizens=Array.isArray(liveState.citizens)?liveState.citizens:[];
 const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
-const roster=state.roster&&state.roster.Lions_PG;
+const roster=liveState.roster&&liveState.roster.Lions_PG;
 if(!kap){
-window.__kapMvpRepairDiagnostic={version:"5.3.2",status:"skipped",reason:"Kap citizen record not found; no values changed."};
-console.error("Kap MVP repair skipped.",window.__kapMvpRepairDiagnostic);
+window.__kapMvpRepairDiagnostic={version:"5.8.78",status:"skipped",reason:"Kap citizen record not found; no values changed."};
+console.warn("Kap MVP repair skipped.",window.__kapMvpRepairDiagnostic);
 return;
 }
 const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null};
+/* Preserve the confirmed two-MVP result; this narrow repair never touches
+  other career stats, game history, contracts, cash, bets, or ownership. */
 kap.mvps=2;
 if(roster&&String(roster.name||"").trim().toLowerCase()==="kap")roster.mvps=2;
-state.kapMvpCountRecoveryVersion=marker;
+liveState.kapMvpCountRecoveryVersion=marker;
 let saved=false;
-try{saved=save()!==false;}catch(err){saved=false;}
+try{
+if(bridge&&typeof bridge.save==="function")saved=bridge.save()!==false;
+else if(typeof save==="function")saved=save()!==false;
+}catch(err){saved=false;}
 let stored=null;
 try{
 const raw=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
@@ -6938,11 +6953,15 @@ stored={citizen:c?Number(c.mvps)||0:null,roster:r&&String(r.name||"").trim().toL
 }
 }catch(err){stored={error:String(err&&err.message||err)};}
 const verified=Number(kap.mvps)===2&&(!roster||String(roster.name||"").trim().toLowerCase()!=="kap"||Number(roster.mvps)===2)&&!!stored&&stored.citizen===2&&(stored.roster===null||stored.roster===2);
-window.__kapMvpRepairDiagnostic={version:"5.3.2",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},stored,saved,verified,scope:"Kap MVP count only"};
-console.info("Calvin's City 5.3.3 Kap MVP repair",window.__kapMvpRepairDiagnostic);
+window.__kapMvpRepairDiagnostic={version:"5.8.78",status:verified?"saved-and-verified":saved?"save-attempted-verification-incomplete":"save-failed-or-verification-failed",before,after:{citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null},stored,saved,verified,scope:"Kap MVP count only"};
+console.info("Calvin's City 5.8.78 Kap MVP repair",window.__kapMvpRepairDiagnostic);
 if(!verified)console.error("Kap MVP repair could not be fully verified.",window.__kapMvpRepairDiagnostic);
 try{if(typeof render==="function")render();}catch(err){console.error("Kap MVP roster refresh failed.",err);}
 try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){console.error("Kap MVP dropdown refresh failed.",err);}
+}catch(err){
+window.__kapMvpRepairDiagnostic={version:"5.8.78",status:"guarded-error",reason:String(err&&err.message||err)};
+console.error("Kap MVP repair encountered a guarded error; startup continues.",window.__kapMvpRepairDiagnostic);
+}
 })();
  
 /* VERSION 5.3.7: Refresh player-selection dropdown after startup reconciliation.
@@ -7094,9 +7113,9 @@ setCityTab(tab);
  
  
 /* 5.8.47 CalBank deposit foundation.
-  Account records are stored separately from the core game state. Customer cash
-  changes are committed only through a validated, rollback-protected transfer.
-  All amounts use the game's M units. */
+ Account records are stored separately from the core game state. Customer cash
+ changes are committed only through a validated, rollback-protected transfer.
+ All amounts use the game's M units. */
 (function(){
 "use strict";
 const STORAGE_KEY="calvins_city_calbank_v1";
@@ -7145,32 +7164,32 @@ if(type==="Deposit"&&amount>customer.cash){status("Insufficient customer cash. A
 if(type==="Withdraw"&&amount>Number(account.balance)){status("Insufficient deposit balance. Available: "+money(account.balance)+".");return;}
 const beforeState=JSON.stringify(st),beforeDB=JSON.stringify(d);
 try{
- const live=find(st,customer);if(!live)throw Error("Customer account could not be resolved.");
- const customerBefore=round(Number(live.cash));if(!Number.isFinite(customerBefore))throw Error("Customer cash is invalid.");
- const bankBefore=round(Number(d.bankCash)||0),depositBefore=account?round(Number(account.balance)||0):0;
- const at=new Date().toISOString(),id="CB-DEP-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
- if(type==="Deposit"){live.cash=round(customerBefore-amount);d.bankCash=round(bankBefore+amount);account.balance=round(depositBefore+amount);}
- else {live.cash=round(customerBefore+amount);d.bankCash=round(bankBefore-amount);account.balance=round(depositBefore-amount);}
- if(d.bankCash < -0.001)throw Error("CalBank cash cannot become negative.");
- const tx={id,type,customerKey:key(customer),customerType:customer.type,customerId:customer.id,customerName:customer.name,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),bankCashBefore:bankBefore,bankCashAfter:round(Number(d.bankCash)),balanceBefore:depositBefore,balanceAfter:round(Number(account.balance)),createdAt:at,season:Number(st.year)||null};
- d.ledger.push(tx);
- /* Atomicity guard: save the game state first, then CalBank's ledger. If either
-    write or verification fails, restore both snapshots before reporting failure. */
- saveGame(st);
- if(localStorage.getItem("calvins_city_v24")!==JSON.stringify(st))throw Error("Game state verification failed.");
- saveDB(d);
- const savedState=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
- const savedDB=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
- const savedCustomer=customer.type==="Citizen"?(savedState.citizens||[]).find(c=>c&&String(c.id)===customer.id):null;
- const savedCash=customer.type==="Citizen"?Number(savedCustomer&&savedCustomer.cash):Number((customer.type==="Team"?savedState.teamCash:savedState.businessCash||{})[customer.name]);
- const savedAccount=(savedDB.accounts||[]).find(a=>a.customerKey===key(customer));
- const savedTx=(savedDB.ledger||[]).find(t=>t.id===id);
- if(!savedTx||!savedAccount||Math.abs(round(savedCash)-round(Number(live.cash)))>0.001||Math.abs(round(Number(savedAccount.balance))-round(Number(account.balance)))>0.001||Math.abs(round(Number(savedDB.bankCash))-round(Number(d.bankCash)))>0.001)throw Error("Post-save reconciliation failed.");
- status(type+" completed: "+money(amount)+" "+(type==="Deposit"?"moved from":"returned to")+" "+customer.name+". Customer balance: "+money(account.balance)+".");
- const amt=$("calBankDepositAmount");if(amt)amt.value="";render();
+const live=find(st,customer);if(!live)throw Error("Customer account could not be resolved.");
+const customerBefore=round(Number(live.cash));if(!Number.isFinite(customerBefore))throw Error("Customer cash is invalid.");
+const bankBefore=round(Number(d.bankCash)||0),depositBefore=account?round(Number(account.balance)||0):0;
+const at=new Date().toISOString(),id="CB-DEP-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
+if(type==="Deposit"){live.cash=round(customerBefore-amount);d.bankCash=round(bankBefore+amount);account.balance=round(depositBefore+amount);}
+else {live.cash=round(customerBefore+amount);d.bankCash=round(bankBefore-amount);account.balance=round(depositBefore-amount);}
+if(d.bankCash < -0.001)throw Error("CalBank cash cannot become negative.");
+const tx={id,type,customerKey:key(customer),customerType:customer.type,customerId:customer.id,customerName:customer.name,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),bankCashBefore:bankBefore,bankCashAfter:round(Number(d.bankCash)),balanceBefore:depositBefore,balanceAfter:round(Number(account.balance)),createdAt:at,season:Number(st.year)||null};
+d.ledger.push(tx);
+/* Atomicity guard: save the game state first, then CalBank's ledger. If either
+   write or verification fails, restore both snapshots before reporting failure. */
+saveGame(st);
+if(localStorage.getItem("calvins_city_v24")!==JSON.stringify(st))throw Error("Game state verification failed.");
+saveDB(d);
+const savedState=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+const savedDB=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+const savedCustomer=customer.type==="Citizen"?(savedState.citizens||[]).find(c=>c&&String(c.id)===customer.id):null;
+const savedCash=customer.type==="Citizen"?Number(savedCustomer&&savedCustomer.cash):Number((customer.type==="Team"?savedState.teamCash:savedState.businessCash||{})[customer.name]);
+const savedAccount=(savedDB.accounts||[]).find(a=>a.customerKey===key(customer));
+const savedTx=(savedDB.ledger||[]).find(t=>t.id===id);
+if(!savedTx||!savedAccount||Math.abs(round(savedCash)-round(Number(live.cash)))>0.001||Math.abs(round(Number(savedAccount.balance))-round(Number(account.balance)))>0.001||Math.abs(round(Number(savedDB.bankCash))-round(Number(d.bankCash)))>0.001)throw Error("Post-save reconciliation failed.");
+status(type+" completed: "+money(amount)+" "+(type==="Deposit"?"moved from":"returned to")+" "+customer.name+". Customer balance: "+money(account.balance)+".");
+const amt=$("calBankDepositAmount");if(amt)amt.value="";render();
 }catch(e){
- try{localStorage.setItem("calvins_city_v24",beforeState);localStorage.setItem(STORAGE_KEY,beforeDB);}catch(rollbackError){}
- status(type+" failed; saved game and CalBank records were restored where storage permitted: "+String(e&&e.message||e));
+try{localStorage.setItem("calvins_city_v24",beforeState);localStorage.setItem(STORAGE_KEY,beforeDB);}catch(rollbackError){}
+status(type+" failed; saved game and CalBank records were restored where storage permitted: "+String(e&&e.message||e));
 }
 }
 function openAccount(){
@@ -7195,12 +7214,12 @@ const total=round(payouts.reduce((s,p)=>s+p.interest,0));
 if(total<=0){d.lastInterestSeason=season;d.ledger.push({id:"CB-INT-"+season,type:"Season Interest Processed",customerName:"All depositors",amount:0,balanceAfter:0,createdAt:new Date().toISOString(),season});try{saveDB(d);status("Season "+season+" interest processed. No interest was due.");render();}catch(e){localStorage.setItem(STORAGE_KEY,prior);status("Interest processing failed: "+e.message);}return;}
 if(round(Number(d.bankCash)||0)<total){status("Insufficient CalBank cash to credit all interest. Required "+money(total)+", available "+money(d.bankCash||0)+". No interest was credited.");return;}
 try{
- const at=new Date().toISOString();
- payouts.forEach((p,i)=>{if(p.interest<=0)return;const before=round(Number(p.account.balance)||0);p.account.balance=round(before+p.interest);d.ledger.push({id:"CB-INT-"+season+"-"+i+"-"+Date.now(),type:"Interest Credited",customerKey:p.account.customerKey,customerType:p.account.customerType,customerId:p.account.customerId,customerName:p.account.customerName,amount:p.interest,balanceBefore:before,balanceAfter:p.account.balance,createdAt:at,season,apr:rate});});
- d.bankCash=round((Number(d.bankCash)||0)-total);d.lastInterestSeason=season;
- d.ledger.push({id:"CB-INT-SUM-"+season,type:"Season Interest Expense",customerName:"CalBank",amount:total,balanceAfter:round(Number(d.bankCash)||0),createdAt:at,season,apr:rate});
- saveDB(d);const verify=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(!verify||verify.lastInterestSeason!==season||Math.abs(total-verify.ledger.filter(t=>t.type==="Interest Credited"&&t.season===season).reduce((s,t)=>s+Number(t.amount||0),0))>0.001)throw Error("Interest verification failed.");
- status("Credited "+money(total)+" in season "+season+" interest at "+rate.toFixed(2)+"% APR. One season equals one year.");render();
+const at=new Date().toISOString();
+payouts.forEach((p,i)=>{if(p.interest<=0)return;const before=round(Number(p.account.balance)||0);p.account.balance=round(before+p.interest);d.ledger.push({id:"CB-INT-"+season+"-"+i+"-"+Date.now(),type:"Interest Credited",customerKey:p.account.customerKey,customerType:p.account.customerType,customerId:p.account.customerId,customerName:p.account.customerName,amount:p.interest,balanceBefore:before,balanceAfter:p.account.balance,createdAt:at,season,apr:rate});});
+d.bankCash=round((Number(d.bankCash)||0)-total);d.lastInterestSeason=season;
+d.ledger.push({id:"CB-INT-SUM-"+season,type:"Season Interest Expense",customerName:"CalBank",amount:total,balanceAfter:round(Number(d.bankCash)||0),createdAt:at,season,apr:rate});
+saveDB(d);const verify=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(!verify||verify.lastInterestSeason!==season||Math.abs(total-verify.ledger.filter(t=>t.type==="Interest Credited"&&t.season===season).reduce((s,t)=>s+Number(t.amount||0),0))>0.001)throw Error("Interest verification failed.");
+status("Credited "+money(total)+" in season "+season+" interest at "+rate.toFixed(2)+"% APR. One season equals one year.");render();
 }catch(e){try{localStorage.setItem(STORAGE_KEY,prior);}catch(x){}status("Interest processing failed and CalBank records were restored where storage permitted: "+e.message);}
 }
 function debtStatus(msg){const el=$("calBankDebtStatus");if(el)el.textContent=msg;}
@@ -7239,18 +7258,18 @@ if(amount>round(Number(debt.principalOutstanding)||0)){debtStatus("Repayment exc
 if(amount>round(Number(d.bankCash)||0)){debtStatus("CalBank has insufficient cash. Available: "+money(d.bankCash||0)+".");return;}
 const beforeState=JSON.stringify(st),beforeDB=JSON.stringify(d);
 try{
- const live=lenderLive(st,debt);if(!live)throw Error("Original lender account no longer exists; repayment was not made.");
- const lenderBefore=round(Number(live.cash)),bankBefore=round(Number(d.bankCash)||0),principalBefore=round(Number(debt.principalOutstanding)||0);
- if(!Number.isFinite(lenderBefore)||lenderBefore<0)throw Error("Original lender cash is invalid.");
- live.cash=round(lenderBefore+amount);d.bankCash=round(bankBefore-amount);debt.principalOutstanding=round(principalBefore-amount);
- if(debt.principalOutstanding<0.001){debt.principalOutstanding=0;debt.status="repaid";}
- const at=new Date().toISOString(),txid=debt.id+"-REPAY-"+Date.now();
- d.debtLedger.push({id:txid,type:"Principal Repaid",debtId:debt.id,lenderType:debt.lenderType,lenderId:debt.lenderId,lenderName:debt.lenderName,amount,balanceBefore:principalBefore,balanceAfter:debt.principalOutstanding,bankCashBefore:bankBefore,bankCashAfter:d.bankCash,lenderCashBefore:lenderBefore,lenderCashAfter:round(Number(live.cash)),createdAt:at,season});
- saveGame(st);saveDB(d);
- const sg=JSON.parse(localStorage.getItem("calvins_city_v24")||"null"),sd=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null"),savedDebt=sd&&sd.debts.find(x=>x.id===debt.id);
- const savedLender=debt.lenderType==="Citizen"?Number(((sg.citizens||[]).find(c=>c&&String(c.id)===String(debt.lenderId))||{}).cash):Number((debt.lenderType==="Team"?sg.teamCash:sg.businessCash||{})[debt.lenderName]);
- if(!savedDebt||!sd.debtLedger.some(x=>x.id===txid)||Math.abs(Number(savedDebt.principalOutstanding)-Number(debt.principalOutstanding))>.001||Math.abs(Number(sd.bankCash)-Number(d.bankCash))>.001||Math.abs(savedLender-Number(live.cash))>.001)throw Error("Repayment post-save reconciliation failed.");
- debtStatus("Principal repayment verified: "+money(amount)+" paid to "+debt.lenderName+". Remaining principal: "+money(debt.principalOutstanding)+".");const a=$("calBankRepayAmount");if(a)a.value="";render();renderDebt();
+const live=lenderLive(st,debt);if(!live)throw Error("Original lender account no longer exists; repayment was not made.");
+const lenderBefore=round(Number(live.cash)),bankBefore=round(Number(d.bankCash)||0),principalBefore=round(Number(debt.principalOutstanding)||0);
+if(!Number.isFinite(lenderBefore)||lenderBefore<0)throw Error("Original lender cash is invalid.");
+live.cash=round(lenderBefore+amount);d.bankCash=round(bankBefore-amount);debt.principalOutstanding=round(principalBefore-amount);
+if(debt.principalOutstanding<0.001){debt.principalOutstanding=0;debt.status="repaid";}
+const at=new Date().toISOString(),txid=debt.id+"-REPAY-"+Date.now();
+d.debtLedger.push({id:txid,type:"Principal Repaid",debtId:debt.id,lenderType:debt.lenderType,lenderId:debt.lenderId,lenderName:debt.lenderName,amount,balanceBefore:principalBefore,balanceAfter:debt.principalOutstanding,bankCashBefore:bankBefore,bankCashAfter:d.bankCash,lenderCashBefore:lenderBefore,lenderCashAfter:round(Number(live.cash)),createdAt:at,season});
+saveGame(st);saveDB(d);
+const sg=JSON.parse(localStorage.getItem("calvins_city_v24")||"null"),sd=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null"),savedDebt=sd&&sd.debts.find(x=>x.id===debt.id);
+const savedLender=debt.lenderType==="Citizen"?Number(((sg.citizens||[]).find(c=>c&&String(c.id)===String(debt.lenderId))||{}).cash):Number((debt.lenderType==="Team"?sg.teamCash:sg.businessCash||{})[debt.lenderName]);
+if(!savedDebt||!sd.debtLedger.some(x=>x.id===txid)||Math.abs(Number(savedDebt.principalOutstanding)-Number(debt.principalOutstanding))>.001||Math.abs(Number(sd.bankCash)-Number(d.bankCash))>.001||Math.abs(savedLender-Number(live.cash))>.001)throw Error("Repayment post-save reconciliation failed.");
+debtStatus("Principal repayment verified: "+money(amount)+" paid to "+debt.lenderName+". Remaining principal: "+money(debt.principalOutstanding)+".");const a=$("calBankRepayAmount");if(a)a.value="";render();renderDebt();
 }catch(e){try{localStorage.setItem("calvins_city_v24",beforeState);localStorage.setItem(STORAGE_KEY,beforeDB);}catch(x){}debtStatus("Repayment failed; saved game and CalBank records were restored where storage permitted: "+String(e&&e.message||e));}
 }
 function processDebtInterest(){
@@ -7260,16 +7279,16 @@ const priorState=JSON.stringify(st),priorDB=JSON.stringify(d),dueRows=[];
 for(const debt of d.debts){if(debt.status!=="outstanding"||Number(debt.principalOutstanding)<=0)continue;const interest=round(Number(debt.principalOutstanding)*Math.max(0,Number(debt.apr)||0)/100);if(interest>0){const lender=lenderLive(st,debt);if(!lender){debtStatus("Cannot settle debt interest: original lender "+debt.lenderName+" is missing. No interest was paid.");return;}dueRows.push({debt,lender,interest});}}
 const total=round(dueRows.reduce((sum,x)=>sum+x.interest,0));if(round(Number(d.bankCash)||0)<total){debtStatus("Insufficient CalBank cash to pay season debt interest. Required "+money(total)+", available "+money(d.bankCash||0)+". Nothing was paid.");return;}
 try{
- const at=new Date().toISOString();let bankCash=round(Number(d.bankCash)||0);
- dueRows.forEach((x,i)=>{const lenderBefore=round(Number(x.lender.cash)),bankBefore=bankCash;if(!Number.isFinite(lenderBefore)||lenderBefore<0)throw Error("Invalid lender cash for "+x.debt.lenderName);x.lender.cash=round(lenderBefore+x.interest);bankCash=round(bankCash-x.interest);d.debtLedger.push({id:"CB-DEBT-INT-"+season+"-"+i+"-"+Date.now(),type:"Debt Interest Paid",debtId:x.debt.id,lenderType:x.debt.lenderType,lenderId:x.debt.lenderId,lenderName:x.debt.lenderName,amount:x.interest,balanceAfter:round(Number(x.debt.principalOutstanding)||0),bankCashBefore:bankBefore,bankCashAfter:bankCash,lenderCashBefore:lenderBefore,lenderCashAfter:round(Number(x.lender.cash)),createdAt:at,season,apr:Number(x.debt.apr)||0});});
- d.bankCash=bankCash;d.lastDebtInterestSeason=season;d.debtLedger.push({id:"CB-DEBT-INT-SUM-"+season,type:"Season Debt Interest Processed",debtId:"ALL",lenderName:"All lenders",amount:total,balanceAfter:round(d.debts.reduce((sum,x)=>sum+(x.status==="outstanding"?Number(x.principalOutstanding)||0:0),0)),createdAt:at,season});
- saveGame(st);saveDB(d);
- const sg=JSON.parse(localStorage.getItem("calvins_city_v24")||"null"),sd=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
- const recorded=sd&&sd.debtLedger.filter(x=>x.type==="Debt Interest Paid"&&Number(x.season)===season).reduce((sum,x)=>sum+Number(x.amount||0),0);
- if(!sd||Number(sd.lastDebtInterestSeason)!==season||!sd.debtLedger.some(x=>x.type==="Season Debt Interest Processed"&&Number(x.season)===season)||Math.abs(Number(recorded||0)-total)>.011||Math.abs(Number(sd.bankCash)-Number(d.bankCash))>.001)throw Error("Debt interest post-save reconciliation failed.");
- /* Verify each lender cash balance was committed, not just the debt database. */
- for(const x of dueRows){const cash=x.debt.lenderType==="Citizen"?Number(((sg.citizens||[]).find(c=>c&&String(c.id)===String(x.debt.lenderId))||{}).cash):Number((x.debt.lenderType==="Team"?sg.teamCash:sg.businessCash||{})[x.debt.lenderName]);if(Math.abs(cash-Number(x.lender.cash))>.001)throw Error("Lender cash verification failed for "+x.debt.lenderName);}
- debtStatus("Season "+season+" debt interest processed and verified: "+money(total)+" paid to lenders. Principal balances are unchanged.");render();renderDebt();
+const at=new Date().toISOString();let bankCash=round(Number(d.bankCash)||0);
+dueRows.forEach((x,i)=>{const lenderBefore=round(Number(x.lender.cash)),bankBefore=bankCash;if(!Number.isFinite(lenderBefore)||lenderBefore<0)throw Error("Invalid lender cash for "+x.debt.lenderName);x.lender.cash=round(lenderBefore+x.interest);bankCash=round(bankCash-x.interest);d.debtLedger.push({id:"CB-DEBT-INT-"+season+"-"+i+"-"+Date.now(),type:"Debt Interest Paid",debtId:x.debt.id,lenderType:x.debt.lenderType,lenderId:x.debt.lenderId,lenderName:x.debt.lenderName,amount:x.interest,balanceAfter:round(Number(x.debt.principalOutstanding)||0),bankCashBefore:bankBefore,bankCashAfter:bankCash,lenderCashBefore:lenderBefore,lenderCashAfter:round(Number(x.lender.cash)),createdAt:at,season,apr:Number(x.debt.apr)||0});});
+d.bankCash=bankCash;d.lastDebtInterestSeason=season;d.debtLedger.push({id:"CB-DEBT-INT-SUM-"+season,type:"Season Debt Interest Processed",debtId:"ALL",lenderName:"All lenders",amount:total,balanceAfter:round(d.debts.reduce((sum,x)=>sum+(x.status==="outstanding"?Number(x.principalOutstanding)||0:0),0)),createdAt:at,season});
+saveGame(st);saveDB(d);
+const sg=JSON.parse(localStorage.getItem("calvins_city_v24")||"null"),sd=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+const recorded=sd&&sd.debtLedger.filter(x=>x.type==="Debt Interest Paid"&&Number(x.season)===season).reduce((sum,x)=>sum+Number(x.amount||0),0);
+if(!sd||Number(sd.lastDebtInterestSeason)!==season||!sd.debtLedger.some(x=>x.type==="Season Debt Interest Processed"&&Number(x.season)===season)||Math.abs(Number(recorded||0)-total)>.011||Math.abs(Number(sd.bankCash)-Number(d.bankCash))>.001)throw Error("Debt interest post-save reconciliation failed.");
+/* Verify each lender cash balance was committed, not just the debt database. */
+for(const x of dueRows){const cash=x.debt.lenderType==="Citizen"?Number(((sg.citizens||[]).find(c=>c&&String(c.id)===String(x.debt.lenderId))||{}).cash):Number((x.debt.lenderType==="Team"?sg.teamCash:sg.businessCash||{})[x.debt.lenderName]);if(Math.abs(cash-Number(x.lender.cash))>.001)throw Error("Lender cash verification failed for "+x.debt.lenderName);}
+debtStatus("Season "+season+" debt interest processed and verified: "+money(total)+" paid to lenders. Principal balances are unchanged.");render();renderDebt();
 }catch(e){try{localStorage.setItem("calvins_city_v24",priorState);localStorage.setItem(STORAGE_KEY,priorDB);}catch(x){}debtStatus("Debt interest failed; saved game and CalBank records were restored where storage permitted: "+String(e&&e.message||e));}
 }
 function borrowFunds(){
@@ -7283,18 +7302,18 @@ if(!Number.isFinite(amount)||amount<=0||!Number.isFinite(apr)||apr<0||apr>100||!
 if(amount>lender.cash){debtStatus("The selected lender does not have enough cash. Available: "+money(lender.cash)+".");return;}
 const beforeState=JSON.stringify(st),beforeDB=JSON.stringify(d);
 try{
- const live=lenderLive(st,{lenderType,lenderId,lenderName:lender.name});if(!live)throw Error("Lender account could not be resolved.");
- const lenderBefore=round(Number(live.cash)),bankBefore=round(Number(d.bankCash)||0);if(!Number.isFinite(lenderBefore)||lenderBefore<amount)throw Error("Lender cash changed; refresh and retry.");
- const at=new Date().toISOString(),id="CB-DEBT-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
- live.cash=round(lenderBefore-amount);d.bankCash=round(bankBefore+amount);
- const debt={id,lenderType,lenderId,lenderName:lender.name,originalPrincipal:amount,principalOutstanding:amount,apr,termSeasons:term,openedSeason:season,createdAt:at,status:"outstanding",source:"external_lender"};
- d.debts.push(debt);d.debtLedger.push({id:id+"-BORROW",type:"Borrowed",debtId:id,lenderType,lenderId,lenderName:lender.name,amount,balanceBefore:0,balanceAfter:amount,createdAt:at,season,lenderCashBefore:lenderBefore,lenderCashAfter:round(Number(live.cash)),bankCashBefore:bankBefore,bankCashAfter:d.bankCash});
- saveGame(st);saveDB(d);
- const verify=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null"),savedGame=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
- const savedLender=lenderType==="Citizen"?Number(((savedGame.citizens||[]).find(c=>c&&String(c.id)===lenderId)||{}).cash):Number((lenderType==="Team"?savedGame.teamCash:savedGame.businessCash||{})[lender.name]);
- if(!verify||!verify.debts.some(x=>x.id===id)||!verify.debtLedger.some(x=>x.id===id+"-BORROW")||Math.abs(Number(verify.bankCash)-Number(d.bankCash))>.001||Math.abs(savedLender-Number(live.cash))>.001)throw Error("Borrowing reconciliation failed: lender cash, CalBank cash, and debt records did not all match after saving.");
- debtStatus("Borrowing recorded and verified: "+money(amount)+" received from "+lender.name+". Lender cash decreased by the same amount; debt liability increased equally. No profit was recorded.");
- const amountEl=$("calBankBorrowAmount");if(amountEl)amountEl.value="";render();renderDebt();
+const live=lenderLive(st,{lenderType,lenderId,lenderName:lender.name});if(!live)throw Error("Lender account could not be resolved.");
+const lenderBefore=round(Number(live.cash)),bankBefore=round(Number(d.bankCash)||0);if(!Number.isFinite(lenderBefore)||lenderBefore<amount)throw Error("Lender cash changed; refresh and retry.");
+const at=new Date().toISOString(),id="CB-DEBT-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
+live.cash=round(lenderBefore-amount);d.bankCash=round(bankBefore+amount);
+const debt={id,lenderType,lenderId,lenderName:lender.name,originalPrincipal:amount,principalOutstanding:amount,apr,termSeasons:term,openedSeason:season,createdAt:at,status:"outstanding",source:"external_lender"};
+d.debts.push(debt);d.debtLedger.push({id:id+"-BORROW",type:"Borrowed",debtId:id,lenderType,lenderId,lenderName:lender.name,amount,balanceBefore:0,balanceAfter:amount,createdAt:at,season,lenderCashBefore:lenderBefore,lenderCashAfter:round(Number(live.cash)),bankCashBefore:bankBefore,bankCashAfter:d.bankCash});
+saveGame(st);saveDB(d);
+const verify=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null"),savedGame=JSON.parse(localStorage.getItem("calvins_city_v24")||"null");
+const savedLender=lenderType==="Citizen"?Number(((savedGame.citizens||[]).find(c=>c&&String(c.id)===lenderId)||{}).cash):Number((lenderType==="Team"?savedGame.teamCash:savedGame.businessCash||{})[lender.name]);
+if(!verify||!verify.debts.some(x=>x.id===id)||!verify.debtLedger.some(x=>x.id===id+"-BORROW")||Math.abs(Number(verify.bankCash)-Number(d.bankCash))>.001||Math.abs(savedLender-Number(live.cash))>.001)throw Error("Borrowing reconciliation failed: lender cash, CalBank cash, and debt records did not all match after saving.");
+debtStatus("Borrowing recorded and verified: "+money(amount)+" received from "+lender.name+". Lender cash decreased by the same amount; debt liability increased equally. No profit was recorded.");
+const amountEl=$("calBankBorrowAmount");if(amountEl)amountEl.value="";render();renderDebt();
 }catch(e){try{localStorage.setItem("calvins_city_v24",beforeState);localStorage.setItem(STORAGE_KEY,beforeDB);}catch(x){}debtStatus("Borrowing failed; saved game and CalBank records were restored where storage permitted: "+String(e&&e.message||e));}
 }
 function bind(){
@@ -7333,32 +7352,32 @@ if(!st||!st.federalReserve||!Number.isFinite(Number(st.federalReserve.cash))){st
 const priorGame=JSON.stringify(st),priorBank=JSON.stringify(d),season=Number(st.year)||1;
 const fedBefore=round(st.federalReserve.cash),bankBefore=round(d.bankCash),outBefore=round(d.fedCapitalOutstanding),invested=round(d.fedCapitalInvested);
 if(direction==="receive"){
- if(fedBefore+0.000001<amount){status("The Federal Reserve does not have enough available cash. No changes made.");return;}
- st.federalReserve.cash=round(fedBefore-amount);d.bankCash=round(bankBefore+amount);d.fedCapitalOutstanding=round(outBefore+amount);
+if(fedBefore+0.000001<amount){status("The Federal Reserve does not have enough available cash. No changes made.");return;}
+st.federalReserve.cash=round(fedBefore-amount);d.bankCash=round(bankBefore+amount);d.fedCapitalOutstanding=round(outBefore+amount);
 }else{
- const depositLiabilities=round((Array.isArray(d.accounts)?d.accounts:[]).reduce((sum,a)=>sum+(Number(a&&a.balance)||0),0));
- const returnable=Math.max(0,Math.min(round(outBefore-invested),round(bankBefore-depositLiabilities)));
- if(amount>returnable+0.000001){status("That amount exceeds uninvested Fed capital available to return. No changes made.");return;}
- if(bankBefore+0.000001<amount){status("CalBank does not have enough cash to return that amount. No changes made.");return;}
- st.federalReserve.cash=round(fedBefore+amount);d.bankCash=round(bankBefore-amount);d.fedCapitalOutstanding=round(outBefore-amount);
+const depositLiabilities=round((Array.isArray(d.accounts)?d.accounts:[]).reduce((sum,a)=>sum+(Number(a&&a.balance)||0),0));
+const returnable=Math.max(0,Math.min(round(outBefore-invested),round(bankBefore-depositLiabilities)));
+if(amount>returnable+0.000001){status("That amount exceeds uninvested Fed capital available to return. No changes made.");return;}
+if(bankBefore+0.000001<amount){status("CalBank does not have enough cash to return that amount. No changes made.");return;}
+st.federalReserve.cash=round(fedBefore+amount);d.bankCash=round(bankBefore-amount);d.fedCapitalOutstanding=round(outBefore-amount);
 }
 const row={id:"FCT-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),season,type:direction==="receive"?"Fed Capital Sent to CalBank":"Fed Capital Returned to Fed",amount,fedCashBefore:fedBefore,fedCashAfter:round(st.federalReserve.cash),bankCashBefore:bankBefore,bankCashAfter:round(d.bankCash),outstandingBefore:outBefore,outstandingAfter:round(d.fedCapitalOutstanding),investedCapital:invested,interestRate:0,createdAt:new Date().toISOString()};
 d.fedCapitalLedger.push(row);
 try{
- /* Save through the live app bridge so in-memory state and localStorage stay aligned. */
- if(bridge.save()===false)throw Error("The main game state could not be saved.");
- saveVerified(BANK_KEY,d,"CalBank data");
- const verifyGame=read(GAME_KEY),verifyBank=read(BANK_KEY);
- if(!verifyGame||!verifyBank||Math.abs(round(verifyGame.federalReserve.cash)-round(st.federalReserve.cash))>0.001||Math.abs(round(verifyBank.bankCash)-round(d.bankCash))>0.001||Math.abs(round(verifyBank.fedCapitalOutstanding)-round(d.fedCapitalOutstanding))>0.001||!verifyBank.fedCapitalLedger.some(x=>x.id===row.id))throw Error("Saved transfer verification failed.");
- status((direction==="receive"?"Sent ":"Returned ")+fmt(amount)+" "+(direction==="receive"?"from the Federal Reserve to CalBank.":"from CalBank to the Federal Reserve.")+" Fed cash, CalBank cash, capital ownership, and transfer records verified. No interest charged.");
- if(amountEl)amountEl.value="";render();
- if(typeof window.refreshFederalReserveCashTracker==="function")window.refreshFederalReserveCashTracker();
- if(typeof window.refreshFederalReserveLedger==="function")window.refreshFederalReserveLedger();
- if(typeof window.renderCalBankDeposits==="function")window.renderCalBankDeposits();
- if(typeof window.renderCalBankDebt==="function")window.renderCalBankDebt();
+/* Save through the live app bridge so in-memory state and localStorage stay aligned. */
+if(bridge.save()===false)throw Error("The main game state could not be saved.");
+saveVerified(BANK_KEY,d,"CalBank data");
+const verifyGame=read(GAME_KEY),verifyBank=read(BANK_KEY);
+if(!verifyGame||!verifyBank||Math.abs(round(verifyGame.federalReserve.cash)-round(st.federalReserve.cash))>0.001||Math.abs(round(verifyBank.bankCash)-round(d.bankCash))>0.001||Math.abs(round(verifyBank.fedCapitalOutstanding)-round(d.fedCapitalOutstanding))>0.001||!verifyBank.fedCapitalLedger.some(x=>x.id===row.id))throw Error("Saved transfer verification failed.");
+status((direction==="receive"?"Sent ":"Returned ")+fmt(amount)+" "+(direction==="receive"?"from the Federal Reserve to CalBank.":"from CalBank to the Federal Reserve.")+" Fed cash, CalBank cash, capital ownership, and transfer records verified. No interest charged.");
+if(amountEl)amountEl.value="";render();
+if(typeof window.refreshFederalReserveCashTracker==="function")window.refreshFederalReserveCashTracker();
+if(typeof window.refreshFederalReserveLedger==="function")window.refreshFederalReserveLedger();
+if(typeof window.renderCalBankDeposits==="function")window.renderCalBankDeposits();
+if(typeof window.renderCalBankDebt==="function")window.renderCalBankDebt();
 }catch(e){
- try{const prior=JSON.parse(priorGame);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,prior);if(typeof bridge.save==="function")bridge.save();if(bankRaw===null)localStorage.removeItem(BANK_KEY);else localStorage.setItem(BANK_KEY,bankRaw);}catch(rollbackError){console.error("Fed-CalBank transfer rollback requires review",rollbackError);}
- status("Transfer could not be fully verified. A rollback was attempted; check both balances and the ledger before retrying. "+String(e&&e.message||e));render();
+try{const prior=JSON.parse(priorGame);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,prior);if(typeof bridge.save==="function")bridge.save();if(bankRaw===null)localStorage.removeItem(BANK_KEY);else localStorage.setItem(BANK_KEY,bankRaw);}catch(rollbackError){console.error("Fed-CalBank transfer rollback requires review",rollbackError);}
+status("Transfer could not be fully verified. A rollback was attempted; check both balances and the ledger before retrying. "+String(e&&e.message||e));render();
 }
 }
 const receive=$("calBankFedReceive"),ret=$("calBankFedReturn");if(receive)receive.addEventListener("click",()=>transfer("receive"));if(ret)ret.addEventListener("click",()=>transfer("return"));const tab=$("cityCalBankTab");if(tab)tab.addEventListener("click",()=>setTimeout(render,0));document.addEventListener("DOMContentLoaded",render);setTimeout(render,0);window.renderCalBankFedCapital=render;
@@ -7437,9 +7456,9 @@ if(rateEl)rateEl.textContent=rate.toFixed(2)+"%"+(plan.status==="recommended"?" 
 if(countEl)countEl.textContent=String(accounts.length);
 if(totalEl)totalEl.textContent=fmt(plan.projectedTotal);
 if(details){
- let html='<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #64748b">Eligible account</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Cash at assessment</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Projected tax</th></tr></thead><tbody>';
- for(const a of accounts){const cash=Number(a.cash)||0,tax=Math.round((cash*rate/100+Number.EPSILON)*100)/100;a.tax=tax;html+='<tr><td style="padding:8px;border-bottom:1px solid #475569">'+escapeHtml(a.type+": "+a.name)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(cash)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(tax)+'</td></tr>';}
- html+='</tbody></table>';details.innerHTML=html;
+let html='<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #64748b">Eligible account</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Cash at assessment</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Projected tax</th></tr></thead><tbody>';
+for(const a of accounts){const cash=Number(a.cash)||0,tax=Math.round((cash*rate/100+Number.EPSILON)*100)/100;a.tax=tax;html+='<tr><td style="padding:8px;border-bottom:1px solid #475569">'+escapeHtml(a.type+": "+a.name)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(cash)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(tax)+'</td></tr>';}
+html+='</tbody></table>';details.innerHTML=html;
 }
 const ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
 if(ver)ver.disabled=plan.status!=="recommended";
@@ -7449,24 +7468,24 @@ if(col)col.disabled=plan.status!=="approved";
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function generate(){
 try{
- const st=getState();if(!st){setStatus("Game state is unavailable. No recommendation was created.");return;}
- const input=$("fedTaxRateInput"),rawText=String(input&&input.value!=null?input.value:"").trim(),rate=Number(rawText);
- if(rawText===""||!Number.isFinite(rate)||rate<0||rate>100){setStatus("Enter a tax rate from 0% through 100%. No recommendation was created.");return;}
- const accounts=getAccounts(st);if(!accounts.length){setStatus("No eligible business or team cash accounts were found. No recommendation was created.");return;}
- const season=Number(st.year)||0,plans=getSavedPlans(st),existingIndex=plans.findIndex(p=>p&&p.id==="season-"+season+"-tax-plan");
- if(existingIndex>=0&&plans[existingIndex].status==="approved") {setStatus("This season's plan is already approved and preserved. To change it, an authorized revision workflow is needed; the approved plan was not overwritten.");return;}
- if(existingIndex>=0&&plans[existingIndex].status==="collected") {setStatus("This season's tax has already been collected. The plan is locked to protect the financial record.");return;}
- const plan={id:"season-"+season+"-tax-plan",season,rate,base:"cash_balance_at_assessment",status:"recommended",createdAt:new Date().toISOString(),verifiedAt:null,approvedAt:null,collectionEnabled:false,accounts:accounts.map(a=>{const cash=Number(a.cash)||0;return {...a,cash,tax:Math.round((cash*rate/100+Number.EPSILON)*100)/100};}),excluded:{citizens:true,calSims:true,federalReserve:true}};
- plan.projectedTotal=Math.round((plan.accounts.reduce((sum,a)=>sum+Number(a.tax||0),0)+Number.EPSILON)*100)/100;
- // Update the visible assessment first, so the UI always reflects the entered rate and freshly read cash.
- renderPlan(plan);
- if(existingIndex>=0)plans[existingIndex]=plan;else plans.push(plan);
- const b=window.__calvinsCityBridge;
- if(!b||typeof b.save!=="function"||b.save()===false){setStatus("Recommendation calculated and displayed, but saving failed. Do not proceed to verification or collection until storage is available.");return;}
- const savedState=b.getState(),savedPlans=savedState&&savedState.federalReserve&&savedState.federalReserve.seasonalTaxPlans;
- const saved=savedPlans&&savedPlans.find(p=>p&&p.id===plan.id);
- if(!saved||Number(saved.rate)!==rate||Math.abs(Number(saved.projectedTotal)-plan.projectedTotal)>0.011){setStatus("The recommendation is displayed, but the saved record did not match the calculated rate and total. Do not proceed; reload and inspect storage.");return;}
- renderPlan(saved);setStatus("Recommendation generated and saved for Season "+season+" at "+rate.toFixed(2)+"%. The assessment table now reflects the latest eligible team and company cash balances. This is a proposal only; no cash was changed.");
+const st=getState();if(!st){setStatus("Game state is unavailable. No recommendation was created.");return;}
+const input=$("fedTaxRateInput"),rawText=String(input&&input.value!=null?input.value:"").trim(),rate=Number(rawText);
+if(rawText===""||!Number.isFinite(rate)||rate<0||rate>100){setStatus("Enter a tax rate from 0% through 100%. No recommendation was created.");return;}
+const accounts=getAccounts(st);if(!accounts.length){setStatus("No eligible business or team cash accounts were found. No recommendation was created.");return;}
+const season=Number(st.year)||0,plans=getSavedPlans(st),existingIndex=plans.findIndex(p=>p&&p.id==="season-"+season+"-tax-plan");
+if(existingIndex>=0&&plans[existingIndex].status==="approved") {setStatus("This season's plan is already approved and preserved. To change it, an authorized revision workflow is needed; the approved plan was not overwritten.");return;}
+if(existingIndex>=0&&plans[existingIndex].status==="collected") {setStatus("This season's tax has already been collected. The plan is locked to protect the financial record.");return;}
+const plan={id:"season-"+season+"-tax-plan",season,rate,base:"cash_balance_at_assessment",status:"recommended",createdAt:new Date().toISOString(),verifiedAt:null,approvedAt:null,collectionEnabled:false,accounts:accounts.map(a=>{const cash=Number(a.cash)||0;return {...a,cash,tax:Math.round((cash*rate/100+Number.EPSILON)*100)/100};}),excluded:{citizens:true,calSims:true,federalReserve:true}};
+plan.projectedTotal=Math.round((plan.accounts.reduce((sum,a)=>sum+Number(a.tax||0),0)+Number.EPSILON)*100)/100;
+// Update the visible assessment first, so the UI always reflects the entered rate and freshly read cash.
+renderPlan(plan);
+if(existingIndex>=0)plans[existingIndex]=plan;else plans.push(plan);
+const b=window.__calvinsCityBridge;
+if(!b||typeof b.save!=="function"||b.save()===false){setStatus("Recommendation calculated and displayed, but saving failed. Do not proceed to verification or collection until storage is available.");return;}
+const savedState=b.getState(),savedPlans=savedState&&savedState.federalReserve&&savedState.federalReserve.seasonalTaxPlans;
+const saved=savedPlans&&savedPlans.find(p=>p&&p.id===plan.id);
+if(!saved||Number(saved.rate)!==rate||Math.abs(Number(saved.projectedTotal)-plan.projectedTotal)>0.011){setStatus("The recommendation is displayed, but the saved record did not match the calculated rate and total. Do not proceed; reload and inspect storage.");return;}
+renderPlan(saved);setStatus("Recommendation generated and saved for Season "+season+" at "+rate.toFixed(2)+"%. The assessment table now reflects the latest eligible team and company cash balances. This is a proposal only; no cash was changed.");
 }catch(e){setStatus("Recommendation could not be completed: "+String(e&&e.message||e)+". No tax collection was performed.");}
 }
 function verify(){
@@ -7536,8 +7555,8 @@ currentPlan=null;setStatus("Collection did not complete safely: "+String(e&&e.me
 }
 const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
 /* 5.8.23: one authoritative capture-phase click dispatcher. Do not mix onclick,
-  bubbling listeners, and pointerup status-only handlers: that can create taps
-  which appear to respond without advancing the saved workflow. */
+ bubbling listeners, and pointerup status-only handlers: that can create taps
+ which appear to respond without advancing the saved workflow. */
 const taxActions={fedTaxGenerateRecommendation:generate,fedTaxVerifyPlan:verify,fedTaxApprovePlan:approve,fedTaxCollectPlan:collect};
 Object.keys(taxActions).forEach(id=>{const button=$(id);if(button){button.type="button";button.style.pointerEvents="auto";button.style.touchAction="manipulation";button.onclick=null;}});
 document.addEventListener("click",function(event){const button=event.target&&event.target.closest?event.target.closest("#fedTaxGenerateRecommendation,#fedTaxVerifyPlan,#fedTaxApprovePlan,#fedTaxCollectPlan"):null;if(!button)return;const action=taxActions[button.id];if(typeof action!=="function")return;event.preventDefault();event.stopPropagation();if(button.disabled){setStatus("This step is locked. Complete the previous step and follow the status message before continuing.");return;}try{action();}catch(e){setStatus("Step could not run: "+String(e&&e.message||e)+". No tax should be collected unless Step 4 completes and confirms the ledger.");}},true);
@@ -7547,22 +7566,22 @@ const input=$("fedTaxRateInput");
 if(input){
 input.disabled=false;input.readOnly=false;input.removeAttribute("readonly");
 const rateEdited=()=>{
-  const raw=String(input.value||"").trim(),rate=Number(raw),valid=raw!==""&&Number.isFinite(rate)&&rate>=0&&rate<=100;
-  const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
-  if(gen)gen.disabled=!valid;
-  if(currentPlan&&(!valid||Math.abs(rate-Number(currentPlan.rate))>1e-9)){
-    if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
-    setStatus(valid?"Tax rate changed. Generate a new recommendation (Step 1), then verify, approve, and collect in order.":"Enter a tax rate from 0% through 100% to enable Step 1.");
-  }
+ const raw=String(input.value||"").trim(),rate=Number(raw),valid=raw!==""&&Number.isFinite(rate)&&rate>=0&&rate<=100;
+ const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
+ if(gen)gen.disabled=!valid;
+ if(currentPlan&&(!valid||Math.abs(rate-Number(currentPlan.rate))>1e-9)){
+   if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
+   setStatus(valid?"Tax rate changed. Generate a new recommendation (Step 1), then verify, approve, and collect in order.":"Enter a tax rate from 0% through 100% to enable Step 1.");
+ }
 };
 input.addEventListener("input",()=>{rateEdited();previewTaxRate();});input.addEventListener("change",()=>{rateEdited();previewTaxRate();});rateEdited();
 function previewTaxRate(){
- const raw=String(input.value||"").trim(),rate=Number(raw);if(raw===""||!Number.isFinite(rate)||rate<0||rate>100)return;
- const rateEl=$("fedTaxRateDisplay");if(rateEl)rateEl.textContent=rate.toFixed(2)+"% (preview — generate to save)";
- const st=getState();if(!st)return;const accounts=getAccounts(st);if(!accounts.length)return;
- const total=accounts.reduce((sum,a)=>sum+Math.round(((Number(a.cash)||0)*rate/100+Number.EPSILON)*100)/100,0);
- const totalEl=$("fedTaxProjectedTotal");if(totalEl)totalEl.textContent=fmt(Math.round((total+Number.EPSILON)*100)/100);
- const details=$("fedTaxAssessmentDetails");if(details){let html='<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #64748b">Eligible account</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Cash at assessment (preview)</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Projected tax</th></tr></thead><tbody>';for(const a of accounts){const cash=Number(a.cash)||0,tax=Math.round((cash*rate/100+Number.EPSILON)*100)/100;html+='<tr><td style="padding:8px;border-bottom:1px solid #475569">'+escapeHtml(a.type+": "+a.name)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(cash)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(tax)+'</td></tr>';}details.innerHTML=html+'</tbody></table>';}
+const raw=String(input.value||"").trim(),rate=Number(raw);if(raw===""||!Number.isFinite(rate)||rate<0||rate>100)return;
+const rateEl=$("fedTaxRateDisplay");if(rateEl)rateEl.textContent=rate.toFixed(2)+"% (preview — generate to save)";
+const st=getState();if(!st)return;const accounts=getAccounts(st);if(!accounts.length)return;
+const total=accounts.reduce((sum,a)=>sum+Math.round(((Number(a.cash)||0)*rate/100+Number.EPSILON)*100)/100,0);
+const totalEl=$("fedTaxProjectedTotal");if(totalEl)totalEl.textContent=fmt(Math.round((total+Number.EPSILON)*100)/100);
+const details=$("fedTaxAssessmentDetails");if(details){let html='<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #64748b">Eligible account</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Cash at assessment (preview)</th><th style="text-align:right;padding:8px;border-bottom:1px solid #64748b">Projected tax</th></tr></thead><tbody>';for(const a of accounts){const cash=Number(a.cash)||0,tax=Math.round((cash*rate/100+Number.EPSILON)*100)/100;html+='<tr><td style="padding:8px;border-bottom:1px solid #475569">'+escapeHtml(a.type+": "+a.name)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(cash)+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid #475569">'+fmt(tax)+'</td></tr>';}details.innerHTML=html+'</tbody></table>';}
 }
 }
 })();
@@ -7626,61 +7645,61 @@ const st=getState();
 if(!st){status("Purchase blocked: game state unavailable. No cash moved.");return;}
 let f,off,investor,accountType,accountName,principal,oldInvestorCash,oldFederalCash,securityId,security,ledgerEntry;
 try{
- f=fedState(st);off=getOffering(st);
- if(!off)throw Error("There is no OPEN offering for the current season. Complete Steps 1–4 first; Step 4 must show the offering is open.");
- if(Number(off.season)!==getSeason(st))throw Error("Selected offering belongs to Season "+off.season+", but the current season is "+getSeason(st)+". No cash moved.");
- const investorEl=$("fedTreasuryInvestor"),amountEl=$("fedTreasuryPurchaseAmount");
- if(!investorEl||!amountEl)throw Error("Investor purchase controls are missing from the page.");
- const investorValue=String(investorEl.value||"");
- if(!investorValue)throw Error("Select a citizen, business, or team from Investor account.");
- const split=investorValue.split("|"),type=split.shift(),name=split.join("|");
- if(!["Citizen","Business","Team"].includes(type)||!name)throw Error("Selected investor value is invalid. Re-select the investor and try again.");
- const accounts=getAccounts(st);investor=accounts.find(a=>a.type===type&&a.name===name);
- if(!investor)throw Error("Could not match the selected investor to a live cash account. Refresh the investor list and try again.");
- accountType=type;accountName=name;
- const amount=Number(amountEl.value),term=Number(off.term);
- if(!Number.isFinite(amount)||amount<=0)throw Error("Purchase amount must be greater than zero (in millions).");
- if(![1,3,5].includes(term))throw Error("The open offering has an invalid security term.");
- if(String($("fedTreasurySecurity")?.value||"")!==String(off.id))throw Error("Select the specific open bill or bond you want to purchase.");
- const raised=totalRaised(f,off.id),remaining=Math.round((Number(off.target)-raised+Number.EPSILON)*100)/100;
- if(remaining<=0.000001)throw Error("This offering has reached its fundraising target.");
- principal=Math.round((amount+Number.EPSILON)*100)/100;
- if(principal>remaining+0.000001)throw Error("Purchase exceeds the remaining offering target of "+fmt(remaining)+".");
- oldInvestorCash=getCash(st,investor);oldFederalCash=Number(f.cash);
- if(!Number.isFinite(oldInvestorCash)||oldInvestorCash+0.000001<principal)throw Error("Investor has insufficient available cash. Available: "+fmt(oldInvestorCash)+"; requested: "+fmt(principal)+".");
- if(!Number.isFinite(oldFederalCash))throw Error("Federal Reserve cash balance is invalid; purchase stopped.");
- const rate=Number(off.rates&&off.rates[term]);if(!Number.isFinite(rate)||rate<0||rate>100)throw Error("The offering interest rate is invalid.");
- const season=getSeason(st),sequence=Number(f.treasurySecurities.reduce((m,x)=>Math.max(m,Number(x&&x.sequence)||0),0))+1;
- securityId="treasury-security-"+season+"-"+sequence;
- if(f.treasurySecurities.some(x=>x&&x.id===securityId))throw Error("Security ID already exists. No purchase was made; refresh and retry.");
- const interest=Math.round((principal*rate/100*term+Number.EPSILON)*100)/100,total=Math.round((principal+interest+Number.EPSILON)*100)/100;
- security={id:securityId,sequence,offeringId:off.id,issuedSeason:season,investorType:type,investorName:name,term,principal,rate,interest,maturityTotal:total,maturitySeason:season+term,status:"outstanding",purchasedAt:new Date().toISOString(),repaidAt:null};
- setCash(st,investor,Math.round((oldInvestorCash-principal+Number.EPSILON)*100)/100);
- f.cash=Math.round((oldFederalCash+principal+Number.EPSILON)*100)/100;
- f.treasurySecurities.push(security);
- ledgerEntry={id:securityId+"-purchase",type:"security_purchased",securityId,season,investorType:type,investorName:name,principal,rate,term,maturitySeason:security.maturitySeason,interest,totalDue:total,investorCashBefore:oldInvestorCash,investorCashAfter:Math.round((oldInvestorCash-principal+Number.EPSILON)*100)/100,federalReserveCashBefore:oldFederalCash,federalReserveCashAfter:f.cash,timestamp:security.purchasedAt};
- f.treasuryLedger.push(ledgerEntry);
- if(!save())throw Error("The app did not confirm saving the purchase.");
- const saved=getState(),sf=saved&&saved.federalReserve,ss=sf&&Array.isArray(sf.treasurySecurities)&&sf.treasurySecurities.find(x=>x&&x.id===securityId);
- const savedInvestor=getAccounts(saved||{}).find(a=>a.type===accountType&&a.name===accountName);
- const expectedInvestorCash=Math.round((oldInvestorCash-principal+Number.EPSILON)*100)/100;
- const expectedFedCash=Math.round((oldFederalCash+principal+Number.EPSILON)*100)/100;
- if(!ss||ss.status!=="outstanding"||Math.abs(Number(sf.cash)-expectedFedCash)>0.011||!savedInvestor||Math.abs(getCash(saved,savedInvestor)-expectedInvestorCash)>0.011)throw Error("Post-save verification did not match the investor balance, Federal Reserve balance, and security record.");
- status("Purchase saved and verified: "+accountType+" "+accountName+" purchased "+fmt(principal)+" of the "+term+"-season "+(term===5?"Treasury bond":"Treasury bill")+". Federal Reserve cash increased by the same amount; maturity principal and interest are recorded.");
- render();
+f=fedState(st);off=getOffering(st);
+if(!off)throw Error("There is no OPEN offering for the current season. Complete Steps 1–4 first; Step 4 must show the offering is open.");
+if(Number(off.season)!==getSeason(st))throw Error("Selected offering belongs to Season "+off.season+", but the current season is "+getSeason(st)+". No cash moved.");
+const investorEl=$("fedTreasuryInvestor"),amountEl=$("fedTreasuryPurchaseAmount");
+if(!investorEl||!amountEl)throw Error("Investor purchase controls are missing from the page.");
+const investorValue=String(investorEl.value||"");
+if(!investorValue)throw Error("Select a citizen, business, or team from Investor account.");
+const split=investorValue.split("|"),type=split.shift(),name=split.join("|");
+if(!["Citizen","Business","Team"].includes(type)||!name)throw Error("Selected investor value is invalid. Re-select the investor and try again.");
+const accounts=getAccounts(st);investor=accounts.find(a=>a.type===type&&a.name===name);
+if(!investor)throw Error("Could not match the selected investor to a live cash account. Refresh the investor list and try again.");
+accountType=type;accountName=name;
+const amount=Number(amountEl.value),term=Number(off.term);
+if(!Number.isFinite(amount)||amount<=0)throw Error("Purchase amount must be greater than zero (in millions).");
+if(![1,3,5].includes(term))throw Error("The open offering has an invalid security term.");
+if(String($("fedTreasurySecurity")?.value||"")!==String(off.id))throw Error("Select the specific open bill or bond you want to purchase.");
+const raised=totalRaised(f,off.id),remaining=Math.round((Number(off.target)-raised+Number.EPSILON)*100)/100;
+if(remaining<=0.000001)throw Error("This offering has reached its fundraising target.");
+principal=Math.round((amount+Number.EPSILON)*100)/100;
+if(principal>remaining+0.000001)throw Error("Purchase exceeds the remaining offering target of "+fmt(remaining)+".");
+oldInvestorCash=getCash(st,investor);oldFederalCash=Number(f.cash);
+if(!Number.isFinite(oldInvestorCash)||oldInvestorCash+0.000001<principal)throw Error("Investor has insufficient available cash. Available: "+fmt(oldInvestorCash)+"; requested: "+fmt(principal)+".");
+if(!Number.isFinite(oldFederalCash))throw Error("Federal Reserve cash balance is invalid; purchase stopped.");
+const rate=Number(off.rates&&off.rates[term]);if(!Number.isFinite(rate)||rate<0||rate>100)throw Error("The offering interest rate is invalid.");
+const season=getSeason(st),sequence=Number(f.treasurySecurities.reduce((m,x)=>Math.max(m,Number(x&&x.sequence)||0),0))+1;
+securityId="treasury-security-"+season+"-"+sequence;
+if(f.treasurySecurities.some(x=>x&&x.id===securityId))throw Error("Security ID already exists. No purchase was made; refresh and retry.");
+const interest=Math.round((principal*rate/100*term+Number.EPSILON)*100)/100,total=Math.round((principal+interest+Number.EPSILON)*100)/100;
+security={id:securityId,sequence,offeringId:off.id,issuedSeason:season,investorType:type,investorName:name,term,principal,rate,interest,maturityTotal:total,maturitySeason:season+term,status:"outstanding",purchasedAt:new Date().toISOString(),repaidAt:null};
+setCash(st,investor,Math.round((oldInvestorCash-principal+Number.EPSILON)*100)/100);
+f.cash=Math.round((oldFederalCash+principal+Number.EPSILON)*100)/100;
+f.treasurySecurities.push(security);
+ledgerEntry={id:securityId+"-purchase",type:"security_purchased",securityId,season,investorType:type,investorName:name,principal,rate,term,maturitySeason:security.maturitySeason,interest,totalDue:total,investorCashBefore:oldInvestorCash,investorCashAfter:Math.round((oldInvestorCash-principal+Number.EPSILON)*100)/100,federalReserveCashBefore:oldFederalCash,federalReserveCashAfter:f.cash,timestamp:security.purchasedAt};
+f.treasuryLedger.push(ledgerEntry);
+if(!save())throw Error("The app did not confirm saving the purchase.");
+const saved=getState(),sf=saved&&saved.federalReserve,ss=sf&&Array.isArray(sf.treasurySecurities)&&sf.treasurySecurities.find(x=>x&&x.id===securityId);
+const savedInvestor=getAccounts(saved||{}).find(a=>a.type===accountType&&a.name===accountName);
+const expectedInvestorCash=Math.round((oldInvestorCash-principal+Number.EPSILON)*100)/100;
+const expectedFedCash=Math.round((oldFederalCash+principal+Number.EPSILON)*100)/100;
+if(!ss||ss.status!=="outstanding"||Math.abs(Number(sf.cash)-expectedFedCash)>0.011||!savedInvestor||Math.abs(getCash(saved,savedInvestor)-expectedInvestorCash)>0.011)throw Error("Post-save verification did not match the investor balance, Federal Reserve balance, and security record.");
+status("Purchase saved and verified: "+accountType+" "+accountName+" purchased "+fmt(principal)+" of the "+term+"-season "+(term===5?"Treasury bond":"Treasury bill")+". Federal Reserve cash increased by the same amount; maturity principal and interest are recorded.");
+render();
 }catch(e){
- /* Roll back only this attempted Treasury purchase, never the whole game state. */
- try{
-  if(st&&f&&securityId){
-   if(investor&&Number.isFinite(oldInvestorCash))setCash(st,investor,oldInvestorCash);
-   if(Number.isFinite(oldFederalCash))f.cash=oldFederalCash;
-   f.treasurySecurities=f.treasurySecurities.filter(x=>!x||x.id!==securityId);
-   f.treasuryLedger=f.treasuryLedger.filter(x=>!x||x.id!==securityId+"-purchase");
-   save();
-  }
- }catch(rollbackError){console.error("Treasury purchase-specific rollback failed",rollbackError);}
- status("Purchase stopped: "+String(e&&e.message||e)+". No purchase should be retried until balances and the Treasury ledger are checked.");
- console.error("Treasury investor purchase failed",e);
+/* Roll back only this attempted Treasury purchase, never the whole game state. */
+try{
+ if(st&&f&&securityId){
+  if(investor&&Number.isFinite(oldInvestorCash))setCash(st,investor,oldInvestorCash);
+  if(Number.isFinite(oldFederalCash))f.cash=oldFederalCash;
+  f.treasurySecurities=f.treasurySecurities.filter(x=>!x||x.id!==securityId);
+  f.treasuryLedger=f.treasuryLedger.filter(x=>!x||x.id!==securityId+"-purchase");
+  save();
+ }
+}catch(rollbackError){console.error("Treasury purchase-specific rollback failed",rollbackError);}
+status("Purchase stopped: "+String(e&&e.message||e)+". No purchase should be retried until balances and the Treasury ledger are checked.");
+console.error("Treasury investor purchase failed",e);
 }
 }
 function processMaturities(){const st=getState();if(!st){status("Maturity processing blocked: game state unavailable.");return;}const before=JSON.stringify(st);try{const f=fedState(st),season=getSeason(st),due=f.treasurySecurities.filter(s=>s&&s.status==="outstanding"&&Number(s.maturitySeason)<=season);if(!due.length)throw Error("No outstanding securities are due in Season "+season+".");const total=due.reduce((sum,s)=>sum+Number(s.maturityTotal),0);if(!Number.isFinite(total)||total<0)throw Error("Invalid maturity total.");if(Number(f.cash)+0.000001<total)throw Error("Federal Reserve cash is insufficient. Due total is "+fmt(total)+"; available cash is "+fmt(f.cash)+". No securities were repaid.");const now=new Date().toISOString();for(const sec of due){if(sec.status!=="outstanding")throw Error("Security is no longer outstanding: "+sec.id);sec.status="repaid";sec.repaidAt=now;sec.repaymentAmount=Number(sec.maturityTotal);sec.repaidSeason=season;f.cash=Math.round((Number(f.cash)-Number(sec.maturityTotal)+Number.EPSILON)*100)/100;f.treasuryLedger.push({id:sec.id+"-repayment",type:"security_repaid",securityId:sec.id,season,principal:sec.principal,interest:sec.interest,total:sec.maturityTotal,federalReserveCashAfter:f.cash,timestamp:now});}if(!save())throw Error("Could not save maturity repayments.");const saved=getState(),sf=saved&&saved.federalReserve;if(!sf||due.some(x=>{const sec=sf.treasurySecurities.find(y=>y&&y.id===x.id);return !sec||sec.status!=="repaid"||!sec.repaidAt;}))throw Error("Post-save maturity verification failed.");status("Maturity processing saved and verified: "+due.length+" securities repaid for a combined "+fmt(total)+" principal and interest.");render();}catch(e){try{const old=JSON.parse(before);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,old);save();}catch(_e){}status("Maturity processing stopped: "+e.message+". No partial repayment should be relied on; inspect the ledger before retrying.");}}
@@ -10162,8 +10181,8 @@ const rouletteRoomStyle=document.createElement('style');rouletteRoomStyle.textCo
 (function(){
 const $=id=>document.getElementById(id);
 const table=$('rouletteLiveTable'), rack=$('rouletteChipRack'), wager=$('casinoRouletteWager'),
-  typeSel=$('casinoRouletteBetType'), numberSel=$('casinoRouletteNumber'),
-  numberWrap=$('casinoRouletteNumberWrap'), playerSel=$('casinoRoulettePlayer');
+ typeSel=$('casinoRouletteBetType'), numberSel=$('casinoRouletteNumber'),
+ numberWrap=$('casinoRouletteNumberWrap'), playerSel=$('casinoRoulettePlayer');
 let currentChip=1, selectedType='red', selectedNumber='0';
 function label(type,num){
 if(type==='number')return 'Number '+num;
@@ -10292,8 +10311,8 @@ const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','
 const reds=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 const NS='http://www.w3.org/2000/svg',cx=150,cy=150,r1=135,r2=83,step=2*Math.PI/order.length;
 order.forEach((v,i)=>{const a=-Math.PI/2+i*step,b=a+step,pt=(r,t)=>[cx+r*Math.cos(t),cy+r*Math.sin(t)],p1=pt(r1,a),p2=pt(r1,b),q2=pt(r2,b),q1=pt(r2,a);
-  const path=document.createElementNS(NS,'path');path.setAttribute('d',`M ${p1} A ${r1} ${r1} 0 0 1 ${p2} L ${q2} A ${r2} ${r2} 0 0 0 ${q1} Z`);path.setAttribute('fill',v==='0'||v==='00'?'#078047':reds.has(Number(v))?'#c52632':'#20242b');path.setAttribute('stroke','#e4c47d');path.setAttribute('stroke-width','1');wheel.appendChild(path);
-  const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute('x',cx+rr*Math.cos(t));txt.setAttribute('y',cy+rr*Math.sin(t)+3);txt.setAttribute('fill','#fff');txt.setAttribute('font-size',v.length>1?'7':'8');txt.setAttribute('font-weight','700');txt.setAttribute('text-anchor','middle');txt.textContent=v;wheel.appendChild(txt);
+ const path=document.createElementNS(NS,'path');path.setAttribute('d',`M ${p1} A ${r1} ${r1} 0 0 1 ${p2} L ${q2} A ${r2} ${r2} 0 0 0 ${q1} Z`);path.setAttribute('fill',v==='0'||v==='00'?'#078047':reds.has(Number(v))?'#c52632':'#20242b');path.setAttribute('stroke','#e4c47d');path.setAttribute('stroke-width','1');wheel.appendChild(path);
+ const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute('x',cx+rr*Math.cos(t));txt.setAttribute('y',cy+rr*Math.sin(t)+3);txt.setAttribute('fill','#fff');txt.setAttribute('font-size',v.length>1?'7':'8');txt.setAttribute('font-weight','700');txt.setAttribute('text-anchor','middle');txt.textContent=v;wheel.appendChild(txt);
 });wheel.dataset.built='1';
 }
 if(typeof updateRoulettePlayerCash==='function')updateRoulettePlayerCash();
@@ -10670,86 +10689,86 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  
 <style id="cc-treasury-popup-mobile-only-5840">
 /* v5.8.40: Narrow mobile layout adjustment scoped ONLY to the Treasury popup.
-  Does not override shared Federal Reserve popup/modal rules or application layout. */
+ Does not override shared Federal Reserve popup/modal rules or application layout. */
 #fedTreasuryPopup {
- box-sizing: border-box;
- width: 100%;
- max-width: 100vw;
- min-width: 0;
- left: 0;
- right: 0;
+box-sizing: border-box;
+width: 100%;
+max-width: 100vw;
+min-width: 0;
+left: 0;
+right: 0;
 }
 #fedTreasuryPopup > .fed-tool-modal {
- box-sizing: border-box;
- width: min(1100px, 100%) !important;
- max-width: 100%;
- min-width: 0 !important;
- margin-left: auto;
- margin-right: auto;
+box-sizing: border-box;
+width: min(1100px, 100%) !important;
+max-width: 100%;
+min-width: 0 !important;
+margin-left: auto;
+margin-right: auto;
 }
 #fedTreasuryPopup > .fed-tool-modal > .fed-tool-content {
- box-sizing: border-box;
- min-width: 0;
- max-width: 100%;
- overflow-x: hidden;
+box-sizing: border-box;
+min-width: 0;
+max-width: 100%;
+overflow-x: hidden;
 }
 #fedTreasuryPopup #fedTreasuryCard {
- box-sizing: border-box;
- min-width: 0;
- max-width: 100%;
+box-sizing: border-box;
+min-width: 0;
+max-width: 100%;
 }
 #fedTreasuryPopup #fedTreasuryCard .grid {
- grid-template-columns: repeat(2, minmax(0, 1fr));
+grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 #fedTreasuryPopup #fedTreasuryCard input,
 #fedTreasuryPopup #fedTreasuryCard select,
 #fedTreasuryPopup #fedTreasuryCard button {
- box-sizing: border-box;
- min-width: 0;
- max-width: 100%;
+box-sizing: border-box;
+min-width: 0;
+max-width: 100%;
 }
 #fedTreasuryPopup #fedTreasuryCard table {
- max-width: 100%;
+max-width: 100%;
 }
 @media (max-width: 600px) {
- #fedTreasuryPopup {
-   padding-left: 8px;
-   padding-right: 8px;
- }
- #fedTreasuryPopup > .fed-tool-modal {
-   width: 100% !important;
-   min-width: 0 !important;
-   max-width: 100%;
- }
- #fedTreasuryPopup > .fed-tool-modal > .fed-tool-content {
-   padding-left: 10px;
-   padding-right: 10px;
-   overflow-x: hidden;
- }
- #fedTreasuryPopup #fedTreasuryCard .grid {
-   grid-template-columns: minmax(0, 1fr);
- }
- #fedTreasuryPopup #fedTreasuryCard img,
- #fedTreasuryPopup #fedTreasuryCard svg,
- #fedTreasuryPopup #fedTreasuryCard canvas,
- #fedTreasuryPopup #fedTreasuryCard video {
-   max-width: 100%;
-   height: auto;
- }
- #fedTreasuryPopup #fedTreasuryCard [style*="overflow-x:auto"] {
-   max-width: 100%;
-   overflow-x: auto !important;
-   -webkit-overflow-scrolling: touch;
- }
+#fedTreasuryPopup {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+#fedTreasuryPopup > .fed-tool-modal {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100%;
+}
+#fedTreasuryPopup > .fed-tool-modal > .fed-tool-content {
+  padding-left: 10px;
+  padding-right: 10px;
+  overflow-x: hidden;
+}
+#fedTreasuryPopup #fedTreasuryCard .grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+#fedTreasuryPopup #fedTreasuryCard img,
+#fedTreasuryPopup #fedTreasuryCard svg,
+#fedTreasuryPopup #fedTreasuryCard canvas,
+#fedTreasuryPopup #fedTreasuryCard video {
+  max-width: 100%;
+  height: auto;
+}
+#fedTreasuryPopup #fedTreasuryCard [style*="overflow-x:auto"] {
+  max-width: 100%;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
 }
 </style>
  
 <script>
  
 /* 5.8.63: CalBank loan maturity alerts and capped overdue APR adjustment.
-  Uses the existing CalBank database and core game state. Every disbursement,
-  principal payment, and seasonal interest collection is validated, saved,
-  and verified; failures attempt to restore both in-memory and saved state. */
+ Uses the existing CalBank database and core game state. Every disbursement,
+ principal payment, and seasonal interest collection is validated, saved,
+ and verified; failures attempt to restore both in-memory and saved state. */
 (function(){
 "use strict";
 const BANK_KEY="calvins_city_calbank_v1",GAME_KEY="calvins_city_v24";
@@ -10796,51 +10815,51 @@ const st=game();if(!st){status("Game state unavailable. No transaction made.");r
 let d;try{d=bank();}catch(e){status(e.message);return;}
 const oldGame=JSON.stringify(st),oldBank=JSON.stringify(d),beforeBank=round(d.bankCash),s=season(st);
 try{
- if(action==="issue"){
-  const parts=String($("calBankLoanBorrower").value||"").split("|"),type=parts.shift(),id=parts.join("|");
-  const borrowerInfo=accounts(st).find(a=>a.type===type&&a.id===id);
-  const amount=round(Number($("calBankLoanAmount").value)),apr=Number($("calBankLoanAPR").value),term=Number($("calBankLoanTerm").value);
-  if(!borrowerInfo)throw Error("Select a valid borrower.");
-  if(!Number.isFinite(amount)||amount<=0)throw Error("Loan amount must be greater than zero.");
-  if(!Number.isFinite(apr)||apr<0||apr>100)throw Error("APR must be between 0% and 100%.");
-  if(!Number.isInteger(term)||term<1||term>20)throw Error("Term must be a whole number from 1 to 20 seasons.");
-  if(beforeBank<amount)throw Error("CalBank does not have enough available cash to fund this loan.");
-  const borrower={borrowerType:type,borrowerId:id,borrowerName:borrowerInfo.name};const borrowerCashBefore=round(borrowerInfo.cash);
-  const target=type==="Citizen"?(st.citizens||[]).find(c=>String(c.id)===id):null;
-  const account=target||((type==="Team"?st.teamCash:st.businessCash)&&{});
-  if(type==="Citizen"&&!target)throw Error("Borrower account no longer exists.");
-  if(type!=="Citizen"){const map=type==="Team"?st.teamCash:st.businessCash;if(!map||!Object.prototype.hasOwnProperty.call(map,borrowerInfo.name))throw Error("Borrower account no longer exists.");}
-  const loan={id:"CBL-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8),...borrower,originalPrincipal:amount,principalOutstanding:amount,apr,originalApr:apr,termSeasons:term,issuedSeason:s,maturitySeason:s+term,status:"active",lastInterestSeason:null,createdAt:new Date().toISOString()};
-  if(target)target.cash=round(Number(target.cash)-0); // validate object before committing; borrower receives below
-  if(type==="Citizen")target.cash=round(Number(target.cash)+amount);else{const map=type==="Team"?st.teamCash:st.businessCash;map[borrowerInfo.name]=round(Number(map[borrowerInfo.name])+amount);}
-  d.bankCash=round(beforeBank-amount);d.customerLoans.push(loan);row(d,"loan_disbursed",loan,amount,{season:s,borrowerCashAfter:borrowerInfo.cash+amount});
-  saveGame(st);saveBank(d);
-  const vg=read(GAME_KEY),vd=read(BANK_KEY),vb=accounts(vg||{}).find(a=>a.type===type&&a.id===id);
-  if(!vg||!vd||Math.abs(round(vd.bankCash)-(beforeBank-amount))>.001||!vd.customerLoans.some(l=>l.id===loan.id)||!vb||Math.abs(round(vb.cash)-(borrowerCashBefore+amount))>.011)throw Error("Disbursement reconciliation failed.");
-  status("Loan disbursed and verified: "+money(amount)+" to "+borrowerInfo.name+". CalBank cash decreased by the same amount; principal is tracked as a loan asset, not income.");
-  $("calBankLoanAmount").value="";
- }else{
-  const id=String($("calBankLoanRepaySelect").value||""),loan=d.customerLoans.find(l=>l.id===id&&l.status==="active"&&Number(l.principalOutstanding)>0);
-  if(!loan)throw Error("Select an active loan.");
-  const borrower=getAccount(st,loan);if(!borrower||!Number.isFinite(Number(borrower.cash)))throw Error("Borrower account is unavailable.");
-  const amount=action==="interest"?round(Number(loan.principalOutstanding)*Number(loan.apr)/100):round(Number($("calBankLoanRepayAmount").value));
-  if(action==="repay"&&(!Number.isFinite(amount)||amount<=0))throw Error("Enter a principal repayment greater than zero.");
-  if(action==="repay"&&amount>round(loan.principalOutstanding)+.001)throw Error("Repayment cannot exceed outstanding principal.");
-  if(action==="interest"&&loan.lastInterestSeason===s)throw Error("Interest for this loan has already been collected for the current season.");
-  if(action==="interest"&&amount<=0){loan.lastInterestSeason=s;row(d,"interest_collected",loan,0,{season:s,interest:0,borrowerCashAfter:borrower.cash});saveBank(d);render();status("No interest due at 0% APR. Season interest marked processed.");return;}
-  if(round(Number(borrower.cash))<amount)throw Error("Borrower does not have enough cash. Nothing was collected.");
-  const borrowerBefore=round(borrower.cash);borrower.cash=round(borrowerBefore-amount);d.bankCash=round(beforeBank+amount);
-  if(action==="repay"){loan.principalOutstanding=round(Number(loan.principalOutstanding)-amount);if(loan.principalOutstanding<=.001){loan.principalOutstanding=0;loan.status="repaid";}row(d,"principal_repaid",loan,amount,{season:s,borrowerCashAfter:borrower.cash});$("calBankLoanRepayAmount").value="";}
-  else{loan.lastInterestSeason=s;row(d,"interest_collected",loan,amount,{season:s,interest:amount,borrowerCashAfter:borrower.cash});}
-  saveGame(st);saveBank(d);
-  const vg=read(GAME_KEY),vd=read(BANK_KEY),vl=vd&&vd.customerLoans.find(l=>l.id===loan.id),savedBorrower=getAccount(vg||{},loan);
-  if(!vg||!vd||!vl||!savedBorrower||Math.abs(round(Number(savedBorrower.cash))-(borrowerBefore-amount))>.011||Math.abs(round(vd.bankCash)-(beforeBank+amount))>.001||Math.abs(round(vl.principalOutstanding)-round(loan.principalOutstanding))>.001||!vd.customerLoanLedger.some(x=>x.loanId===loan.id&&x.type===(action==="repay"?"principal_repaid":"interest_collected")&&Math.abs(Number(x.amount)-amount)<.001))throw Error("Repayment reconciliation failed: borrower cash, CalBank cash, principal, and ledger must all verify.");
-  status(action==="repay"?"Principal repayment verified: "+money(amount)+". Outstanding principal: "+money(loan.principalOutstanding)+".":"Interest collected and verified: "+money(amount)+". Principal was not reduced.");
- }
+if(action==="issue"){
+ const parts=String($("calBankLoanBorrower").value||"").split("|"),type=parts.shift(),id=parts.join("|");
+ const borrowerInfo=accounts(st).find(a=>a.type===type&&a.id===id);
+ const amount=round(Number($("calBankLoanAmount").value)),apr=Number($("calBankLoanAPR").value),term=Number($("calBankLoanTerm").value);
+ if(!borrowerInfo)throw Error("Select a valid borrower.");
+ if(!Number.isFinite(amount)||amount<=0)throw Error("Loan amount must be greater than zero.");
+ if(!Number.isFinite(apr)||apr<0||apr>100)throw Error("APR must be between 0% and 100%.");
+ if(!Number.isInteger(term)||term<1||term>20)throw Error("Term must be a whole number from 1 to 20 seasons.");
+ if(beforeBank<amount)throw Error("CalBank does not have enough available cash to fund this loan.");
+ const borrower={borrowerType:type,borrowerId:id,borrowerName:borrowerInfo.name};const borrowerCashBefore=round(borrowerInfo.cash);
+ const target=type==="Citizen"?(st.citizens||[]).find(c=>String(c.id)===id):null;
+ const account=target||((type==="Team"?st.teamCash:st.businessCash)&&{});
+ if(type==="Citizen"&&!target)throw Error("Borrower account no longer exists.");
+ if(type!=="Citizen"){const map=type==="Team"?st.teamCash:st.businessCash;if(!map||!Object.prototype.hasOwnProperty.call(map,borrowerInfo.name))throw Error("Borrower account no longer exists.");}
+ const loan={id:"CBL-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8),...borrower,originalPrincipal:amount,principalOutstanding:amount,apr,originalApr:apr,termSeasons:term,issuedSeason:s,maturitySeason:s+term,status:"active",lastInterestSeason:null,createdAt:new Date().toISOString()};
+ if(target)target.cash=round(Number(target.cash)-0); // validate object before committing; borrower receives below
+ if(type==="Citizen")target.cash=round(Number(target.cash)+amount);else{const map=type==="Team"?st.teamCash:st.businessCash;map[borrowerInfo.name]=round(Number(map[borrowerInfo.name])+amount);}
+ d.bankCash=round(beforeBank-amount);d.customerLoans.push(loan);row(d,"loan_disbursed",loan,amount,{season:s,borrowerCashAfter:borrowerInfo.cash+amount});
+ saveGame(st);saveBank(d);
+ const vg=read(GAME_KEY),vd=read(BANK_KEY),vb=accounts(vg||{}).find(a=>a.type===type&&a.id===id);
+ if(!vg||!vd||Math.abs(round(vd.bankCash)-(beforeBank-amount))>.001||!vd.customerLoans.some(l=>l.id===loan.id)||!vb||Math.abs(round(vb.cash)-(borrowerCashBefore+amount))>.011)throw Error("Disbursement reconciliation failed.");
+ status("Loan disbursed and verified: "+money(amount)+" to "+borrowerInfo.name+". CalBank cash decreased by the same amount; principal is tracked as a loan asset, not income.");
+ $("calBankLoanAmount").value="";
+}else{
+ const id=String($("calBankLoanRepaySelect").value||""),loan=d.customerLoans.find(l=>l.id===id&&l.status==="active"&&Number(l.principalOutstanding)>0);
+ if(!loan)throw Error("Select an active loan.");
+ const borrower=getAccount(st,loan);if(!borrower||!Number.isFinite(Number(borrower.cash)))throw Error("Borrower account is unavailable.");
+ const amount=action==="interest"?round(Number(loan.principalOutstanding)*Number(loan.apr)/100):round(Number($("calBankLoanRepayAmount").value));
+ if(action==="repay"&&(!Number.isFinite(amount)||amount<=0))throw Error("Enter a principal repayment greater than zero.");
+ if(action==="repay"&&amount>round(loan.principalOutstanding)+.001)throw Error("Repayment cannot exceed outstanding principal.");
+ if(action==="interest"&&loan.lastInterestSeason===s)throw Error("Interest for this loan has already been collected for the current season.");
+ if(action==="interest"&&amount<=0){loan.lastInterestSeason=s;row(d,"interest_collected",loan,0,{season:s,interest:0,borrowerCashAfter:borrower.cash});saveBank(d);render();status("No interest due at 0% APR. Season interest marked processed.");return;}
+ if(round(Number(borrower.cash))<amount)throw Error("Borrower does not have enough cash. Nothing was collected.");
+ const borrowerBefore=round(borrower.cash);borrower.cash=round(borrowerBefore-amount);d.bankCash=round(beforeBank+amount);
+ if(action==="repay"){loan.principalOutstanding=round(Number(loan.principalOutstanding)-amount);if(loan.principalOutstanding<=.001){loan.principalOutstanding=0;loan.status="repaid";}row(d,"principal_repaid",loan,amount,{season:s,borrowerCashAfter:borrower.cash});$("calBankLoanRepayAmount").value="";}
+ else{loan.lastInterestSeason=s;row(d,"interest_collected",loan,amount,{season:s,interest:amount,borrowerCashAfter:borrower.cash});}
+ saveGame(st);saveBank(d);
+ const vg=read(GAME_KEY),vd=read(BANK_KEY),vl=vd&&vd.customerLoans.find(l=>l.id===loan.id),savedBorrower=getAccount(vg||{},loan);
+ if(!vg||!vd||!vl||!savedBorrower||Math.abs(round(Number(savedBorrower.cash))-(borrowerBefore-amount))>.011||Math.abs(round(vd.bankCash)-(beforeBank+amount))>.001||Math.abs(round(vl.principalOutstanding)-round(loan.principalOutstanding))>.001||!vd.customerLoanLedger.some(x=>x.loanId===loan.id&&x.type===(action==="repay"?"principal_repaid":"interest_collected")&&Math.abs(Number(x.amount)-amount)<.001))throw Error("Repayment reconciliation failed: borrower cash, CalBank cash, principal, and ledger must all verify.");
+ status(action==="repay"?"Principal repayment verified: "+money(amount)+". Outstanding principal: "+money(loan.principalOutstanding)+".":"Interest collected and verified: "+money(amount)+". Principal was not reduced.");
+}
 }catch(e){
- try{const prior=JSON.parse(oldGame);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,prior);const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function")b.save();else localStorage.setItem(GAME_KEY,oldGame);localStorage.setItem(BANK_KEY,oldBank);}catch(rollback){console.error("CalBank customer loan rollback needs review",rollback);}
- status("Transaction failed validation: "+String(e.message||e)+". A rollback was attempted. Check borrower cash, CalBank cash, and the loan ledger before retrying.");
- return;
+try{const prior=JSON.parse(oldGame);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,prior);const b=window.__calvinsCityBridge;if(b&&typeof b.save==="function")b.save();else localStorage.setItem(GAME_KEY,oldGame);localStorage.setItem(BANK_KEY,oldBank);}catch(rollback){console.error("CalBank customer loan rollback needs review",rollback);}
+status("Transaction failed validation: "+String(e.message||e)+". A rollback was attempted. Check borrower cash, CalBank cash, and the loan ledger before retrying.");
+return;
 }
 render();if(typeof window.renderCalBankDeposits==="function")window.renderCalBankDeposits();if(typeof window.renderCalBankDebt==="function")window.renderCalBankDebt();
 }
@@ -10856,11 +10875,11 @@ if(raw===null)return;
 const next=Number(raw);if(!Number.isFinite(next)||next<=currentApr||next>cap||next<0){status("Rate change rejected. Enter a rate higher than the current APR and no higher than "+cap.toFixed(2)+"%.");return;}
 const oldBank=JSON.stringify(d),oldApr=loan.apr;
 try{
- loan.originalApr=originalApr;loan.apr=round(next);
- d.customerLoanLedger.push({id:"CBL-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),loanId:loan.id,type:"overdue_rate_increased",borrowerType:loan.borrowerType,borrowerName:loan.borrowerName,amount:0,principalAfter:principal,season:s,bankCashAfter:round(d.bankCash),borrowerCashAfter:null,interest:0,previousApr:round(currentApr),newApr:round(next),originalApr:round(originalApr),createdAt:new Date().toISOString()});
- saveBank(d);const verify=read(BANK_KEY),v=verify&&verify.customerLoans.find(x=>x.id===loan.id);
- if(!v||Math.abs(Number(v.apr)-round(next))>.001||!verify.customerLoanLedger.some(x=>x.loanId===loan.id&&x.type==="overdue_rate_increased"&&Math.abs(Number(x.newApr)-round(next))<.001))throw Error("Saved rate change could not be verified.");
- status("Overdue APR updated from "+currentApr.toFixed(2)+"% to "+round(next).toFixed(2)+"%. No fee was charged. The new rate applies to future interest collections only.");
+loan.originalApr=originalApr;loan.apr=round(next);
+d.customerLoanLedger.push({id:"CBL-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),loanId:loan.id,type:"overdue_rate_increased",borrowerType:loan.borrowerType,borrowerName:loan.borrowerName,amount:0,principalAfter:principal,season:s,bankCashAfter:round(d.bankCash),borrowerCashAfter:null,interest:0,previousApr:round(currentApr),newApr:round(next),originalApr:round(originalApr),createdAt:new Date().toISOString()});
+saveBank(d);const verify=read(BANK_KEY),v=verify&&verify.customerLoans.find(x=>x.id===loan.id);
+if(!v||Math.abs(Number(v.apr)-round(next))>.001||!verify.customerLoanLedger.some(x=>x.loanId===loan.id&&x.type==="overdue_rate_increased"&&Math.abs(Number(x.newApr)-round(next))<.001))throw Error("Saved rate change could not be verified.");
+status("Overdue APR updated from "+currentApr.toFixed(2)+"% to "+round(next).toFixed(2)+"%. No fee was charged. The new rate applies to future interest collections only.");
 }catch(e){try{localStorage.setItem(BANK_KEY,oldBank);loan.apr=oldApr;}catch(_){}status("Rate change failed: "+String(e.message||e));}
 render();
 }
@@ -10875,76 +10894,76 @@ window.renderCalBankCustomerLoans=render;
  
 <script id="ccStartupRecovery5876">
 /* CALVIN'S CITY 5.8.76 — startup/navigation fail-safe; no synchronous storage migration.
-  This is deliberately read-only with respect to localStorage and game records.
-  It does not reset state, rewrite ledgers, or replace the core game logic. */
+ This is deliberately read-only with respect to localStorage and game records.
+ It does not reset state, rewrite ledgers, or replace the core game logic. */
 (function(){
 "use strict";
 function byId(id){return document.getElementById(id);}
 function readSavedState(){
- try{
-   var raw=localStorage.getItem("calvins_city_v24");
-   if(!raw)return null;
-   var parsed=JSON.parse(raw);
-   return parsed&&typeof parsed==="object"?parsed:null;
- }catch(e){return null;}
+try{
+  var raw=localStorage.getItem("calvins_city_v24");
+  if(!raw)return null;
+  var parsed=JSON.parse(raw);
+  return parsed&&typeof parsed==="object"?parsed:null;
+}catch(e){return null;}
 }
 function refreshReadOnlyHomeSummary(){
- var st=readSavedState();
- if(!st)return;
- var season=byId("homeSeason");
- if(season&&Number.isFinite(Number(st.year))&&Number(st.year)>0)season.textContent="Season "+Number(st.year);
- var top=byId("basketballSeasonTop");
- if(top&&Number.isFinite(Number(st.year))&&Number(st.year)>0)top.textContent="Season "+Number(st.year);
- var citizens=Array.isArray(st.citizens)?st.citizens:[];
- var citizenCount=byId("citizenCount");
- if(citizenCount)citizenCount.textContent=String(citizens.length);
- var records=st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords:[];
- var gameCount=byId("recordGameCount");
- if(gameCount)gameCount.textContent=String(records.length);
+var st=readSavedState();
+if(!st)return;
+var season=byId("homeSeason");
+if(season&&Number.isFinite(Number(st.year))&&Number(st.year)>0)season.textContent="Season "+Number(st.year);
+var top=byId("basketballSeasonTop");
+if(top&&Number.isFinite(Number(st.year))&&Number(st.year)>0)top.textContent="Season "+Number(st.year);
+var citizens=Array.isArray(st.citizens)?st.citizens:[];
+var citizenCount=byId("citizenCount");
+if(citizenCount)citizenCount.textContent=String(citizens.length);
+var records=st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords:[];
+var gameCount=byId("recordGameCount");
+if(gameCount)gameCount.textContent=String(records.length);
 }
 function activateScreen(id){
- var target=byId(id);
- if(!target||!target.classList.contains("screen"))return false;
- document.querySelectorAll(".screen").forEach(function(el){el.classList.toggle("active",el===target);});
- document.querySelectorAll(".nav button[data-nav]").forEach(function(btn){btn.classList.toggle("active",btn.getAttribute("data-nav")===id);});
- try{window.scrollTo(0,0);}catch(e){}
- if(id==="markets"){
-   try{var market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();}catch(e){console.error("5.8.76 market refresh failed",e);}
- }
- refreshReadOnlyHomeSummary();
- return true;
+var target=byId(id);
+if(!target||!target.classList.contains("screen"))return false;
+document.querySelectorAll(".screen").forEach(function(el){el.classList.toggle("active",el===target);});
+document.querySelectorAll(".nav button[data-nav]").forEach(function(btn){btn.classList.toggle("active",btn.getAttribute("data-nav")===id);});
+try{window.scrollTo(0,0);}catch(e){}
+if(id==="markets"){
+  try{var market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();}catch(e){console.error("5.8.76 market refresh failed",e);}
+}
+refreshReadOnlyHomeSummary();
+return true;
 }
 /* Capture phase makes navigation work even if the main app's own binding was
-  interrupted by an earlier runtime exception. Existing handlers may still run. */
+ interrupted by an earlier runtime exception. Existing handlers may still run. */
 document.addEventListener("click",function(event){
- var node=event.target&&event.target.closest?event.target.closest("[data-nav],[data-navjump]"):null;
- if(!node)return;
- var id=node.getAttribute("data-nav")||node.getAttribute("data-navjump");
- if(!id)return;
- if(activateScreen(id)&&node.hasAttribute("data-navjump"))event.preventDefault();
+var node=event.target&&event.target.closest?event.target.closest("[data-nav],[data-navjump]"):null;
+if(!node)return;
+var id=node.getAttribute("data-nav")||node.getAttribute("data-navjump");
+if(!id)return;
+if(activateScreen(id)&&node.hasAttribute("data-navjump"))event.preventDefault();
 },true);
 function diagnose(){
- refreshReadOnlyHomeSummary();
- var nav=document.querySelector(".nav button[data-nav]");
- var active=document.querySelector(".screen.active");
- var season=byId("homeSeason");
- var missing=[];
- if(!nav)missing.push("navigation buttons missing");
- if(!active)missing.push("no active screen");
- if(season&&/Season\s*[—-]/.test(season.textContent||""))missing.push("season could not be read from saved state");
- if(missing.length){
-   var panel=byId("cc5874RecoveryNotice");
-   if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
-   panel.textContent="Calvin's City startup recovery 5.8.76\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
- }
+refreshReadOnlyHomeSummary();
+var nav=document.querySelector(".nav button[data-nav]");
+var active=document.querySelector(".screen.active");
+var season=byId("homeSeason");
+var missing=[];
+if(!nav)missing.push("navigation buttons missing");
+if(!active)missing.push("no active screen");
+if(season&&/Season\s*[—-]/.test(season.textContent||""))missing.push("season could not be read from saved state");
+if(missing.length){
+  var panel=byId("cc5874RecoveryNotice");
+  if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
+  panel.textContent="Calvin's City startup recovery 5.8.76\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+}
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",diagnose,{once:true});else setTimeout(diagnose,0);
 window.addEventListener("error",function(e){
- try{
-   var panel=byId("cc5874RecoveryNotice");
-   if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
-   panel.textContent="Calvin's City startup recovery 5.8.76\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
- }catch(ignore){}
+try{
+  var panel=byId("cc5874RecoveryNotice");
+  if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
+  panel.textContent="Calvin's City startup recovery 5.8.76\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+}catch(ignore){}
 },true);
 })();
 </script>
