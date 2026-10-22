@@ -11,13 +11,13 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of original public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
 
 <html lang="en">
-<!-- CALVIN'S CITY — VERSION 5.8.71: Isolates early Records/Bets startup render failures; preserves CalBank portfolio and accounting with reconciled purchases, sales, valuation, and ledger; preserves v5.8.63 loan and Fed transfer behavior. -->
+<!-- CALVIN'S CITY — VERSION 5.8.72: Isolates early Records/Bets startup render failures; preserves CalBank portfolio and accounting with reconciled purchases, sales, valuation, and ledger; preserves v5.8.63 loan and Fed transfer behavior. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
 
 <head>
 
 <script>
-/* v5.8.71 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
+/* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
 (function(){
  "use strict";
  var logs = [];
@@ -6801,7 +6801,7 @@ if(card)card.style.display="block";
 alert("The offseason bridge did not initialize. Please refresh the page and report this message.");
 }
 });
-/* v5.8.71: Guard core startup button bindings. Missing optional UI elements must not abort season initialization. */
+/* v5.8.72: Guard core startup button bindings. Missing optional UI elements must not abort season initialization. */
 const playNextGameButton=document.getElementById("playNextGame");
 if(playNextGameButton)playNextGameButton.addEventListener("click",sbRequestPlayNextGame);
 const openOffseasonButton=document.getElementById("openOffseason");
