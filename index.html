@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.96: CalBank Treasury dropdown and casino betting-account support; preserves Graphite, Platinum & Copper styling. Preserve game mechanics and saved data. -->
+<!-- CALVIN'S CITY — VERSION 5.8.98: Federal Reserve automatic season-end cash snapshots and economic review tracking. Preserve game mechanics and saved data. -->
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
@@ -18,7 +18,7 @@
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
-<meta name="calvins-city-build" content="5.8.96">
+<meta name="calvins-city-build" content="5.8.98">
  
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
@@ -26,67 +26,67 @@
 "use strict";
 var logs = [];
 function record(kind, message, source, line, column) {
- var item = {
-   time: new Date().toISOString(),
-   kind: kind,
-   message: String(message || ""),
-   source: String(source || ""),
-   line: Number(line || 0),
-   column: Number(column || 0),
-   readyState: document.readyState,
-   seasonText: (document.getElementById("homeSeason") || document.getElementById("seasonLabel") || {}).textContent || "",
-   navButtons: document.querySelectorAll(".nav button").length,
-   activeScreens: document.querySelectorAll(".screen.active").length,
-   recordsText: (document.getElementById("retiredCount") || {}).textContent || ""
- };
- logs.push(item);
- window.__calvinsCityStartupDiagnostics = logs;
- try { console.error("[Calvin's City startup diagnostic]", item); } catch (_) {}
- var box = document.getElementById("startupDiagnosticPanel");
- if (!box) {
-   box = document.createElement("div");
-   box.id = "startupDiagnosticPanel";
-   box.style.cssText = "position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;background:#240f12;color:#fff;border:2px solid #ff7777;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-shadow:0 4px 20px #0008";
-   var close = document.createElement("button");
-   close.textContent = "Hide diagnostics";
-   close.style.cssText = "float:right;padding:5px 8px";
-   close.onclick = function(){ box.remove(); };
-   box.appendChild(close);
-   var body = document.createElement("div");
-   body.id = "startupDiagnosticText";
-   box.appendChild(body);
-   (document.body || document.documentElement).appendChild(box);
- }
- var out = document.getElementById("startupDiagnosticText");
- if (out) out.textContent = logs.map(function(x){
-   return x.kind + ": " + x.message + (x.source ? "\n" + x.source + ":" + x.line + ":" + x.column : "") +
-     "\nreadyState=" + x.readyState + " navButtons=" + x.navButtons +
-     " activeScreens=" + x.activeScreens + " records=" + x.recordsText;
- }).join("\n\n");
+var item = {
+  time: new Date().toISOString(),
+  kind: kind,
+  message: String(message || ""),
+  source: String(source || ""),
+  line: Number(line || 0),
+  column: Number(column || 0),
+  readyState: document.readyState,
+  seasonText: (document.getElementById("homeSeason") || document.getElementById("seasonLabel") || {}).textContent || "",
+  navButtons: document.querySelectorAll(".nav button").length,
+  activeScreens: document.querySelectorAll(".screen.active").length,
+  recordsText: (document.getElementById("retiredCount") || {}).textContent || ""
+};
+logs.push(item);
+window.__calvinsCityStartupDiagnostics = logs;
+try { console.error("[Calvin's City startup diagnostic]", item); } catch (_) {}
+var box = document.getElementById("startupDiagnosticPanel");
+if (!box) {
+  box = document.createElement("div");
+  box.id = "startupDiagnosticPanel";
+  box.style.cssText = "position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;background:#240f12;color:#fff;border:2px solid #ff7777;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-shadow:0 4px 20px #0008";
+  var close = document.createElement("button");
+  close.textContent = "Hide diagnostics";
+  close.style.cssText = "float:right;padding:5px 8px";
+  close.onclick = function(){ box.remove(); };
+  box.appendChild(close);
+  var body = document.createElement("div");
+  body.id = "startupDiagnosticText";
+  box.appendChild(body);
+  (document.body || document.documentElement).appendChild(box);
+}
+var out = document.getElementById("startupDiagnosticText");
+if (out) out.textContent = logs.map(function(x){
+  return x.kind + ": " + x.message + (x.source ? "\n" + x.source + ":" + x.line + ":" + x.column : "") +
+    "\nreadyState=" + x.readyState + " navButtons=" + x.navButtons +
+    " activeScreens=" + x.activeScreens + " records=" + x.recordsText;
+}).join("\n\n");
 }
 window.addEventListener("error", function(e) {
- record("uncaught error", e.message || (e.error && e.error.stack) || "Unknown error", e.filename, e.lineno, e.colno);
+record("uncaught error", e.message || (e.error && e.error.stack) || "Unknown error", e.filename, e.lineno, e.colno);
 }, true);
 window.addEventListener("unhandledrejection", function(e) {
- var r = e.reason;
- record("unhandled rejection", r && (r.stack || r.message) || r || "Unknown rejection", "", 0, 0);
+var r = e.reason;
+record("unhandled rejection", r && (r.stack || r.message) || r || "Unknown rejection", "", 0, 0);
 });
 window.__calvinsCityRecordStartupDiagnostic = record;
 document.addEventListener("DOMContentLoaded", function(){
- setTimeout(function(){
-   if (!document.querySelector(".nav button") || !document.querySelector(".screen.active")) {
-     record("startup checkpoint", "DOM ready but navigation or active screen is missing.", "", 0, 0);
-   }
-   var season = document.getElementById("homeSeason") || document.getElementById("seasonLabel");
-   if (season && /—|-/.test(season.textContent || "")) {
-     record("startup checkpoint", "Season label still shows a placeholder after DOM ready.", "", 0, 0);
-   }
-   var records = document.getElementById("retiredCount");
-   var citizens = document.getElementById("citizenCount");
-   if (records && citizens && records.textContent === "0" && citizens.textContent === "0") {
-     record("startup checkpoint", "Record counters are both zero after DOM ready; this is a symptom, not proof that saved records were deleted.", "", 0, 0);
-   }
- }, 1500);
+setTimeout(function(){
+  if (!document.querySelector(".nav button") || !document.querySelector(".screen.active")) {
+    record("startup checkpoint", "DOM ready but navigation or active screen is missing.", "", 0, 0);
+  }
+  var season = document.getElementById("homeSeason") || document.getElementById("seasonLabel");
+  if (season && /—|-/.test(season.textContent || "")) {
+    record("startup checkpoint", "Season label still shows a placeholder after DOM ready.", "", 0, 0);
+  }
+  var records = document.getElementById("retiredCount");
+  var citizens = document.getElementById("citizenCount");
+  if (records && citizens && records.textContent === "0" && citizens.textContent === "0") {
+    record("startup checkpoint", "Record counters are both zero after DOM ready; this is a symptom, not proof that saved records were deleted.", "", 0, 0);
+  }
+}, 1500);
 }, {once:true});
 })();
 </script>
@@ -216,7 +216,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.96</title>
+<title>Calvin's City 5.8.98</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -446,7 +446,7 @@ th,td{border-bottom-color:#343B43!important}
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.96</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.98</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -1012,9 +1012,9 @@ id="fedTreasuryIssue" disabled>4. Issue Securities</button>
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
 <button type="button" class="secondary" id="fedBoardRefresh">Refresh Economic Review</button>
-<button type="button" id="fedBoardSaveSnapshot">Record Current Season Snapshot</button>
+<button type="button" id="fedBoardSaveSnapshot">Record Snapshot Manually</button>
 </div>
-<p id="fedBoardStatus" class="tiny" role="status" aria-live="polite">Review is read-only until you explicitly record a season snapshot. Existing historical data will not be fabricated.</p>
+<p id="fedBoardStatus" class="tiny" role="status" aria-live="polite">Cash snapshots are saved automatically when a season is finalized. You can record a manual snapshot if needed; existing snapshots are never overwritten and missing history is not fabricated.</p>
 <h4>Company &amp; Team Year-over-Year Review</h4>
 <p class="tiny">Cash comparisons use explicitly recorded season snapshots. Revenue is shown only where the app's annual report has recorded it. Revenue is not the same as net profit; net earnings are shown only if a reliable earnings field exists.</p>
 <div id="fedBoardEconomicTable" style="overflow-x:auto"><p class="tiny">Refresh to load the current economic review.</p></div>
@@ -1269,7 +1269,7 @@ a high local hit-test priority without changing the global app controls. */
 <div class="card"><h2>🧾 Current Season</h2><div class="basketball-current-season-top"><div class="basketball-season-chip"><small>Current Season</small><strong id="basketballSeasonTop">Season —</strong></div></div><div id="standingsOutput"><p class="muted">No games played yet.</p></div></div>
 <div class="card"><h2>📋 Offseason Management</h2><p><b>The year does not advance automatically.</b> Finish contracts, trades, releases and roster decisions first.</p><div class="grid"><div class="metric"><small>Season Status</small><strong id="seasonStatus">Not Played</strong></div><div class="metric"><small>Offseason</small><strong id="offseasonStatus">Locked</strong></div></div><button id="openOffseason">Open Offseason</button></div>
 <div class="card" id="offseasonCard" style="display:none"><h2>🏀 Offseason Decisions</h2><p>You are the player agent and final contract authority.</p><div id="contractBoard"></div><button class="goodbtn" id="finalizeOffseason">Finalize Offseason</button><p id="offseasonMessage" class="tiny"></p></div>
-<div class="card"><h2>🎲 Test Game</h2><p>Quick game test remains available without changing the season state.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
+<div class="card" id="testGameTools" style="display:none"><h2>🎲 Test Game</h2><p>Hidden maintenance tool. The test-game code and handler are retained for troubleshooting.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 </section></main>
  
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button><button data-nav="bets">🎲<br>BETS</button></nav>
@@ -1546,13 +1546,13 @@ function restoreSeasonLabel(){
 const el=document.getElementById("homeSeason");
 if(!el)return;
 try{
- const raw=localStorage.getItem("calvins_city_v24");
- if(!raw)return;
- const saved=JSON.parse(raw);
- const year=Number(saved&&saved.year);
- if(Number.isFinite(year)&&year>0&&/—|-/.test(el.textContent||""))el.textContent="Season "+year;
+const raw=localStorage.getItem("calvins_city_v24");
+if(!raw)return;
+const saved=JSON.parse(raw);
+const year=Number(saved&&saved.year);
+if(Number.isFinite(year)&&year>0&&/—|-/.test(el.textContent||""))el.textContent="Season "+year;
 }catch(err){
- console.warn("[Calvin's City] Read-only season fallback could not read saved state.",err);
+console.warn("[Calvin's City] Read-only season fallback could not read saved state.",err);
 }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",restoreSeasonLabel,{once:true});
@@ -5655,7 +5655,7 @@ alert("The Offseason screen was opened, but its contract board encountered an er
 return false;
 };
 /* v5.8.96: Shared economic phase engine. One saved phase drives both the Fed and CalBank displays.
- A season transition occurs only when the offseason is finalized; the season marker prevents duplicates. */
+A season transition occurs only when the offseason is finalized; the season marker prevents duplicates. */
 function ensureEconomicPhase(){
 const valid=["Bull","Normal","Recession"];
 if(!valid.includes(state.economicPhase))state.economicPhase="Normal";
@@ -5681,24 +5681,24 @@ const current=state.economicPhase;
 let next=current;
 // 60% chance to remain in the current phase; 40% chance to move to another phase.
 if(Math.random()>=0.60){
-  const alternatives=["Bull","Normal","Recession"].filter(p=>p!==current);
-  // Recorded annual revenue performance influences the direction when available.
-  let revenueSignal=0;
-  try{
-    const reports=Array.isArray(state.annualReports)?state.annualReports:[];
-    const report=reports.filter(r=>Number(r&&r.season)===Number(completedSeason)).slice(-1)[0];
-    if(report){
-      const values=Object.values(report.companies||report.businesses||{}).map(x=>Number(x&& (x.revenue??x.annualRevenue))).filter(Number.isFinite);
-      if(values.length)revenueSignal=values.reduce((a,b)=>a+b,0);
-    }
-  }catch(_){}
-  if(revenueSignal>0){
-    next=current==="Recession"?"Normal":"Bull";
-  }else if(revenueSignal<0){
-    next=current==="Bull"?"Normal":"Recession";
-  }else{
-    next=alternatives[Math.floor(Math.random()*alternatives.length)];
-  }
+ const alternatives=["Bull","Normal","Recession"].filter(p=>p!==current);
+ // Recorded annual revenue performance influences the direction when available.
+ let revenueSignal=0;
+ try{
+   const reports=Array.isArray(state.annualReports)?state.annualReports:[];
+   const report=reports.filter(r=>Number(r&&r.season)===Number(completedSeason)).slice(-1)[0];
+   if(report){
+     const values=Object.values(report.companies||report.businesses||{}).map(x=>Number(x&& (x.revenue??x.annualRevenue))).filter(Number.isFinite);
+     if(values.length)revenueSignal=values.reduce((a,b)=>a+b,0);
+   }
+ }catch(_){}
+ if(revenueSignal>0){
+   next=current==="Recession"?"Normal":"Bull";
+ }else if(revenueSignal<0){
+   next=current==="Bull"?"Normal":"Recession";
+ }else{
+   next=alternatives[Math.floor(Math.random()*alternatives.length)];
+ }
 }
 state.economicPhase=next;
 state.economicPhaseHistory[marker]={from:current,to:next,at:new Date().toISOString(),season:Number(completedSeason)};
@@ -5742,21 +5742,21 @@ const credited=entries.filter(t=>t&&t.type==="Interest Credited"&&Number(t.seaso
 const expense=entries.find(t=>t&&t.type==="Season Interest Expense"&&Number(t.season)===cbSeason);
 const zeroDue=entries.some(t=>t&&t.type==="Season Interest Processed"&&Number(t.season)===cbSeason);
 if(expense){
- if(Math.abs(credited-(Number(expense.amount)||0))>0.011){
-  alert("CalBank interest settlement could not be verified for this season. The next season remains locked. Review the CalBank deposit ledger before retrying.");
-  return;
- }
-}else if(!zeroDue){
- alert("CalBank interest settlement is marked processed, but its ledger confirmation is missing. The next season remains locked.");
+if(Math.abs(credited-(Number(expense.amount)||0))>0.011){
+ alert("CalBank interest settlement could not be verified for this season. The next season remains locked. Review the CalBank deposit ledger before retrying.");
  return;
+}
+}else if(!zeroDue){
+alert("CalBank interest settlement is marked processed, but its ledger confirmation is missing. The next season remains locked.");
+return;
 }
 }else{
 const due=Math.round(entries.length>=0?cb.accounts.reduce((sum,a)=>sum+Math.round((Math.max(0,Number(a.balance)||0)*apr/100+Number.EPSILON)*100)/100,0)*100:0)/100;
 if(due>0.000001){
- alert("CalBank interest must be processed before the next season can begin. Open CalBank, click “Process Season-End Interest,” confirm the settlement succeeds, then finalize the offseason again. No season advancement was made.");
- const bankTab=document.querySelector('.city-tab[data-city-tab="calBank"]');
- if(bankTab&&typeof bankTab.click==="function")bankTab.click();
- return;
+alert("CalBank interest must be processed before the next season can begin. Open CalBank, click “Process Season-End Interest,” confirm the settlement succeeds, then finalize the offseason again. No season advancement was made.");
+const bankTab=document.querySelector('.city-tab[data-city-tab="calBank"]');
+if(bankTab&&typeof bankTab.click==="function")bankTab.click();
+return;
 }
 }
 }
@@ -5861,6 +5861,8 @@ syncCitizenLedger();
 state.offseasonFinalized=true;
 /* Run the economy phase roll exactly once for the completed season before advancing the year. */
 transitionEconomicPhaseAtSeasonEnd(Number(state.year)||0);
+/* 5.8.98: capture completed-season cash before advancing the year. Snapshot save is append-only and refuses to overwrite an existing season. */
+if(typeof window.recordFederalReserveSeasonSnapshot==="function")window.recordFederalReserveSeasonSnapshot();
 state.seasonPlayed=false;
 state.offseasonOpen=false;
 state.offseasonDecisions={};
@@ -7349,11 +7351,11 @@ if(d.bankCash < -0.001)throw Error("CalBank cash cannot become negative.");
 const tx={id,type,customerKey:key(customer),customerType:customer.type,customerId:customer.id,customerName:customer.name,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),bankCashBefore:bankBefore,bankCashAfter:round(Number(d.bankCash)),balanceBefore:depositBefore,balanceAfter:round(Number(account.balance)),createdAt:at,season:Number(st.year)||null};
 d.ledger.push(tx);
 /* The live game state is authoritative. Record the same signed cash movement
-  in the Citizen Ledger; do not apply a second cash deduction. */
+ in the Citizen Ledger; do not apply a second cash deduction. */
 if(customer.type==="Citizen"){
- const bridge=window.__calvinsCityBridge;
- if(!bridge||typeof bridge.recordPlayerLedgerTransaction!=="function")throw Error("Citizen Ledger recorder unavailable; transaction cancelled.");
- bridge.recordPlayerLedgerTransaction({player:customer.name,amount:type==="Deposit"?-amount:amount,type:type==="Deposit"?"Bank Deposit":"Bank Withdrawal",reason:type==="Deposit"?"Cash moved from citizen cash into CalBank deposit account":"Cash returned from CalBank deposit account to citizen cash",payer:type==="Deposit"?customer.name:"CalBank",recipient:type==="Deposit"?"CalBank":customer.name,source:"CalBank deposit workflow",before:customerBefore,after:round(Number(live.cash)),delta:type==="Deposit"?-amount:amount,codeLocation:"CalBank deposit foundation"});
+const bridge=window.__calvinsCityBridge;
+if(!bridge||typeof bridge.recordPlayerLedgerTransaction!=="function")throw Error("Citizen Ledger recorder unavailable; transaction cancelled.");
+bridge.recordPlayerLedgerTransaction({player:customer.name,amount:type==="Deposit"?-amount:amount,type:type==="Deposit"?"Bank Deposit":"Bank Withdrawal",reason:type==="Deposit"?"Cash moved from citizen cash into CalBank deposit account":"Cash returned from CalBank deposit account to citizen cash",payer:type==="Deposit"?customer.name:"CalBank",recipient:type==="Deposit"?"CalBank":customer.name,source:"CalBank deposit workflow",before:customerBefore,after:round(Number(live.cash)),delta:type==="Deposit"?-amount:amount,codeLocation:"CalBank deposit foundation"});
 }
 saveGame(st);
 saveDB(d);
@@ -7371,10 +7373,10 @@ window.__calBankCitizenCashAudit={version:"5.8.81",status:"verified-current-tran
  
 }catch(e){
 try{
- const prior=JSON.parse(beforeState),bridge=window.__calvinsCityBridge,liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
- if(liveState&&typeof liveState==="object"){Object.keys(liveState).forEach(k=>delete liveState[k]);Object.assign(liveState,prior);if(bridge&&typeof bridge.save==="function")bridge.save();}
- else localStorage.setItem("calvins_city_v24",beforeState);
- localStorage.setItem(STORAGE_KEY,beforeDB);
+const prior=JSON.parse(beforeState),bridge=window.__calvinsCityBridge,liveState=bridge&&typeof bridge.getState==="function"?bridge.getState():null;
+if(liveState&&typeof liveState==="object"){Object.keys(liveState).forEach(k=>delete liveState[k]);Object.assign(liveState,prior);if(bridge&&typeof bridge.save==="function")bridge.save();}
+else localStorage.setItem("calvins_city_v24",beforeState);
+localStorage.setItem(STORAGE_KEY,beforeDB);
 }catch(rollbackError){console.error("CalBank transaction rollback needs review",rollbackError);}
 status(type+" failed; transaction was not confirmed. Restore was attempted: "+String(e&&e.message||e));
 }
@@ -7757,8 +7759,8 @@ const raw=String(input.value||"").trim(),rate=Number(raw),valid=raw!==""&&Number
 const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
 if(gen)gen.disabled=!valid;
 if(currentPlan&&(!valid||Math.abs(rate-Number(currentPlan.rate))>1e-9)){
-  if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
-  setStatus(valid?"Tax rate changed. Generate a new recommendation (Step 1), then verify, approve, and collect in order.":"Enter a tax rate from 0% through 100% to enable Step 1.");
+ if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
+ setStatus(valid?"Tax rate changed. Generate a new recommendation (Step 1), then verify, approve, and collect in order.":"Enter a tax rate from 0% through 100% to enable Step 1.");
 }
 };
 input.addEventListener("input",()=>{rateEdited();previewTaxRate();});input.addEventListener("change",()=>{rateEdited();previewTaxRate();});rateEdited();
@@ -7896,12 +7898,12 @@ render();
 /* Roll back only this attempted Treasury purchase, never the whole game state. */
 try{
 if(st&&f&&securityId){
- if(investor&&Number.isFinite(oldInvestorCash))setCash(st,investor,oldInvestorCash);
- if(accountType==="CalBank"&&oldCalBankRaw!==null)localStorage.setItem("calvins_city_calbank_v1",oldCalBankRaw);
- if(Number.isFinite(oldFederalCash))f.cash=oldFederalCash;
- f.treasurySecurities=f.treasurySecurities.filter(x=>!x||x.id!==securityId);
- f.treasuryLedger=f.treasuryLedger.filter(x=>!x||x.id!==securityId+"-purchase");
- save();
+if(investor&&Number.isFinite(oldInvestorCash))setCash(st,investor,oldInvestorCash);
+if(accountType==="CalBank"&&oldCalBankRaw!==null)localStorage.setItem("calvins_city_calbank_v1",oldCalBankRaw);
+if(Number.isFinite(oldFederalCash))f.cash=oldFederalCash;
+f.treasurySecurities=f.treasurySecurities.filter(x=>!x||x.id!==securityId);
+f.treasuryLedger=f.treasuryLedger.filter(x=>!x||x.id!==securityId+"-purchase");
+save();
 }
 }catch(rollbackError){console.error("Treasury purchase-specific rollback failed",rollbackError);}
 status("Purchase stopped: "+String(e&&e.message||e)+". No purchase should be retried until balances and the Treasury ledger are checked.");
@@ -8619,7 +8621,7 @@ return db;
 /* v5.8.96: var is intentional here because loadDB() can call saveDB() before this initializer returns. */
 var db=loadDB();
 /* v5.8.85: CalBank-to-market bridge. CalBank writes the shared market storage key;
- reload the canonical in-memory market record before refreshing shareholder views. */
+reload the canonical in-memory market record before refreshing shareholder views. */
 window.addEventListener("calvinsCityStockMarketChanged",function(ev){
 try{
 const detail=ev&&ev.detail||{};
@@ -10907,10 +10909,10 @@ html+='<tr><td style="padding:7px;border-bottom:1px solid #475569">'+esc(a.type+
 html+='</tbody></table><p class="tiny">Cash changes compare current live balances with the most recent earlier saved cash snapshot (Season '+(prior?esc(prior.season):'not recorded')+'). Revenue changes compare current saved Market annual reports with the latest earlier season having recorded company revenue (Season '+(priorRevenueSeason!==null?esc(priorRevenueSeason):'not recorded')+'). Revenue totals and growth use only companies with recorded revenue in both periods ('+matchedRevenueNames.length+' matched companies); team revenue is included when a saved Market annual report exists for that team; missing team reports are not inferred. Revenue is not net earnings. Missing history is not inferred.</p>';
 table.innerHTML=html;
 }
-function saveSnapshot(){const st=state();if(!st){alert("Game state unavailable. Snapshot not saved.");return;}const season=Number(st.year)||0;if(!season){alert("Current season is unavailable. Snapshot not saved.");return;}const f=st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:(st.federalReserve={});if(!Array.isArray(f.boardEconomicSnapshots))f.boardEconomicSnapshots=[];if(f.boardEconomicSnapshots.some(x=>Number(x&&x.season)===season)){if($("fedBoardStatus"))$("fedBoardStatus").textContent="A cash snapshot for Season "+season+" already exists. It was not overwritten.";return;}
+function saveSnapshot(automatic=false){const st=state();if(!st){alert("Game state unavailable. Snapshot not saved.");return;}const season=Number(st.year)||0;if(!season){alert("Current season is unavailable. Snapshot not saved.");return;}const f=st.federalReserve&&typeof st.federalReserve==="object"?st.federalReserve:(st.federalReserve={});if(!Array.isArray(f.boardEconomicSnapshots))f.boardEconomicSnapshots=[];if(f.boardEconomicSnapshots.some(x=>Number(x&&x.season)===season)){if($("fedBoardStatus"))$("fedBoardStatus").textContent="A cash snapshot for Season "+season+" already exists. It was not overwritten.";return;}
 const acc=accounts(st),db=marketDB(),names=acc.map(a=>a.name),rev=revenueTotal(db,season,names),snapshot={id:"fed-board-cash-season-"+season,season,createdAt:new Date().toISOString(),accounts:Object.fromEntries(acc.map(a=>[a.name,{type:a.type,cash:a.cash,revenue:latestRevenue(db,season,a.name)}])),totalCompanyTeamCash:acc.reduce((n,a)=>n+a.cash,0),recordedRevenueTotal:rev.sum,recordedRevenueAccountCount:rev.count,source:"Explicit user-requested snapshot; captured from current game state and existing annual reports."};
 const b=bridge();if(!b||typeof b.save!=="function"){if($("fedBoardStatus"))$("fedBoardStatus").textContent="The app save bridge is unavailable. Snapshot not recorded.";return;}f.boardEconomicSnapshots.push(snapshot);f.boardEconomicSnapshots.sort((a,b)=>Number(a.season)-Number(b.season));let saved=false;try{saved=b.save()!==false;}catch(e){saved=false;}
-const reread=state(),found=history(reread||{}).find(x=>x&&x.id===snapshot.id);if(!saved||!found){f.boardEconomicSnapshots=f.boardEconomicSnapshots.filter(x=>x&&x.id!==snapshot.id);if($("fedBoardStatus"))$("fedBoardStatus").textContent="Snapshot save could not be confirmed. The attempted in-memory snapshot was removed; check storage before retrying.";return;}if($("fedBoardStatus"))$("fedBoardStatus").textContent="Recorded and verified the Season "+season+" company/team cash snapshot. Existing seasons were not changed.";render();}
+const reread=state(),found=history(reread||{}).find(x=>x&&x.id===snapshot.id);if(!saved||!found){f.boardEconomicSnapshots=f.boardEconomicSnapshots.filter(x=>x&&x.id!==snapshot.id);if($("fedBoardStatus"))$("fedBoardStatus").textContent="Snapshot save could not be confirmed. The attempted in-memory snapshot was removed; check storage before retrying.";return;}if($("fedBoardStatus"))$("fedBoardStatus").textContent=(automatic?"Automatically recorded and verified the completed Season ":"Recorded and verified the Season ")+season+" company/team cash snapshot. Existing seasons were not changed.";render();}window.recordFederalReserveSeasonSnapshot=function(){try{saveSnapshot(true);return true;}catch(e){if($("fedBoardStatus"))$("fedBoardStatus").textContent="Automatic snapshot failed safely: "+String(e&&e.message||e);return false;}};
 function advise(){render();const st=state();if(!st){$("fedBoardAdvice").textContent="Cannot recommend a rate without the current game state.";return;}const season=Number(st.year)||0,snaps=history(st).slice().sort((a,b)=>Number(a.season)-Number(b.season)),prior=snaps.filter(x=>Number(x.season)<season).slice(-1)[0],acc=accounts(st),cash=acc.reduce((n,a)=>n+a.cash,0),db=marketDB(),companyNames=acc.map(a=>a.name),revNow=revenueTotal(db,season,companyNames),revenueSeasons=db&&Array.isArray(db.annualReports)?[...new Set(db.annualReports.filter(r=>r&&r.revenueTracked===true&&Number.isFinite(Number(r.revenue))&&companyNames.includes(r.company)&&Number(r.season)<season).map(r=>Number(r.season)))].sort((a,b)=>a-b):[],priorRevenueSeason=revenueSeasons.length?revenueSeasons[revenueSeasons.length-1]:null,revPrev=priorRevenueSeason!==null?revenueTotal(db,priorRevenueSeason,companyNames):{sum:0,count:0,per:{}},matchedRevenueNames=companyNames.filter(name=>Object.prototype.hasOwnProperty.call(revNow.per,name)&&Object.prototype.hasOwnProperty.call(revPrev.per,name)),currentMatchedRevenue=matchedRevenueNames.reduce((sum,name)=>sum+revNow.per[name],0),priorMatchedRevenue=matchedRevenueNames.reduce((sum,name)=>sum+revPrev.per[name],0),cashGrowth=prior&&Number(prior.totalCompanyTeamCash)>0?(cash-Number(prior.totalCompanyTeamCash))/Number(prior.totalCompanyTeamCash)*100:null,revGrowth=matchedRevenueNames.length&&priorMatchedRevenue>0?(currentMatchedRevenue-priorMatchedRevenue)/priorMatchedRevenue*100:null,current=Math.max(0,Math.min(100,Number($("fedBoardCurrentRate").value)||0)),target=Math.max(0,Number($("fedBoardTargetRemoval").value)||0);let recommended=current,reasons=[];
 if(cashGrowth===null){reasons.push("No prior season cash snapshot exists, so cash-growth evidence is insufficient.");}else if(cashGrowth>=20){recommended=Math.min(100,current+1);reasons.push("Tracked company/team cash grew at least 20% since the prior snapshot (+1.00 percentage point guidance).");}else if(cashGrowth>=10){recommended=Math.min(100,current+0.5);reasons.push("Tracked company/team cash grew 10%–19.99% (+0.50 percentage point guidance).");}else if(cashGrowth>=3){recommended=Math.min(100,current+0.25);reasons.push("Tracked company/team cash grew 3%–9.99% (+0.25 percentage point guidance).");}else if(cashGrowth<=-10){recommended=Math.max(0,current-0.5);reasons.push("Tracked company/team cash declined by 10% or more (−0.50 percentage point guidance).");}else if(cashGrowth<0){recommended=Math.max(0,current-0.25);reasons.push("Tracked company/team cash declined (−0.25 percentage point guidance).");}else reasons.push("Tracked company/team cash growth is modest; no cash-growth adjustment suggested.");
 if(revGrowth===null)reasons.push("Recorded annual revenue comparison is unavailable or incomplete; revenue did not influence this recommendation.");else if(revGrowth>=15)reasons.push("Recorded annual revenue grew at least 15%, supporting a cautious additional cash-absorption stance; it is not net profit.");else if(revGrowth<=-10)reasons.push("Recorded annual revenue fell at least 10%; the Board should be cautious about tightening further.");else reasons.push("Recorded annual revenue growth is within the neutral range.");
@@ -10970,33 +10972,33 @@ max-width: 100%;
 }
 @media (max-width: 600px) {
 #fedTreasuryPopup {
- padding-left: 8px;
- padding-right: 8px;
+padding-left: 8px;
+padding-right: 8px;
 }
 #fedTreasuryPopup > .fed-tool-modal {
- width: 100% !important;
- min-width: 0 !important;
- max-width: 100%;
+width: 100% !important;
+min-width: 0 !important;
+max-width: 100%;
 }
 #fedTreasuryPopup > .fed-tool-modal > .fed-tool-content {
- padding-left: 10px;
- padding-right: 10px;
- overflow-x: hidden;
+padding-left: 10px;
+padding-right: 10px;
+overflow-x: hidden;
 }
 #fedTreasuryPopup #fedTreasuryCard .grid {
- grid-template-columns: minmax(0, 1fr);
+grid-template-columns: minmax(0, 1fr);
 }
 #fedTreasuryPopup #fedTreasuryCard img,
 #fedTreasuryPopup #fedTreasuryCard svg,
 #fedTreasuryPopup #fedTreasuryCard canvas,
 #fedTreasuryPopup #fedTreasuryCard video {
- max-width: 100%;
- height: auto;
+max-width: 100%;
+height: auto;
 }
 #fedTreasuryPopup #fedTreasuryCard [style*="overflow-x:auto"] {
- max-width: 100%;
- overflow-x: auto !important;
- -webkit-overflow-scrolling: touch;
+max-width: 100%;
+overflow-x: auto !important;
+-webkit-overflow-scrolling: touch;
 }
 }
 </style>
@@ -11139,10 +11141,10 @@ It does not reset state, rewrite ledgers, or replace the core game logic. */
 function byId(id){return document.getElementById(id);}
 function readSavedState(){
 try{
- var raw=localStorage.getItem("calvins_city_v24");
- if(!raw)return null;
- var parsed=JSON.parse(raw);
- return parsed&&typeof parsed==="object"?parsed:null;
+var raw=localStorage.getItem("calvins_city_v24");
+if(!raw)return null;
+var parsed=JSON.parse(raw);
+return parsed&&typeof parsed==="object"?parsed:null;
 }catch(e){return null;}
 }
 function refreshReadOnlyHomeSummary(){
@@ -11166,7 +11168,7 @@ document.querySelectorAll(".screen").forEach(function(el){el.classList.toggle("a
 document.querySelectorAll(".nav button[data-nav]").forEach(function(btn){btn.classList.toggle("active",btn.getAttribute("data-nav")===id);});
 try{window.scrollTo(0,0);}catch(e){}
 if(id==="markets"){
- try{var market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();}catch(e){console.error("5.8.85 market refresh failed",e);}
+try{var market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();}catch(e){console.error("5.8.85 market refresh failed",e);}
 }
 refreshReadOnlyHomeSummary();
 return true;
@@ -11190,17 +11192,17 @@ if(!nav)missing.push("navigation buttons missing");
 if(!active)missing.push("no active screen");
 if(season&&/Season\s*[—-]/.test(season.textContent||""))missing.push("season could not be read from saved state");
 if(missing.length){
- var panel=byId("cc5874RecoveryNotice");
- if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
- panel.textContent="Calvin's City startup recovery 5.8.96\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+var panel=byId("cc5874RecoveryNotice");
+if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
+panel.textContent="Calvin's City startup recovery 5.8.96\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",diagnose,{once:true});else setTimeout(diagnose,0);
 window.addEventListener("error",function(e){
 try{
- var panel=byId("cc5874RecoveryNotice");
- if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
- panel.textContent="Calvin's City startup recovery 5.8.96\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+var panel=byId("cc5874RecoveryNotice");
+if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
+panel.textContent="Calvin's City startup recovery 5.8.96\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 }catch(ignore){}
 },true);
 })();
@@ -11208,8 +11210,8 @@ try{
  
 <script>
 /* v5.8.64 — CalBank stock-only investment portfolio.
- Uses the existing stock-market database and the existing CalBank cash account.
- Does not reset holdings, rewrite historical reports, or assign investments to the Fed. */
+Uses the existing stock-market database and the existing CalBank cash account.
+Does not reset holdings, rewrite historical reports, or assign investments to the Fed. */
 (function(){
 "use strict";
 const BANK_KEY="calvins_city_calbank_v1",GAME_KEY="calvins_city_v24",MARKET_KEY="calvins_city_stock_market_v1",OWNER_KEY="CALBANK";
