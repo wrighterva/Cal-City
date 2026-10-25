@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.102: CalBank reserve-share cash accounting fix, guarded one-time Rims correction for verified CBI issuance, and cent-precision audit checks. Retains v5.8.101 metadata/resume fixes and v5.8.99 shoe popularity. -->
+<!-- CALVIN'S CITY — VERSION 5.8.108: Legacy Shoes marketplace, frozen retail sales, transferable single-owner dividend rights, 10% post-championship dividends, and 4% Retail Stores resale fee. Preserves the v5.8.107 live-cash ownership fix and all existing saved history. -->
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
@@ -18,7 +18,7 @@
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
-<meta name="calvins-city-build" content="5.8.102">
+<meta name="calvins-city-build" content="5.8.108">
  
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
@@ -278,7 +278,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.98</title>
+<title>Calvin's City 5.8.108</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -508,7 +508,7 @@ th,td{border-bottom-color:#343B43!important}
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.102</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.108</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -565,7 +565,7 @@ th,td{border-bottom-color:#343B43!important}
 <div class="city-business-card" data-business-name="New Balance" role="button" tabindex="0" onclick="openShoeCompanySection('New Balance')" onkeydown="if(event.key==='Enter'||event.key===' ')openShoeCompanySection('New Balance')"><strong>👟 New Balance</strong><span>Shoe Company • Folcook / Bole / Hall</span></div>
 <div class="city-business-card" data-business-name="TV Company" role="button" tabindex="0" onclick="openTVBroadcastingSection()" onkeydown="if(event.key==='Enter'||event.key===' ')openTVBroadcastingSection()"><strong>📺 TV Company</strong><span>Media Company • View Ownership &amp; Broadcasting Deals</span></div>
 <div class="city-business-card" data-business-name="Sports Bets Company" role="button" tabindex="0" onclick="window.openOwnershipMarketplace('Sports Bets Company')" onkeydown="if(event.key==='Enter'||event.key===' ')window.openOwnershipMarketplace('Sports Bets Company')"><strong>🎲 Sports Bets</strong><span>Sports Business</span></div>
-<div class="city-business-card" data-business-name="Shoe Store" role="button" tabindex="0" onclick="window.openShoeStore()" onkeydown="if(event.key==='Enter'||event.key===' ')window.openShoeStore()"><strong>🏬 Shoe Store</strong><span>Retail operation • Sells shoe models to consumers</span></div>
+<div class="city-business-card" data-business-name="Shoe Store" role="button" tabindex="0" onclick="window.openShoeStore()" onkeydown="if(event.key==='Enter'||event.key===' ')window.openShoeStore()"><strong>🏬 Retail Stores</strong><span>Retail operation • Sells shoe models and manages the Legacy Shoes marketplace</span></div>
 <div class="city-business-card" data-business-name="Calvin's Casino" role="button" tabindex="0" onclick="window.openCasino()" onkeydown="if(event.key==='Enter'||event.key===' ')window.openCasino()"><strong>🎰 Calvin's Casino</strong><span>New business • Debt-funded launch • Roulette &amp; Slots</span><span id="casinoBusinessCardStatus">Not yet funded</span></div>
 </div>
 <div id="casinoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="casinoModalTitle"><div class="modalbox">
@@ -701,13 +701,15 @@ th,td{border-bottom-color:#343B43!important}
 <button type="button" class="secondary" onclick="window.closeCasino()">Close</button>
 </div></div>
 <div id="shoeStoreModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shoeStoreModalTitle"><div class="modalbox"><div id="shoeStoreManagement" class="card" style="display:block;margin-top:0">
-<h2 id="shoeStoreModalTitle">🏬 Shoe Store &amp; CalSims Consumer Market</h2>
-<p class="tiny">The Shoe Store is an independent retailer. CalSims is a separate aggregate consumer economy that can buy goods from this and future businesses. CalSims is not a company and has no stock or public valuation.</p>
+<h2 id="shoeStoreModalTitle">🏬 Retail Stores &amp; CalSims Consumer Market</h2>
+<p class="tiny">Retail Stores is an independent retailer. CalSims is a separate aggregate consumer economy that can buy goods from this and future businesses. CalSims is not a company and has no stock or public valuation.</p>
+<div class="grid" id="shoeStoreSubtabs" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0"><button type="button" class="goodbtn" id="shoeRetailTabButton">Retail Sales</button><button type="button" class="secondary" id="legacyShoesTabButton">Legacy Shoes</button></div>
+<div id="shoeRetailTabPanel">
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">
 <div class="metric"><small>CalSims Consumer Cash</small><strong id="calSimsTotalCash">$5,000M</strong></div>
 <div class="metric"><small>Spendable Cash</small><strong id="calSimsSpendableCash">$4,000M</strong></div>
 <div class="metric"><small>Protected Reserve</small><strong id="calSimsReserveCash">$1,000M</strong></div>
-<div class="metric"><small>Shoe Store Cash</small><strong id="shoeStoreCash">$0M</strong></div>
+<div class="metric"><small>Retail Stores Cash</small><strong id="shoeStoreCash">$0M</strong></div>
 </div>
 <p class="tiny">CalSims begins with a $5B consumer pool: $4B is initially spendable and $1B is protected. Spending is demand-driven, not a target. Shoe prices are chosen by each company; there are no preset retail prices.</p>
 <h3>Release a Shoe Model</h3>
@@ -726,10 +728,20 @@ th,td{border-bottom-color:#343B43!important}
 <p class="tiny">CalSims automatically simulates consumer shoe purchases after each completed game. Demand is shared among active models according to price and popularity; consumers may skip buying. Sales are capped by CalSims' spendable cash. Each completed game is processed once, even if the app is refreshed.</p>
 <p id="calSimsCycleMessage" class="tiny" role="status" aria-live="polite">Automatic sales will be processed after the next completed game.</p>
 <h3>Released Shoe Models</h3>
-<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px"><div><label for="shoeModelCompanyFilter">Show shoe company</label><select id="shoeModelCompanyFilter"><option value="all">All companies</option><option>Nike</option><option>Reebok</option><option>Puma</option><option>Adidas</option><option>New Balance</option></select></div><div><label for="shoeModelStatusFilter">Model status</label><select id="shoeModelStatusFilter"><option value="all">All models</option><option value="active">Active</option><option value="paused">Paused</option><option value="retro">Retro models</option></select></div></div>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px"><div><label for="shoeModelCompanyFilter">Show shoe company</label><select id="shoeModelCompanyFilter"><option value="all">All companies</option><option>Nike</option><option>Reebok</option><option>Puma</option><option>Adidas</option><option>New Balance</option></select></div><div><label for="shoeModelStatusFilter">Model status</label><select id="shoeModelStatusFilter"><option value="all">All retail models</option><option value="active">Active</option><option value="paused">Paused</option></select></div></div>
 <div id="shoeModelList"><p class="muted">No models released yet.</p></div>
 <h3>Retail &amp; Company Sales Ledger</h3><div id="shoeRetailLedger"><p class="muted">No retail sales recorded yet.</p></div>
-<button type="button" class="secondary" id="shoeStoreClose">Close Shoe Store</button>
+</div>
+<div id="legacyShoesTabPanel" style="display:none">
+<h3>👟 Legacy Shoes Marketplace</h3>
+<p class="tiny">A Legacy Shoe never sells retail again. Its complete historical sales ledger remains preserved, and its dividend basis is frozen at conversion. The current owner may keep it unlisted or list it at an asking price. Citizens, shoe companies, CalBank, and the Federal Reserve can buy listed shoes. A completed resale charges a 4% fee to Retail Stores; the seller receives the remaining 96%. The current owner receives a system-generated dividend equal to 10% of preserved lifetime retail sales once after each championship game. Ownership transfers future dividends only.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:8px 0"><div><label for="legacyShoeActorSelect">Account managing a listing</label><select id="legacyShoeActorSelect" style="width:100%"></select></div><div><label for="legacyShoeBuyerSelect">Account purchasing a listed shoe</label><select id="legacyShoeBuyerSelect" style="width:100%"></select></div></div>
+<p id="legacyShoeMarketMessage" class="tiny" role="status" aria-live="polite">Legacy Shoe sales, ownership, and dividend records will appear here.</p>
+<div id="legacyShoeMarketplace"><p class="muted">No Legacy Shoes yet. Retro a shoe associated with a retired player to convert it.</p></div>
+<h3>Preserved Retail Sales History</h3><div id="legacyShoeSalesHistory"><p class="muted">No Legacy Shoe sales history yet.</p></div>
+<h3>Legacy Shoe Transaction &amp; Dividend Ledger</h3><div id="legacyShoeLedger"><p class="muted">No Legacy Shoe transactions recorded yet.</p></div>
+</div>
+<button type="button" class="secondary" id="shoeStoreClose">Close Retail Stores</button>
 </div></div></div>
 <div class="card" id="tvBroadcastingCard" style="margin-top:14px">
 <h2>📺 TV Company — Broadcasting Deals</h2>
@@ -3218,7 +3230,7 @@ const registry=ensureBusinessOwnershipRegistry(),stakes=[];
 Object.entries(registry.businesses).forEach(([business,record])=>{
 (record.owners||[]).forEach(owner=>{
 if(String(owner.citizenId)===String(citizenId)&&Number(owner.percentage)>0){
-stakes.push({business,percentage:Number(owner.percentage),value:(Number(record.valuation)||0)*Number(owner.percentage)/100});
+const liveCash=Number(state.businessCash&&state.businessCash[business]!=null?state.businessCash[business]:BUSINESS_CASH[business]!=null?BUSINESS_CASH[business]:record.valuation)||0;stakes.push({business,percentage:Number(owner.percentage),value:Math.max(0,liveCash)*Number(owner.percentage)/100});
 }
 });
 });
@@ -5073,6 +5085,10 @@ The persistent game key prevents duplicate retail cycles after refresh/re-entry.
 if(typeof window.processCalSimsGameCycle==="function"){
 const calSimsGameKey="Y"+(Number(state.year)||29)+"-"+stage.replace(/[^a-z0-9]/gi,"")+"-G"+(Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0);
 window.processCalSimsGameCycle(calSimsGameKey);
+}
+/* 5.8.108: Pay Legacy Shoe dividends only after the championship game AND its CalSims retail cycle are recorded, so the frozen sales basis includes the final game's sales. Each shoe-season payout is idempotent. */
+if(stage==="Championship"&&state.seasonPlayed&&typeof window.processLegacyShoeDividends==="function"){
+try{const legacyDividendResult=window.processLegacyShoeDividends(Number(state.year)||29);if(legacyDividendResult&&legacyDividendResult.ok===false)console.error("Legacy Shoe dividends require review after the championship.",legacyDividendResult);}catch(legacyDividendError){console.error("Legacy Shoe dividend processing failed after the championship.",legacyDividendError);}
 }
 if(auditEnabled){captureSeason29GameCashBoundary("after-save-before-render",{stage,a:g.A.team,b:g.B.team});save();}
 renderGameResult(g,stage);renderProgress();
@@ -8099,7 +8115,7 @@ document.getElementById("shoeCompanyTitle").textContent="👟 "+company;
 document.getElementById("shoeCompanyType").textContent="Shoe Company";
 document.getElementById("shoeCompanyCash").textContent="$"+liveCash.toLocaleString("en-US")+"M";
 const valuationEl=document.getElementById("shoeCompanyValuation");
-if(valuationEl)valuationEl.textContent=ownershipRecord?"$"+(Number(ownershipRecord.valuation)||0).toLocaleString("en-US")+"M":"—";
+if(valuationEl)valuationEl.textContent=ownershipRecord?"$"+Math.max(0,liveCash).toLocaleString("en-US")+"M":"—";
 document.getElementById("shoeCompanyOwnerCount").textContent=String(liveOwners.length);
 let rows='<div style="overflow-x:auto"><table><tr><th>Owner</th><th>Ownership</th></tr>';
 liveOwners.forEach(owner=>{
@@ -8273,6 +8289,12 @@ function saveAll(){if(typeof bridge.saveBusinessOwnershipRegistry==="function")b
 function citizenById(id){return (state().citizens||[]).find(c=>c&&String(c.id)===String(id))||null;}
 function ownerName(owner){const c=citizenById(owner.citizenId);return c&&c.name||owner.name||"Unknown owner";}
 function recordForBusiness(name){return registry().businesses[name]||null;}
+function liveCashValuation(business,record){
+const st=state();
+const raw=st.businessCash&&st.businessCash[business]!=null?st.businessCash[business]:(businessCashSeed[business]!=null?businessCashSeed[business]:(record&&record.valuation));
+const amount=Number(raw);
+return Number.isFinite(amount)?Math.max(0,amount):0;
+}
 function activeOffers(business){return registry().offers.filter(o=>o&&o.business===business&&o.status==="active");}
 function reservedPercent(business,citizenId,excludeOfferId){
 return activeOffers(business).filter(o=>String(o.sellerId)===String(citizenId)&&o.id!==excludeOfferId).reduce((sum,o)=>sum+(Number(o.percentage)||0),0);
@@ -8312,7 +8334,7 @@ if(citizen)el.textContent=citizen.cash==null?"—":"$"+Number(citizen.cash).toLo
 document.querySelectorAll("[data-citizen-assets]").forEach(block=>{
 const id=block.getAttribute("data-citizen-assets"),stakes=[];
 Object.entries(registry().businesses).forEach(([business,record])=>(record.owners||[]).forEach(owner=>{
-if(String(owner.citizenId)===String(id)&&Number(owner.percentage)>0)stakes.push({business,percentage:Number(owner.percentage),value:(Number(record.valuation)||0)*Number(owner.percentage)/100});
+if(String(owner.citizenId)===String(id)&&Number(owner.percentage)>0)stakes.push({business,percentage:Number(owner.percentage),value:liveCashValuation(business,record)*Number(owner.percentage)/100});
 }));
 const total=stakes.reduce((sum,stake)=>sum+stake.value,0);
 block.innerHTML='<div style="font-weight:800;margin-bottom:6px">Assets</div>'+
@@ -8342,21 +8364,21 @@ return;
 const actingOwner=(record.owners||[]).find(o=>String(o.citizenId)===String(citizenSelect.value));
 const maxAvailable=availablePercent(business,actingOwner);
 if(value>maxAvailable+0.000001){preview.innerHTML='<b>Stake value:</b> You can offer at most '+pct(maxAvailable)+' based on your current unreserved ownership.';return;}
-const stakeValue=round4((Number(record.valuation)||0)*value/100);
-preview.innerHTML='<b>'+pct(value)+' stake</b> · Estimated cash value: <b>'+money(stakeValue)+'</b><div class="tiny muted">Based on the current business valuation; final offer value may change if valuation changes.</div>';
+const stakeValue=round4(liveCashValuation(business,record)*value/100);
+preview.innerHTML='<b>'+pct(value)+' stake</b> · Estimated cash value: <b>'+money(stakeValue)+'</b><div class="tiny muted">Based on current business cash; final offer price is recalculated from cash when purchased.</div>';
 }
 function render(){
 const st=state(),business=businessSelect.value,actingId=citizenSelect.value,record=recordForBusiness(business);
 updateStakeInputLimit();
 if(!record){summary.innerHTML='<p class="muted">Business record unavailable.</p>';return;}
-const cash=st.businessCash&&st.businessCash[business]!=null?Number(st.businessCash[business]):Number(businessCashSeed[business])||0;
+const cash=liveCashValuation(business,record);
 const owners=(record.owners||[]).filter(o=>Number(o.percentage)>0);
 const total=owners.reduce((sum,o)=>sum+(Number(o.percentage)||0),0);
-let html='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px"><div class="metric"><small>Business Valuation</small><strong>'+money(record.valuation)+'</strong></div><div class="metric"><small>Business Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Total Ownership</small><strong>'+pct(total)+'</strong></div>'+(business==='Sports Bets Company'?'<div class="metric"><small>Company Debt</small><button type="button" id="sportsBetsDebtTab" aria-controls="sportsBetsDebtPanel" aria-expanded="false" style="width:100%;margin:8px 0 0;padding:8px 10px;font-size:14px;border-radius:8px">Open Debt</button></div>':'')+'</div>';
+let html='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px"><div class="metric"><small>Business Valuation</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Business Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Total Ownership</small><strong>'+pct(total)+'</strong></div>'+(business==='Sports Bets Company'?'<div class="metric"><small>Company Debt</small><button type="button" id="sportsBetsDebtTab" aria-controls="sportsBetsDebtPanel" aria-expanded="false" style="width:100%;margin:8px 0 0;padding:8px 10px;font-size:14px;border-radius:8px">Open Debt</button></div>':'')+'</div>';
 html+='<h3>Current Ownership</h3><div style="overflow-x:auto"><table><thead><tr><th>Owner</th><th>Stake</th><th>Stake Value</th><th>Available to Offer</th></tr></thead><tbody>';
 owners.forEach(owner=>{
 const stake=Number(owner.percentage)||0,available=availablePercent(business,owner);
-html+='<tr><td>'+esc(ownerName(owner))+(String(owner.citizenId)===String(actingId)?' <span class="badge">Selected Citizen</span>':'')+'</td><td>'+pct(stake)+'</td><td>'+money(Number(record.valuation)*stake/100)+'</td><td>'+pct(available)+'</td></tr>';
+html+='<tr><td>'+esc(ownerName(owner))+(String(owner.citizenId)===String(actingId)?' <span class="badge">Selected Citizen</span>':'')+'</td><td>'+pct(stake)+'</td><td>'+money(cash*stake/100)+'</td><td>'+pct(available)+'</td></tr>';
 });
 html+='</tbody></table></div><p class="tiny">Ownership totals should equal 100%. Current business cash is displayed separately and is not changed by stake resales.</p>';
 summary.innerHTML=html;
@@ -8374,7 +8396,7 @@ if(!offers.length)offerHtml+='<p class="muted">No active offers for this busines
 else{
 offerHtml+='<div style="overflow-x:auto"><table><thead><tr><th>Seller</th><th>Stake</th><th>Current Price</th><th>Action</th></tr></thead><tbody>';
 offers.forEach(offer=>{
-const price=round4(Number(record.valuation)*(Number(offer.percentage)||0)/100);
+const price=round4(liveCashValuation(business,record)*(Number(offer.percentage)||0)/100);
 const isSeller=String(offer.sellerId)===String(actingId);
 const action=isSeller
 ?'<button type="button" data-cancel-ownership-offer="'+esc(offer.id)+'">Cancel Offer</button>'
@@ -8453,7 +8475,7 @@ available)+".";
 showOwnershipValidationPopup(seller.name+" does not own enough available stake to sell "+pct(percentToSell)+".\n\nAvailable to offer: "+pct(available)+".\n\nThis offer was not created.");
 return;
 }
-const offer={id:"BOF-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),business,sellerId:seller.id,sellerName:seller.name,percentage:round4(percentToSell),status:"active",createdAt:new Date().toISOString(),valuationAtListing:Number(record.valuation)||0};
+const offer={id:"BOF-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),business,sellerId:seller.id,sellerName:seller.name,percentage:round4(percentToSell),status:"active",createdAt:new Date().toISOString(),valuationAtListing:liveCashValuation(business,record)};
 registry().offers.push(offer);
 saveAll();
 message.textContent="Offer listed. The stake is reserved, and the current price is calculated from the business valuation.";
@@ -8481,7 +8503,7 @@ const offerPct=Number(offer.percentage)||0;
 if(!sellerOwner||Number(sellerOwner.percentage)+0.000001<offerPct){message.textContent="The seller no longer owns enough stake to fulfill this offer.";return;}
 const otherReserved=reservedPercent(business,seller.id,offer.id);
 if(Number(sellerOwner.percentage)-offerPct+0.000001<otherReserved){message.textContent="This transfer would interfere with another reserved offer. Cancel or complete the other offer first.";return;}
-const price=round4((Number(record.valuation)||0)*offerPct/100);
+const currentValuation=liveCashValuation(business,record),price=round4(currentValuation*offerPct/100);
 const buyerCash=Number(buyer.cash),sellerCash=Number(seller.cash)||0;
 if(buyer.cash==null||!Number.isFinite(buyerCash)){message.textContent="The selected buyer has no valid cash balance recorded.";return;}
 if(buyerCash+0.000001<price){message.textContent="Insufficient cash. Purchase price: "+money(price)+"; buyer cash: "+money(buyerCash)+".";return;}
@@ -8495,7 +8517,7 @@ if(buyerOwner)buyerOwner.percentage=round4(Number(buyerOwner.percentage)+offerPc
 else{buyerOwner={citizenId:buyer.id,name:buyer.name,percentage:offerPct};record.owners.push(buyerOwner);}
 record.owners=record.owners.filter(o=>Number(o.percentage)>0.000001);
 const at=new Date().toISOString(),transferId="BOT-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
-const tx={id:transferId,at,season:Number(st.year)||0,gameCount:Array.isArray(st.gamesPlayed)?st.gamesPlayed.length:0,business,buyerId:buyer.id,buyerName:buyer.name,sellerId:seller.id,sellerName:seller.name,percentage:offerPct,price,valuation:Number(record.valuation)||0,buyerCashBefore:buyerBefore,buyerCashAfter:buyer.cash,sellerCashBefore:sellerBefore,sellerCashAfter:seller.cash,offerId:offer.id,type:"Ownership Transfer"};
+const tx={id:transferId,at,season:Number(st.year)||0,gameCount:Array.isArray(st.gamesPlayed)?st.gamesPlayed.length:0,business,buyerId:buyer.id,buyerName:buyer.name,sellerId:seller.id,sellerName:seller.name,percentage:offerPct,price,valuation:currentValuation,buyerCashBefore:buyerBefore,buyerCashAfter:buyer.cash,sellerCashBefore:sellerBefore,sellerCashAfter:seller.cash,offerId:offer.id,type:"Ownership Transfer"};
 reg.transactions.push(tx);
 offer.status="sold";offer.completedAt=at;offer.buyerId=buyer.id;offer.buyerName=buyer.name;offer.transactionId=transferId;offer.completedPrice=price;
 st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
@@ -9815,7 +9837,7 @@ const st=bridge.getState();if(typeof bridge.ensureBusinessOwnershipRegistry==="f
 const registry=st.businessOwnershipRegistry||{},record=registry.businesses&&registry.businesses["TV Company"];
 const owners=record&&Array.isArray(record.owners)?record.owners:[];
 const valuation=$("tvCompanyOwnershipValuation"),count=$("tvCompanyOwnershipCount"),out=$("tvCompanyOwnershipOwners");
-if(valuation)valuation.textContent=moneyText(record&&record.valuation!=null?record.valuation:3650);
+if(valuation)valuation.textContent=moneyText(st.businessCash&&st.businessCash["TV Company"]!=null?st.businessCash["TV Company"]:(record&&record.valuation!=null?record.valuation:3650));
 if(count)count.textContent=String(owners.length);
 if(out){if(!owners.length){out.innerHTML='<p class="muted">No ownership records are available.</p>';}else{out.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Owner</th><th>Ownership</th></tr></thead><tbody>'+owners.map(o=>{const citizen=(st.citizens||[]).find(c=>c&&String(c.id)===String(o.citizenId));const name=citizen&&citizen.name||o.name||"Unknown owner";const pct=Number(o.percentage)||0;return '<tr><td>'+esc(name)+'</td><td>'+pct.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'%</td></tr>';}).join('')+'</tbody></table></div>';}}
 }
@@ -10142,11 +10164,12 @@ setTimeout(()=>location.reload(),250);
 })();
 </script>
 <script>
-/* CALVIN'S CITY 5.2.0 — independent CalSims consumer economy and Shoe Store retail.
-All records live in the canonical game state so normal backups include them. */
+/* CALVIN'S CITY 5.8.108 — Retail Stores, CalSims consumer economy, and Legacy Shoes.
+All new records live in the canonical game state or the existing CalBank record; no saved history is cleared. */
 (function(){
 "use strict";
 const companies=["Nike","Reebok","Puma","Adidas","New Balance"];
+const LEGACY_DIVIDEND_RATE=0.10,LEGACY_RESALE_FEE_RATE=0.04,CALBANK_STORAGE_KEY="calvins_city_calbank_v1",GAME_STORAGE_KEY="calvins_city_v24";
 const tiers={standard:{label:"Standard",cost:25},performance:{label:"Performance",cost:50},premium:{label:"Premium",cost:100}};
 const money=n=>"$"+(Number(n)||0).toLocaleString("en-US",{maximumFractionDigits:2})+"M";
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -10165,6 +10188,7 @@ if(!Array.isArray(c.models))c.models=[];
 if(!Array.isArray(c.retailLedger))c.retailLedger=[];
 if(!Array.isArray(c.interestLedger))c.interestLedger=[];
 if(!Array.isArray(c.boostAttempts))c.boostAttempts=[];
+if(!Array.isArray(c.legacyShoeLedger))c.legacyShoeLedger=[];
 st.businessCash=st.businessCash||{};
 st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
 if(!Number.isFinite(Number(st.businessCash["Shoe Store"])))st.businessCash["Shoe Store"]=0;
@@ -10178,8 +10202,9 @@ if(el("calSimsSpendableCash"))el("calSimsSpendableCash").textContent=money(c.spe
 if(el("calSimsReserveCash"))el("calSimsReserveCash").textContent=money(c.reserveCash);
 if(el("shoeStoreCash"))el("shoeStoreCash").textContent=money(st.businessCash["Shoe Store"]);
 const companyFilter=el("shoeModelCompanyFilter")?el("shoeModelCompanyFilter").value:"all",statusFilter=el("shoeModelStatusFilter")?el("shoeModelStatusFilter").value:"all";
-const list=el("shoeModelList");if(list){const filtered=c.models.filter(m=>(companyFilter==="all"||m.company===companyFilter)&&(statusFilter==="all"||(statusFilter==="retro"?!!m.isRetro:String(m.status||"active")==statusFilter)));if(!c.models.length)list.innerHTML='<p class="muted">No models released yet.</p>';else if(!filtered.length)list.innerHTML='<p class="muted">No shoe models match these filters.</p>';else list.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Model</th><th>Company</th><th>Player</th><th>Tier</th><th>Price / Pair</th><th>Shoe Popularity</th><th>Player Popularity</th><th>Units Sold</th><th>Retail Sales</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+filtered.map(m=>{const status=m.isRetro?"Retro":String(m.status||"active")==="paused"?"Paused":"Active";const pauseLabel=String(m.status||"active")==="paused"?"Resume":"Pause";return '<tr><td>'+esc(m.name)+(m.isRetro?'<br><span class="badge gold">RETRO</span>':'')+'</td><td>'+esc(m.company)+'</td><td>'+esc(m.playerAssociation||'—')+'</td><td>'+esc((tiers[m.tier]||tiers.standard).label)+'</td><td>$'+Number(m.price).toLocaleString("en-US",{maximumFractionDigits:2})+'</td><td>'+Math.round(Number(m.popularity)||50)+'</td><td>'+Math.round(Number(m.playerPopularity)||50)+'</td><td>'+Math.round(Number(m.unitsSold)||0).toLocaleString("en-US")+'</td><td>'+money(m.retailRevenue||0)+'</td><td>'+status+'</td><td><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="pause" data-model-id="'+esc(m.id)+'">'+pauseLabel+'</button><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="retro" data-model-id="'+esc(m.id)+'">'+(m.isRetro?'Retroed':'Retro Shoe')+'</button></td></tr>';}).join('')+'</tbody></table></div>';}
-const led=el("shoeRetailLedger");if(led){const rows=c.retailLedger.slice(-10).reverse();led.innerHTML=rows.length?'<div style="overflow-x:auto"><table><thead><tr><th>Cycle</th><th>Model</th><th>Units</th><th>Retail Revenue</th><th>Company (70%)</th><th>Store (30%)</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.cycle+'</td><td>'+esc(r.modelName)+'</td><td>'+Number(r.units).toLocaleString("en-US")+'</td><td>'+money(r.revenue)+'</td><td>'+money(r.companyShare)+'</td><td>'+money(r.storeShare)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No retail sales recorded yet.</p>';}
+const list=el("shoeModelList");if(list){const filtered=c.models.filter(m=>m&&!m.isRetro&&(companyFilter==="all"||m.company===companyFilter)&&(statusFilter==="all"||String(m.status||"active")==statusFilter));if(!c.models.length)list.innerHTML='<p class="muted">No models released yet.</p>';else if(!filtered.length)list.innerHTML='<p class="muted">No shoe models match these filters.</p>';else list.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Model</th><th>Company</th><th>Player</th><th>Tier</th><th>Price / Pair</th><th>Shoe Popularity</th><th>Player Popularity</th><th>Units Sold</th><th>Retail Sales</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+filtered.map(m=>{const status=m.isRetro?"Retro":String(m.status||"active")==="paused"?"Paused":"Active";const pauseLabel=String(m.status||"active")==="paused"?"Resume":"Pause";return '<tr><td>'+esc(m.name)+(m.isRetro?'<br><span class="badge gold">LEGACY SHOE</span>':'')+'</td><td>'+esc(m.company)+'</td><td>'+esc(m.playerAssociation||'—')+'</td><td>'+esc((tiers[m.tier]||tiers.standard).label)+'</td><td>$'+Number(m.price).toLocaleString("en-US",{maximumFractionDigits:2})+'</td><td>'+Math.round(Number(m.popularity)||50)+'</td><td>'+Math.round(Number(m.playerPopularity)||50)+'</td><td>'+Math.round(Number(m.unitsSold)||0).toLocaleString("en-US")+'</td><td>'+money(m.retailRevenue||0)+'</td><td>'+status+'</td><td><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="pause" data-model-id="'+esc(m.id)+'">'+pauseLabel+'</button><button type="button" class="secondary" style="margin:2px 0;padding:7px;font-size:11px" data-shoe-action="retro" data-model-id="'+esc(m.id)+'">'+(m.isRetro?'Legacy Shoe':'Convert to Legacy Shoe')+'</button></td></tr>';}).join('')+'</tbody></table></div>';}
+const led=el("shoeRetailLedger");if(led){const rows=c.retailLedger.slice(-10).reverse();led.innerHTML=rows.length?'<div style="overflow-x:auto"><table><thead><tr><th>Cycle</th><th>Model</th><th>Units</th><th>Retail Revenue</th><th>Company (70%)</th><th>Retail Stores (30%)</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.cycle+'</td><td>'+esc(r.modelName)+'</td><td>'+Number(r.units).toLocaleString("en-US")+'</td><td>'+money(r.revenue)+'</td><td>'+money(r.companyShare)+'</td><td>'+money(r.storeShare)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="muted">No retail sales recorded yet.</p>';}
+renderLegacyMarketplace(st,c);
 }
 function activePlayersForCompany(st,company){
 const season=Math.max(0,Number(st&&st.year)||0),found=[];
@@ -10218,6 +10243,230 @@ if(citizen&&String(citizen.status||"").toLowerCase()==="retired")return true;
 const player=(Array.isArray(st&&st.players)?st.players:[]).find(p=>p&&(String(p.name||p.playerName||"")===String(name)));
 return !!(player&&String(player.status||player.careerStatus||"").toLowerCase()==="retired");
 }
+function legacyRound(n){return Math.round((Number(n)+Number.EPSILON)*100)/100;}
+function legacySafeId(value){return String(value||"shoe").replace(/[^a-z0-9_-]/gi,"-");}
+function legacyRandomId(prefix){return prefix+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);}
+function legacySalesBasis(c,m){
+const ledgerTotal=(Array.isArray(c&&c.retailLedger)?c.retailLedger:[]).filter(row=>row&&String(row.modelId)===String(m&&m.id)).reduce((sum,row)=>sum+Math.max(0,Number(row.revenue)||0),0);
+return legacyRound(Math.max(0,Number(m&&m.retailRevenue)||0,ledgerTotal));
+}
+function legacyConversionId(m){return "LEGACY-SHOE-CONVERT-"+legacySafeId(m&&m.id||m&&m.name);}
+function normalizeLegacyRecords(st,c){
+let changed=false;
+if(!Array.isArray(c.legacyShoeLedger)){c.legacyShoeLedger=[];changed=true;}
+const season=Number(st&&st.year)||29;
+(c.models||[]).forEach(m=>{
+if(!m||m.isRetro!==true)return;
+if(m.isLegacy!==true){m.isLegacy=true;changed=true;}
+if(m.legacySalesTotal==null||!Number.isFinite(Number(m.legacySalesTotal))){m.legacySalesTotal=legacySalesBasis(c,m);m.legacySalesFrozen=true;m.legacySalesFrozenAt=m.legacyConvertedAt||m.retroAt||m.createdAt||new Date().toISOString();changed=true;}
+if(m.legacySalesFrozen!==true){m.legacySalesFrozen=true;changed=true;}
+if(!m.legacySinceSeason){m.legacySinceSeason=Number(m.retroSeason)||Number(m.createdSeason)||season;changed=true;}
+if(!m.legacyConvertedAt){m.legacyConvertedAt=m.retroAt||m.createdAt||new Date().toISOString();changed=true;}
+if(!m.legacyOwnerType){m.legacyOwnerType="Shoe Company";changed=true;}
+if(m.legacyOwnerType==="CalBank"||m.legacyOwnerType==="Federal Reserve"){const legacyBankName=m.legacyOwnerType;m.legacyOwnerType="Bank";if(!m.legacyOwnerId)m.legacyOwnerId=legacyBankName;if(!m.legacyOwnerName)m.legacyOwnerName=legacyBankName;changed=true;}
+if(!m.legacyOwnerId){if(m.legacyOwnerType==="Bank")m.legacyOwnerId=String(m.legacyOwnerName||"");else if(m.legacyOwnerType==="Citizen"){const namedOwner=(st.citizens||[]).find(x=>x&&String(x.name||"").trim().toLowerCase()===String(m.legacyOwnerName||"").trim().toLowerCase());m.legacyOwnerId=namedOwner?String(namedOwner.id):"";}else m.legacyOwnerId=String(m.company||"");changed=true;}
+if(!m.legacyOwnerName){m.legacyOwnerName=String(m.legacyOwnerType==="Bank"||m.legacyOwnerType==="Citizen"?m.legacyOwnerId:m.company||"");changed=true;}
+if(m.legacyListed==null){m.legacyListed=false;changed=true;}
+if(!Array.isArray(m.legacyDividendPaidSeasons)){m.legacyDividendPaidSeasons=[];changed=true;}
+if(!Array.isArray(m.legacyOwnershipHistory)){m.legacyOwnershipHistory=[];changed=true;}
+if(!m.legacyOwnershipHistory.length){m.legacyOwnershipHistory.push({action:"Initial Legacy Ownership",season:Number(m.legacySinceSeason)||season,ownerType:m.legacyOwnerType,ownerId:m.legacyOwnerId,ownerName:m.legacyOwnerName,at:m.legacyConvertedAt||m.retroAt||new Date().toISOString()});changed=true;}
+const conversionId=legacyConversionId(m);
+if(!c.legacyShoeLedger.some(row=>row&&String(row.id)===conversionId)){
+const at=new Date().toISOString();
+c.legacyShoeLedger.push({id:conversionId,type:"Legacy Shoe Conversion",modelId:String(m.id||""),modelName:String(m.name||"Unnamed shoe"),company:String(m.company||""),playerAssociation:String(m.playerAssociation||""),season:Number(m.legacySinceSeason)||season,createdAt:at,conversionAt:m.legacyConvertedAt||m.retroAt||at,salesBasis:legacyRound(Number(m.legacySalesTotal)||0),ownerType:m.legacyOwnerType,ownerId:String(m.legacyOwnerId||""),ownerName:String(m.legacyOwnerName||""),cashMovement:false,status:"recorded",source:"legacy-shoe-marketplace"});
+changed=true;
+}
+});
+return changed;
+}
+function legacyAccountKey(a){return a?String(a.type)+"|"+String(a.id):"";}
+function legacyAccounts(st){
+const out=[];
+(Array.isArray(st&&st.citizens)?st.citizens:[]).forEach(c=>{if(c&&c.id!=null&&c.name&&c.cash!=null&&Number.isFinite(Number(c.cash)))out.push({type:"Citizen",id:String(c.id),name:String(c.name),cash:Number(c.cash)});});
+companies.forEach(name=>{const map=st&&st.businessCash;if(map&&Object.prototype.hasOwnProperty.call(map,name)&&Number.isFinite(Number(map[name])))out.push({type:"Shoe Company",id:name,name,cash:Number(map[name])});});
+try{const raw=localStorage.getItem(CALBANK_STORAGE_KEY);if(raw){const d=JSON.parse(raw);if(d&&Number.isFinite(Number(d.bankCash)))out.push({type:"Bank",id:"CalBank",name:"CalBank",cash:Number(d.bankCash)});}}catch(e){console.warn("Legacy Shoe marketplace could not read CalBank cash; CalBank is not available for a transaction.",e);}
+const fed=st&&st.federalReserve;if(fed&&fed.cash!=null&&Number.isFinite(Number(fed.cash)))out.push({type:"Bank",id:"Federal Reserve",name:"Federal Reserve",cash:Number(fed.cash)});
+return out.sort((a,b)=>(a.type+" "+a.name).localeCompare(b.type+" "+b.name));
+}
+function legacyFindAccount(st,key){
+const text=String(key||""),split=text.indexOf("|");if(split<0)return null;
+const type=text.slice(0,split),id=text.slice(split+1);
+return legacyAccounts(st).find(a=>a.type===type&&String(a.id)===id)||null;
+}
+function legacySameAccount(a,b){return !!(a&&b&&String(a.type)===String(b.type)&&String(a.id)===String(b.id));}
+function legacyOwnerRef(m){return {type:String(m&&m.legacyOwnerType||"Shoe Company"),id:String(m&&m.legacyOwnerId||m&&m.company||""),name:String(m&&m.legacyOwnerName||m&&m.company||"")};}
+function legacyResolveOwner(st,m){
+const ref=legacyOwnerRef(m),accounts=legacyAccounts(st);
+let found=accounts.find(a=>a.type===ref.type&&String(a.id)===ref.id);
+if(!found&&ref.type==="Citizen")found=accounts.find(a=>a.type==="Citizen"&&a.name.trim().toLowerCase()===ref.name.trim().toLowerCase());
+if(!found&&ref.type==="Shoe Company")found=accounts.find(a=>a.type==="Shoe Company"&&(a.name===ref.id||a.name===ref.name));
+if(!found&&ref.type==="Bank")found=accounts.find(a=>a.type==="Bank"&&(a.id===ref.id||a.name===ref.name));
+return found||null;
+}
+function legacyOwnerLabel(m){const ref=legacyOwnerRef(m);return (ref.type==="Citizen"?"Citizen":ref.type==="Shoe Company"?"Shoe Company":"Bank")+" — "+(ref.name||ref.id||"Account unavailable");}
+function legacyBankContext(){let raw=null,db=null,error=null;try{raw=localStorage.getItem(CALBANK_STORAGE_KEY);if(raw)db=JSON.parse(raw);}catch(e){error=e;}return {raw,db,error,dirty:false,ledgerIds:[]};}
+function legacyAccountCash(st,a,bankCtx){
+if(!a)throw Error("Account is unavailable.");
+if(a.type==="Citizen"){const c=(Array.isArray(st.citizens)?st.citizens:[]).find(x=>x&&String(x.id)===String(a.id));if(!c||c.cash==null||!Number.isFinite(Number(c.cash)))throw Error("Citizen cash account is unavailable: "+a.name);return Number(c.cash);}
+if(a.type==="Shoe Company"||a.type==="Business"){const map=st.businessCash;if(!map||!Object.prototype.hasOwnProperty.call(map,a.name)||!Number.isFinite(Number(map[a.name])))throw Error("Business cash account is unavailable: "+a.name);return Number(map[a.name]);}
+if(a.type==="Bank"&&a.id==="CalBank"){if(!bankCtx||!bankCtx.db||!Number.isFinite(Number(bankCtx.db.bankCash)))throw Error("CalBank cash account is unavailable.");return Number(bankCtx.db.bankCash);}
+if(a.type==="Bank"&&a.id==="Federal Reserve"){const f=st.federalReserve;if(!f||f.cash==null||!Number.isFinite(Number(f.cash)))throw Error("Federal Reserve cash account is unavailable.");return Number(f.cash);}
+throw Error("Unsupported Legacy Shoe account type: "+a.type);
+}
+function legacyChangeCash(st,a,delta,txId,type,reason,meta,bankCtx){
+const before=legacyRound(legacyAccountCash(st,a,bankCtx)),after=legacyRound(before+Number(delta));
+if(!Number.isFinite(after)||after< -0.001)throw Error("Insufficient or invalid cash in "+a.name+".");
+const cleanAfter=Math.max(0,after),signed=legacyRound(cleanAfter-before),at=meta.at,season=meta.season;
+if(a.type==="Citizen"){
+const c=(Array.isArray(st.citizens)?st.citizens:[]).find(x=>x&&String(x.id)===String(a.id));if(!c)throw Error("Citizen account disappeared: "+a.name);c.cash=cleanAfter;
+st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
+if(!st.playerLedgerTransactions.some(x=>x&&String(x.id)===txId))st.playerLedgerTransactions.push({id:txId,at,season,gameCount:Array.isArray(st.gamesPlayed)?st.gamesPlayed.length:0,player:a.name,citizenId:String(a.id),amount:signed,type,reason,payer:meta.payer||null,recipient:meta.recipient||null,source:meta.source||"legacy-shoe-marketplace",balanceBefore:before,balanceAfter:cleanAfter,legacyShoeId:meta.modelId,legacyShoeTransactionId:meta.transactionId});
+}else if(a.type==="Shoe Company"||a.type==="Business"){
+st.businessCash[a.name]=cleanAfter;st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
+if(!st.businessCashLedger.some(x=>x&&String(x.id)===txId))st.businessCashLedger.push({id:txId,season,type,company:a.name,amount:signed,before,after:cleanAfter,reason,createdAt:at,accountType:"business",source:meta.source||"legacy-shoe-marketplace",legacyShoeId:meta.modelId,legacyShoeTransactionId:meta.transactionId,counterparty:meta.counterparty||null});
+}else if(a.type==="Bank"&&a.id==="CalBank"){
+const d=bankCtx.db;d.bankCash=cleanAfter;d.ledger=Array.isArray(d.ledger)?d.ledger:[];
+if(!d.ledger.some(x=>x&&String(x.id)===txId))d.ledger.push({id:txId,type,customerName:"CalBank",amount:Math.abs(signed),signedCashChange:signed,balanceBefore:before,balanceAfter:cleanAfter,createdAt:at,season,legacyShoeId:meta.modelId,legacyShoeTransactionId:meta.transactionId,reason});
+bankCtx.dirty=true;bankCtx.ledgerIds.push(txId);
+}else if(a.type==="Bank"&&a.id==="Federal Reserve"){
+const f=st.federalReserve;f.cash=cleanAfter;f.legacyShoeLedger=Array.isArray(f.legacyShoeLedger)?f.legacyShoeLedger:[];
+if(!f.legacyShoeLedger.some(x=>x&&String(x.id)===txId))f.legacyShoeLedger.push({id:txId,type,season,amount:signed,balanceBefore:before,balanceAfter:cleanAfter,createdAt:at,legacyShoeId:meta.modelId,legacyShoeTransactionId:meta.transactionId,reason,counterparty:meta.counterparty||null});
+}
+return {before,after:cleanAfter,delta:signed};
+}
+function legacySavedStateHasTransaction(txId,modelId,expectedOwner,paidSeason,expectedModelState){
+let saved=null;try{saved=JSON.parse(localStorage.getItem(GAME_STORAGE_KEY)||"null");}catch(e){saved=null;}
+const economy=saved&&saved.calSimsEconomy;if(!economy||!Array.isArray(economy.legacyShoeLedger)||!economy.legacyShoeLedger.some(x=>x&&String(x.id)===String(txId)))return false;
+if(modelId){const m=(economy.models||[]).find(x=>x&&String(x.id)===String(modelId));if(!m)return false;if(expectedOwner&&(String(m.legacyOwnerType)!==String(expectedOwner.type)||String(m.legacyOwnerId)!==String(expectedOwner.id)))return false;if(paidSeason!=null&&!(Array.isArray(m.legacyDividendPaidSeasons)&&m.legacyDividendPaidSeasons.some(y=>Number(y)===Number(paidSeason))))return false;if(expectedModelState){if(Object.prototype.hasOwnProperty.call(expectedModelState,"listed")&&m.legacyListed!==expectedModelState.listed)return false;if(Object.prototype.hasOwnProperty.call(expectedModelState,"askingPrice")){if(expectedModelState.askingPrice==null){if(m.legacyAskingPrice!=null)return false;}else if(Math.abs(Number(m.legacyAskingPrice)-Number(expectedModelState.askingPrice))>0.001)return false;}}}
+return true;
+}
+function legacySavedCashMatches(account,expected){
+let saved=null;try{saved=JSON.parse(localStorage.getItem(GAME_STORAGE_KEY)||"null");}catch(e){saved=null;}
+if(!account||!saved)return false;let value=NaN;
+if(account.type==="Citizen"){const c=(saved.citizens||[]).find(x=>x&&String(x.id)===String(account.id));value=c&&c.cash!=null?Number(c.cash):NaN;}
+else if(account.type==="Shoe Company"||account.type==="Business"){value=saved.businessCash&&Object.prototype.hasOwnProperty.call(saved.businessCash,account.name)?Number(saved.businessCash[account.name]):NaN;}
+else if(account.type==="Bank"&&account.id==="Federal Reserve"){value=saved.federalReserve&&saved.federalReserve.cash!=null?Number(saved.federalReserve.cash):NaN;}
+else if(account.type==="Bank"&&account.id==="CalBank"){try{const d=JSON.parse(localStorage.getItem(CALBANK_STORAGE_KEY)||"null");value=d&&d.bankCash!=null?Number(d.bankCash):NaN;}catch(e){value=NaN;}}
+return Number.isFinite(value)&&Math.abs(value-Number(expected))<=0.001;
+}
+function legacyCommit(st,bankCtx,txId,modelId,expectedOwner,paidSeason,expectedBalances=[],expectedLedgerIds=[],expectedModelState){
+if(bankCtx&&bankCtx.dirty){const raw=JSON.stringify(bankCtx.db);localStorage.setItem(CALBANK_STORAGE_KEY,raw);const check=JSON.parse(localStorage.getItem(CALBANK_STORAGE_KEY)||"null");if(!check||Math.abs(Number(check.bankCash)-Number(bankCtx.db.bankCash))>0.001||bankCtx.ledgerIds.some(id=>!(Array.isArray(check.ledger)&&check.ledger.some(x=>x&&String(x.id)===String(id)))))throw Error("CalBank cash/ledger save could not be verified.");}
+if(!save())throw Error("The main game state could not be saved.");
+if(!legacySavedStateHasTransaction(txId,modelId,expectedOwner,paidSeason,expectedModelState))throw Error("Saved Legacy Shoe transaction, ownership, listing, or dividend marker could not be verified.");
+const saved=JSON.parse(localStorage.getItem(GAME_STORAGE_KEY)||"null");
+for(const item of expectedBalances){if(!legacySavedCashMatches(item.account,item.cash))throw Error("Saved cash balance could not be verified for "+item.account.name+".");}
+const mainLedgers=[...(saved.playerLedgerTransactions||[]),...(saved.businessCashLedger||[]),...((saved.federalReserve&&saved.federalReserve.legacyShoeLedger)||[])];
+for(const id of expectedLedgerIds){const inMain=mainLedgers.some(x=>x&&String(x.id)===String(id));const inBank=bankCtx&&bankCtx.dirty&&bankCtx.db&&Array.isArray(bankCtx.db.ledger)&&bankCtx.db.ledger.some(x=>x&&String(x.id)===String(id));if(!inMain&&!inBank)throw Error("Account ledger entry could not be verified: "+id);}
+}
+function legacyRollback(st,priorState,bankCtx){
+try{const prior=JSON.parse(priorState);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,prior);}catch(e){console.error("Legacy Shoe in-memory rollback failed.",e);}
+if(bankCtx&&bankCtx.dirty&&bankCtx.raw!=null){try{localStorage.setItem(CALBANK_STORAGE_KEY,bankCtx.raw);if(localStorage.getItem(CALBANK_STORAGE_KEY)!==bankCtx.raw)throw Error("CalBank rollback verification failed");}catch(e){console.error("Legacy Shoe CalBank rollback needs review.",e);}}
+try{save();}catch(e){console.error("Legacy Shoe rollback state could not be re-saved.",e);}
+}
+function renderLegacyMarketplace(st,c){
+const actorSelect=el("legacyShoeActorSelect"),buyerSelect=el("legacyShoeBuyerSelect"),market=el("legacyShoeMarketplace"),history=el("legacyShoeSalesHistory"),ledger=el("legacyShoeLedger");
+const accounts=legacyAccounts(st),models=(c.models||[]).filter(m=>m&&m.isRetro===true),priorActor=actorSelect?actorSelect.value:"",priorBuyer=buyerSelect?buyerSelect.value:"";
+const options=accounts.map(a=>'<option value="'+esc(legacyAccountKey(a))+'">'+esc(a.type+" — "+a.name+" (cash "+money(a.cash)+")")+'</option>').join("");
+if(actorSelect){actorSelect.innerHTML='<option value="">Choose the current owner</option>'+options;if(accounts.some(a=>legacyAccountKey(a)===priorActor))actorSelect.value=priorActor;}
+if(buyerSelect){buyerSelect.innerHTML='<option value="">Choose a buyer account</option>'+options;if(accounts.some(a=>legacyAccountKey(a)===priorBuyer))buyerSelect.value=priorBuyer;}
+const actor=actorSelect?legacyFindAccount(st,actorSelect.value):null,buyer=buyerSelect?legacyFindAccount(st,buyerSelect.value):null;
+if(market){
+if(!models.length)market.innerHTML='<p class="muted">No Legacy Shoes yet. Retro a shoe associated with a retired player to convert it.</p>';
+else market.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Legacy Shoe</th><th>Original Company / Player</th><th>Preserved Lifetime Sales</th><th>Dividend Each Season (10%)</th><th>Current Owner</th><th>Listing</th><th>Owner Controls</th><th>Buyer Action</th></tr></thead><tbody>'+models.map(m=>{
+const owner=legacyResolveOwner(st,m),isActor=legacySameAccount(actor,owner),listed=m.legacyListed===true&&Number.isFinite(Number(m.legacyAskingPrice))&&Number(m.legacyAskingPrice)>0,canBuy=!!(listed&&buyer&&owner&&!legacySameAccount(buyer,owner));
+const askValue=listed?String(m.legacyAskingPrice):"";
+const listingText=listed?"Listed at "+money(m.legacyAskingPrice):"Owner retained — not listed";
+const ownerText=owner?legacyOwnerLabel(m):"Owner account unavailable — dividend blocked";
+return '<tr data-legacy-row="'+esc(m.id)+'"><td><b>'+esc(m.name||"Unnamed shoe")+'</b><br><span class="tiny">Legacy since Season '+(Number(m.legacySinceSeason)||Number(m.retroSeason)||"—")+'</span><br><span class="tiny">Original release price: $'+Number(m.price||0).toLocaleString("en-US",{maximumFractionDigits:2})+' per pair</span></td><td>'+esc(m.company||"—")+'<br>'+esc(m.playerAssociation||"No player association")+'</td><td>'+money(m.legacySalesTotal||0)+'</td><td>'+money(legacyRound((Number(m.legacySalesTotal)||0)*LEGACY_DIVIDEND_RATE))+'</td><td>'+esc(ownerText)+'</td><td>'+esc(listingText)+'</td><td><input type="number" min="0.01" step="0.01" data-legacy-ask value="'+esc(askValue)+'" placeholder="Ask price ($M)" '+(isActor?'':'disabled')+' style="width:105px;max-width:100%;box-sizing:border-box"><br><button type="button" class="goodbtn" data-legacy-action="list" data-model-id="'+esc(m.id)+'" '+(isActor?'':'disabled')+' style="margin:3px 0;padding:7px;font-size:11px">List / Update Ask</button><button type="button" class="secondary" data-legacy-action="unlist" data-model-id="'+esc(m.id)+'" '+(isActor?'':'disabled')+' style="margin:3px 0;padding:7px;font-size:11px">Keep Unlisted</button>'+(isActor?'':'<br><span class="tiny">Select this shoe\'s owner above to manage its listing.</span>')+'</td><td>'+(listed?'<button type="button" class="goodbtn" data-legacy-action="buy" data-model-id="'+esc(m.id)+'" '+(canBuy?'':'disabled')+' style="padding:7px;font-size:11px">Buy '+money(m.legacyAskingPrice)+'</button>':'<span class="tiny">Not for sale</span>')+'</td></tr>';
+}).join('')+'</tbody></table></div>';
+}
+if(history){const ids=new Set(models.map(m=>String(m.id)));const rows=(Array.isArray(c.retailLedger)?c.retailLedger:[]).filter(r=>r&&ids.has(String(r.modelId))).slice().reverse();history.innerHTML=rows.length?'<div class="tiny">'+rows.length.toLocaleString("en-US")+' preserved retail transaction(s). These rows are historical and are not edited by Legacy Shoe trading.</div><div style="overflow-x:auto"><table><thead><tr><th>Season</th><th>Cycle</th><th>Legacy Shoe</th><th>Units</th><th>Retail Sales</th><th>Company Share</th><th>Retail Stores Share</th><th>Game Key</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.season==null?'—':r.season)+'</td><td>'+esc(r.cycle==null?'—':r.cycle)+'</td><td>'+esc(r.modelName||r.modelId||'—')+'</td><td>'+Number(r.units||0).toLocaleString("en-US")+'</td><td>'+money(r.revenue||0)+'</td><td>'+money(r.companyShare||0)+'</td><td>'+money(r.storeShare||0)+'</td><td>'+esc(r.gameKey||'—')+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted">No recorded retail sales exist for the current Legacy Shoes. The original retail ledger remains preserved.</p>';}
+if(ledger){const rows=(Array.isArray(c.legacyShoeLedger)?c.legacyShoeLedger:[]).slice().reverse();ledger.innerHTML=rows.length?'<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Season</th><th>Type</th><th>Legacy Shoe</th><th>Owner / Buyer / Seller</th><th>Price / Sales Basis</th><th>Dividend / Fee</th><th>Status</th></tr></thead><tbody>'+rows.map(r=>{const parties=[r.ownerName?"Owner: "+r.ownerName:"",r.sellerName?"Seller: "+r.sellerName:"",r.buyerName?"Buyer: "+r.buyerName:""].filter(Boolean).join(" • ")||r.ownerName||"—";const basis=r.price!=null?money(r.price):r.askingPrice!=null?money(r.askingPrice):r.salesBasis!=null?money(r.salesBasis):"—";const amount=r.amount!=null?money(r.amount):r.fee!=null?money(r.fee):"—";return '<tr><td>'+esc((r.createdAt||r.at||"").replace("T"," ").slice(0,16)||"—")+'</td><td>'+esc(r.season==null?'—':r.season)+'</td><td>'+esc(r.type||"Legacy Shoe Event")+'</td><td>'+esc(r.modelName||r.modelId||"—")+'</td><td>'+esc(parties)+'</td><td>'+esc(basis)+'</td><td>'+esc(amount)+'</td><td>'+esc(r.status||"recorded")+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="muted">No Legacy Shoe transactions recorded yet.</p>';}
+}
+function showShoeStoreTab(tab){
+const retail=el("shoeRetailTabPanel"),legacy=el("legacyShoesTabPanel"),retailBtn=el("shoeRetailTabButton"),legacyBtn=el("legacyShoesTabButton");
+if(retail)retail.style.display=tab==="legacy"?"none":"";if(legacy)legacy.style.display=tab==="legacy"?"":"none";
+if(retailBtn)retailBtn.className=tab==="legacy"?"secondary":"goodbtn";if(legacyBtn)legacyBtn.className=tab==="legacy"?"goodbtn":"secondary";
+render();
+}
+function legacyAddLedger(st,row){const c=ensure(st);c.legacyShoeLedger=Array.isArray(c.legacyShoeLedger)?c.legacyShoeLedger:[];if(!c.legacyShoeLedger.some(x=>x&&String(x.id)===String(row.id)))c.legacyShoeLedger.push(row);}
+function handleLegacyAction(action,id){
+const st=getState(),msg=el("legacyShoeMarketMessage");if(!st){if(msg)msg.textContent="Live game data is unavailable. No Legacy Shoe transaction was changed.";return;}
+const c=ensure(st);normalizeLegacyRecords(st,c);const m=c.models.find(x=>x&&String(x.id)===String(id)&&x.isRetro===true);if(!m){if(msg)msg.textContent="This Legacy Shoe could not be found. No changes were made.";return;}
+const actor=legacyFindAccount(st,el("legacyShoeActorSelect")?el("legacyShoeActorSelect").value:""),owner=legacyResolveOwner(st,m),buyer=legacyFindAccount(st,el("legacyShoeBuyerSelect")?el("legacyShoeBuyerSelect").value:"");
+if(action==="list"||action==="unlist"){
+if(!actor||!owner||!legacySameAccount(actor,owner)){if(msg)msg.textContent="Only the current owner account can list or unlist this Legacy Shoe. No changes were made.";return;}
+const oldState=JSON.stringify(st),at=new Date().toISOString(),season=Number(st.year)||29,oldPrice=m.legacyListed?Number(m.legacyAskingPrice)||0:null;
+if(action==="list"){
+const marketRows=el("legacyShoeMarketplace")?Array.from(el("legacyShoeMarketplace").querySelectorAll("tr[data-legacy-row]")):[];const row=marketRows.find(r=>String(r.getAttribute("data-legacy-row"))===String(id));const input=row?row.querySelector("input[data-legacy-ask]"):null;const price=Number(input&&input.value);
+if(!Number.isFinite(price)||price<=0){if(msg)msg.textContent="Enter an asking price greater than $0M. No listing was changed.";return;}
+m.legacyListed=true;m.legacyAskingPrice=legacyRound(price);
+const txId=legacyRandomId("LEGACY-SHOE-LIST");legacyAddLedger(st,{id:txId,type:oldPrice==null?"Listing Created":"Listing Price Updated",modelId:String(m.id),modelName:m.name,season,createdAt:at,ownerType:owner.type,ownerId:owner.id,ownerName:owner.name,previousAskingPrice:oldPrice,askingPrice:m.legacyAskingPrice,cashMovement:false,status:"listed",source:"legacy-shoe-marketplace"});
+try{if(!save()||!legacySavedStateHasTransaction(txId,m.id,{type:m.legacyOwnerType,id:m.legacyOwnerId},null,{listed:true,askingPrice:m.legacyAskingPrice})){throw Error("Listing save could not be verified.");}if(msg)msg.textContent=m.name+" is listed for "+money(m.legacyAskingPrice)+". No cash moved; the current owner keeps future dividend rights until a purchase completes.";render();}catch(e){legacyRollback(st,oldState,null);if(msg)msg.textContent="Listing was not confirmed and has been rolled back. "+String(e&&e.message||e);render();}return;
+}
+m.legacyListed=false;m.legacyAskingPrice=null;
+const txId=legacyRandomId("LEGACY-SHOE-UNLIST");legacyAddLedger(st,{id:txId,type:"Listing Removed",modelId:String(m.id),modelName:m.name,season,createdAt:at,ownerType:owner.type,ownerId:owner.id,ownerName:owner.name,previousAskingPrice:oldPrice,askingPrice:null,cashMovement:false,status:"unlisted",source:"legacy-shoe-marketplace"});
+try{if(!save()||!legacySavedStateHasTransaction(txId,m.id,{type:m.legacyOwnerType,id:m.legacyOwnerId},null,{listed:false,askingPrice:null})){throw Error("Listing removal save could not be verified.");}if(msg)msg.textContent=m.name+" is now unlisted. The owner retains the shoe and its future dividends; no cash moved.";render();}catch(e){legacyRollback(st,oldState,null);if(msg)msg.textContent="Listing removal was not confirmed and has been rolled back. "+String(e&&e.message||e);render();}return;
+}
+if(action!=="buy")return;
+if(m.legacyListed!==true||!Number.isFinite(Number(m.legacyAskingPrice))||Number(m.legacyAskingPrice)<=0){if(msg)msg.textContent="This Legacy Shoe is not currently listed for sale.";return;}
+if(!buyer||!owner){if(msg)msg.textContent="Choose a valid buyer and verify the current owner account. No cash moved.";return;}
+if(legacySameAccount(buyer,owner)){if(msg)msg.textContent="The current owner cannot buy its own Legacy Shoe.";return;}
+const price=legacyRound(Number(m.legacyAskingPrice)),fee=legacyRound(price*LEGACY_RESALE_FEE_RATE),sellerProceeds=legacyRound(price-fee),storeAccount={type:"Business",id:"Shoe Store",name:"Shoe Store"};
+let bankCtx=null;try{bankCtx=legacyBankContext();}catch(e){if(msg)msg.textContent="Bank account records could not be read. No purchase was made.";return;}
+let buyerBefore,sellerBefore,storeBefore;try{buyerBefore=legacyRound(legacyAccountCash(st,buyer,bankCtx));sellerBefore=legacyRound(legacyAccountCash(st,owner,bankCtx));storeBefore=legacyRound(legacyAccountCash(st,storeAccount,bankCtx));}catch(e){if(msg)msg.textContent=String(e&&e.message||e)+" No purchase was made.";return;}
+if(buyerBefore+0.000001<price){if(msg)msg.textContent="Insufficient cash. Purchase price is "+money(price)+"; buyer cash is "+money(buyerBefore)+". No balances changed.";return;}
+if(!confirm("Confirm Legacy Shoe purchase?\n\nShoe: "+m.name+"\nBuyer: "+buyer.name+" ("+buyer.type+")\nSeller: "+owner.name+" ("+owner.type+")\nPrice: "+money(price)+"\nRetail Stores fee (4%): "+money(fee)+"\nSeller receives: "+money(sellerProceeds)+"\n\nThe buyer receives future dividends. The seller keeps dividends already paid. Cash and ledgers will be saved and verified."))return;
+const priorState=JSON.stringify(st),at=new Date().toISOString(),season=Number(st.year)||29,txId=legacyRandomId("LEGACY-SHOE-TRANSFER"),priorAuditBusy=window.__cashIntegrityAuditBusy;
+try{
+window.__cashIntegrityAuditBusy=true;
+const meta={at,season,modelId:String(m.id),transactionId:txId,source:"legacy-shoe-marketplace"};
+const buyerMove=legacyChangeCash(st,buyer,-price,txId+"-BUYER","Legacy Shoe Purchase","Purchased Legacy Shoe "+m.name+" from "+owner.name,{...meta,payer:buyer.name,recipient:owner.name,counterparty:owner.name},bankCtx);
+const sellerMove=legacyChangeCash(st,owner,sellerProceeds,txId+"-SELLER","Legacy Shoe Sale","Sold Legacy Shoe "+m.name+" to "+buyer.name+" after the 4% Retail Stores fee",{...meta,payer:buyer.name,recipient:owner.name,counterparty:buyer.name},bankCtx);
+const storeMove=legacyChangeCash(st,storeAccount,fee,txId+"-RETAIL-STORES","Legacy Shoe Resale Fee","4% marketplace fee on sale of "+m.name,{...meta,payer:owner.name,recipient:"Retail Stores",counterparty:owner.name},bankCtx);
+const oldOwner={type:owner.type,id:owner.id,name:owner.name};m.legacyOwnerType=buyer.type;m.legacyOwnerId=String(buyer.id);m.legacyOwnerName=buyer.name;m.legacyOwnerSince=at;m.legacyListed=false;m.legacyAskingPrice=null;
+m.legacyOwnershipHistory=Array.isArray(m.legacyOwnershipHistory)?m.legacyOwnershipHistory:[];m.legacyOwnershipHistory.push({action:"Ownership Transfer",season,at,from:oldOwner,to:{type:buyer.type,id:buyer.id,name:buyer.name},price,fee, sellerProceeds,transactionId:txId});
+const transaction={id:txId,type:"Ownership Transfer",modelId:String(m.id),modelName:m.name,company:m.company,season,createdAt:at,ownerBefore:oldOwner,ownerType:buyer.type,ownerId:String(buyer.id),ownerName:buyer.name,buyerType:buyer.type,buyerId:String(buyer.id),buyerName:buyer.name,sellerType:owner.type,sellerId:String(owner.id),sellerName:owner.name,price,feeRate:LEGACY_RESALE_FEE_RATE,fee,sellerProceeds,buyerCashBefore:buyerMove.before,buyerCashAfter:buyerMove.after,sellerCashBefore:sellerMove.before,sellerCashAfter:sellerMove.after,retailStoresCashBefore:storeBefore,retailStoresCashAfter:storeMove.after,status:"completed",cashMovement:true,source:"legacy-shoe-marketplace"};
+legacyAddLedger(st,transaction);
+window.__cashIntegrityAuditBusy=priorAuditBusy;
+legacyCommit(st,bankCtx,txId,m.id,{type:buyer.type,id:String(buyer.id)},null,[{account:buyer,cash:buyerMove.after},{account:owner,cash:sellerMove.after},{account:storeAccount,cash:storeMove.after}],[txId+"-BUYER",txId+"-SELLER",txId+"-RETAIL-STORES"],{listed:false,askingPrice:null});
+if(msg)msg.textContent="Purchase completed and verified. "+buyer.name+" now owns "+m.name+" and receives future dividends. Seller received "+money(sellerProceeds)+"; Retail Stores received the "+money(fee)+" fee. Cash and ledgers reconciled.";
+render();
+}catch(e){window.__cashIntegrityAuditBusy=priorAuditBusy;legacyRollback(st,priorState,bankCtx);if(msg)msg.textContent="Purchase was not fully verified; a rollback was attempted and the prior ownership was restored. Check both cash balances and ledgers before retrying. "+String(e&&e.message||e);render();}
+}
+function processLegacyShoeDividends(completedSeason){
+const st=getState();if(!st)return {ok:false,reason:"state-unavailable",paid:0,failures:["Live game state unavailable."]};
+const season=Number(completedSeason)||Number(st.year)||0;
+if(!season||Number(st.year)!==season||st.seasonPlayed!==true||String(st.seasonPhase||"")!=="offseason"||!st.lastSeason||!st.lastSeason.champion)return {ok:false,reason:"championship-not-complete",paid:0,failures:["Dividends can only be processed after the championship game is recorded."]};
+let c=ensure(st),normalized=normalizeLegacyRecords(st,c),paid=0,skipped=0,failures=[];
+const modelIds=(c.models||[]).filter(m=>m&&m.isRetro===true).map(m=>String(m.id||""));
+for(const modelId of modelIds){
+c=ensure(st);const m=(c.models||[]).find(x=>x&&String(x.id||"")===modelId&&x.isRetro===true);if(!m)continue;
+const txId="LEGACY-SHOE-DIVIDEND-"+legacySafeId(m.id||m.name)+"-S"+season;
+if(c.legacyShoeLedger.some(x=>x&&String(x.id)===txId)||(Array.isArray(m.legacyDividendPaidSeasons)&&m.legacyDividendPaidSeasons.some(y=>Number(y)===season))){skipped++;continue;}
+const owner=legacyResolveOwner(st,m);if(!owner){failures.push(m.name+": current owner account is unavailable; payout remains unpaid.");continue;}
+const amount=legacyRound(Math.max(0,Number(m.legacySalesTotal)||0)*LEGACY_DIVIDEND_RATE),priorState=JSON.stringify(st),bankCtx=legacyBankContext(),at=new Date().toISOString(),priorAuditBusy=window.__cashIntegrityAuditBusy;
+try{
+ window.__cashIntegrityAuditBusy=true;
+ const meta={at,season,modelId:String(m.id),transactionId:txId,source:"legacy-shoe-dividend-system",payer:"Legacy Dividend System",recipient:owner.name,counterparty:"Legacy Dividend System"};
+ const ownerMove=legacyChangeCash(st,owner,amount,txId+"-OWNER","Legacy Shoe Dividend","Season "+season+" Legacy Shoe dividend: 10% of preserved lifetime retail sales for "+m.name,meta,bankCtx);
+ m.legacyDividendPaidSeasons=Array.isArray(m.legacyDividendPaidSeasons)?m.legacyDividendPaidSeasons:[];m.legacyDividendPaidSeasons.push(season);
+ legacyAddLedger(st,{id:txId,type:"Dividend Payment",modelId:String(m.id),modelName:m.name,company:m.company,season,createdAt:at,ownerType:owner.type,ownerId:String(owner.id),ownerName:owner.name,salesBasis:legacyRound(Number(m.legacySalesTotal)||0),rate:LEGACY_DIVIDEND_RATE,amount,ownerCashBefore:ownerMove.before,ownerCashAfter:ownerMove.after,source:"Legacy Dividend System",status:"paid",cashMovement:amount>0,salesTotalFrozen:true});
+ window.__cashIntegrityAuditBusy=priorAuditBusy;
+ legacyCommit(st,bankCtx,txId,m.id,{type:owner.type,id:String(owner.id)},season,[{account:owner,cash:ownerMove.after}],[txId+"-OWNER"]);
+ paid++;
+}catch(e){window.__cashIntegrityAuditBusy=priorAuditBusy;legacyRollback(st,priorState,bankCtx);failures.push(m.name+": "+String(e&&e.message||e));}
+}
+c=ensure(st);
+if(normalized&&paid===0){try{if(!save())failures.push("Legacy Shoe migration data could not be saved.");}catch(e){failures.push(String(e&&e.message||e));}}
+const result={ok:failures.length===0,season,paid,skipped,failures};
+const message=failures.length?"Legacy Shoe dividends for Season "+season+": "+paid+" paid, "+failures.length+" blocked. "+failures.join(" "):"Legacy Shoe dividends processed after the Season "+season+" championship: "+paid+" paid, "+skipped+" already paid or skipped. Each eligible owner received 10% of the shoe's frozen lifetime sales total.";
+if(el("legacyShoeMarketMessage"))el("legacyShoeMarketMessage").textContent=message;
+if(failures.length)console.error("Legacy Shoe dividend processing needs review:",result);
+return result;
+}
+window.processLegacyShoeDividends=processLegacyShoeDividends;
+window.__calvinsCityLegacyShoesVersion="5.8.108";
 function handleModelAction(action,id){
 const st=getState();if(!st){alert("Live game data is unavailable. No shoe model was changed.");return;}const c=ensure(st),m=c.models.find(x=>x&&String(x.id)===String(id));if(!m){alert("This shoe model could not be found. No changes were made.");return;}
 if(action==="pause"){
@@ -10225,11 +10474,15 @@ if(String(m.status||"active")==="paused"){m.status="active";m.resumedAt=new Date
 if(!save()){alert("Storage did not confirm the model status change. Check the save warning before retrying.");return;}render();return;
 }
 if(action==="retro"){
-if(m.isRetro){alert("This shoe model has already been retroed.");return;}
-if(!m.playerAssociation||!retiredPlayer(st,m.playerAssociation)){alert("A shoe can only be retroed when its associated player is retired. This model has not been changed.");return;}
-if(!confirm("Retro "+m.name+" for retired player "+m.playerAssociation+"? The original company, price, player association and sales history will be preserved."))return;
-m.isRetro=true;m.retroSeason=Number(st.year)||29;m.retroAt=new Date().toISOString();
-if(!save()){alert("Storage did not confirm the retro status. Check the save warning before retrying.");return;}render();return;
+if(m.isRetro){alert("This shoe model is already a Legacy Shoe.");return;}
+if(!m.playerAssociation||!retiredPlayer(st,m.playerAssociation)){alert("A shoe can only become a Legacy Shoe when its associated player is retired. This model has not been changed.");return;}
+if(!confirm("Convert "+m.name+" for retired player "+m.playerAssociation+" into a Legacy Shoe? Retail sales will stop permanently. Its original company, price, player association, recorded sales history, and lifetime sales total will be preserved."))return;
+const priorState=JSON.stringify(st),convertedAt=new Date().toISOString(),season=Number(st.year)||29;
+m.isRetro=true;m.isLegacy=true;m.retroSeason=season;m.retroAt=convertedAt;m.legacySinceSeason=season;m.legacyConvertedAt=convertedAt;m.legacySalesTotal=legacySalesBasis(c,m);m.legacySalesFrozen=true;m.legacySalesFrozenAt=convertedAt;m.legacyOwnerType="Shoe Company";m.legacyOwnerId=String(m.company||"");m.legacyOwnerName=String(m.company||"");m.legacyListed=false;m.legacyAskingPrice=null;m.legacyDividendPaidSeasons=Array.isArray(m.legacyDividendPaidSeasons)?m.legacyDividendPaidSeasons:[];m.legacyOwnershipHistory=[{action:"Initial Legacy Ownership",season,ownerType:"Shoe Company",ownerId:String(m.company||""),ownerName:String(m.company||""),at:convertedAt}];
+normalizeLegacyRecords(st,c);
+if(!save()||!legacySavedStateHasTransaction(legacyConversionId(m),m.id,{type:"Shoe Company",id:String(m.company||"")},null,{listed:false,askingPrice:null})){legacyRollback(st,priorState,null);alert("Storage did not confirm the Legacy Shoe conversion. The prior model state was restored; verify storage before retrying.");render();return;}
+if(el("shoeModelMessage"))el("shoeModelMessage").textContent="Converted "+m.name+" to a Legacy Shoe. Retail sales are permanently stopped; preserved lifetime sales: "+money(m.legacySalesTotal)+". "+m.company+" retains ownership unless it lists and sells the card.";
+render();showShoeStoreTab("legacy");return;
 }
 }
 function release(){
@@ -10268,7 +10521,7 @@ return {mvps,titles,pts,rebs,popularity};
 }
 function refreshModelPopularity(st,c,cycle){
 c.models.forEach(m=>{
-if(!m||!m.playerAssociation)return;
+if(!m||m.isRetro||!m.playerAssociation)return;
 const stats=getPlayerMetrics(st,m.playerAssociation);
 m.playerPopularity=stats.popularity;
 m.playerEventBoosts=Array.isArray(m.playerEventBoosts)?m.playerEventBoosts:[];
@@ -10313,10 +10566,10 @@ c.spendableCash=Math.round((spendableBefore+interestAmount)*100)/100;
 c.interestLedger.push({id:interestId,gameKey:key,season,rate:interestRate,rateLabel:"2% per completed game",baseCash:interestBase,amount:interestAmount,totalBefore,totalAfter:c.totalCash,spendableBefore,spendableAfter:c.spendableCash,reserveCash:Number(c.reserveCash)||0,createdAt:new Date().toISOString(),type:"CalSims Interest Income"});
 }
 }
-c.models.forEach(m=>{if(m&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBonusActive=false;m.boostExpiredSeason=season;}});
+c.models.forEach(m=>{if(m&&!m.isRetro&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBonusActive=false;m.boostExpiredSeason=season;}});
 const cycle=(Number(c.cycleCount)||0)+1,consumers=Number(c.consumerCount)||50000000;
 refreshModelPopularity(st,c,cycle);
-const models=c.models.filter(m=>m&&String(m.status||"active")==="active"&&Number(m.price)>0);
+const models=c.models.filter(m=>m&&!m.isRetro&&String(m.status||"active")==="active"&&Number(m.price)>0);
 let unitsRemaining=Math.max(0,Math.floor(consumers*0.02)),totalUnits=0,totalRevenue=0,companyPayouts=0,storePayout=0;
 const storeBefore=Number(st.businessCash["Shoe Store"])||0;
 if(models.length&&Number(c.spendableCash)>0&&unitsRemaining>0){
@@ -10345,7 +10598,7 @@ const storeAfter=Number(st.businessCash["Shoe Store"])||0;
 st.businessCashLedger.push({id:"CALSIMS-STORE-CYCLE-"+cycle,season,type:"CalSims Retail Revenue",company:"Shoe Store",amount:storePayout,before:storeBefore,after:storeAfter,reason:"30% retail share from CalSims shoe sales in cycle "+cycle,createdAt:new Date().toISOString(),accountType:"business"});
 }
 if(!save()){if(msg)msg.textContent="CalSims processed this game in memory, but storage did not confirm the save. Do not replay the game; check the app save warning and verify the ledgers.";return {ok:false,reason:"save-unconfirmed",cycle};}
-if(msg){const interestMessage=" CalSims earned "+money(interestAmount)+" in interest (2% of "+money(interestBase)+").";msg.textContent=totalUnits?"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Shoe Store received "+money(storePayout)+". Spendable consumer cash remaining: "+money(c.spendableCash)+".":"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" No purchases occurred this game; consumers may skip buying, no active models may be available, or spendable cash may be exhausted.";}
+if(msg){const interestMessage=" CalSims earned "+money(interestAmount)+" in interest (2% of "+money(interestBase)+").";msg.textContent=totalUnits?"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Retail Stores received "+money(storePayout)+". Spendable consumer cash remaining: "+money(c.spendableCash)+".":"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" No purchases occurred this game; consumers may skip buying, no active models may be available, or spendable cash may be exhausted.";}
 render();return {ok:true,cycle,totalUnits,totalRevenue,companyPayouts,storePayout};
 }
 window.processCalSimsGameCycle=function(gameKey){try{return runCycle(gameKey);}catch(error){console.error("CalSims automatic retail cycle failed:",error);const msg=el("calSimsCycleMessage");if(msg)msg.textContent="CalSims could not complete the automatic sales cycle. The game remains recorded; check the console and save warning before continuing.";return {ok:false,reason:"exception"};}};
@@ -10357,8 +10610,12 @@ const close=el("shoeStoreClose"),modal=el("shoeStoreModal"),box=modal?modal.quer
 if(close&&!close.dataset.bound){close.addEventListener("click",closeShoeStore);close.dataset.bound="1";}
 [el("shoeModelCompanyFilter"),el("shoeModelStatusFilter")].forEach(control=>{if(control&&!control.dataset.bound){control.addEventListener("change",render);control.dataset.bound="1";}});
 const modelList=el("shoeModelList");if(modelList&&!modelList.dataset.actionsBound){modelList.addEventListener("click",e=>{const btn=e.target.closest("button[data-shoe-action]");if(!btn)return;handleModelAction(btn.dataset.shoeAction,btn.dataset.modelId);});modelList.dataset.actionsBound="1";}
+const legacyList=el("legacyShoeMarketplace");if(legacyList&&!legacyList.dataset.actionsBound){legacyList.addEventListener("click",e=>{const btn=e.target.closest("button[data-legacy-action]");if(!btn||btn.disabled)return;handleLegacyAction(btn.dataset.legacyAction,btn.dataset.modelId);});legacyList.dataset.actionsBound="1";}
+[el("legacyShoeActorSelect"),el("legacyShoeBuyerSelect")].forEach(control=>{if(control&&!control.dataset.bound){control.addEventListener("change",render);control.dataset.bound="1";}});
+const retailTab=el("shoeRetailTabButton"),legacyTab=el("legacyShoesTabButton");if(retailTab&&!retailTab.dataset.bound){retailTab.addEventListener("click",()=>showShoeStoreTab("retail"));retailTab.dataset.bound="1";}if(legacyTab&&!legacyTab.dataset.bound){legacyTab.addEventListener("click",()=>showShoeStoreTab("legacy"));legacyTab.dataset.bound="1";}
 if(modal&&!modal.dataset.bound){modal.addEventListener("click",e=>{if(e.target===modal)closeShoeStore(e);});if(box)box.addEventListener("click",e=>e.stopPropagation());modal.dataset.bound="1";}
 if(companySelect&&!companySelect.dataset.playerAssociationBound){companySelect.addEventListener("change",refreshPlayerAssociationOptions);companySelect.dataset.playerAssociationBound="1";}
+const migrationState=JSON.stringify(getState()||{});const migrationGame=getState();if(migrationGame){const migrationChanged=normalizeLegacyRecords(migrationGame,ensure(migrationGame));if(migrationChanged&&!save()){try{const prior=JSON.parse(migrationState);Object.keys(migrationGame).forEach(k=>delete migrationGame[k]);Object.assign(migrationGame,prior);}catch(e){console.error("Legacy Shoe migration rollback failed.",e);}}}
 refreshPlayerAssociationOptions();
 const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab&&!tab.dataset.calsimsBound){tab.addEventListener("click",()=>{setTimeout(render,0);});tab.dataset.calsimsBound="1";}
 render();
