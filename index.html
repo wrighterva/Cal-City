@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.100: iOS Home Screen resume/repaint recovery; retains v5.8.99 shoe popularity and 2% CalSims purchase pool. No reload, storage reset, or game-data mutation. -->
+<!-- CALVIN'S CITY — VERSION 5.8.101: iOS Home Screen resume/repaint recovery; retains v5.8.99 shoe popularity and 2% CalSims purchase pool. No reload, storage reset, or game-data mutation. -->
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
@@ -18,7 +18,7 @@
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
-<meta name="calvins-city-build" content="5.8.100">
+<meta name="calvins-city-build" content="5.8.101">
  
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
@@ -92,7 +92,7 @@ setTimeout(function(){
 </script>
  
 <script>
-/* CALVIN'S CITY v5.8.100 — iOS Home Screen resume/repaint recovery.
+/* CALVIN'S CITY v5.8.101 — iOS Home Screen resume/repaint recovery.
   Presentation-only: never reloads the page, clears storage, or changes game data.
   If iOS resumes the existing WebKit page, this nudges layout/paint and restores
   the home screen only if the page has no active screen at all. */
@@ -137,10 +137,10 @@ function recover(reason){
      paintNudge(nav);
      /* Existing resize listeners can recalculate mobile viewport geometry. */
      window.dispatchEvent(new Event("resize"));
-     window.__calvinsCityIOSResumeRecovery={version:"5.8.100",status:"resume-repaint-attempted",reason:lastReason,count:runCount,at:new Date().toISOString(),activeScreen:active?active.id:null,lastError:lastError};
+     window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"resume-repaint-attempted",reason:lastReason,count:runCount,at:new Date().toISOString(),activeScreen:active?active.id:null,lastError:lastError};
    }catch(err){
      lastError=String(err&&err.message||err);
-     window.__calvinsCityIOSResumeRecovery={version:"5.8.100",status:"guarded-error",reason:lastReason,count:runCount,at:new Date().toISOString(),lastError:lastError};
+     window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"guarded-error",reason:lastReason,count:runCount,at:new Date().toISOString(),lastError:lastError};
    }
  });});
 }
@@ -148,7 +148,7 @@ document.addEventListener("visibilitychange",function(){if(visible())recover("vi
 window.addEventListener("pageshow",function(){recover("pageshow");},false);
 window.addEventListener("focus",function(){recover("focus");},false);
 window.addEventListener("orientationchange",function(){recover("orientationchange");},false);
-window.__calvinsCityIOSResumeRecovery={version:"5.8.100",status:"installed",reason:null,count:0,at:new Date().toISOString(),lastError:null};
+window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"installed",reason:null,count:0,at:new Date().toISOString(),lastError:null};
 })();
 </script>
  
@@ -508,7 +508,7 @@ th,td{border-bottom-color:#343B43!important}
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.100</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.101</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -9286,9 +9286,9 @@ const btn=$("voidUnsupportedCashButton");if(btn)btn.addEventListener("click",voi
 }
 function renderShareOwnershipLedger(view){
 const st=getState(),ledger=getShareOwnershipLedger(),out=$("shareOwnershipLedgerBody");if(!out)return;
-const stockTx=(db.transactions||[]).map(t=>{const marketBuyback=String(t.type||"").toLowerCase().includes("market money buyback")||String(t.action||"")==="sellMarketMoney";return {...t,id:t.id,at:t.at||t.createdAt,season:t.season,type:t.status==="void"||t.status==="voided"||t.status==="reversed"?"Share Trade (Voided/Reversed)":(String(t.type||"")==="Share Trade Reversal"?"Share Trade Reversal":"Share Trade"),company:t.company||t.business,buyer:marketBuyback?(t.buyer||"Market Money"):(t.buyer||t.buyerName||t.newOwner||t.buyerAccountName),buyerType:marketBuyback?(t.buyerType||"market-money"):(t.buyerType||t.buyerAccountType),buyerId:t.buyerId||t.buyerAccountId,seller:marketBuyback?(t.seller||t.citizen||t.citizenName):(t.seller||t.sellerName||t.oldOwner||t.sellerAccountName),sellerType:marketBuyback?(t.sellerType||"citizen"):(t.sellerType||t.sellerAccountType),sellerId:t.sellerId||t.sellerAccountId,shares:t.shares??t.count,price:t.price,total:t.total??t.amount,buyerCashBefore:t.buyerCashBefore,buyerCashAfter:t.buyerCashAfter,sellerCashBefore:t.sellerCashBefore,sellerCashAfter:t.sellerCashAfter,reservePurchase:t.reservePurchase||marketBuyback};});
+const stockTx=(db.transactions||[]).map(t=>{const action=String(t.action||"").toLowerCase(),kind=String(t.type||"").toLowerCase();const marketBuyback=kind.includes("market money buyback")||action==="sellmarketmoney";const calbankBuy=action==="calbank_buy_reserve",calbankSell=action==="calbank_sell_to_market_reserve";return {...t,id:t.id,at:t.at||t.createdAt,season:t.season,type:t.status==="void"||t.status==="voided"||t.status==="reversed"?"Share Trade (Voided/Reversed)":(String(t.type||"")==="Share Trade Reversal"?"Share Trade Reversal":"Share Trade"),company:t.company||t.business,buyer:marketBuyback?(t.buyer||"Market Money"):(t.buyer||t.buyerName||t.newOwner||t.buyerAccountName||(calbankBuy?"CalBank":calbankSell?"Market Reserve":"")),buyerType:t.buyerType||t.buyerAccountType||(calbankBuy?"calbank":calbankSell?"market-reserve":marketBuyback?"market-money":""),buyerId:t.buyerId||t.buyerAccountId||(calbankBuy?"CALBANK":calbankSell?"MARKET-RESERVE":""),seller:marketBuyback?(t.seller||t.citizen||t.citizenName):(t.seller||t.sellerName||t.oldOwner||t.sellerAccountName||(calbankBuy?"Market Reserve":calbankSell?"CalBank":"")),sellerType:t.sellerType||t.sellerAccountType||(calbankBuy?"market-reserve":calbankSell?"calbank":marketBuyback?"citizen":""),sellerId:t.sellerId||t.sellerAccountId||(calbankBuy?"MARKET-RESERVE":calbankSell?"CALBANK":""),shares:t.shares??t.count,price:t.price,total:t.total??t.amount,buyerCashBefore:t.buyerCashBefore,buyerCashAfter:t.buyerCashAfter,sellerCashBefore:t.sellerCashBefore,sellerCashAfter:t.sellerCashAfter,reservePurchase:t.reservePurchase||marketBuyback};});
 const reg=st.businessOwnershipRegistry||{};const ownTx=(Array.isArray(reg.transactions)?reg.transactions:[]).map(t=>({...t,type:"Ownership Transfer",company:t.business,buyer:t.buyerName,seller:t.sellerName,shares:null,total:t.price}));
-const allById=new Map();ledger.concat(stockTx,ownTx).forEach(t=>{if(t&&t.id)allById.set(String(t.id),t);});const all=Array.from(allById.values()).sort((a,b)=>String(b.at||b.createdAt||"").localeCompare(String(a.at||a.createdAt||"")));
+const allById=new Map();ledger.concat(stockTx,ownTx).forEach(t=>{if(!t||!t.id)return;const key=String(t.id),prior=allById.get(key);if(!prior){allById.set(key,{...t});return;}/* Merge duplicate representations without allowing a sparse mirror to erase recorded counterparties, cash checkpoints, or ownership metadata. */const merged={...prior,...t};["buyer","buyerName","buyerId","buyerType","seller","sellerName","sellerId","sellerType","company","business","shares","count","price","total","amount","buyerCashBefore","buyerCashAfter","sellerCashBefore","sellerCashAfter","action","status","reservePurchase","createdAt","at"].forEach(k=>{if((t[k]==null||t[k]==="")&&prior[k]!=null&&prior[k]!=="")merged[k]=prior[k];});allById.set(key,merged);});const all=Array.from(allById.values()).sort((a,b)=>String(b.at||b.createdAt||"").localeCompare(String(a.at||a.createdAt||"")));
 const trades=all.filter(t=>/share trade/i.test(String(t.type||""))||String(t.id||"").startsWith("STK-"));
 const ownership=all.filter(t=>/ownership transfer/i.test(String(t.type||""))||String(t.id||"").startsWith("BOT-"));
 const findings=[];
