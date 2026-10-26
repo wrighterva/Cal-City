@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.109: Legacy Shoes marketplace, frozen retail sales, transferable single-owner dividend rights, 10% post-championship dividends, and 4% Retail Stores resale fee. Preserves the v5.8.107 live-cash ownership fix and all existing saved history. -->
+<!-- CALVIN'S CITY — VERSION 5.8.110: Adds automatic CalSims High Low betting after each completed game, protected-reserve wagering, casino-funding safeguards, and an auditable High Low history. Preserves v5.8.109 legacy shoe dividends and existing saved history. -->
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: CalBank live-state transaction sync, citizen ledger entry, safe Bic cash audit, and guarded Kap startup repair. -->
 <!-- CALVIN'S CITY — VERSION 5.8.85: Lucy 7s opens in its own full-screen casino room; automatic-bet performance fix retained. Lucy 7s requires three matching symbols for regular prizes; two matching symbols without WILD are a loss; WILD substitutes for regular symbols; three 7/WILD jackpot remains exclusive. Based on 5.7.1. American Roulette released from test mode; Games section shows direct Enter American Roulette entry. Preserves roulette history, betting, payouts, chip rendering, undo, and casino scroll lifecycle. Based on v5.7.0. -->
@@ -18,7 +18,7 @@
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
 <head>
-<meta name="calvins-city-build" content="5.8.109">
+<meta name="calvins-city-build" content="5.8.110">
  
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
@@ -27,41 +27,41 @@
 var logs = [];
 function record(kind, message, source, line, column) {
 var item = {
-  time: new Date().toISOString(),
-  kind: kind,
-  message: String(message || ""),
-  source: String(source || ""),
-  line: Number(line || 0),
-  column: Number(column || 0),
-  readyState: document.readyState,
-  seasonText: (document.getElementById("homeSeason") || document.getElementById("seasonLabel") || {}).textContent || "",
-  navButtons: document.querySelectorAll(".nav button").length,
-  activeScreens: document.querySelectorAll(".screen.active").length,
-  recordsText: (document.getElementById("retiredCount") || {}).textContent || ""
+ time: new Date().toISOString(),
+ kind: kind,
+ message: String(message || ""),
+ source: String(source || ""),
+ line: Number(line || 0),
+ column: Number(column || 0),
+ readyState: document.readyState,
+ seasonText: (document.getElementById("homeSeason") || document.getElementById("seasonLabel") || {}).textContent || "",
+ navButtons: document.querySelectorAll(".nav button").length,
+ activeScreens: document.querySelectorAll(".screen.active").length,
+ recordsText: (document.getElementById("retiredCount") || {}).textContent || ""
 };
 logs.push(item);
 window.__calvinsCityStartupDiagnostics = logs;
 try { console.error("[Calvin's City startup diagnostic]", item); } catch (_) {}
 var box = document.getElementById("startupDiagnosticPanel");
 if (!box) {
-  box = document.createElement("div");
-  box.id = "startupDiagnosticPanel";
-  box.style.cssText = "position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;background:#240f12;color:#fff;border:2px solid #ff7777;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-shadow:0 4px 20px #0008";
-  var close = document.createElement("button");
-  close.textContent = "Hide diagnostics";
-  close.style.cssText = "float:right;padding:5px 8px";
-  close.onclick = function(){ box.remove(); };
-  box.appendChild(close);
-  var body = document.createElement("div");
-  body.id = "startupDiagnosticText";
-  box.appendChild(body);
-  (document.body || document.documentElement).appendChild(box);
+ box = document.createElement("div");
+ box.id = "startupDiagnosticPanel";
+ box.style.cssText = "position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;background:#240f12;color:#fff;border:2px solid #ff7777;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-shadow:0 4px 20px #0008";
+ var close = document.createElement("button");
+ close.textContent = "Hide diagnostics";
+ close.style.cssText = "float:right;padding:5px 8px";
+ close.onclick = function(){ box.remove(); };
+ box.appendChild(close);
+ var body = document.createElement("div");
+ body.id = "startupDiagnosticText";
+ box.appendChild(body);
+ (document.body || document.documentElement).appendChild(box);
 }
 var out = document.getElementById("startupDiagnosticText");
 if (out) out.textContent = logs.map(function(x){
-  return x.kind + ": " + x.message + (x.source ? "\n" + x.source + ":" + x.line + ":" + x.column : "") +
-    "\nreadyState=" + x.readyState + " navButtons=" + x.navButtons +
-    " activeScreens=" + x.activeScreens + " records=" + x.recordsText;
+ return x.kind + ": " + x.message + (x.source ? "\n" + x.source + ":" + x.line + ":" + x.column : "") +
+   "\nreadyState=" + x.readyState + " navButtons=" + x.navButtons +
+   " activeScreens=" + x.activeScreens + " records=" + x.recordsText;
 }).join("\n\n");
 }
 window.addEventListener("error", function(e) {
@@ -74,18 +74,18 @@ record("unhandled rejection", r && (r.stack || r.message) || r || "Unknown rejec
 window.__calvinsCityRecordStartupDiagnostic = record;
 document.addEventListener("DOMContentLoaded", function(){
 setTimeout(function(){
-  if (!document.querySelector(".nav button") || !document.querySelector(".screen.active")) {
-    record("startup checkpoint", "DOM ready but navigation or active screen is missing.", "", 0, 0);
-  }
-  var season = document.getElementById("homeSeason") || document.getElementById("seasonLabel");
-  if (season && /—|-/.test(season.textContent || "")) {
-    record("startup checkpoint", "Season label still shows a placeholder after DOM ready.", "", 0, 0);
-  }
-  var records = document.getElementById("retiredCount");
-  var citizens = document.getElementById("citizenCount");
-  if (records && citizens && records.textContent === "0" && citizens.textContent === "0") {
-    record("startup checkpoint", "Record counters are both zero after DOM ready; this is a symptom, not proof that saved records were deleted.", "", 0, 0);
-  }
+ if (!document.querySelector(".nav button") || !document.querySelector(".screen.active")) {
+   record("startup checkpoint", "DOM ready but navigation or active screen is missing.", "", 0, 0);
+ }
+ var season = document.getElementById("homeSeason") || document.getElementById("seasonLabel");
+ if (season && /—|-/.test(season.textContent || "")) {
+   record("startup checkpoint", "Season label still shows a placeholder after DOM ready.", "", 0, 0);
+ }
+ var records = document.getElementById("retiredCount");
+ var citizens = document.getElementById("citizenCount");
+ if (records && citizens && records.textContent === "0" && citizens.textContent === "0") {
+   record("startup checkpoint", "Record counters are both zero after DOM ready; this is a symptom, not proof that saved records were deleted.", "", 0, 0);
+ }
 }, 1500);
 }, {once:true});
 })();
@@ -93,56 +93,56 @@ setTimeout(function(){
  
 <script>
 /* CALVIN'S CITY v5.8.101 — iOS Home Screen resume/repaint recovery.
-  Presentation-only: never reloads the page, clears storage, or changes game data.
-  If iOS resumes the existing WebKit page, this nudges layout/paint and restores
-  the home screen only if the page has no active screen at all. */
+ Presentation-only: never reloads the page, clears storage, or changes game data.
+ If iOS resumes the existing WebKit page, this nudges layout/paint and restores
+ the home screen only if the page has no active screen at all. */
 (function(){
 "use strict";
 var lastRun=0, runCount=0, lastReason="", lastError="";
 function visible(){return document.visibilityState!=="hidden";}
 function paintNudge(el){
- if(!el||!el.isConnected)return;
- var oldOpacity=el.style.opacity;
- try{
-   /* A one-frame opacity change asks WebKit to repaint without changing layout. */
-   el.style.opacity="0.999";
-   void el.offsetHeight;
-   requestAnimationFrame(function(){
-     try{el.style.opacity=oldOpacity;}catch(_){}
-   });
- }catch(err){lastError=String(err&&err.message||err);try{el.style.opacity=oldOpacity;}catch(_){}}
+if(!el||!el.isConnected)return;
+var oldOpacity=el.style.opacity;
+try{
+  /* A one-frame opacity change asks WebKit to repaint without changing layout. */
+  el.style.opacity="0.999";
+  void el.offsetHeight;
+  requestAnimationFrame(function(){
+    try{el.style.opacity=oldOpacity;}catch(_){}
+  });
+}catch(err){lastError=String(err&&err.message||err);try{el.style.opacity=oldOpacity;}catch(_){}}
 }
 function recover(reason){
- if(!visible())return;
- var now=Date.now();
- if(now-lastRun<350)return;
- lastRun=now;lastReason=String(reason||"resume");runCount++;
- requestAnimationFrame(function(){requestAnimationFrame(function(){
-   if(!visible())return;
-   try{
-     var root=document.documentElement, body=document.body;
-     if(!root||!body)return;
-     /* Flush any viewport/layout work deferred while iOS suspended the app. */
-     void root.offsetHeight;
-     var active=document.querySelector(".screen.active");
-     var nav=document.querySelector(".nav");
-     if(!active){
-       var rescue=window.__calvinsCityEarlyUIRescue;
-       if(rescue&&typeof rescue.showScreen==="function"&&document.getElementById("home")){
-         rescue.showScreen("home");
-         active=document.querySelector(".screen.active");
-       }
-     }
-     paintNudge(active);
-     paintNudge(nav);
-     /* Existing resize listeners can recalculate mobile viewport geometry. */
-     window.dispatchEvent(new Event("resize"));
-     window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"resume-repaint-attempted",reason:lastReason,count:runCount,at:new Date().toISOString(),activeScreen:active?active.id:null,lastError:lastError};
-   }catch(err){
-     lastError=String(err&&err.message||err);
-     window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"guarded-error",reason:lastReason,count:runCount,at:new Date().toISOString(),lastError:lastError};
-   }
- });});
+if(!visible())return;
+var now=Date.now();
+if(now-lastRun<350)return;
+lastRun=now;lastReason=String(reason||"resume");runCount++;
+requestAnimationFrame(function(){requestAnimationFrame(function(){
+  if(!visible())return;
+  try{
+    var root=document.documentElement, body=document.body;
+    if(!root||!body)return;
+    /* Flush any viewport/layout work deferred while iOS suspended the app. */
+    void root.offsetHeight;
+    var active=document.querySelector(".screen.active");
+    var nav=document.querySelector(".nav");
+    if(!active){
+      var rescue=window.__calvinsCityEarlyUIRescue;
+      if(rescue&&typeof rescue.showScreen==="function"&&document.getElementById("home")){
+        rescue.showScreen("home");
+        active=document.querySelector(".screen.active");
+      }
+    }
+    paintNudge(active);
+    paintNudge(nav);
+    /* Existing resize listeners can recalculate mobile viewport geometry. */
+    window.dispatchEvent(new Event("resize"));
+    window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"resume-repaint-attempted",reason:lastReason,count:runCount,at:new Date().toISOString(),activeScreen:active?active.id:null,lastError:lastError};
+  }catch(err){
+    lastError=String(err&&err.message||err);
+    window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"guarded-error",reason:lastReason,count:runCount,at:new Date().toISOString(),lastError:lastError};
+  }
+});});
 }
 document.addEventListener("visibilitychange",function(){if(visible())recover("visibilitychange");},false);
 window.addEventListener("pageshow",function(){recover("pageshow");},false);
@@ -278,7 +278,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.109</title>
+<title>Calvin's City 5.8.110</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -508,7 +508,7 @@ th,td{border-bottom-color:#343B43!important}
  
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.109</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.110</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -593,7 +593,13 @@ th,td{border-bottom-color:#343B43!important}
 <button type="button" onclick="window.processCasinoSeasonFinance()">Process Current Season's Interest / Maturity</button>
 <div id="casinoFinanceMessage" class="tiny" role="status"></div>
 <h3>Debt holders</h3><div id="casinoDebtHolders" class="tiny">No loans issued.</div>
-<h3>Games</h3><div id="casinoGamesLocked" class="card" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="goodbtn" onclick="window.openRouletteRoom()">🎡 Enter American Roulette</button><button type="button" class="goodbtn" onclick="window.openLucy7s()">🎰 Enter Lucy 7s</button></div>
+<h3>Games</h3><div id="casinoGamesLocked" class="card" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="goodbtn" onclick="window.openRouletteRoom()">🎡 Enter American Roulette</button><button type="button" class="goodbtn" onclick="window.openLucy7s()">🎰 Enter Lucy 7s</button><button type="button" class="goodbtn" onclick="window.openHighLowRoom()">🎲 High Low (Automatic CalSims)</button></div>
+</div><div id="highLowPanel" class="card" style="display:none;margin-top:10px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 style="margin:0">🎲 High Low</h2><button type="button" class="secondary" style="width:auto;margin:0" onclick="window.closeHighLowRoom()">← Back to Casino</button></div>
+<p class="tiny">Automatic CalSims game · Two fair six-sided dice per side · CalSims wins only when its total is lower than the casino's. Ties go to the casino.</p>
+<div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><div class="metric"><small>Last CalSims Roll</small><strong id="highLowCalSimsRoll">—</strong></div><div class="metric"><small>Last Casino Roll</small><strong id="highLowCasinoRoll">—</strong></div><div class="metric"><small>Last Wager</small><strong id="highLowLastWager">$0M</strong></div><div class="metric"><small>Last Outcome</small><strong id="highLowLastOutcome">Waiting for next game</strong></div></div>
+<p id="highLowStatus" class="tiny" role="status">High Low runs automatically after each completed basketball game. It does not require a manual bet.</p>
+<h3>Recent High Low Results</h3><div id="highLowHistory" class="tiny">No High Low rounds recorded yet.</div>
 </div><div id="lucy7sPanel" class="card" style="display:none;margin-top:10px">
 <div class="lucy-head"><div><h2 style="margin:0">🎰 LUCY <span>7s</span></h2><div class="tiny">THREE REELS · WILD SYMBOLS · PROGRESSIVE JACKPOTS</div></div><button type="button" class="secondary" onclick="window.closeLucy7s()">← Back to Casino</button></div>
 <div class="lucy-cabinet">
@@ -5759,24 +5765,24 @@ const current=state.economicPhase;
 let next=current;
 // 60% chance to remain in the current phase; 40% chance to move to another phase.
 if(Math.random()>=0.60){
- const alternatives=["Bull","Normal","Recession"].filter(p=>p!==current);
- // Recorded annual revenue performance influences the direction when available.
- let revenueSignal=0;
- try{
-   const reports=Array.isArray(state.annualReports)?state.annualReports:[];
-   const report=reports.filter(r=>Number(r&&r.season)===Number(completedSeason)).slice(-1)[0];
-   if(report){
-     const values=Object.values(report.companies||report.businesses||{}).map(x=>Number(x&& (x.revenue??x.annualRevenue))).filter(Number.isFinite);
-     if(values.length)revenueSignal=values.reduce((a,b)=>a+b,0);
-   }
- }catch(_){}
- if(revenueSignal>0){
-   next=current==="Recession"?"Normal":"Bull";
- }else if(revenueSignal<0){
-   next=current==="Bull"?"Normal":"Recession";
- }else{
-   next=alternatives[Math.floor(Math.random()*alternatives.length)];
- }
+const alternatives=["Bull","Normal","Recession"].filter(p=>p!==current);
+// Recorded annual revenue performance influences the direction when available.
+let revenueSignal=0;
+try{
+  const reports=Array.isArray(state.annualReports)?state.annualReports:[];
+  const report=reports.filter(r=>Number(r&&r.season)===Number(completedSeason)).slice(-1)[0];
+  if(report){
+    const values=Object.values(report.companies||report.businesses||{}).map(x=>Number(x&& (x.revenue??x.annualRevenue))).filter(Number.isFinite);
+    if(values.length)revenueSignal=values.reduce((a,b)=>a+b,0);
+  }
+}catch(_){}
+if(revenueSignal>0){
+  next=current==="Recession"?"Normal":"Bull";
+}else if(revenueSignal<0){
+  next=current==="Bull"?"Normal":"Recession";
+}else{
+  next=alternatives[Math.floor(Math.random()*alternatives.length)];
+}
 }
 state.economicPhase=next;
 state.economicPhaseHistory[marker]={from:current,to:next,at:new Date().toISOString(),season:Number(completedSeason)};
@@ -5821,8 +5827,8 @@ const expense=entries.find(t=>t&&t.type==="Season Interest Expense"&&Number(t.se
 const zeroDue=entries.some(t=>t&&t.type==="Season Interest Processed"&&Number(t.season)===cbSeason);
 if(expense){
 if(Math.abs(credited-(Number(expense.amount)||0))>0.011){
- alert("CalBank interest settlement could not be verified for this season. The next season remains locked. Review the CalBank deposit ledger before retrying.");
- return;
+alert("CalBank interest settlement could not be verified for this season. The next season remains locked. Review the CalBank deposit ledger before retrying.");
+return;
 }
 }else if(!zeroDue){
 alert("CalBank interest settlement is marked processed, but its ledger confirmation is missing. The next season remains locked.");
@@ -7429,7 +7435,7 @@ if(d.bankCash < -0.001)throw Error("CalBank cash cannot become negative.");
 const tx={id,type,customerKey:key(customer),customerType:customer.type,customerId:customer.id,customerName:customer.name,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),bankCashBefore:bankBefore,bankCashAfter:round(Number(d.bankCash)),balanceBefore:depositBefore,balanceAfter:round(Number(account.balance)),createdAt:at,season:Number(st.year)||null};
 d.ledger.push(tx);
 /* The live game state is authoritative. Record the same signed cash movement
- in the Citizen Ledger; do not apply a second cash deduction. */
+in the Citizen Ledger; do not apply a second cash deduction. */
 if(customer.type==="Citizen"){
 const bridge=window.__calvinsCityBridge;
 if(!bridge||typeof bridge.recordPlayerLedgerTransaction!=="function")throw Error("Citizen Ledger recorder unavailable; transaction cancelled.");
@@ -7837,8 +7843,8 @@ const raw=String(input.value||"").trim(),rate=Number(raw),valid=raw!==""&&Number
 const gen=$("fedTaxGenerateRecommendation"),ver=$("fedTaxVerifyPlan"),app=$("fedTaxApprovePlan"),col=$("fedTaxCollectPlan");
 if(gen)gen.disabled=!valid;
 if(currentPlan&&(!valid||Math.abs(rate-Number(currentPlan.rate))>1e-9)){
- if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
- setStatus(valid?"Tax rate changed. Generate a new recommendation (Step 1), then verify, approve, and collect in order.":"Enter a tax rate from 0% through 100% to enable Step 1.");
+if(ver)ver.disabled=true;if(app)app.disabled=true;if(col)col.disabled=true;
+setStatus(valid?"Tax rate changed. Generate a new recommendation (Step 1), then verify, approve, and collect in order.":"Enter a tax rate from 0% through 100% to enable Step 1.");
 }
 };
 input.addEventListener("input",()=>{rateEdited();previewTaxRate();});input.addEventListener("change",()=>{rateEdited();previewTaxRate();});rateEdited();
@@ -10447,14 +10453,14 @@ if(c.legacyShoeLedger.some(x=>x&&String(x.id)===txId)||(Array.isArray(m.legacyDi
 const owner=legacyResolveOwner(st,m);if(!owner){failures.push(m.name+": current owner account is unavailable; payout remains unpaid.");continue;}
 const amount=legacyRound(Math.max(0,Number(m.legacySalesTotal)||0)*LEGACY_DIVIDEND_RATE),priorState=JSON.stringify(st),bankCtx=legacyBankContext(),at=new Date().toISOString(),priorAuditBusy=window.__cashIntegrityAuditBusy;
 try{
- window.__cashIntegrityAuditBusy=true;
- const meta={at,season,modelId:String(m.id),transactionId:txId,source:"legacy-shoe-dividend-system",payer:"Legacy Dividend System",recipient:owner.name,counterparty:"Legacy Dividend System"};
- const ownerMove=legacyChangeCash(st,owner,amount,txId+"-OWNER","Legacy Shoe Dividend","Season "+season+" Legacy Shoe dividend: 10% of preserved lifetime retail sales for "+m.name,meta,bankCtx);
- m.legacyDividendPaidSeasons=Array.isArray(m.legacyDividendPaidSeasons)?m.legacyDividendPaidSeasons:[];m.legacyDividendPaidSeasons.push(season);
- legacyAddLedger(st,{id:txId,type:"Dividend Payment",modelId:String(m.id),modelName:m.name,company:m.company,season,createdAt:at,ownerType:owner.type,ownerId:String(owner.id),ownerName:owner.name,salesBasis:legacyRound(Number(m.legacySalesTotal)||0),rate:LEGACY_DIVIDEND_RATE,amount,ownerCashBefore:ownerMove.before,ownerCashAfter:ownerMove.after,source:"Legacy Dividend System",status:"paid",cashMovement:amount>0,salesTotalFrozen:true});
- window.__cashIntegrityAuditBusy=priorAuditBusy;
- legacyCommit(st,bankCtx,txId,m.id,{type:owner.type,id:String(owner.id)},season,[{account:owner,cash:ownerMove.after}],[txId+"-OWNER"]);
- paid++;
+window.__cashIntegrityAuditBusy=true;
+const meta={at,season,modelId:String(m.id),transactionId:txId,source:"legacy-shoe-dividend-system",payer:"Legacy Dividend System",recipient:owner.name,counterparty:"Legacy Dividend System"};
+const ownerMove=legacyChangeCash(st,owner,amount,txId+"-OWNER","Legacy Shoe Dividend","Season "+season+" Legacy Shoe dividend: 10% of preserved lifetime retail sales for "+m.name,meta,bankCtx);
+m.legacyDividendPaidSeasons=Array.isArray(m.legacyDividendPaidSeasons)?m.legacyDividendPaidSeasons:[];m.legacyDividendPaidSeasons.push(season);
+legacyAddLedger(st,{id:txId,type:"Dividend Payment",modelId:String(m.id),modelName:m.name,company:m.company,season,createdAt:at,ownerType:owner.type,ownerId:String(owner.id),ownerName:owner.name,salesBasis:legacyRound(Number(m.legacySalesTotal)||0),rate:LEGACY_DIVIDEND_RATE,amount,ownerCashBefore:ownerMove.before,ownerCashAfter:ownerMove.after,source:"Legacy Dividend System",status:"paid",cashMovement:amount>0,salesTotalFrozen:true});
+window.__cashIntegrityAuditBusy=priorAuditBusy;
+legacyCommit(st,bankCtx,txId,m.id,{type:owner.type,id:String(owner.id)},season,[{account:owner,cash:ownerMove.after}],[txId+"-OWNER"]);
+paid++;
 }catch(e){window.__cashIntegrityAuditBusy=priorAuditBusy;legacyRollback(st,priorState,bankCtx);failures.push(m.name+": "+String(e&&e.message||e));}
 }
 c=ensure(st);
@@ -10597,9 +10603,45 @@ if(totalUnits>0){
 const storeAfter=Number(st.businessCash["Shoe Store"])||0;
 st.businessCashLedger.push({id:"CALSIMS-STORE-CYCLE-"+cycle,season,type:"CalSims Retail Revenue",company:"Shoe Store",amount:storePayout,before:storeBefore,after:storeAfter,reason:"30% retail share from CalSims shoe sales in cycle "+cycle,createdAt:new Date().toISOString(),accountType:"business"});
 }
+/* v5.8.110: automatic High Low settlement is part of the existing, idempotent
+  CalSims game transaction. It uses spendable cash only and never touches reserve. */
+let highLowResult=null;
+st.casinoHighLowHistory=Array.isArray(st.casinoHighLowHistory)?st.casinoHighLowHistory:[];
+st.casinoHighLowProcessedGameKeys=Array.isArray(st.casinoHighLowProcessedGameKeys)?st.casinoHighLowProcessedGameKeys:[];
+st.casinoFinanceLedger=Array.isArray(st.casinoFinanceLedger)?st.casinoFinanceLedger:[];
+const highLowId="CASINO-HIGHLOW-"+key;
+if(!st.casinoHighLowProcessedGameKeys.includes(key)&&!st.casinoHighLowHistory.some(row=>row&&row.transactionId===highLowId)){
+ st.casinoHighLowProcessedGameKeys.push(key);
+ const casinoName="Calvin's Casino",casinoBefore=Number(st.businessCash&&st.businessCash[casinoName]);
+ const spendableBefore=Number(c.spendableCash)||0,reserveBefore=Number(c.reserveCash)||0;
+ const wager=Math.round(spendableBefore*0.0085*100)/100;
+ const at=new Date().toISOString();
+ if(Number.isFinite(casinoBefore)&&casinoBefore>=0&&wager>=0.01&&casinoBefore>=wager){
+   const calDie1=1+Math.floor(Math.random()*6),calDie2=1+Math.floor(Math.random()*6);
+   const casinoDie1=1+Math.floor(Math.random()*6),casinoDie2=1+Math.floor(Math.random()*6);
+   const calTotal=calDie1+calDie2,casinoTotal=casinoDie1+casinoDie2,won=calTotal<casinoTotal;
+   const payout=won?Math.round(wager*2*100)/100:0;
+   const spendableAfter=Math.round((spendableBefore-wager+payout)*100)/100;
+   const totalBefore=Number(c.totalCash)||0,totalAfter=Math.round((totalBefore-wager+payout)*100)/100;
+   const casinoAfter=Math.round((casinoBefore+wager-payout)*100)/100;
+   if(casinoAfter>=0&&spendableAfter>=0&&totalAfter>=reserveBefore){
+     c.spendableCash=spendableAfter;c.totalCash=totalAfter;st.businessCash[casinoName]=casinoAfter;
+     const net=won?wager:-wager;
+     highLowResult={transactionId:highLowId,gameKey:key,cycle,season,wager,calSimsDice:[calDie1,calDie2],calSimsTotal:calTotal,casinoDice:[casinoDie1,casinoDie2],casinoTotal,won, outcome:won?"CalSims wins":"Casino wins",payout,net,spendableBefore,spendableAfter,reserveCash:reserveBefore,totalBefore,totalAfter,casinoBefore,casinoAfter,createdAt:at,status:"settled"};
+     st.casinoHighLowHistory.push(highLowResult);st.casinoHighLowHistory=st.casinoHighLowHistory.slice(-500);
+     st.casinoFinanceLedger.push({transactionId:highLowId,type:"high_low_auto_settlement",season,gameKey:key,wager,calSimsTotal:calTotal,casinoTotal,won,payout,net,casinoBefore,casinoAfter,timestamp:at});
+     st.businessCashLedger.push({id:highLowId+"-CASINO",season,type:"CalSims High Low",company:casinoName,amount:net,before:casinoBefore,after:casinoAfter,reason:"Automatic High Low wager for completed game "+key+"; "+(won?"CalSims won":"casino won")+" (ties favor casino)",createdAt:at,accountType:"business"});
+   }
+ }
+ if(!highLowResult){
+   const reason=!Number.isFinite(casinoBefore)?"Casino cash account unavailable":casinoBefore<wager?"Casino cannot cover the potential net loss":wager<0.01?"Spendable cash is below the minimum wager":"Settlement safeguards prevented this round";
+   highLowResult={transactionId:highLowId,gameKey:key,cycle,season,wager:0,calSimsDice:[],calSimsTotal:null,casinoDice:[],casinoTotal:null,won:false,outcome:"Round skipped",payout:0,net:0,spendableBefore,spendableAfter:spendableBefore,reserveCash:reserveBefore,casinoBefore:Number.isFinite(casinoBefore)?casinoBefore:null,casinoAfter:Number.isFinite(casinoBefore)?casinoBefore:null,createdAt:at,status:"skipped",reason};
+   st.casinoHighLowHistory.push(highLowResult);st.casinoHighLowHistory=st.casinoHighLowHistory.slice(-500);
+ }
+}
 if(!save()){if(msg)msg.textContent="CalSims processed this game in memory, but storage did not confirm the save. Do not replay the game; check the app save warning and verify the ledgers.";return {ok:false,reason:"save-unconfirmed",cycle};}
-if(msg){const interestMessage=" CalSims earned "+money(interestAmount)+" in interest (2% of "+money(interestBase)+").";msg.textContent=totalUnits?"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Retail Stores received "+money(storePayout)+". Spendable consumer cash remaining: "+money(c.spendableCash)+".":"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" No purchases occurred this game; consumers may skip buying, no active models may be available, or spendable cash may be exhausted.";}
-render();return {ok:true,cycle,totalUnits,totalRevenue,companyPayouts,storePayout};
+if(msg){const interestMessage=" CalSims earned "+money(interestAmount)+" in interest (2% of "+money(interestBase)+").";const highLowMessage=highLowResult?(highLowResult.status==="settled"?" High Low: "+highLowResult.outcome+"; wager "+money(highLowResult.wager)+"; CalSims net "+(highLowResult.net>=0?"+":"−")+money(Math.abs(highLowResult.net))+".":" High Low round skipped: "+highLowResult.reason+"."):" High Low was already recorded for this game.";msg.textContent=(totalUnits?"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" "+totalUnits.toLocaleString("en-US")+" pairs sold; retail revenue "+money(totalRevenue)+"; shoe companies received "+money(companyPayouts)+" and Retail Stores received "+money(storePayout)+". Spendable consumer cash remaining: "+money(c.spendableCash)+".":"Automatic CalSims cycle "+cycle+" complete."+interestMessage+" No purchases occurred this game; consumers may skip buying, no active models may be available, or spendable cash may be exhausted.")+highLowMessage;}
+render();return {ok:true,cycle,totalUnits,totalRevenue,companyPayouts,storePayout,highLow:highLowResult};
 }
 window.processCalSimsGameCycle=function(gameKey){try{return runCycle(gameKey);}catch(error){console.error("CalSims automatic retail cycle failed:",error);const msg=el("calSimsCycleMessage");if(msg)msg.textContent="CalSims could not complete the automatic sales cycle. The game remains recorded; check the console and save warning before continuing.";return {ok:false,reason:"exception"};}};
  
@@ -10708,15 +10750,19 @@ if($('casinoLoanTerm'))$('casinoLoanTerm').value=Number(f.offering&&f.offering.t
 if($('casinoCurrentSeason'))$('casinoCurrentSeason').value='Season '+currentSeason(state);
 const sel=$('casinoLender');if(sel){const prior=sel.value;sel.innerHTML='';getLenders(state).forEach(l=>{const o=document.createElement('option');o.value=l.kind+'|'+l.ref;o.textContent=l.label+' ('+money(l.cash)+')';sel.appendChild(o);});if([...sel.options].some(o=>o.value===prior))sel.value=prior;updateLenderCash();}
 const holders=$('casinoDebtHolders');if(holders){if(!f.loans||!f.loans.length)holders.textContent='No loans issued.';else holders.innerHTML=f.loans.map(l=>'<div style="border-bottom:1px solid #354253;padding:6px 0"><strong>'+escapeHtml(l.lenderLabel||l.lenderRef)+'</strong> — '+money(l.principal)+' principal; '+Number(l.interestRate)+'% per season; maturity Season '+l.maturitySeason+'; outstanding '+money(l.outstandingPrincipal==null?l.principal:l.outstandingPrincipal)+'</div>').join('');}
-const games=$('casinoGamesLocked');if(games){games.innerHTML='<button type="button" class="goodbtn" onclick="window.openRouletteRoom()">🎡 Enter American Roulette</button> <button type="button" class="goodbtn" onclick="window.openLucy7s()">🎰 Enter Lucy 7s</button>'; }
+const games=$('casinoGamesLocked');if(games){games.innerHTML='<button type="button" class="goodbtn" onclick="window.openRouletteRoom()">🎡 Enter American Roulette</button> <button type="button" class="goodbtn" onclick="window.openLucy7s()">🎰 Enter Lucy 7s</button> <button type="button" class="goodbtn" onclick="window.openHighLowRoom()">🎲 High Low (Automatic CalSims)</button>'; }
+const highRows=(state.casinoHighLowHistory||[]).slice(-8).reverse();const highHist=$('highLowHistory');if(highHist){highHist.innerHTML=highRows.length?highRows.map(r=>'<div style="border-bottom:1px solid #354253;padding:6px 0"><strong>Season '+Number(r.season||0)+' · '+escapeHtml(r.outcome||'Round skipped')+'</strong> · '+(r.status==='settled'?'CalSims '+(r.calSimsDice||[]).join(' + ')+' = '+r.calSimsTotal+'; Casino '+(r.casinoDice||[]).join(' + ')+' = '+r.casinoTotal+'; wager '+money(r.wager)+'; CalSims net '+(Number(r.net)>=0?'+':'−')+money(Math.abs(Number(r.net)||0)):escapeHtml(r.reason||'No wager'))+'</div>').join(''):'No High Low rounds recorded yet.';}
+const lastHigh=highRows[0];if(lastHigh){if($('highLowCalSimsRoll'))$('highLowCalSimsRoll').textContent=lastHigh.status==='settled'?(lastHigh.calSimsDice||[]).join(' + ')+' = '+lastHigh.calSimsTotal:'—';if($('highLowCasinoRoll'))$('highLowCasinoRoll').textContent=lastHigh.status==='settled'?(lastHigh.casinoDice||[]).join(' + ')+' = '+lastHigh.casinoTotal:'—';if($('highLowLastWager'))$('highLowLastWager').textContent=money(lastHigh.wager);if($('highLowLastOutcome'))$('highLowLastOutcome').textContent=lastHigh.outcome||'Round skipped';if($('highLowStatus'))$('highLowStatus').textContent=lastHigh.status==='settled'?'Last round: '+lastHigh.outcome+'. '+(lastHigh.won?'CalSims received '+money(lastHigh.payout)+' including its stake.':'The casino retained the wager.'):'Last round skipped: '+(lastHigh.reason||'No wager placed')+'.';}
 const roulette=$('casinoRoulettePanel');if(roulette)roulette.style.display='block';
 const playerSel=$('casinoRoulettePlayer');if(playerSel){const prior=playerSel.value;playerSel.innerHTML='';getBettingAccounts(state).forEach(a=>{const o=document.createElement('option');o.value=a.kind+'|'+a.ref;o.textContent=a.label+' ('+money(a.cash)+')';playerSel.appendChild(o);});if([...playerSel.options].some(o=>o.value===prior))playerSel.value=prior;updateRoulettePlayerCash();}
 const hist=$('casinoRouletteHistory');if(hist){const rows=(state.casinoRouletteHistory||[]).slice(-8).reverse();hist.innerHTML=rows.length?rows.map(r=>'<div style="border-bottom:1px solid #354253;padding:5px 0">Season '+r.season+' · <strong>'+escapeHtml(r.result)+'</strong> · '+escapeHtml(r.accountLabel)+' · '+money(r.wager)+' on '+escapeHtml(r.betLabel)+' · '+(r.won?'WIN +':'LOSS ')+money(r.net)+' net</div>').join(''):'No spins yet.';}
 }
 function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function updateLenderCash(){const state=st(),sel=$('casinoLender'),out=$('casinoLenderCash');if(!state||!sel||!out)return;const parts=sel.value.split('|');const n=cashOf(state,parts[0],parts.slice(1).join('|'));out.textContent=n==null?'Lender account unavailable.':('Available cash: '+money(n)+'. Lend only funds already held in this account.');}
-window.openCasino=function(){const state=st();if(!state){alert('Casino cannot open because the live game state is unavailable.');return;}const old=JSON.stringify(state);ensureFinance(state);if(!state.businessCash)state.businessCash={};if(state.businessCash[CASINO]==null)state.businessCash[CASINO]=0;/* Initial account creation only; no existing account is modified. */if(!saveVerified(state)){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);}catch(e){}alert('Casino setup could not be saved and verified. No lending is available.');return;}refresh();const modal=$('casinoModal');if(modal){modal.style.removeProperty('display');modal.classList.remove('roulette-room-mode','lucy7s-room-mode');modal.classList.add('show');const panel=$('casinoRoulettePanel');if(panel)panel.style.display='none';const management=$('casinoManagement');if(management)management.style.display='block';}document.body.classList.add('business-modal-open');};
-window.closeCasino=function(){const m=$('casinoModal');if(m){m.classList.remove('show','roulette-room-mode','lucy7s-room-mode');m.style.removeProperty('display');const b=m.querySelector('.modalbox');if(b){['width','max-width','max-height','overflow-y','margin'].forEach(k=>b.style.removeProperty(k));}const panel=$('casinoRoulettePanel');if(panel)panel.style.display='none';const management=$('casinoManagement');if(management)management.style.display='block';}document.body.classList.remove('business-modal-open');document.body.style.removeProperty('overflow');document.documentElement.style.removeProperty('overflow');};
+window.openHighLowRoom=function(){const modal=$('casinoModal');if(!modal)return;refresh();modal.classList.remove('roulette-room-mode','lucy7s-room-mode');modal.style.display='flex';modal.classList.add('show');const m=$('casinoManagement'),r=$('casinoRoulettePanel'),l=$('lucy7sPanel'),h=$('highLowPanel');if(m)m.style.display='none';if(r)r.style.display='none';if(l)l.style.display='none';if(h)h.style.display='block';document.body.classList.add('business-modal-open');};
+window.closeHighLowRoom=function(){const modal=$('casinoModal');if(!modal)return;const h=$('highLowPanel'),m=$('casinoManagement');if(h)h.style.display='none';if(m)m.style.display='block';modal.classList.remove('roulette-room-mode','lucy7s-room-mode');modal.style.display='flex';modal.classList.add('show');document.body.classList.add('business-modal-open');};
+window.openCasino=function(){const state=st();if(!state){alert('Casino cannot open because the live game state is unavailable.');return;}const old=JSON.stringify(state);ensureFinance(state);if(!state.businessCash)state.businessCash={};if(state.businessCash[CASINO]==null)state.businessCash[CASINO]=0;/* Initial account creation only; no existing account is modified. */if(!saveVerified(state)){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);}catch(e){}alert('Casino setup could not be saved and verified. No lending is available.');return;}refresh();const modal=$('casinoModal');if(modal){modal.style.removeProperty('display');modal.classList.remove('roulette-room-mode','lucy7s-room-mode');modal.classList.add('show');const panel=$('casinoRoulettePanel');if(panel)panel.style.display='none';const high=$('highLowPanel');if(high)high.style.display='none';const lucy=$('lucy7sPanel');if(lucy)lucy.style.display='none';const management=$('casinoManagement');if(management)management.style.display='block';}document.body.classList.add('business-modal-open');};
+window.closeCasino=function(){const m=$('casinoModal');if(m){m.classList.remove('show','roulette-room-mode','lucy7s-room-mode');m.style.removeProperty('display');const b=m.querySelector('.modalbox');if(b){['width','max-width','max-height','overflow-y','margin'].forEach(k=>b.style.removeProperty(k));}const panel=$('casinoRoulettePanel');if(panel)panel.style.display='none';const high=$('highLowPanel');if(high)high.style.display='none';const lucy=$('lucy7sPanel');if(lucy)lucy.style.display='none';const management=$('casinoManagement');if(management)management.style.display='block';}document.body.classList.remove('business-modal-open');document.body.style.removeProperty('overflow');document.documentElement.style.removeProperty('overflow');};
 window.saveCasinoOffering=function(){const state=st();if(!state)return;const old=JSON.stringify(state);const f=ensureFinance(state);const target=Number($('casinoFundingTarget').value),rate=Number($('casinoInterestRate').value),term=Number($('casinoLoanTerm').value);if(!Number.isFinite(target)||target<=0||!Number.isFinite(rate)||rate<0||rate>100||!Number.isInteger(term)||term<1||term>20){alert('Enter a funding target above zero, interest from 0–100%, and a whole-number term of 1–20 seasons.');return;}if(raised(f)>target){alert('The funding target cannot be lower than debt already issued.');return;}f.offering={fundingTarget:cents(target),interestRate:rate,termSeasons:term,updatedSeason:currentSeason(state)};if(!saveVerified(state)){const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);alert('Offering terms were not saved. Existing terms restored.');return;}refresh();if($('casinoFinanceMessage'))$('casinoFinanceMessage').textContent='Offering terms saved and verified.';};
 window.casinoLend=function(){const state=st();if(!state)return;const f=ensureFinance(state);if(!state.businessCash)state.businessCash={};if(state.businessCash[CASINO]==null)state.businessCash[CASINO]=0;const parts=String($('casinoLender').value||'').split('|'),kind=parts.shift(),ref=parts.join('|'),amount=cents(Number($('casinoLendAmount').value));const target=Number(f.offering.fundingTarget)||500,remaining=cents(target-raised(f));if(!Number.isFinite(amount)||amount<=0){alert('Enter a lending amount greater than zero.');return;}if(amount>remaining){alert('That amount exceeds the remaining funding target of '+money(remaining)+'.');return;}const available=cashOf(state,kind,ref);if(available==null||available<amount){alert('The lender does not have enough available cash. No funds were moved.');return;}const txid='CASINO-LOAN-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);if(f.loans.some(l=>l.transactionId===txid)||state.casinoFinanceLedger.some(l=>l.transactionId===txid)){alert('Duplicate transaction detected. No funds were moved.');return;}const old=JSON.stringify(state),season=currentSeason(state),beforeL=available,beforeC=Number(state.businessCash[CASINO])||0;
 try{if(kind==='citizen'){const c=(state.citizens||[]).find(x=>x&&String(x.id)===String(ref));if(!c)throw Error('Lender account disappeared');c.cash=cents(beforeL-amount);}else{if(!state.businessCash||!Object.prototype.hasOwnProperty.call(state.businessCash,ref))throw Error('Business lender account disappeared');state.businessCash[ref]=cents(beforeL-amount);}state.businessCash[CASINO]=cents(beforeC+amount);const maturity=season+Number(f.offering.termSeasons||3);const loan={transactionId:txid,lenderKind:kind,lenderRef:ref,lenderLabel:getLenders(state).find(l=>l.kind===kind&&l.ref===ref)?.label||ref,principal:amount,outstandingPrincipal:amount,interestRate:Number(f.offering.interestRate)||0,issuedSeason:season,maturitySeason:maturity,lastInterestSeason:null,status:'active'};f.loans.push(loan);ledgerRow(state,{transactionId:txid,type:'loan_funded',season,amount,lenderKind:kind,lenderRef:ref,counterparty:CASINO,lenderBefore:beforeL,lenderAfter:cents(beforeL-amount),casinoBefore:beforeC,casinoAfter:cents(beforeC+amount),timestamp:new Date().toISOString()});if(!saveVerified(state))throw Error('Save could not be verified');refresh();$('casinoFinanceMessage').textContent='Loan transfer saved and verified. Lender cash decreased by '+money(amount)+' and casino cash increased by the same amount.';$('casinoLendAmount').value='';}catch(e){try{const parsed=JSON.parse(old);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,parsed);}catch(rollbackError){}alert('Casino loan was not committed: '+String(e.message||e)+'. Account changes were rolled back in memory; please verify storage before retrying.');console.error('Casino loan transaction failed',e);}};
@@ -10746,7 +10792,7 @@ window.openRouletteRoom=function(){
 const modal=$('casinoModal');if(!modal)return;
 modal.classList.add('roulette-room-mode');modal.style.display='flex';
 const box=modal.querySelector('.modalbox');if(box){box.style.width='min(100%,980px)';box.style.maxWidth='980px';box.style.maxHeight='96dvh';box.style.overflowY='auto';box.style.margin='auto';}
-const panel=$('casinoRoulettePanel');if(panel)panel.style.display='block';const management=$('casinoManagement');if(management)management.style.display='none';document.body.classList.add('business-modal-open');
+const panel=$('casinoRoulettePanel');if(panel)panel.style.display='block';const high=$('highLowPanel');if(high)high.style.display='none';const lucy=$('lucy7sPanel');if(lucy)lucy.style.display='none';const management=$('casinoManagement');if(management)management.style.display='none';document.body.classList.add('business-modal-open');
 const wheel=$('rouletteWheelPockets');if(wheel&&!wheel.dataset.built){
 const order=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
 const redSet=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
@@ -11219,7 +11265,7 @@ function draw(result){result.forEach((s,i)=>{const el=$('lucyReel'+i);if(el){el.
 function update(){const st=getState();if(!st)return;const x=ensure(st),sel=$('lucyCitizen'),prev=sel.value,list=(st.citizens||[]).filter(c=>c&&c.id!=null);sel.innerHTML=list.map(c=>'<option value="'+String(c.id).replace(/"/g,'&quot;')+'">'+String(c.name||c.id).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</option>').join('');if(prev&&list.some(c=>String(c.id)===prev))sel.value=prev;const c=citizen(st);$('lucyMajorJackpot').textContent=money(x.majorJackpot);$('lucyMinorJackpot').textContent=money(x.minorJackpot);$('lucyFreeSpins').textContent=String(Number(c&&x.freeSpins[c.id])||0);$('lucyCitizenCash').textContent=money(cash(c));$('lucyHistory').innerHTML=x.history.length?x.history.slice(-8).reverse().map(r=>'<div><strong>'+r.symbols.join(' · ')+'</strong> — '+(r.freeSpin?'Free spin':money(r.wager))+' — '+String(r.outcome).replace(/</g,'&lt;')+'</div>').join(''):'No spins yet.';}
 function pick(){let total=symbols.reduce((n,s)=>n+s.weight,0),v=Math.random()*total;for(const s of symbols){v-=s.weight;if(v<0)return s;}return symbols[0];}function jackpot(res){return res.every(s=>s.id==='seven'||s.id==='wild')&&res.some(s=>s.id==='seven');}
 function prizeMatch(res){if(jackpot(res))return{jackpot:true};if(res.every(s=>s.id==='freespin'))return null;const regular=res.filter(s=>s.id!=='wild'&&s.id!=='freespin');const counts={};regular.forEach(s=>counts[s.id]=(counts[s.id]||0)+1);const best=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];const wildCount=res.filter(s=>s.id==='wild').length;/* Apply the same three-of-a-kind rule to every regular symbol: WILD substitutes for any regular symbol, regardless of reel position. Two matching symbols without WILD lose. Three WILDs represent three of a kind for a regular symbol. FREE SPIN remains a special bonus requiring three FS symbols. */if(!best&&wildCount===3)return{jackpot:false,multiplier:2.25,symbol:'wild'};if(!best)return null;const count=counts[best];if(count+wildCount<3)return null;return{jackpot:false,multiplier:2.25,symbol:best};}
-window.openLucy7s=function(){const modal=$('casinoModal');if(!modal)return;modal.classList.remove('roulette-room-mode');modal.classList.add('lucy7s-room-mode');modal.style.display='flex';modal.classList.add('show');document.body.classList.add('business-modal-open');const m=$('casinoManagement'),r=$('casinoRoulettePanel'),p=$('lucy7sPanel');if(m)m.style.display='none';if(r)r.style.display='none';if(p)p.style.display='block';update();};
+window.openLucy7s=function(){const modal=$('casinoModal');if(!modal)return;modal.classList.remove('roulette-room-mode');modal.classList.add('lucy7s-room-mode');modal.style.display='flex';modal.classList.add('show');document.body.classList.add('business-modal-open');const m=$('casinoManagement'),r=$('casinoRoulettePanel'),p=$('lucy7sPanel'),h=$('highLowPanel');if(m)m.style.display='none';if(r)r.style.display='none';if(h)h.style.display='none';if(p)p.style.display='block';update();};
 window.closeLucy7s=function(){const modal=$('casinoModal');if(!modal)return;const p=$('lucy7sPanel'),m=$('casinoManagement');if(p)p.style.display='none';if(m)m.style.display='block';modal.classList.remove('lucy7s-room-mode');modal.style.display='flex';modal.classList.add('show');document.body.classList.add('business-modal-open');document.documentElement.style.removeProperty('overflow');document.body.style.removeProperty('overflow');};
 window.spinLucy7s=function(){if(busy)return;const st=getState();if(!st){alert('Game state unavailable; no spin was played.');return;}const c=citizen(st);if(!c){alert('Select a citizen first.');return;}const x=ensure(st),free=(Number(x.freeSpins[c.id])||0)>0,wager=round(Number($('lucyWager').value));if(!free&&(!Number.isFinite(wager)||wager<.1||wager>2.5)){alert('Paid spins must be $0.1M to $2.5M.');return;}if(!free&&cash(c)<wager){alert('This citizen does not have enough cash.');return;}const casinoName="Calvin's Casino";if(!st.businessCash||!Object.prototype.hasOwnProperty.call(st.businessCash,casinoName)){alert('Casino cash account is unavailable; no spin was played.');return;}const before=JSON.stringify(st),result=[pick(),pick(),pick()];busy=true;$('lucySpinButton').disabled=true;['lucyReel0','lucyReel1','lucyReel2'].forEach(id=>$(id).classList.add('spinning'));setTimeout(()=>{try{const state=st,x2=ensure(state),stake=free?0:wager,freeSpinBonus=result.every(s=>s.id==='freespin'),match=prizeMatch(result);if(!free){c.cash=round(cash(c)-stake);state.businessCash[casinoName]=round(Number(state.businessCash[casinoName])+stake);if(!freeSpinBonus&&(!match||!match.jackpot)){x2.majorJackpot=round(x2.majorJackpot+stake*.07);x2.minorJackpot=round(x2.minorJackpot+stake*.03);}}else{x2.freeSpins[c.id]=Math.max(0,(Number(x2.freeSpins[c.id])||0)-1);}
 let payout=0,outcome='No win',jp=null;if(freeSpinBonus){x2.freeSpins[c.id]=(Number(x2.freeSpins[c.id])||0)+5;outcome='BONUS: 5 FREE SPINS';}else if(match&&match.jackpot){jp=free?(Math.random()<.5?'major':'minor'):(stake>=1?'major':'minor');payout=round(jp==='major'?x2.majorJackpot:x2.minorJackpot);if(jp==='major')x2.majorJackpot=0;else x2.minorJackpot=0;outcome=jp.toUpperCase()+' JACKPOT '+money(payout);}else if(match){payout=round((free?.1:stake)*match.multiplier);outcome=payout>0?'Prize '+money(payout):'No win';}/* No qualifying combination means no cash prize; only three FREE SPIN symbols trigger the bonus, and only 7/WILD combinations trigger a jackpot. */if(!match&&!freeSpinBonus)payout=0;if(payout>(Number(state.businessCash[casinoName])||0))throw Error('Casino cash cannot cover this prize; spin was not committed.');if(payout>0){state.businessCash[casinoName]=round(state.businessCash[casinoName]-payout);c.cash=round(cash(c)+payout);}const row={transactionId:'LUCY7S-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),citizenId:c.id,citizenName:name(c),wager:stake,freeSpin:free,symbols:result.map(s=>s.label),symbolIds:result.map(s=>s.id),outcome,jackpot:jp,prize:payout,majorAfter:x2.majorJackpot,minorAfter:x2.minorJackpot,timestamp:new Date().toISOString()};x2.history.push(row);x2.history=x2.history.slice(-200);x2.ledger.push({...row,type:'lucy7s_spin_settled'});if(Array.isArray(state.casinoFinanceLedger))state.casinoFinanceLedger.push({transactionId:row.transactionId,type:'lucy7s_spin_settled',amount:stake,prize:payout,jackpot:jp,accountKind:'citizen',accountRef:c.id,timestamp:row.timestamp});save(state);draw(result);$('lucyMessage').textContent=name(c)+': '+row.symbols.join(' · ')+'. '+outcome+(free?' (free spin)':'')+'.';update();}catch(e){try{const old=JSON.parse(before);Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,old);}catch(_){}$('lucyMessage').textContent='Spin not committed: '+String(e.message||e);draw([{label:'7',cls:'s-seven'},{label:'WILD',cls:'s-wild'},{label:'7',cls:'s-seven'}]);}finally{busy=false;$('lucySpinButton').disabled=false;}},650);};
