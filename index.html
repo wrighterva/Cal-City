@@ -38,7 +38,7 @@
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.112">
+<meta name="calvins-city-build" content="5.8.113">
  
  
  
@@ -558,7 +558,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.112</title>
+<title>Calvin's City 5.8.113</title>
  
 <style>
  
@@ -1019,7 +1019,7 @@ th,td{border-bottom-color:#343B43!important}
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.112</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.113</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -4346,7 +4346,13 @@ function sbCommitCashTx(tx){
  
 ensureBetsFinanceCollections();
  
-if(betsDatabase.sportsBetsCashTransactions.some(x=>x&&x.id===tx.id))return {ok:true,duplicate:true};
+/* 5.8.113: During automatic betting, use the per-run transaction-ID index instead
+of rescanning the entire cash-transaction history for every wager. Outside the
+batch, retain the original authoritative duplicate check. */
+const autoBetBatch=window.__sbAutomaticBetBatch;
+if(autoBetBatch&&autoBetBatch.transactionIds instanceof Set){
+if(autoBetBatch.transactionIds.has(String(tx.id)))return {ok:true,duplicate:true};
+}else if(betsDatabase.sportsBetsCashTransactions.some(x=>x&&x.id===tx.id))return {ok:true,duplicate:true};
  
 const issuer=sbGetAccount("business","Sports Bets Company");
  
@@ -4360,11 +4366,16 @@ mirror is proven to duplicate every transaction already held in the main state. 
  
 window.__calvinsCityFinancialMirrorCompactedForQuota=false;
  
+/* Storage-size diagnostics are still performed before the first wager and at
+least every ten committed automatic wagers. This avoids a full localStorage scan
+for every citizen while retaining frequent quota checks on constrained iOS storage. */
+const shouldCheckStorage=!autoBetBatch||autoBetBatch.transactionsSinceStorageCheck>=10;
+if(shouldCheckStorage){
 let storageChars=0;
- 
 try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storageChars+=String(k||"").length+String(localStorage.getItem(k)||"").length;}}catch(_){}
- 
 if(storageChars>2100000)sbCompactExactFinancialMirrorForBets();
+if(autoBetBatch)autoBetBatch.transactionsSinceStorageCheck=0;
+}
  
 const beforeState=JSON.stringify(state),beforeDb=JSON.stringify(betsDatabase),beforeMirror=sbFinancialMirrorRaw();
  
@@ -4483,6 +4494,11 @@ throw new Error("The BETS ledger could not be saved. Detail: "+detail+" [writabl
 window.__suppressCitizenCashTrace=priorCashTraceSuppression;
  
 window.__cashIntegrityAuditBusy=priorAuditBusy;
+ 
+if(autoBetBatch&&autoBetBatch.transactionIds instanceof Set){
+autoBetBatch.transactionIds.add(String(tx.id));
+autoBetBatch.transactionsSinceStorageCheck++;
+}
  
 return {ok:true};
  
@@ -4712,6 +4728,15 @@ if(b.cashStakeReserved===true)stakeUsedByCitizen.set(id,(stakeUsedByCitizen.get(
  
 let pendingExposure=sbPendingExposure();
  
+/* 5.8.113: Index existing cash-transaction IDs once for this automatic run.
+The index is only an optimization; the authoritative database and all per-wager
+transaction checks, snapshots, rollback, and verified saves remain in place. */
+const previousAutoBetBatch=window.__sbAutomaticBetBatch;
+window.__sbAutomaticBetBatch={
+transactionIds:new Set((Array.isArray(betsDatabase.sportsBetsCashTransactions)?betsDatabase.sportsBetsCashTransactions:[]).filter(x=>x&&x.id!=null).map(x=>String(x.id))),
+transactionsSinceStorageCheck:10
+};
+try{
 for(const c of citizens){
  
 const citizenId=String(c.id);
@@ -4748,6 +4773,9 @@ if(result.ok){made++;automaticCitizens.add(citizenId);stakeUsedByCitizen.set(cit
  
 else{skipped++;fatalError=result.error||"Automatic wager transaction failed.";break;}
  
+}
+}finally{
+window.__sbAutomaticBetBatch=previousAutoBetBatch||null;
 }
  
 renderBetsSection();sbRenderFinancePanels();
