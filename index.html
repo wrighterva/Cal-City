@@ -1,6 +1,6 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 5.8.120: Prevents retired players with intentionally empty roster slots from being re-added by the legacy Season 29 roster seed. Preserves player career/history records and existing active roster slots. Based on v5.8.119. -->
+<!-- CALVIN'S CITY — VERSION 5.8.121: CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
  
@@ -15392,7 +15392,7 @@ function status(t){const e=$("calBankFedCapitalStatus");if(e)e.textContent=t;}
  
 function render(){const st=read(GAME_KEY),d=bankDB();if(!st||!st.federalReserve||!Number.isFinite(Number(st.federalReserve.cash))){status("Federal Reserve cash is not available in the saved game state. No transfers are possible.");return;}
  
-const fedCash=round(st.federalReserve.cash),outstanding=round(d.fedCapitalOutstanding),invested=round(d.fedCapitalInvested),depositLiabilities=round((Array.isArray(d.accounts)?d.accounts:[]).reduce((sum,a)=>sum+(Number(a&&a.balance)||0),0)),returnable=Math.max(0,Math.min(round(outstanding-invested),round(Number(d.bankCash)-depositLiabilities)));
+const fedCash=round(st.federalReserve.cash),outstanding=round(d.fedCapitalOutstanding),invested=round(d.fedCapitalInvested),depositLiabilities=round((Array.isArray(d.accounts)?d.accounts:[]).reduce((sum,a)=>sum+(Number(a&&a.balance)||0),0)),returnable=Math.max(0,Math.min(round(outstanding-invested),round(Number(d.bankCash))));
  
 [["calBankFedCapitalOutstanding",fmt(outstanding)],["calBankFedCapitalReturnable",fmt(returnable)],["calBankFedCash",fmt(fedCash)]].forEach(([id,v])=>{const e=$(id);if(e)e.textContent=v;});
  
@@ -15432,9 +15432,9 @@ st.federalReserve.cash=round(fedBefore-amount);d.bankCash=round(bankBefore+amoun
  
 const depositLiabilities=round((Array.isArray(d.accounts)?d.accounts:[]).reduce((sum,a)=>sum+(Number(a&&a.balance)||0),0));
  
-const returnable=Math.max(0,Math.min(round(outBefore-invested),round(bankBefore-depositLiabilities)));
+const returnable=Math.max(0,Math.min(round(outBefore-invested),round(bankBefore)));
  
-if(amount>returnable+0.000001){status("That amount exceeds uninvested Fed capital available to return. No changes made.");return;}
+if(amount>returnable+0.000001){status("That amount exceeds uninvested Fed capital or CalBank cash available to return. No changes made.");return;}
  
 if(bankBefore+0.000001<amount){status("CalBank does not have enough cash to return that amount. No changes made.");return;}
  
