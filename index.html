@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.130: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.131: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.130">
+<meta name="calvins-city-build" content="5.8.131">
 
 
 
@@ -562,7 +562,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.130</title>
+<title>Calvin's City 5.8.131</title>
 
 <style>
 
@@ -1038,7 +1038,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.130</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.131</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -5463,7 +5463,29 @@ return;
 
 }
 
-sbCloseDoneBettingModal();sbGameStartProcessing=false;playNextGame();
+/* 5.8.131: Keep the confirmation visible until the game has actually been recorded.
+  Previously the modal closed before playNextGame(); if that call returned early or
+  threw, the catch wrote its error into a hidden modal status element. */
+const gamesBefore=Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0;
+const phaseBefore=String(state.seasonPhase||"");
+const indexBefore=Number(state.regularGameIndex)||0;
+playNextGame();
+const gamesAfter=Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0;
+const phaseAfter=String(state.seasonPhase||"");
+const indexAfter=Number(state.regularGameIndex)||0;
+const gameAdvanced=gamesAfter>gamesBefore||phaseAfter!==phaseBefore||indexAfter!==indexBefore;
+if(!gameAdvanced){
+sbGameStartProcessing=false;
+sbDoneYes.disabled=false;sbDoneNo.disabled=false;sbDoneYes.textContent="Yes";
+if(status){
+status.textContent="Automatic betting finished, but the game did not advance. No second betting run was started. Check the season status and saved game records before retrying.";
+status.style.display="block";
+}
+modal.style.display="flex";
+return;
+}
+sbCloseDoneBettingModal();
+sbGameStartProcessing=false;
 
 }catch(error){
 
@@ -5471,7 +5493,11 @@ console.error("Automatic betting confirmation failed:",error);
 
 sbGameStartProcessing=false;sbDoneYes.disabled=false;sbDoneNo.disabled=false;sbDoneYes.textContent="Yes";
 
-if(status)status.textContent="Automatic betting stopped safely: "+String(error&&error.message||error)+". No game was started; check the BETS ledger before retrying.";
+if(status){
+status.textContent="Automatic betting or game start failed: "+String(error&&error.message||error)+". The game may not have advanced. Check the BETS ledger before retrying.";
+status.style.display="block";
+}
+const modal=document.getElementById("betsDoneBettingModal");if(modal)modal.style.display="flex";
 
 }
 
