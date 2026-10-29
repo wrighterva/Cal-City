@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.138: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.139: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.138">
+<meta name="calvins-city-build" content="5.8.139">
 
 
 
@@ -567,7 +567,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.138</title>
+<title>Calvin's City 5.8.139</title>
 
 <style>
 
@@ -1053,7 +1053,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <div class="card"><h2>📚 Record & History</h2><p>Permanent history plus the Citizen Ledger. Every person gets one identity that connects basketball, cash, businesses and future financial systems.</p><div class="grid"><div class="metric"><small>Citizens</small><strong id="citizenCount">0</strong></div><div class="metric"><small>Games Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="openRecords" class="goodbtn">📚 Open Records</button><button id="openCitizenLedgerHome" class="secondary">👤 Open Citizen Ledger</button><button id="openShareOwnershipLedgerHome" class="secondary">📒 Open Share &amp; Ownership Ledger</button></div>
 
-<div class="card" id="importExportHomeCard"><h2>💾 Import / Export</h2><p>Save a backup of Calvin’s City to your iPhone Files app, or restore a previously exported backup.</p><div class="grid"><div class="metric"><small>Backup contents</small><strong>Game + Records</strong></div><div class="metric"><small>Format</small><strong>JSON</strong></div></div><button type="button" id="exportCityBackup" class="goodbtn">⬇️ Export All Data</button><button type="button" id="chooseCityBackup" class="secondary">⬆️ Import Backup</button><input type="file" id="cityBackupFile" accept=".json,application/json" style="display:none"><p id="cityBackupStatus" class="tiny" role="status" aria-live="polite">Export creates a downloadable backup of this browser’s Calvin’s City local storage. Import validates the file and saves a recovery snapshot before restoring.</p></div></section>
+<div class="card" id="importExportHomeCard"><h2>💾 Import / Export</h2><p>Save a backup of Calvin’s City to your iPhone Files app, or restore a previously exported backup.</p><div class="grid"><div class="metric"><small>Backup contents</small><strong>Game + Records</strong></div><div class="metric"><small>Format</small><strong>JSON</strong></div></div><button type="button" id="exportCityBackup" class="goodbtn">⬇️ Export All Data</button><button type="button" id="chooseCityBackup" class="secondary">⬆️ Import Backup</button><button type="button" id="openBetsImportExportHome" class="secondary" aria-haspopup="dialog" aria-controls="betsImportExportModal" onclick="document.getElementById('betsImportExportModal').style.display='flex'">🎲 Bet Import/Export</button><input type="file" id="cityBackupFile" accept=".json,application/json" style="display:none"><p id="cityBackupStatus" class="tiny" role="status" aria-live="polite">Export creates a downloadable backup of this browser’s Calvin’s City local storage. Import validates the file and saves a recovery snapshot before restoring.</p></div></section>
 
 
 
@@ -2657,8 +2657,11 @@ ckTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></d
 <div class="city-tabs" role="tablist" aria-label="Sports Bets sections">
 <button type="button" class="city-tab" id="sportsBetsOwnershipTab" role="tab" aria-selected="false" onclick="window.openOwnershipMarketplace('Sports Bets Company')">🏢 Ownership</button>
 <button type="button" class="city-tab active" id="sportsBetsBetsTab" role="tab" aria-selected="true" aria-controls="bets">🎲 Bets &amp; Ledger</button>
+
 </div>
 </div>
+
+
 
 <div class="card">
 
@@ -2672,7 +2675,7 @@ ckTradingShares" type="number" min="1" step="1" value="1" style="width:100%"></d
 
 orageStatus" class="tiny" role="status" aria-live="polite" style="margin:10px 0;padding:10px;border:1px solid var(--border,#888);border-radius:8px">BETS database status: checking saved records…</div>
 
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px"><button type="button" id="betsExportBackup">Download BETS Backup (JSON)</button><button type="button" id="betsExportFullRecovery">Download Full Recovery Snapshot (JSON)</button><button type="button" id="betsRestoreBackup">Restore BETS Backup (JSON)</button><input type="file" id="betsBackupFile" accept=".json,application/json" style="display:none"></div>
+
 
 <div class="grid">
 
@@ -23993,7 +23996,7 @@ var body=document.createElement("div");body.id="cc5874RecoveryText";panel.append
 }
 
 var recoveryBody=byId("cc5874RecoveryText");
-if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.138\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.139\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 
 }
 
@@ -24254,4 +24257,20 @@ window.renderCalBankMasterLedger=render;
 
 
 
+
+<div id="betsImportExportModal" role="dialog" aria-modal="true" aria-labelledby="betsImportExportTitle" style="display:none;position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:18px;box-sizing:border-box">
+ <div class="card" style="width:min(100%,520px);max-height:85vh;overflow:auto;margin:auto;box-shadow:0 18px 60px rgba(0,0,0,.45)">
+   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+     <h2 id="betsImportExportTitle">🗂️ Bet Import/Export</h2>
+     <button type="button" aria-label="Close Bet Import/Export" title="Close" style="min-width:44px;font-size:1.35em" onclick="document.getElementById('betsImportExportModal').style.display='none'">×</button>
+   </div>
+   <p class="tiny">Save or restore the permanent BETS ledger. These options are separate from the full Calvin’s City backup.</p>
+   <div style="display:grid;gap:10px;margin-top:14px">
+     <button type="button" id="betsExportBackup">Download BETS Backup (JSON)</button>
+     <button type="button" id="betsExportFullRecovery">Download Full Recovery Snapshot (JSON)</button>
+     <button type="button" id="betsRestoreBackup">Restore BETS Backup (JSON)</button>
+     <input type="file" id="betsBackupFile" accept=".json,application/json" style="display:none">
+   </div>
+ </div>
+</div>
 </body></html>
