@@ -1,6 +1,6 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 5.8.132: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.133: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
  
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.132">
+<meta name="calvins-city-build" content="5.8.133">
  
  
  
@@ -562,7 +562,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.132</title>
+<title>Calvin's City 5.8.133</title>
  
 <style>
  
@@ -1038,7 +1038,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.132</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.133</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -4850,7 +4850,7 @@ renderBetsSection();sbRenderFinancePanels();message.textContent="Bet confirmed. 
  
 }
  
-/* 5.8.132: Durable automatic-betting recovery marker.
+/* 5.8.133: Durable automatic-betting recovery marker.
   During citizen processing, individual wagers are only held in memory. If the
   page is interrupted before finalization, the run can safely restart only when
   none of its recorded wager IDs reached persistent storage. During finalization,
@@ -4911,7 +4911,7 @@ if(record.phase==="finalizing"||record.phase==="committed"){
 return {action:"block",error:"An unknown automatic-betting recovery state was found. No new bets were placed; preserve the saved data for review."};
 }
  
-/* 5.8.132: iOS lifecycle notifications refresh the visible recovery status only;
+/* 5.8.133: iOS lifecycle notifications refresh the visible recovery status only;
   they never start bets or mutate game data in the background. */
 (function sbBindAutoBetLifecycleRecoveryNotice(){
 if(window.__sbAutoBetLifecycleBound)return;window.__sbAutoBetLifecycleBound=true;
@@ -5552,7 +5552,7 @@ return;
  
 }
  
-/* 5.8.132: Keep the confirmation visible until the game has actually been recorded.
+/* 5.8.133: Keep the confirmation visible until the game has actually been recorded.
   Previously the modal closed before playNextGame(); if that call returned early or
   threw, the catch wrote its error into a hidden modal status element. */
 const gamesBefore=Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0;
@@ -9799,9 +9799,7 @@ citizen.lastGamePts=Number(p.pts)||0;
  
 citizen.lastGameRebs=Number(p.rebs)||0;
  
-citizen.lastGam
- 
-eSeason=Number(state.year)||0;
+citizen.lastGameSeason=Number(state.year)||0;
  
 citizen.lastGameStage=String(g.stage||"");
  
