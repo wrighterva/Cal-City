@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.128: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.129: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.128">
+<meta name="calvins-city-build" content="5.8.129">
 
 
 
@@ -562,7 +562,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.128</title>
+<title>Calvin's City 5.8.129</title>
 
 <style>
 
@@ -1038,7 +1038,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.128</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.129</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -4849,7 +4849,7 @@ renderBetsSection();sbRenderFinancePanels();message.textContent="Bet confirmed. 
 
 }
 
-function sbRunOtherBets(){
+async function sbRunOtherBets(){
 
 const match=sbCurrentPendingGame(),out=document.getElementById("betsOtherMessage");if(!out)return {ok:false,error:"Automatic-bet status area is unavailable."};if(!match){out.textContent="No upcoming game is available.";return {ok:false,error:"No upcoming game is available."};}if(!betsStorageWritable){out.textContent="BETS storage is write-protected; no cash was changed.";return {ok:false,error:"BETS storage is write-protected."};}
 
@@ -4887,6 +4887,16 @@ if(b.cashStakeReserved===true)stakeUsedByCitizen.set(id,(stakeUsedByCitizen.get(
 
 let pendingExposure=sbPendingExposure();
 
+async function sbAutoBetYieldProgress(processedCount){
+if(processedCount%25!==0&&processedCount!==citizens.length)return;
+const message="Automatic betting in progress: "+processedCount+" of "+citizens.length+" citizens checked; "+made+" wager(s) placed, "+skipped+" skipped. Saving begins after the final batch.";
+out.textContent=message;
+const status=document.getElementById("betsDoneBettingStatus");
+if(status)status.textContent=message+" Please keep Calvin's City open; the basketball game starts after the ledger is safely saved.";
+await new Promise(resolve=>setTimeout(resolve,0));
+}
+
+
 /* 5.8.114: One durable batch snapshot and one verified commit replace repeated
 whole-game snapshots and multiple large localStorage writes for every wager.
 The batch still validates each cash movement individually. If any wager fails,
@@ -4914,19 +4924,21 @@ rawSavedAtLoad:betsRawSavedAtLoad
 };
 window.__sbAutomaticBetBatch=autoBetBatch;
 try{
+let processed=0;
 for(const c of citizens){
 
+processed++;
 const citizenId=String(c.id);
 
-if(manualCitizens.has(citizenId)||automaticCitizens.has(citizenId)){skipped++;continue;}
+if(manualCitizens.has(citizenId)||automaticCitizens.has(citizenId)){skipped++;await sbAutoBetYieldProgress(processed);continue;}
 
 const stake=1,limit=sbRound(Number(c.cash)*0.01),used=stakeUsedByCitizen.get(citizenId)||0;
 
-if(stake>limit-used+0.000001||Number(c.cash)<stake){skipped++;continue;}
+if(stake>limit-used+0.000001||Number(c.cash)<stake){skipped++;await sbAutoBetYieldProgress(processed);continue;}
 
 const companyCash=Number(company.get());
 
-if(!Number.isFinite(companyCash)||pendingExposure+2*stake>companyCash+stake+0.000001){skipped++;continue;}
+if(!Number.isFinite(companyCash)||pendingExposure+2*stake>companyCash+stake+0.000001){skipped++;await sbAutoBetYieldProgress(processed);continue;}
 
 const market=markets[made%markets.length],lines=betsMarketLines(match);let selection;
 
@@ -4948,7 +4960,8 @@ const result=sbCommitCashTx({id:txId,type:"Automatic Sports Bet Stake",companyDe
 
 if(result.ok){made++;automaticCitizens.add(citizenId);stakeUsedByCitizen.set(citizenId,used+stake);pendingExposure+=2*stake;}
 
-else{skipped++;fatalError=result.error||"Automatic wager transaction failed.";break;}
+else{skipped++;fatalError=result.error||"Automatic wager transaction failed.";await sbAutoBetYieldProgress(processed);break;}
+await sbAutoBetYieldProgress(processed);
 
 }
 }finally{
@@ -5416,11 +5429,11 @@ if(status)status.textContent="Please wait — the system is placing players’ b
 
 No betting rules, transaction logic, layout, or storage behavior are changed here. */
 
-setTimeout(function(){
+setTimeout(async function(){
 
 try{
 
-const result=sbRunOtherBets();
+const result=await sbRunOtherBets();
 
 if(!result||!result.ok){
 
