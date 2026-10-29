@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.129: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.130: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.129">
+<meta name="calvins-city-build" content="5.8.130">
 
 
 
@@ -562,7 +562,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.129</title>
+<title>Calvin's City 5.8.130</title>
 
 <style>
 
@@ -1038,7 +1038,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.129</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.130</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -4856,6 +4856,11 @@ const match=sbCurrentPendingGame(),out=document.getElementById("betsOtherMessage
 const eventKey=match.eventKey||betsCurrentEventKey(match),citizens=(Array.isArray(state.citizens)?state.citizens:[]).filter(c=>c&&c.id!=null&&Number(c.cash)>=10).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
 
 let made=0,skipped=0,fatalError=null;const markets=["moneyline","spread","total"],company=sbGetAccount("business","Sports Bets Company");
+const progressStatus=document.getElementById("betsDoneBettingStatus");
+const progressMessage="Automatic betting starting… preparing citizen and ledger records. Keep this window open.";
+out.textContent=progressMessage;
+if(progressStatus)progressStatus.textContent=progressMessage;
+await new Promise(resolve=>setTimeout(resolve,0));
 
 if(!company){out.textContent="Sports Bets Company cash account is unavailable.";return {ok:false,error:"Sports Bets Company cash account is unavailable."};}
 
@@ -4888,11 +4893,18 @@ if(b.cashStakeReserved===true)stakeUsedByCitizen.set(id,(stakeUsedByCitizen.get(
 let pendingExposure=sbPendingExposure();
 
 async function sbAutoBetYieldProgress(processedCount){
-if(processedCount%25!==0&&processedCount!==citizens.length)return;
-const message="Automatic betting in progress: "+processedCount+" of "+citizens.length+" citizens checked; "+made+" wager(s) placed, "+skipped+" skipped. Saving begins after the final batch.";
+if(processedCount%10!==0&&processedCount!==citizens.length)return;
+const percent=citizens.length?Math.min(100,Math.floor(processedCount/citizens.length*100)):100;
+const message="Automatic betting: "+processedCount+" of "+citizens.length+" citizens checked ("+percent+"%). "+made+" wager(s) placed; "+skipped+" skipped. Final ledger save pending.";
 out.textContent=message;
 const status=document.getElementById("betsDoneBettingStatus");
-if(status)status.textContent=message+" Please keep Calvin's City open; the basketball game starts after the ledger is safely saved.";
+if(status){
+status.textContent=message+" Please keep Calvin's City open. The basketball game starts after betting and ledger saving finish.";
+status.style.display="block";
+status.style.fontSize="0.95rem";
+status.style.fontWeight="600";
+status.style.lineHeight="1.45";
+}
 await new Promise(resolve=>setTimeout(resolve,0));
 }
 
@@ -5423,7 +5435,13 @@ sbGameStartProcessing=true;sbDoneYes.disabled=true;sbDoneNo.disabled=true;sbDone
 
 const status=document.getElementById("betsDoneBettingStatus");
 
-if(status)status.textContent="Please wait — the system is placing players’ bets and saving the ledger. Keep this window open; the game will start when betting is complete.";
+if(status){
+status.textContent="Automatic betting is starting… preparing citizen and ledger records.";
+status.style.display="block";
+status.style.fontSize="0.95rem";
+status.style.fontWeight="600";
+status.style.lineHeight="1.45";
+}
 
 /* 5.1.9.2: Let the browser paint the wait message before running the existing betting routine.
 
