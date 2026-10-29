@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.135: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.136: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.135">
+<meta name="calvins-city-build" content="5.8.136">
 
 
 
@@ -98,21 +98,26 @@ box.id = "startupDiagnosticPanel";
 
 box.style.cssText = "position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;background:#240f12;color:#fff;border:2px solid #ff7777;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-shadow:0 4px 20px #0008";
 
+
+var controls = document.createElement("div");
+controls.style.cssText = "display:flex;gap:6px;justify-content:flex-end;align-items:center;margin-bottom:8px;position:sticky;top:0;background:#240f12;padding-bottom:4px";
+var copy = document.createElement("button");
+copy.type = "button"; copy.textContent = "Copy diagnostics";
+copy.style.cssText = "padding:6px 9px;border:0;border-radius:6px;background:#e8c078;color:#21170c;font-weight:700";
+copy.onclick = function(){
+var report = (document.getElementById("startupDiagnosticText") || {}).textContent || "";
+var fallback = function(){var field=document.createElement("textarea");field.value=report;field.setAttribute("readonly","");field.style.cssText="position:fixed;left:-9999px;top:0;opacity:0";(document.body||document.documentElement).appendChild(field);field.select();try{document.execCommand("copy");}catch(_){}field.remove();};
+if(navigator.clipboard && navigator.clipboard.writeText){navigator.clipboard.writeText(report).then(function(){copy.textContent="Copied!";},function(){fallback();copy.textContent="Copy attempted";});}else{fallback();copy.textContent="Copy attempted";}
+};
 var close = document.createElement("button");
-
-close.textContent = "Hide diagnostics";
-
-close.style.cssText = "float:right;padding:5px 8px";
-
-close.onclick = function(){ box.remove(); };
-
-box.appendChild(close);
-
+close.type = "button"; close.textContent = "×"; close.setAttribute("aria-label","Close startup diagnostics"); close.title="Close diagnostics";
+close.style.cssText = "padding:4px 10px;border:0;border-radius:6px;background:#ff7777;color:#240f12;font-size:20px;font-weight:700;line-height:1";
+close.onclick = function(){box.remove();};
+controls.appendChild(copy); controls.appendChild(close); box.appendChild(controls);
 var body = document.createElement("div");
-
 body.id = "startupDiagnosticText";
-
 box.appendChild(body);
+
 
 (document.body || document.documentElement).appendChild(box);
 
@@ -562,7 +567,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.135</title>
+<title>Calvin's City 5.8.136</title>
 
 <style>
 
@@ -1038,7 +1043,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.135</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.136</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -23983,9 +23988,19 @@ if(missing.length){
 
 var panel=byId("cc5874RecoveryNotice");
 
-if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
+if(!panel){
+panel=document.createElement("div");panel.id="cc5874RecoveryNotice";
+panel.style.cssText="position:fixed;z-index:2147483646;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-sizing:border-box;box-shadow:0 4px 20px #0008";
+var controls=document.createElement("div");controls.style.cssText="display:flex;gap:6px;justify-content:flex-end;align-items:center;margin-bottom:8px;position:sticky;top:0;background:#2b1b0b;padding-bottom:4px";
+var copy=document.createElement("button");copy.type="button";copy.textContent="Copy diagnostics";copy.style.cssText="padding:6px 9px;border:0;border-radius:6px;background:#e9a23b;color:#21170c;font-weight:700";
+copy.onclick=function(){var report=(document.getElementById("cc5874RecoveryText")||{}).textContent||"";var fallback=function(){var field=document.createElement("textarea");field.value=report;field.setAttribute("readonly","");field.style.cssText="position:fixed;left:-9999px;top:0;opacity:0";(document.body||document.documentElement).appendChild(field);field.select();try{document.execCommand("copy");}catch(_){}field.remove();};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(report).then(function(){copy.textContent="Copied!";},function(){fallback();copy.textContent="Copy attempted";});}else{fallback();copy.textContent="Copy attempted";}};
+var close=document.createElement("button");close.type="button";close.textContent="×";close.setAttribute("aria-label","Close startup recovery notice");close.title="Close notice";close.style.cssText="padding:4px 10px;border:0;border-radius:6px;background:#e9a23b;color:#21170c;font-size:20px;font-weight:700;line-height:1";close.onclick=function(){panel.remove();};
+controls.appendChild(copy);controls.appendChild(close);panel.appendChild(controls);
+var body=document.createElement("div");body.id="cc5874RecoveryText";panel.appendChild(body);document.body.appendChild(panel);
+}
 
-panel.textContent="Calvin's City startup recovery 5.8.96\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+var recoveryBody=byId("cc5874RecoveryText");
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.136\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 
 }
 
@@ -23999,9 +24014,19 @@ try{
 
 var panel=byId("cc5874RecoveryNotice");
 
-if(!panel){panel=document.createElement("div");panel.id="cc5874RecoveryNotice";panel.style.cssText="position:fixed;z-index:2147483647;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap";document.body.appendChild(panel);}
+if(!panel){
+panel=document.createElement("div");panel.id="cc5874RecoveryNotice";
+panel.style.cssText="position:fixed;z-index:2147483646;left:8px;right:8px;bottom:78px;max-height:35vh;overflow:auto;background:#2b1b0b;color:#fff;border:2px solid #e9a23b;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-sizing:border-box;box-shadow:0 4px 20px #0008";
+var controls=document.createElement("div");controls.style.cssText="display:flex;gap:6px;justify-content:flex-end;align-items:center;margin-bottom:8px;position:sticky;top:0;background:#2b1b0b;padding-bottom:4px";
+var copy=document.createElement("button");copy.type="button";copy.textContent="Copy diagnostics";copy.style.cssText="padding:6px 9px;border:0;border-radius:6px;background:#e9a23b;color:#21170c;font-weight:700";
+copy.onclick=function(){var report=(document.getElementById("cc5874RecoveryText")||{}).textContent||"";var fallback=function(){var field=document.createElement("textarea");field.value=report;field.setAttribute("readonly","");field.style.cssText="position:fixed;left:-9999px;top:0;opacity:0";(document.body||document.documentElement).appendChild(field);field.select();try{document.execCommand("copy");}catch(_){}field.remove();};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(report).then(function(){copy.textContent="Copied!";},function(){fallback();copy.textContent="Copy attempted";});}else{fallback();copy.textContent="Copy attempted";}};
+var close=document.createElement("button");close.type="button";close.textContent="×";close.setAttribute("aria-label","Close startup recovery notice");close.title="Close notice";close.style.cssText="padding:4px 10px;border:0;border-radius:6px;background:#e9a23b;color:#21170c;font-size:20px;font-weight:700;line-height:1";close.onclick=function(){panel.remove();};
+controls.appendChild(copy);controls.appendChild(close);panel.appendChild(controls);
+var body=document.createElement("div");body.id="cc5874RecoveryText";panel.appendChild(body);document.body.appendChild(panel);
+}
 
-panel.textContent="Calvin's City startup recovery 5.8.96\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+var recoveryBody=byId("cc5874RecoveryText");
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.136\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 
 }catch(ignore){}
 
