@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.137: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.138: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.137">
+<meta name="calvins-city-build" content="5.8.138">
 
 
 
@@ -567,7 +567,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.137</title>
+<title>Calvin's City 5.8.138</title>
 
 <style>
 
@@ -5979,6 +5979,10 @@ const key=g=>[g.teamA.toLowerCase(),g.scoreA,g.teamB.toLowerCase(),g.scoreB].joi
 
 const reverseKey=g=>[g.teamB.toLowerCase(),g.scoreB,g.teamA.toLowerCase(),g.scoreA].join('|');
 
+/* 5.8.138: Count normalized result keys as rows are appended. The previous
+  rows.filter(...) inside every source-row iteration repeatedly scanned the
+  growing permanent archive and could make dropdown changes pause. */
+const rowCounts=new Map();
 const addSource=(source,mapper)=>{
 
 if(!Array.isArray(source))return;
@@ -5993,13 +5997,13 @@ const k=key(g),rk=reverseKey(g);
 
 const count=Math.max(sourceCounts.get(k)||0,sourceCounts.get(rk)||0);
 
-const seen=rows.filter(old=>key(old)===k||key(old)===rk).length;
+const seen=(rowCounts.get(k)||0)+(k===rk?0:(rowCounts.get(rk)||0));
 
 if(seen<count)return;
 
-rows.push(g);sourceCounts.set(k,(sourceCounts
-
-.get(k)||0)+1);
+rows.push(g);
+rowCounts.set(k,(rowCounts.get(k)||0)+1);
+sourceCounts.set(k,(sourceCounts.get(k)||0)+1);
 
 });
 
@@ -6103,18 +6107,7 @@ const out=document.getElementById("betsBetOptions");
 
 if(!market||!out)return;
 
-// Immediately replace the winner/spread picker when Combined Game Total is selected.
-
-if(market.value==="total"){
-
-const lines=typeof betsNextMatchup==="function"?betsNextMatchup():null;
-
-const total=lines&&typeof betsMarketLines==="function"?betsMarketLines(lines).total:150;
-
-out.innerHTML='<label for="betsSelection">Pick Over or Under (combined points)</label><select id="betsSelection"><option value="over">Over '+total+' total points</option><option value="under">Under '+total+' total points</option></select><p class="tiny">This bet is on both teams’ combined final score, not which team wins. An exact match is a push.</p>';
-
-}
-
+/* Compute market lines only once per dropdown change. */
 renderBetsBetForm();
 
 }
@@ -24000,7 +23993,7 @@ var body=document.createElement("div");body.id="cc5874RecoveryText";panel.append
 }
 
 var recoveryBody=byId("cc5874RecoveryText");
-if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.137\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.138\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 
 }
 
@@ -24026,7 +24019,7 @@ var body=document.createElement("div");body.id="cc5874RecoveryText";panel.append
 }
 
 var recoveryBody=byId("cc5874RecoveryText");
-if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.137\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.138\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 
 }catch(ignore){}
 
