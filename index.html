@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.136: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.137: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.136">
+<meta name="calvins-city-build" content="5.8.137">
 
 
 
@@ -567,7 +567,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.136</title>
+<title>Calvin's City 5.8.137</title>
 
 <style>
 
@@ -4839,7 +4839,7 @@ const betId="BET-"+betsDatabase.nextBetId,txId="SB-BET-"+betsDatabase.nextBetId+
 const bet={id:betId,teamA:draft.teamA,teamB:draft.teamB,targetEventKey:draft.eventKey,market:draft.market,selection:draft.selection,stake:draft.stake,spread:draft.spread,total:draft.total,status:"pending",net:0,payout:0,placedAt:new Date().toISOString(),description:draft.description,citizenId:draft.citizenId,citizenName:draft.citizenName,placedBy:"manual",betType:"manual",cashStakeReserved:true,cashTransactionId:txId,currency:"M"};
 
 const beforeDb=JSON.stringify(betsDatabase);betsDatabase.nextBetId++;betsDatabase.bets.push(bet);
-autoBetBatch.createdBetIds.push(String(betId));autoBetBatch.createdTransactionIds.push(String(txId));
+/* Manual bet: automatic-batch tracking does not apply here. */
 
 const result=sbCommitCashTx({id:txId,type:"Sports Bet Stake",companyDelta:draft.stake,companyType:"Sports Bet Stake Received",companyReason:"Stake received from "+draft.citizenName+" for "+draft.description,counterpartyKind:"citizen",counterpartyRef:draft.citizenId,counterpartyDelta:-draft.stake,counterpartyType:"Sports Bet Stake Paid",counterpartyReason:"Placed bet on "+draft.description,betId,gameEventKey:draft.eventKey,stake:draft.stake});
 
@@ -24000,7 +24000,7 @@ var body=document.createElement("div");body.id="cc5874RecoveryText";panel.append
 }
 
 var recoveryBody=byId("cc5874RecoveryText");
-if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.136\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.137\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 
 }
 
@@ -24026,7 +24026,7 @@ var body=document.createElement("div");body.id="cc5874RecoveryText";panel.append
 }
 
 var recoveryBody=byId("cc5874RecoveryText");
-if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.136\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.137\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 
 }catch(ignore){}
 
