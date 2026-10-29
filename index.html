@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.140: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.141: Automatic-betting interruption checkpoint and safe recovery guard; preserves prior fixes. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.140">
+<meta name="calvins-city-build" content="5.8.141">
 
 
 
@@ -567,7 +567,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.140</title>
+<title>Calvin's City 5.8.141</title>
 
 <style>
 
@@ -18285,9 +18285,7 @@ const history=db.transactions.filter(t=>t&&t.company===name).slice().reverse().s
 
 panel.innerHTML='<div class="market-profile-top"><div><div class="market-profile-category">'+esc(marketCategory(def))+'</div><h3 style="margin:4px 0">'+def.icon+' '+esc(name)+'</h3><p class="market-help">Public stock ownership is separate from the business ownership registry.</p></div><button type="button" class="market-back" data-market-close="1">← Back to '+esc(marketCategory(def))+'</button></div>'+
 
-'<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Share Price</small><strong>'+money(co.price)+'</strong></div><div class="metric"><small>Market Cap</small><strong>'+m
-
-oney(marketCap(co))+'</strong></div><div class="metric"><small>Company Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Shares Held / Available</small><strong>'+sharesSold(co)+' / '+sharesAvailable(co)+'</strong></div><button type="button" class="metric market-price-move" data-market-action="priceChart" aria-label="Open stock price chart for '+esc(name)+'"><small>Last Price Move · View Chart ↗</small><strong>'+(change===null?'No move yet':pct(change))+'</strong></button><div class="metric"><small>Latest Revenue</small><strong>'+(latest&&latest.revenueTracked?money(latest.revenue):'Not tracked')+'</strong></div></div>'+
+'<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Share Price</small><strong>'+money(co.price)+'</strong></div><div class="metric"><small>Market Cap</small><strong>'+money(marketCap(co))+'</strong></div><div class="metric"><small>Company Cash</small><strong>'+money(cash)+'</strong></div><div class="metric"><small>Shares Held / Available</small><strong>'+sharesSold(co)+' / '+sharesAvailable(co)+'</strong></div><button type="button" class="metric market-price-move" data-market-action="priceChart" aria-label="Open stock price chart for '+esc(name)+'"><small>Last Price Move · View Chart ↗</small><strong>'+(change===null?'No move yet':pct(change))+'</strong></button><div class="metric"><small>Latest Revenue</small><strong>'+(latest&&latest.revenueTracked?money(latest.revenue):'Not tracked')+'</strong></div></div>'+
 
 (co.needsAllocationReview?'<p class="gold" style="margin-top:10px"><b>Trading paused:</b> historic shareholder allocation has not been confirmed. The system will not invent missing shareholders.</p>':'')+
 
@@ -23994,7 +23992,7 @@ var body=document.createElement("div");body.id="cc5874RecoveryText";panel.append
 }
 
 var recoveryBody=byId("cc5874RecoveryText");
-if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.140\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.141\n"+missing.join("; ")+"\nNavigation recovery is active. Saved records were not modified.";
 
 }
 
