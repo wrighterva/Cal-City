@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.126: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.127: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.126">
+<meta name="calvins-city-build" content="5.8.127">
 
 
 
@@ -562,7 +562,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.126</title>
+<title>Calvin's City 5.8.127</title>
 
 <style>
 
@@ -1038,7 +1038,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.126</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.127</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -17828,9 +17828,7 @@ if(!db.businessShareAccountsMigrationV1){
 
 companies.forEach(def=>{const co=db.companies[def.name];if(!co)return;co.holdings=co.holdings||{};co.ownerNames=co.ownerNames||{};co.holderPurchasePrices=co.holderPurchasePrices||{};
 
-Object.k
-
-eys(co.holdings).forEach(key=>{const holderName=co.ownerNames[key]||"";if(norm(holderName)!==norm(def.name)||key==="BUSINESS:"+def.name)return;
+Object.keys(co.holdings).forEach(key=>{const holderName=co.ownerNames[key]||"";if(norm(holderName)!==norm(def.name)||key==="BUSINESS:"+def.name)return;
 
 const newKey="BUSINESS:"+def.name;co.holdings[newKey]=(Number(co.holdings[newKey])||0)+(Number(co.holdings[key])||0);co.ownerNames[newKey]=def.name;
 
@@ -20207,9 +20205,7 @@ function activeDeals(){ensure();const year=Number(state.year)||29;return state.t
 
 function activeTeams(){return [...new Set(activeDeals().map(d=>d.team))];}
 
-function render(){ensure();const current=Number(state.year)||29,active=activeTeams(),cash=$("tvBroadcastCash"),count=$("tvBroadcastActiveCount"),eligible=$("tvBroadcastEligibility"),warning=$("tvBroadcastWarning"),out=$("tvBroadcastRegister"),select=$("tvBroadcastTeam");if(cash)cash.textContent=moneyText(state.businessCash["TV Company"]);if(count)count.textContent=active.length+" / 3";if(eligible){eligible.textContent=active.length>=2?"Eligible":"Not eligible";eligible.style.color=active.length>=2?"#9ff0b5":"#f1d37a";}if(warning){warning.style.display=active.length>=2?"none":"block";warning.innerHTML=active.len
-
-gth>=2?"":"<b>Season "+current+" readiness:</b> TV Company has "+active.length+" active team contract(s). Sign at least "+(2-active.length)+" more team contract(s) before game revenue can be earned.";}if(select){const previous=select.value;Array.from(select.options).forEach(o=>{o.disabled=active.includes(o.value);});if(active.includes(previous)){const first=Array.from(select.options).find(o=>!o.disabled);if(first)select.value=first.value;}}if(out){const deals=state.tvBroadcastingDeals.slice().sort((a,b)=>(Number(a.startSeason)||0)-(Number(b.startSeason)||0));if(!deals.length){out.innerHTML='<p class="muted">No broadcasting deals recorded. At least two different teams must have active contracts for TV Company to earn game revenue.</p>';}else{out.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Team</th><th>Full Payment</th><th>Term</th><th>Seasons</th><th>Status</th></tr></thead><tbody>'+deals.map(d=>{const on=d.status!=="cancelled"&&Number(d.startSeason)<=current&&Number(d.endSeason)>=current;const status=d.status==="cancelled"?"Cancelled":on?"Active":current<Number(d.startSeason)?"Upcoming":"Expired";return '<tr><td>'+esc(d.team)+'</td><td>'+moneyText(d.contractValue)+'</td><td>'+esc(d.termYears)+' season(s)</td><td>'+esc(d.startSeason)+'–'+esc(d.endSeason)+'</td><td>'+status+'</td></tr>';}).join("")+'</tbody></table></div><p class="tiny">Contract payments are paid in full at signing. Expired contracts do not count toward the two-team minimum.</p>';}}}
+function render(){ensure();const current=Number(state.year)||29,active=activeTeams(),cash=$("tvBroadcastCash"),count=$("tvBroadcastActiveCount"),eligible=$("tvBroadcastEligibility"),warning=$("tvBroadcastWarning"),out=$("tvBroadcastRegister"),select=$("tvBroadcastTeam");if(cash)cash.textContent=moneyText(state.businessCash["TV Company"]);if(count)count.textContent=active.length+" / 3";if(eligible){eligible.textContent=active.length>=2?"Eligible":"Not eligible";eligible.style.color=active.length>=2?"#9ff0b5":"#f1d37a";}if(warning){warning.style.display=active.length>=2?"none":"block";warning.innerHTML=active.length>=2?"":"<b>Season "+current+" readiness:</b> TV Company has "+active.length+" active team contract(s). Sign at least "+(2-active.length)+" more team contract(s) before game revenue can be earned.";}if(select){const previous=select.value;Array.from(select.options).forEach(o=>{o.disabled=active.includes(o.value);});if(active.includes(previous)){const first=Array.from(select.options).find(o=>!o.disabled);if(first)select.value=first.value;}}if(out){const deals=state.tvBroadcastingDeals.slice().sort((a,b)=>(Number(a.startSeason)||0)-(Number(b.startSeason)||0));if(!deals.length){out.innerHTML='<p class="muted">No broadcasting deals recorded. At least two different teams must have active contracts for TV Company to earn game revenue.</p>';}else{out.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Team</th><th>Full Payment</th><th>Term</th><th>Seasons</th><th>Status</th></tr></thead><tbody>'+deals.map(d=>{const on=d.status!=="cancelled"&&Number(d.startSeason)<=current&&Number(d.endSeason)>=current;const status=d.status==="cancelled"?"Cancelled":on?"Active":current<Number(d.startSeason)?"Upcoming":"Expired";return '<tr><td>'+esc(d.team)+'</td><td>'+moneyText(d.contractValue)+'</td><td>'+esc(d.termYears)+' season(s)</td><td>'+esc(d.startSeason)+'–'+esc(d.endSeason)+'</td><td>'+status+'</td></tr>';}).join("")+'</tbody></table></div><p class="tiny">Contract payments are paid in full at signing. Expired contracts do not count toward the two-team minimum.</p>';}}}
 
 function signDeal(){ensure();const team=$("tvBroadcastTeam"),term=$("tvBroadcastTerm"),valueEl=$("tvBroadcastValue"),msg=$("tvBroadcastMessage");if(!team||!term||!valueEl||!msg)return;const name=String(team.value||""),years=Number(term.value),value=Math.round(Number(valueEl.value)*100)/100,season=Number(state.year)||29;if(!teams.includes(name)){msg.textContent="Choose a valid team.";return;}if(!Number.isInteger(years)||years<1||years>6){msg.textContent="A broadcasting contract must last 1–6 seasons.";return;}if(!Number.isFinite(value)||value<=0){msg.textContent="Enter a total upfront payment greater than $0M.";return;}if(activeDeals().some(d=>d.team===name)){msg.textContent=name+" already has an active TV contract.";return;}const tvBefore=Number(state.businessCash["TV Company"])||0;if(value>tvBefore){msg.textContent="TV Company does not have enough cash. Available: "+moneyText(tvBefore)+".";return;}const teamBefore=Number(state.teamCash[name])||0,tvAfter=Math.round((tvBefore-value)*100)/100,teamAfter=Math.round((teamBefore+value)*100)/100,id="TV-BROADCAST-"+season+"-"+name+"-"+Date.now(),at=new Date().toISOString(),end=season+years-1;const deal={id,team:name,contractValue:value,termYears:years,startSeason:season,endSeason:end,status:"active",paidInFull:true,paidAt:at};state.businessCash["TV Company"]=tvAfter;state.teamCash[name]=teamAfter;state.tvBroadcastingDeals.push(deal);state.businessCashLedger.push({id:id+"-TV",season,type:"TV Broadcasting Deal Payment",company:"TV Company",amount:-value,before:tvBefore,after:tvAfter,reason:"Full upfront broadcasting contract payment to "+name+" for "+years+" season(s)",createdAt:at});state.teamCashLedger.push({id:id+"-TEAM",season,team:name,type:"TV Broadcasting Deal Payment",amount:value,before:teamBefore,after:teamAfter,reason:"Full upfront broadcasting contract payment from TV Company; term "+years+" season(s)",createdAt:at});syncUnifiedFinancialLedger();bridge.save();valueEl.value="";msg.textContent="Contract signed: TV Company paid "+moneyText(value)+" to "+name+" in full. Active through Season "+end+".";render();updateAlert();}
 
