@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.127: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
+<!-- CALVIN'S CITY — VERSION 5.8.128: Syntax restoration (115 repairs); preserves v5.8.123 optimizations. Automatic betting citizen-account lookup optimization; retains v5.8.122 storage and settlement-index improvements. CalBank Fed-capital return fix. Return availability is no longer reduced by customer deposit liabilities; return remains limited to uninvested Fed capital and actual CalBank cash. Preserves v5.8.120 retired-roster safeguard. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.127">
+<meta name="calvins-city-build" content="5.8.128">
 
 
 
@@ -562,7 +562,7 @@ console.error("Calvin's City compressed storagedid not initialize; original stor
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.127</title>
+<title>Calvin's City 5.8.128</title>
 
 <style>
 
@@ -1038,7 +1038,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.127</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.128</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -23787,9 +23787,7 @@ if(!target||!target.classList.contains("screen"))return false;
 
 document.querySelectorAll(".screen").forEach(function(el){el.classList.toggle("active",el===target);});
 
-document.querySelectorAl
-
-l(".nav button[data-nav]").forEach(function(btn){btn.classList.toggle("active",btn.getAttribute("data-nav")===id);});
+document.querySelectorAll(".nav button[data-nav]").forEach(function(btn){btn.classList.toggle("active",btn.getAttribute("data-nav")===id);});
 
 try{window.scrollTo(0,0);}catch(e){}
 
