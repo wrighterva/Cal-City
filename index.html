@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.163: Read-only IndexedDB staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.164: Read-only IndexedDB startup/import flow analysis and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -1163,6 +1163,12 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <p>Inspects the staged backup and reports the current source-code storage dependencies. It does not redirect application storage, initialize the game, or write/delete any records.</p>
 <button type="button" id="indexedDBCompatibilityMap" class="secondary">Run IndexedDB Compatibility Map</button>
 <textarea id="indexedDBCompatibilityReport" readonly style="display:none;width:100%;min-height:280px;margin-top:10px"></textarea>
+</div>
+<div class="section" style="margin-top:12px;padding:12px;border:1px solid var(--border,#555);border-radius:10px">
+<h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.164</h3>
+<p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p>
+<button type="button" id="indexedDBStartupImportAnalysis" class="secondary">Run Startup &amp; Import Flow Analysis</button>
+<textarea id="indexedDBStartupImportReport" readonly spellcheck="false" style="display:none;width:100%;min-height:520px;margin-top:12px"></textarea>
 </div>
 <button type="button" id="reviewIndexedDBBackup" class="secondary" style="margin-top:10px">🔍 Review Staged Backup Against Live Data</button>
 <p class="tiny">Read-only comparison of the newest staged IndexedDB backup against current live localStorage. It does not restore, overwrite, delete, or activate records.</p>
@@ -24284,7 +24290,7 @@ window.renderCalBankMasterLedger=render;
 
 
 <script>
-/* CALVIN'S CITY 5.8.163 — SEPARATE INDEXEDDB BACKUP STAGING.
+/* CALVIN'S CITY 5.8.164 — SEPARATE INDEXEDDB BACKUP STAGING.
   A selected full-backup JSON is validated, written under a unique backup ID,
   then read back and compared byte-for-byte at the string-value level.
   It never imports into the game, touches localStorage, or deletes prior staged copies. */
@@ -24684,6 +24690,116 @@ try{
 }catch(error){show("INDEXEDDB STORAGE DEPENDENCY TRACE FAILED\\n"+String(error&&error.message||error)+"\\n\\nNo game data was changed.");console.error("Calvin's City static dependency trace failed:",error);}
 finally{button.disabled=false;}
 });
+})();
+</script>
+
+
+<script>
+/* CALVIN'S CITY 5.8.164 — READ-ONLY STARTUP AND IMPORT FLOW ANALYSIS.
+  This diagnostic inspects the current HTML's inline source only. It does not
+  access localStorage or IndexedDB, initialize the game, or change saved data. */
+(function(){
+"use strict";
+const button=document.getElementById("indexedDBStartupImportAnalysis");
+const output=document.getElementById("indexedDBStartupImportReport");
+if(!button||!output)return;
+function lineOf(source,needle){
+const index=source.indexOf(needle);
+return index<0?"not found":String(source.slice(0,index).split("\n").length);
+}
+function run(){
+const scripts=Array.from(document.scripts).map((node,index)=>({index,source:node.textContent||""}));
+const app=scripts.find(x=>x.source.includes('let state={year:29'));
+const importer=scripts.find(x=>x.source.includes('const PREFIX="CALVINS_CITY_FULL_BACKUP_V1"')&&x.source.includes('const current=capture()'));
+const staging=scripts.find(x=>x.source.includes('const DB_NAME="calvinsCityStorageRecoveryV3"'));
+const core=app?app.source:"";
+const imp=importer?importer.source:"";
+const lines=[];
+const add=(label,value)=>lines.push(label+": "+value);
+lines.push("CALVIN'S CITY — v5.8.164 STARTUP & IMPORT FLOW ANALYSIS");
+lines.push("MODE: READ-ONLY SOURCE INSPECTION");
+lines.push("Scope: inline JavaScript in this HTML file. No game storage was read or changed.");
+lines.push("");
+add("Inline script blocks detected",scripts.length);
+add("Core state initializer found",!!app);
+add("Full-backup import handler found",!!importer);
+add("Separate IndexedDB staging handler found",!!staging);
+lines.push("");
+lines.push("1. CURRENT STARTUP ORDER");
+if(app){
+add("Core initializer script block",app.index);
+add("Default in-memory state", "created with year 29 before saved state is loaded");
+add("First main-state read", "script "+app.index+", line "+lineOf(core,'localStorage.getItem("calvins_city_v24")'));
+add("Startup load behavior", "synchronous localStorage.getItem, JSON.parse, then object spread into state");
+add("Immediate post-load behavior", "standings fallback is applied; the same script continues defining and invoking game logic");
+}else{
+lines.push("Core initializer could not be identified by its known state signature.");
+}
+const rescue=scripts.find(x=>x.source.includes("function restoreSeasonLabel()")&&x.source.includes('localStorage.getItem("calvins_city_v24")'));
+if(rescue)add("Early UI fallback", "script "+rescue.index+" also reads the main state synchronously to restore the season label");
+lines.push("");
+lines.push("2. CURRENT FULL-BACKUP IMPORT SEQUENCE");
+if(importer){
+add("Import handler script block",importer.index);
+add("Export/import format", "CALVINS_CITY_FULL_BACKUP_V1, formatVersion 1");
+add("File size guard", "100 MB maximum");
+add("Validation", "JSON structure, key-name pattern, string values, main game state, season >= 29, and historical evidence");
+add("Pre-import snapshot", "capture() copies all matching current localStorage entries into an in-memory object");
+add("Import payload compaction", "may omit only exact duplicate financial mirror / redundant BETS copies / eligible recovery snapshots from the in-memory restore payload");
+add("Destructive phase", "enumerates matching localStorage keys and removes them before writing imported values");
+add("Write order", "main game state and primary BETS first, then remaining entries");
+add("Verification", "reads each written value back; validates main season and BETS games");
+add("Rollback", "on write/verification failure, removes partial imported keys and attempts to restore the in-memory pre-import snapshot");
+add("Success behavior", "updates status and reloads the page");
+add("Importer line markers", "capture="+lineOf(imp,"function capture()")+", confirm="+lineOf(imp,"if(!confirm(")+", snapshot="+lineOf(imp,"const current=capture()")+", remove="+lineOf(imp,"allExistingKeys.forEach")+", write="+lineOf(imp,"for(const k of ordered)localStorage.setItem")+", rollback="+lineOf(imp,"SAFE IMPORT ROLLBACK"));
+}else{
+lines.push("The known full-backup import handler was not found in the current HTML.");
+}
+lines.push("");
+lines.push("3. WHAT THE CURRENT INDEXEDDB STAGING FEATURE DOES");
+if(staging){
+add("Staging script block",staging.index);
+add("Database", "calvinsCityStorageRecoveryV3");
+add("Stores", "backupEntries and backupMeta");
+add("Behavior", "validates the selected backup, stores each original string under a unique backup ID, then reads entries back for exact string verification");
+add("Boundary", "staging is a separate recovery archive; it does not activate the game or replace the import handler");
+}else{
+lines.push("Separate staging code not found.");
+}
+lines.push("");
+lines.push("4. BLOCKERS TO MAKING INDEXEDDB THE LIVE STORE");
+lines.push("• The core game reads the main state synchronously before the game can initialize.");
+lines.push("• The current importer removes existing localStorage keys before writing the new set; this cannot be reused as an IndexedDB activation sequence.");
+lines.push("• Many modules perform synchronous localStorage reads and writes, including paired game/BETS/cash-ledger commits and rollback paths.");
+lines.push("• Startup code, recovery code, and early UI fallbacks also read storage; redirecting only the main state would create mixed-source data.");
+lines.push("• Existing recovery cleanup routines can remove a key after proving it redundant. Those checks must remain correct across the new canonical store and must never delete the staged original backup.");
+lines.push("");
+lines.push("5. SAFE IMPLEMENTATION ORDER");
+lines.push("A. Freeze the current storage contract: enumerate every key, every direct call site, dynamic key values, and read/write/delete dependencies.");
+lines.push("B. Define a new primary IndexedDB database separate from calvinsCityStorageRecoveryV3. Store each logical key as a versioned record and keep an explicit active-dataset manifest.");
+lines.push("C. Implement a transactional import: parse and validate all records; write them to a new inactive dataset; read back and compare every value; then atomically switch the active-dataset pointer. Do not delete the previous active dataset during activation.");
+lines.push("D. Add an asynchronous startup gate before the core state initializer and before any module that reads game storage. Load and validate the active dataset before releasing startup.");
+lines.push("E. Refactor synchronous storage call sites into a consistent async storage interface, or provide a fully audited in-memory cache hydrated before startup with durable IndexedDB commits and verified transaction semantics. Do not use a partial localStorage shim.");
+lines.push("F. Preserve transaction boundaries for paired state/BETS/cash-ledger writes, automatic-bet recovery markers, rollback, and all historical records.");
+lines.push("G. Run a staged Season 52 restore in a separate test dataset, compare exact record values and counts, then test reload, interrupted import, quota/write failure, export, and game play.");
+lines.push("H. Keep the existing import/export route available until all tests pass. Do not clear localStorage or delete the staged recovery archive.");
+lines.push("");
+lines.push("6. SEASON 52 BACKUP VALIDATION ITEMS");
+lines.push("• The staged seven-record backup is the recovery source; it must remain unchanged.");
+lines.push("• Validate every record's exact content, not only the entry count or total character count.");
+lines.push("• Investigate CalBank investments:null against its 18 investment-ledger entries before declaring the portfolio complete or incomplete.");
+lines.push("• The Season 29 test export is not the current Season 52 game and must not be used as the migration source.");
+lines.push("");
+lines.push("7. PLAY-TODAY DECISION");
+lines.push("This build is diagnostic only. It does not fix the current localStorage quota limit or make IndexedDB active. The safest same-day path is to preserve the Season 52 JSON backup and avoid another regular import attempt until the import path is converted to a verified IndexedDB transaction. If the existing live Season 52 game still opens and plays, do not replace its storage today.");
+lines.push("");
+lines.push("LIMITATIONS");
+lines.push("This is source inspection, not a runtime call trace. It reports source locations and control-flow facts visible in this HTML. It does not prove browser-specific quota behavior, transaction durability, or Safari runtime behavior.");
+output.value=lines.join("\n");
+output.style.display="block";
+output.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+button.addEventListener("click",run);
 })();
 </script>
 
