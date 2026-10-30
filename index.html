@@ -1,6 +1,6 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.160: Read-only IndexedDB staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.161: Read-only IndexedDB staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.160">
+<meta name="calvins-city-build" content="5.8.161">
 
 
 
@@ -321,7 +321,7 @@ window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"installed",reas
 
 
 <script>
-/* CALVIN'S CITY 5.8.160 — READ-ONLY STORAGE AUDIT.
+/* CALVIN'S CITY 5.8.161 — READ-ONLY STORAGE AUDIT.
   Native Storage readers are captured before the compression adapter is installed.
   This audit reads only; it does not write, delete, migrate, or open IndexedDB. */
 (function(){
@@ -337,7 +337,7 @@ const byteLength=function(value){
 try{return new Blob([value]).size;}
 catch(_){return unescape(encodeURIComponent(value)).length;}
 };
-lines.push("CALVIN'S CITY STORAGE AUDIT — v5.8.160");
+lines.push("CALVIN'S CITY STORAGE AUDIT — v5.8.161");
 lines.push("Mode: READ ONLY — no records changed; no IndexedDB database opened.");
 lines.push("Timestamp: "+new Date().toISOString());
 lines.push("Origin: "+location.origin);
@@ -392,7 +392,7 @@ show(lines.join("\n"));
 function show(report){
 const output=document.getElementById("storageAuditReport");
 if(output){output.value=report;output.style.display="block";}
-window.__calvinsCityStorageAudit={version:"5.8.160",status:"complete",report:report,completedAt:new Date().toISOString()};
+window.__calvinsCityStorageAudit={version:"5.8.161",status:"complete",report:report,completedAt:new Date().toISOString()};
 }
 function bind(){
 const button=document.getElementById(auditButtonId);
@@ -405,7 +405,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 else bind();
 window.__calvinsCityRunStorageAudit=runAudit;
 }catch(error){
-window.__calvinsCityStorageAudit={version:"5.8.160",status:"unavailable",message:String(error&&error.message||error)};
+window.__calvinsCityStorageAudit={version:"5.8.161",status:"unavailable",message:String(error&&error.message||error)};
 }
 })();
 </script>
@@ -656,7 +656,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.160</title>
+<title>Calvin's City 5.8.161</title>
 
 <style>
 
@@ -1130,7 +1130,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.160</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.161</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -1153,6 +1153,12 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <p>Validates that all seven staged Season 52 records can be read from IndexedDB and parsed. Reports the main season, permanent game records, ledger counts, and record structures. This does not initialize the game or change any stored data.</p>
 <button type="button" id="indexedDBReadinessCheck" class="secondary">Run IndexedDB Readiness Check</button>
 <textarea id="indexedDBReadinessReport" readonly style="display:none;width:100%;min-height:260px;margin-top:10px"></textarea>
+</div>
+<div class="section" style="margin-top:12px;padding:12px;border:1px solid var(--border,#555);border-radius:10px">
+<h3>🧭 IndexedDB Compatibility Map — Read Only</h3>
+<p>Inspects the staged backup and reports the current source-code storage dependencies. It does not redirect application storage, initialize the game, or write/delete any records.</p>
+<button type="button" id="indexedDBCompatibilityMap" class="secondary">Run IndexedDB Compatibility Map</button>
+<textarea id="indexedDBCompatibilityReport" readonly style="display:none;width:100%;min-height:280px;margin-top:10px"></textarea>
 </div>
 <button type="button" id="reviewIndexedDBBackup" class="secondary" style="margin-top:10px">🔍 Review Staged Backup Against Live Data</button>
 <p class="tiny">Read-only comparison of the newest staged IndexedDB backup against current live localStorage. It does not restore, overwrite, delete, or activate records.</p>
@@ -24274,7 +24280,7 @@ window.renderCalBankMasterLedger=render;
 
 
 <script>
-/* CALVIN'S CITY 5.8.160 — SEPARATE INDEXEDDB BACKUP STAGING.
+/* CALVIN'S CITY 5.8.161 — SEPARATE INDEXEDDB BACKUP STAGING.
   A selected full-backup JSON is validated, written under a unique backup ID,
   then read back and compared byte-for-byte at the string-value level.
   It never imports into the game, touches localStorage, or deletes prior staged copies. */
@@ -24401,7 +24407,7 @@ stage(file);
 </script>
 
 <script>
-/* CALVIN'S CITY 5.8.160 — READ-ONLY INDEXEDDB BACKUP COMPARISON.
+/* CALVIN'S CITY 5.8.161 — READ-ONLY INDEXEDDB BACKUP COMPARISON.
   Reads the newest staged backup from RecoveryV2 and compares exact logical
   values against live localStorage. This script performs no writes or deletes. */
 (function(){
@@ -24429,7 +24435,7 @@ const meta=metas[0], rows=allRows.filter(function(row){return row.backupId===met
 if(rows.length!==meta.entryCount)throw new Error("Staged record count mismatch: metadata says "+meta.entryCount+", found "+rows.length+". No live data was changed.");
 const byKey=new Map(rows.map(function(row){return [row.key,row];}));
 const liveKeys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&relevantKey(k))liveKeys.push(k);}
-const lines=[];lines.push("CALVIN'S CITY — STAGED BACKUP REVIEW — v5.8.160");lines.push("Mode: READ ONLY — no localStorage or IndexedDB records changed.");lines.push("Backup ID: "+meta.id);lines.push("Staged at: "+(meta.stagedAt||"not recorded"));lines.push("Source file: "+(meta.sourceFileName||"not recorded"));lines.push("Backup app version: "+(meta.appVersion||"not recorded"));lines.push("Backup records: "+meta.entryCount);lines.push("Backup characters: "+Number(meta.totalChars||0).toLocaleString());lines.push("Live relevant localStorage keys: "+liveKeys.length);lines.push("");
+const lines=[];lines.push("CALVIN'S CITY — STAGED BACKUP REVIEW — v5.8.161");lines.push("Mode: READ ONLY — no localStorage or IndexedDB records changed.");lines.push("Backup ID: "+meta.id);lines.push("Staged at: "+(meta.stagedAt||"not recorded"));lines.push("Source file: "+(meta.sourceFileName||"not recorded"));lines.push("Backup app version: "+(meta.appVersion||"not recorded"));lines.push("Backup records: "+meta.entryCount);lines.push("Backup characters: "+Number(meta.totalChars||0).toLocaleString());lines.push("Live relevant localStorage keys: "+liveKeys.length);lines.push("");
 let same=0,different=0,missing=0;
 rows.sort(function(a,b){return String(a.key).localeCompare(String(b.key));});
 lines.push("BACKUP-TO-LIVE COMPARISON:");
@@ -24448,7 +24454,7 @@ button.addEventListener("click",review);
 </script>
 
 <script>
-/* CALVIN'S CITY 5.8.160 — READ-ONLY INDEXEDDB DATA READINESS CHECK.
+/* CALVIN'S CITY 5.8.161 — READ-ONLY INDEXEDDB DATA READINESS CHECK.
   Reads the latest staged backup, validates all seven records and parses their
   JSON payloads. It does not initialize the game, write to either database,
   alter localStorage, migrate records, or activate a backup. */
@@ -24482,7 +24488,7 @@ const rows=entryRows.filter(function(row){return row&&row.backupId===metadata.id
 if(rows.length!==Number(metadata.entryCount))throw new Error("Staged entry count mismatch. Expected "+metadata.entryCount+", found "+rows.length+".");
 const byKey=new Map(rows.map(function(row){return [row.key,row];}));
 const lines=[];let parseFailures=0;let totalCharacters=0;
-lines.push("CALVIN'S CITY — INDEXEDDB READINESS CHECK — v5.8.160");
+lines.push("CALVIN'S CITY — INDEXEDDB READINESS CHECK — v5.8.161");
 lines.push("Mode: READ ONLY — no game initialization, writes, migration, activation, or deletion.");
 lines.push("Backup ID: "+metadata.id);
 lines.push("Source file: "+(metadata.sourceFileName||"not recorded"));
@@ -24541,6 +24547,81 @@ lines.push("This validates IndexedDB backup readability only. It does NOT prove 
 lines.push("No localStorage or IndexedDB records were changed.");
 show(lines.join("\n"));
 }catch(error){show("INDEXEDDB READINESS CHECK FAILED\n"+String(error&&error.message||error)+"\n\nNo game data was changed.");console.error("Calvin's City IndexedDB readiness check failed:",error);}finally{if(database)database.close();button.disabled=false;}}
+button.addEventListener("click",run);
+})();
+</script>
+
+
+<script>
+/* CALVIN'S CITY 5.8.161 — READ-ONLY INDEXEDDB COMPATIBILITY MAP.
+  This is an inventory/probe only. It deliberately does not patch Storage,
+  initialize the game, redirect reads/writes, or modify either database. */
+(function(){
+"use strict";
+const button=document.getElementById("indexedDBCompatibilityMap");
+const output=document.getElementById("indexedDBCompatibilityReport");
+if(!button||!output)return;
+const DB_NAME="calvinsCityStorageRecoveryV2";
+const DB_VERSION=1;
+const ENTRY_STORE="backupEntries";
+const META_STORE="backupMeta";
+const EXPECTED=["calvins_city_v24","calvins_city_bets_v1","calvins_city_bets_pending_import_v1","calvins_city_calbank_v1","calvins_city_share_ownership_ledger_v1","calvins_city_stock_market_v1","calvins_city_business_ownership_v1"];
+const SOURCE_INVENTORY={
+synchronousLocalStorageCalls:205,
+literalStorageKeys:[
+ {key:"calvins_city_v24",calls:40,role:"Core game state; synchronous startup reads and writes"},
+ {key:"calvins_city_calbank_v1",calls:24,role:"CalBank accounts, deposits, debts, and ledgers"},
+ {key:"calvins_city_financial_transactions_v1",calls:4,role:"Separate financial transaction storage"},
+ {key:"calvins_city_stock_market_v1",calls:2,role:"Stock market state"},
+ {key:"calvins_city_share_ownership_ledger_v1",calls:1,role:"Share ownership ledger"},
+ {key:"calvins_city_cash_approval_queue_v1",calls:1,role:"Cash approval queue"},
+ {key:"calvins_city_bets_v1",calls:1,role:"Sports betting database"}
+],
+note:"Static source scan of v5.8.161: 205 direct localStorage getItem/setItem/removeItem call sites; 7 distinct literal keys. Additional calls use variables/dynamic keys and must be traced before migration."
+};
+function reqValue(request){return new Promise(function(resolve,reject){request.onsuccess=function(){resolve(request.result);};request.onerror=function(){reject(request.error||new Error("IndexedDB request failed."));};});}
+function openDb(){return new Promise(function(resolve,reject){if(!window.indexedDB){reject(new Error("IndexedDB is unavailable."));return;}let req;try{req=indexedDB.open(DB_NAME,DB_VERSION);}catch(e){reject(e);return;}req.onsuccess=function(){resolve(req.result);};req.onerror=function(){reject(req.error||new Error("Could not open recovery database."));};req.onblocked=function(){reject(new Error("IndexedDB open blocked; close other Calvin's City tabs and retry."));};});}
+function show(text){output.style.display="block";output.value=text;}
+async function run(){button.disabled=true;show("Reading staged backup metadata and building a read-only compatibility map…");let db=null;try{
+db=await openDb();
+if(!db.objectStoreNames.contains(ENTRY_STORE)||!db.objectStoreNames.contains(META_STORE))throw new Error("The expected recovery stores are not present.");
+const tx=db.transaction([ENTRY_STORE,META_STORE],"readonly");
+const entries=await reqValue(tx.objectStore(ENTRY_STORE).getAll());
+const metadata=await reqValue(tx.objectStore(META_STORE).getAll());
+const metaById=new Map(metadata.map(function(item){return [item.id,item];}));
+const candidates=metadata.filter(function(item){return item&&item.id&&entries.some(function(row){return String(row.id||"").startsWith(String(item.id)+"::");});});
+candidates.sort(function(a,b){return String(b.stagedAt||"").localeCompare(String(a.stagedAt||""));});
+if(!candidates.length)throw new Error("No staged backup metadata with matching records was found.");
+const chosen=candidates[0];
+const rows=entries.filter(function(row){return String(row.id||"").startsWith(String(chosen.id)+"::");});
+const byKey=new Map(rows.map(function(row){return [row.key,row];}));
+const lines=[];
+lines.push("CALVIN'S CITY — INDEXEDDB COMPATIBILITY MAP — v5.8.161");
+lines.push("Mode: READ ONLY — no app storage redirection, game initialization, writes, migration, activation, or deletion.");
+lines.push("Backup ID: "+chosen.id);
+lines.push("Source file: "+String(chosen.sourceFile||"Unknown"));
+lines.push("Staged at: "+String(chosen.stagedAt||"Unknown"));
+lines.push("Staged records found: "+rows.length);
+lines.push("");lines.push("STAGED RECORD AVAILABILITY:");
+EXPECTED.forEach(function(key){const row=byKey.get(key);lines.push(JSON.stringify({key:key,status:row&&typeof row.value==="string"?"AVAILABLE IN INDEXEDDB":"MISSING OR INVALID",characters:row&&typeof row.value==="string"?row.value.length:null}));});
+const missing=EXPECTED.filter(function(key){const row=byKey.get(key);return !row||typeof row.value!=="string";});
+lines.push("");lines.push("CURRENT APPLICATION STORAGE DEPENDENCIES (STATIC SOURCE INVENTORY):");
+lines.push("Direct localStorage getItem/setItem/removeItem call sites: "+SOURCE_INVENTORY.synchronousLocalStorageCalls);
+SOURCE_INVENTORY.literalStorageKeys.forEach(function(item){lines.push(JSON.stringify(item));});
+lines.push("Additional dynamic/variable-key storage calls exist and require individual tracing.");
+lines.push("");lines.push("COMPATIBILITY FINDINGS:");
+lines.push("1. The staged Season 52 values are stored as strings in IndexedDB and can be read without localStorage.");
+lines.push("2. The current application still contains synchronous localStorage dependencies; IndexedDB is asynchronous.");
+lines.push("3. The core game state and multiple feature modules read/write localStorage directly.");
+lines.push("4. A safe migration therefore requires a coordinated storage facade and startup sequencing; a simple localStorage override is not safe.");
+lines.push("5. This map does not prove that the game can run from IndexedDB. No game code was connected to the staged data.");
+lines.push("");lines.push("SUMMARY:");
+lines.push("Expected staged records available: "+(EXPECTED.length-missing.length)+" / "+EXPECTED.length);
+lines.push("Missing/invalid expected records: "+missing.length);
+lines.push("Result: "+(missing.length===0?"READ-ONLY COMPATIBILITY INVENTORY COMPLETE":"INCOMPLETE — do not proceed to adapter activation"));
+lines.push("No localStorage or IndexedDB records were changed.");
+show(lines.join("\n"));
+}catch(error){show("INDEXEDDB COMPATIBILITY MAP FAILED\n"+String(error&&error.message||error)+"\n\nNo game data was changed.");console.error("Calvin's City compatibility map failed:",error);}finally{if(db)db.close();button.disabled=false;}}
 button.addEventListener("click",run);
 })();
 </script>
