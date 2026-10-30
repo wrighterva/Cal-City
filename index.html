@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.164: Read-only IndexedDB startup/import flow analysis and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.167: IndexedDB bridge rehearsal; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -1211,10 +1211,11 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.166</h3>
 <p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p><p><strong>Storage update:</strong> Compression adapter v5.2.0 now writes the CCZ2 LZ4-compatible block format and retains CCZ1 read compatibility. It covers all seven records in the full backup. The IndexedDB staging archive remains separate and untouched.</p>
 <section id="ccIndexedDBCandidatePanel" style="margin:14px 0;padding:14px;border:1px solid #526078;border-radius:12px;background:rgba(40,55,78,.18);color:inherit">
-<h3>IndexedDB Storage Setup — v5.8.166</h3>
-<p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p>
+<h3>IndexedDB Storage Setup — v5.8.167</h3>
+<p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p><p><strong>Bridge rehearsal:</strong> loads the latest verified candidate into a temporary in-memory map and tests the synchronous Storage API behaviors the existing game depends on. All test writes/removals occur only in that temporary map; neither localStorage nor the IndexedDB candidate is modified.</p>
 <button type="button" id="ccCreateIndexedDBCandidate" style="padding:10px 14px;border-radius:8px">Create Verified IndexedDB Copy</button>
 <button type="button" id="ccVerifyIndexedDBCandidate" style="padding:10px 14px;border-radius:8px;margin-left:8px">Verify Latest Copy</button>
+<button type="button" id="ccRunIndexedDBBridgeRehearsal" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run Read-Only Bridge Rehearsal</button>
 <pre id="ccIndexedDBCandidateStatus" style="white-space:pre-wrap;overflow-wrap:anywhere;display:none;margin-top:12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.18)"></pre>
 </section>
 <button type="button" id="indexedDBStartupImportAnalysis" class="secondary">Run Startup &amp; Import Flow Analysis</button>
@@ -25006,4 +25007,145 @@ verify.addEventListener("click",verifyLatest);
 })();
 </script>
 
+<script>
+
+/* CALVIN'S CITY v5.8.167 — READ-ONLY INDEXEDDB BRIDGE REHEARSAL.
+  Hydrates a temporary in-memory map from the latest verified candidate and
+  tests synchronous Storage API semantics without patching Storage.prototype.
+  Test mutations are confined to the temporary map. No live data is changed. */
+(function(){
+"use strict";
+const DB_NAME="calvinsCityPrimaryStorageV1";
+const button=document.getElementById("ccRunIndexedDBBridgeRehearsal");
+const output=document.getElementById("ccIndexedDBCandidateStatus");
+if(!button||!output)return;
+let busy=false;
+function show(lines){output.style.display="block";output.textContent=lines.join("\n");}
+function openDB(){
+return new Promise((resolve,reject)=>{
+const req=indexedDB.open(DB_NAME,1);
+req.onsuccess=()=>resolve(req.result);
+req.onerror=()=>reject(req.error||new Error("Could not open candidate database."));
+req.onblocked=()=>reject(new Error("Candidate database open was blocked."));
+});
+}
+function request(req){return new Promise((resolve,reject)=>{
+req.onsuccess=()=>resolve(req.result);
+req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));
+});}
+function transactionDone(tx){return new Promise((resolve,reject)=>{
+tx.oncomplete=()=>resolve();
+tx.onabort=()=>reject(tx.error||new Error("IndexedDB transaction aborted."));
+tx.onerror=()=>reject(tx.error||new Error("IndexedDB transaction failed."));
+});}
+async function readLatestVerified(db){
+const tx=db.transaction(["datasets"],"readonly");
+const done=transactionDone(tx);
+const all=await request(tx.objectStore("datasets").getAll());
+await done;
+const list=all.filter(x=>x&&x.status==="verified-candidate")
+.sort((a,b)=>String(b.verifiedAt||"").localeCompare(String(a.verifiedAt||"")));
+if(!list.length)throw new Error("No verified candidate is available.");
+const meta=list[0];
+const tx2=db.transaction(["records"],"readonly");
+const done2=transactionDone(tx2);
+const allRows=await request(tx2.objectStore("records").getAll());
+await done2;
+const rows=allRows.filter(r=>r&&r.datasetId===meta.datasetId)
+.sort((a,b)=>String(a.key).localeCompare(String(b.key)));
+if(rows.length!==meta.recordCount)throw new Error("Candidate record count does not match its metadata.");
+const map=new Map();
+for(const row of rows){
+if(typeof row.key!=="string"||typeof row.value!=="string")throw new Error("Candidate contains a non-string Storage record.");
+if(map.has(row.key))throw new Error("Duplicate candidate key: "+row.key);
+map.set(row.key,row.value);
+}
+return {meta,rows,map};
+}
+function makeStorageFacade(seed){
+const data=new Map(seed);
+return {
+get length(){return data.size;},
+key(index){const n=Number(index);if(!Number.isFinite(n)||n<0)return null;return Array.from(data.keys())[Math.floor(n)]??null;},
+getItem(key){const k=String(key);return data.has(k)?data.get(k):null;},
+setItem(key,value){data.set(String(key),String(value));},
+removeItem(key){data.delete(String(key));},
+clear(){data.clear();},
+_snapshot(){return new Map(data);}
+};
+}
+function assert(ok,message){if(!ok)throw new Error("Compatibility check failed: "+message);}
+async function run(){
+if(busy)return;busy=true;button.disabled=true;
+let db=null;
+try{
+show(["READ-ONLY INDEXEDDB BRIDGE REHEARSAL","Opening verified candidate…"]);
+db=await openDB();
+const loaded=await readLatestVerified(db);
+const facade=makeStorageFacade(loaded.map);
+const checks=[];
+assert(facade.length===loaded.meta.recordCount,"length reports the correct number of records.");checks.push("PASS: length");
+assert(facade.key(0)!==null&&facade.key(facade.length)===null,"key(index) enumerates valid keys.");checks.push("PASS: key(index)");
+const firstKey=facade.key(0),firstValue=facade.getItem(firstKey);
+assert(typeof firstValue==="string","getItem returns the original string value.");checks.push("PASS: getItem");
+assert(facade.getItem("__cc_missing_probe__")===null,"missing getItem returns null.");checks.push("PASS: missing-key behavior");
+const probeKey="__cc_idb_bridge_probe__";
+facade.setItem(probeKey,42);
+assert(facade.getItem(probeKey)==="42","setItem string-coerces values.");checks.push("PASS: setItem string coercion");
+facade.removeItem(probeKey);
+assert(facade.getItem(probeKey)===null,"removeItem removes a key.");checks.push("PASS: removeItem");
+facade.setItem(probeKey,"temporary");
+facade.clear();
+assert(facade.length===0,"clear removes entries from the temporary map.");
+checks.push("PASS: clear (temporary map only)");
+const restored=makeStorageFacade(loaded.map);
+assert(restored.length===loaded.meta.recordCount,"fresh hydration restores original record count.");
+for(const row of loaded.rows){
+assert(restored.getItem(row.key)===row.value,"exact value retained for "+row.key);
+}
+checks.push("PASS: exact hydration of every candidate value");
+let parsed=0,season=null;
+for(const row of loaded.rows){
+try{
+const value=JSON.parse(row.value);parsed++;
+if(row.key==="calvins_city_v24")season=Number(value&&value.year);
+}catch(_){}
+}
+assert(parsed===loaded.rows.length,"every candidate record parses as JSON.");
+checks.push("PASS: JSON parsing for all records");
+assert(Number.isFinite(season)&&season>=29,"main game state contains a valid season.");
+checks.push("PASS: main game season detected ("+season+")");
+const native=window.localStorage,nativeRows=[];
+for(let i=0;i<native.length;i++){
+const key=native.key(i);if(key!==null)nativeRows.push([key,native.getItem(key)]);
+}
+nativeRows.sort((a,b)=>a[0].localeCompare(b[0]));
+const nativeAfter=[];
+for(let i=0;i<native.length;i++){
+const key=native.key(i);if(key!==null)nativeAfter.push([key,native.getItem(key)]);
+}
+nativeAfter.sort((a,b)=>a[0].localeCompare(b[0]));
+assert(JSON.stringify(nativeRows)===JSON.stringify(nativeAfter),"localStorage remained unchanged during rehearsal.");
+checks.push("PASS: live localStorage unchanged");
+show([
+"INDEXEDDB BRIDGE REHEARSAL PASSED",
+"Dataset: "+loaded.meta.datasetId,
+"Candidate records hydrated: "+loaded.rows.length,
+"Logical characters: "+loaded.rows.reduce((n,r)=>n+r.value.length,0).toLocaleString(),
+"Detected game season: "+season,
+"",
+...checks,
+"",
+"IMPORTANT: This tests a temporary synchronous compatibility facade only.",
+"Storage.prototype was not patched. The game still uses localStorage.",
+"No IndexedDB candidate records or live game records were modified."
+]);
+}catch(err){
+show(["INDEXEDDB BRIDGE REHEARSAL DID NOT PASS",String(err&&err.message||err),"No live game data or candidate records were modified."]);
+}finally{if(db)db.close();busy=false;button.disabled=false;}
+}
+button.addEventListener("click",run);
+})();
+
+</script>
 </body></html>
