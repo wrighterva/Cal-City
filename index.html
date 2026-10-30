@@ -1208,8 +1208,15 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <textarea id="indexedDBCompatibilityReport" readonly style="display:none;width:100%;min-height:280px;margin-top:10px"></textarea>
 </div>
 <div class="section" style="margin-top:12px;padding:12px;border:1px solid var(--border,#555);border-radius:10px">
-<h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.165</h3>
+<h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.166</h3>
 <p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p><p><strong>Storage update:</strong> Compression adapter v5.2.0 now writes the CCZ2 LZ4-compatible block format and retains CCZ1 read compatibility. It covers all seven records in the full backup. The IndexedDB staging archive remains separate and untouched.</p>
+<section id="ccIndexedDBCandidatePanel" style="margin:14px 0;padding:14px;border:1px solid #526078;border-radius:12px;background:rgba(40,55,78,.18);color:inherit">
+<h3>IndexedDB Storage Setup — v5.8.166</h3>
+<p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p>
+<button type="button" id="ccCreateIndexedDBCandidate" style="padding:10px 14px;border-radius:8px">Create Verified IndexedDB Copy</button>
+<button type="button" id="ccVerifyIndexedDBCandidate" style="padding:10px 14px;border-radius:8px;margin-left:8px">Verify Latest Copy</button>
+<pre id="ccIndexedDBCandidateStatus" style="white-space:pre-wrap;overflow-wrap:anywhere;display:none;margin-top:12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.18)"></pre>
+</section>
 <button type="button" id="indexedDBStartupImportAnalysis" class="secondary">Run Startup &amp; Import Flow Analysis</button>
 <textarea id="indexedDBStartupImportReport" readonly spellcheck="false" style="display:none;width:100%;min-height:520px;margin-top:12px"></textarea>
 </div>
@@ -24759,7 +24766,7 @@ const core=app?app.source:"";
 const imp=importer?importer.source:"";
 const lines=[];
 const add=(label,value)=>lines.push(label+": "+value);
-lines.push("CALVIN'S CITY — v5.8.165 STARTUP & IMPORT FLOW ANALYSIS");
+lines.push("CALVIN'S CITY — v5.8.166 STARTUP & IMPORT FLOW ANALYSIS");
 lines.push("MODE: READ-ONLY SOURCE INSPECTION");
 lines.push("Scope: inline JavaScript in this HTML file. No game storage was read or changed.");
 lines.push("");
@@ -24843,6 +24850,159 @@ output.style.display="block";
 output.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 button.addEventListener("click",run);
+})();
+</script>
+
+
+<script>
+/* CALVIN'S CITY v5.8.166 — NON-DESTRUCTIVE INDEXEDDB CANDIDATE SNAPSHOT.
+  Copies the current logical localStorage key/value set into a separate IndexedDB
+  database. It never clears or writes localStorage and never changes game startup. */
+(function(){
+"use strict";
+const DB_NAME="calvinsCityPrimaryStorageV1",DB_VERSION=1;
+const status=document.getElementById("ccIndexedDBCandidateStatus");
+const create=document.getElementById("ccCreateIndexedDBCandidate");
+const verify=document.getElementById("ccVerifyIndexedDBCandidate");
+if(!status||!create||!verify)return;
+let busy=false;
+function show(lines){status.style.display="block";status.textContent=lines.join("\n");}
+function openDB(){
+return new Promise((resolve,reject)=>{
+const req=indexedDB.open(DB_NAME,DB_VERSION);
+req.onupgradeneeded=()=>{
+const db=req.result;
+if(!db.objectStoreNames.contains("datasets"))db.createObjectStore("datasets",{keyPath:"datasetId"});
+if(!db.objectStoreNames.contains("records"))db.createObjectStore("records",{keyPath:["datasetId","key"]});
+};
+req.onsuccess=()=>resolve(req.result);
+req.onerror=()=>reject(req.error||new Error("Could not open IndexedDB."));
+req.onblocked=()=>reject(new Error("IndexedDB upgrade is blocked by another open tab."));
+});
+}
+function request(req){return new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));});}
+function txDone(tx){return new Promise((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onabort=tx.onerror=()=>reject(tx.error||new Error("IndexedDB transaction failed."));});}
+function makeId(){return "candidate-"+Date.now()+"-"+Math.random().toString(36).slice(2,10);}
+function getCurrentSnapshot(){
+const store=window.localStorage,rows=[];
+for(let i=0;i<store.length;i++){
+const key=store.key(i);
+if(key===null)continue;
+const value=store.getItem(key);
+if(value===null)throw new Error("A storage key disappeared during snapshot: "+key);
+rows.push({key,value,logicalLength:value.length});
+}
+rows.sort((a,b)=>a.key.localeCompare(b.key));
+return rows;
+}
+async function writeRows(db,datasetId,rows){
+const batchSize=40;
+for(let start=0;start<rows.length;start+=batchSize){
+const tx=db.transaction(["records"],"readwrite"),os=tx.objectStore("records");
+for(const row of rows.slice(start,start+batchSize))os.put({datasetId,key:row.key,value:row.value,logicalLength:row.logicalLength});
+await txDone(tx);
+}
+}
+async function saveDatasetMeta(db,meta){
+const tx=db.transaction(["datasets"],"readwrite");
+tx.objectStore("datasets").put(meta);
+await txDone(tx);
+}
+async function readDatasetMeta(db,id){
+const tx=db.transaction(["datasets"],"readonly");
+const result=await request(tx.objectStore("datasets").get(id));
+await txDone(tx);return result;
+}
+async function readRows(db,id){
+const tx=db.transaction(["records"],"readonly");
+const req=tx.objectStore("records").indexNames.contains("byDataset")
+?tx.objectStore("records").index("byDataset").getAll(IDBKeyRange.only(id))
+:null;
+if(req){const result=await request(req);await txDone(tx);return result;}
+const all=await request(tx.objectStore("records").getAll());
+await txDone(tx);return all.filter(r=>r.datasetId===id);
+}
+function digestRows(rows){
+let h1=0x811c9dc5,h2=0x9e3779b9,total=0;
+rows=rows.slice().sort((a,b)=>a.key.localeCompare(b.key));
+for(const row of rows){
+const s=row.key+"\u0000"+row.value;
+total+=s.length;
+for(let i=0;i<s.length;i++){
+const c=s.charCodeAt(i);
+h1=Math.imul(h1^c,0x01000193)>>>0;
+h2=Math.imul(h2^(c+i),0x85ebca6b)>>>0;
+}
+}
+return {recordCount:rows.length,totalCharacters:rows.reduce((n,r)=>n+r.value.length,0),fingerprint:h1.toString(16).padStart(8,"0")+h2.toString(16).padStart(8,"0"),keyValueCharacters:total};
+}
+async function createCandidate(){
+if(busy)return;busy=true;create.disabled=verify.disabled=true;
+let db=null,datasetId=null;
+try{
+show(["Opening separate IndexedDB candidate database…","The live game storage is not being modified."]);
+db=await openDB();
+const rows=getCurrentSnapshot();
+if(!rows.length)throw new Error("No localStorage records were found; no candidate was created.");
+datasetId=makeId();
+const summary=digestRows(rows);
+const meta={datasetId,status:"writing",createdAt:new Date().toISOString(),source:"current logical localStorage snapshot",recordCount:summary.recordCount,totalCharacters:summary.totalCharacters,fingerprint:summary.fingerprint,formatVersion:1};
+await saveDatasetMeta(db,meta);
+await writeRows(db,datasetId,rows);
+const stored=await readRows(db,datasetId);
+const map=new Map(stored.map(r=>[r.key,r]));
+let mismatches=[];
+for(const row of rows){const got=map.get(row.key);if(!got||got.value!==row.value)mismatches.push(row.key);}
+if(stored.length!==rows.length)mismatches.push("record-count mismatch");
+if(mismatches.length)throw new Error("Read-back verification failed: "+mismatches.slice(0,8).join(", "));
+const verified={...meta,status:"verified-candidate",verifiedAt:new Date().toISOString(),verifiedRecordCount:stored.length};
+await saveDatasetMeta(db,verified);
+show([
+"INDEXEDDB CANDIDATE CREATED AND VERIFIED",
+"Database: "+DB_NAME,
+"Dataset: "+datasetId,
+"Records: "+summary.recordCount,
+"Logical characters: "+summary.totalCharacters.toLocaleString(),
+"Fingerprint: "+summary.fingerprint,
+"Status: verified-candidate (NOT ACTIVE)",
+"",
+"All values were read back and compared exactly.",
+"localStorage was not changed. No game records were deleted or migrated.",
+"The game still reads and writes localStorage. This is a verified parallel copy, not the primary storage switch."
+]);
+}catch(err){
+if(db&&datasetId){
+try{await saveDatasetMeta(db,{datasetId,status:"failed-candidate",failedAt:new Date().toISOString(),error:String(err&&err.message||err)});}catch(_){}
+}
+show(["INDEXEDDB CANDIDATE FAILED",String(err&&err.message||err),"The live localStorage data was not changed. An incomplete candidate, if any, is marked failed and is not active."]);
+}finally{if(db)db.close();busy=false;create.disabled=verify.disabled=false;}
+}
+async function verifyLatest(){
+if(busy)return;busy=true;create.disabled=verify.disabled=true;
+let db=null;
+try{
+db=await openDB();
+const tx=db.transaction(["datasets"],"readonly");
+const all=await request(tx.objectStore("datasets").getAll());
+await txDone(tx);
+const candidates=all.filter(x=>x.status==="verified-candidate").sort((a,b)=>String(b.verifiedAt).localeCompare(String(a.verifiedAt)));
+if(!candidates.length){show(["No verified candidate exists yet.","Create a candidate copy first."]);return;}
+const meta=candidates[0],stored=await readRows(db,meta.datasetId),summary=digestRows(stored);
+const ok=stored.length===meta.recordCount&&summary.totalCharacters===meta.totalCharacters&&summary.fingerprint===meta.fingerprint;
+show([
+ok?"LATEST INDEXEDDB CANDIDATE VERIFIED":"LATEST INDEXEDDB CANDIDATE FAILED VERIFICATION",
+"Dataset: "+meta.datasetId,
+"Expected records: "+meta.recordCount+" | Stored records: "+stored.length,
+"Expected characters: "+meta.totalCharacters+" | Stored characters: "+summary.totalCharacters,
+"Expected fingerprint: "+meta.fingerprint+" | Actual: "+summary.fingerprint,
+"Status: "+(ok?"verified-candidate (NOT ACTIVE)":"verification-failed"),
+"Live localStorage was not changed."
+]);
+}catch(err){show(["VERIFICATION ERROR",String(err&&err.message||err)]);}
+finally{if(db)db.close();busy=false;create.disabled=verify.disabled=false;}
+}
+create.addEventListener("click",createCandidate);
+verify.addEventListener("click",verifyLatest);
 })();
 </script>
 
