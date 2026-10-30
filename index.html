@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.173: IndexedDB JSON export and restore round-trip verification; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.174: IndexedDB broken-line and display-label repair; IndexedDB JSON export and restore round-trip verification; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.173">
+<meta name="calvins-city-build" content="5.8.174">
 
 
 
@@ -699,7 +699,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.163</title>
+<title>Calvin's City 5.8.174</title>
 
 <style>
 
@@ -1173,7 +1173,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.163</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.174</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -1211,13 +1211,14 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.166</h3>
 <p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p><p><strong>Storage update:</strong> Compression adapter v5.2.0 now writes the CCZ2 LZ4-compatible block format and retains CCZ1 read compatibility. It covers all seven records in the full backup. The IndexedDB staging archive remains separate and untouched.</p>
 <section id="ccIndexedDBCandidatePanel" style="margin:14px 0;padding:14px;border:1px solid #526078;border-radius:12px;background:rgba(40,55,78,.18);color:inherit">
-<h3>IndexedDB Storage Setup — v5.8.173</h3>
+<h3>IndexedDB Storage Setup — v5.8.174</h3>
 <p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p><p><strong>Bridge rehearsal:</strong> upgrades the candidate database schema safely while preserving existing stores and records; then loads the latest verified candidate into a temporary in-memory map and tests the synchronous Storage API behaviors the existing game depends on. The separate durable-write test writes only a temporary probe to its own test store, closes and reopens IndexedDB, verifies the probe, then removes it. The full JSON staging test validates the actual CALVINS_CITY_FULL_BACKUP_V1 file, writes its seven datasets under a new inactive dataset ID, and reads every value back exactly. The export/restore round-trip test serializes that inactive dataset into the existing JSON backup format, parses it again, stages a second inactive dataset, and verifies every value. The compatibility-cache test snapshots localStorage read-only into memory, tests synchronous Storage-style reads and mutations against an isolated cache, and verifies ordered durable journal writes in the existing bridgeJournal store. It never patches Storage.prototype or redirects game calls. Neither test changes the active game. All test writes/removals occur only in that temporary map; neither localStorage nor the IndexedDB candidate is modified.</p>
 <button type="button" id="ccCreateIndexedDBCandidate" style="padding:10px 14px;border-radius:8px">Create Verified IndexedDB Copy</button>
 <button type="button" id="ccVerifyIndexedDBCandidate" style="padding:10px 14px;border-radius:8px;margin-left:8px">Verify Latest Copy</button>
 <button type="button" id="ccRunIndexedDBBridgeRehearsal" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run Read-Only Bridge Rehearsal</button>
 <button type="button" id="ccRunIndexedDBDurableWriteTest" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run Durable-Write Test</button>
-<p style="font-size:12px;opacity:.8">IndexedDB schema v4 includes automatic repair for missing datasets, records, and bridgeJournal stores. Close older Calvin’s City tabs before running this build so the database upgrade is not blocked.</p>\n<button type="button" id="ccStageJsonBackupInIndexedDB" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Stage Full JSON Backup in IndexedDB (Do Not Activate)</button>
+<p style="font-size:12px;opacity:.8">IndexedDB schema v4 includes automatic repair for missing datasets, records, and bridgeJournal stores. Close older Calvin’s City tabs before running this build so the database upgrade is not blocked.</p>
+<button type="button" id="ccStageJsonBackupInIndexedDB" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Stage Full JSON Backup in IndexedDB (Do Not Activate)</button>
 <button type="button" id="ccRunIndexedDBJsonRoundTrip" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run IndexedDB JSON Export/Restore Round-Trip</button>
 <button type="button" id="ccRunCompatibilityWriteQueue" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run Compatibility Cache &amp; Ordered Write-Queue Test</button>
 
@@ -17762,7 +17763,7 @@ const buyerCash=Number(buyer.cash),sellerCash=Number(seller.cash)||0;
 if(buyer.cash==null||!Number.isFinite(buyerCash)){message.textContent="The selected buyer has no valid cash balance recorded.";return;}
 
 if(buyerCash+0.000001<price){message.textContent="Insufficient cash. Purchase price: "+money(price)+"; buyer cash: "+money(buyerCash)+".";return;}
-if(!confirm("Confirm ownership purchase?\n\nBuyer: "+buyer.name+"\nSeller: "+seller.name+"\nBusiness: "+business+"\nStake: "+pct(offerPct)+"\nPrice: "+money(price)+"\n\nCash moves directly from buyer to seller. Thebusiness's cash balance will not change."))return;
+if(!confirm("Confirm ownership purchase?\n\nBuyer: "+buyer.name+"\nSeller: "+seller.name+"\nBusiness: "+business+"\nStake: "+pct(offerPct)+"\nPrice: "+money(price)+"\n\nCash moves directly from buyer to seller. The business's cash balance will not change."))return;
 
 const buyerBefore=buyerCash,sellerBefore=sellerCash;
 
@@ -24744,8 +24745,8 @@ try{
  lines.push("6. No storage APIs were called by this report; no game data was read, written, migrated, activated, or deleted.");
  lines.push("");
  lines.push("SUMMARY: "+CALLS.length+" direct localStorage call sites inventoried. Dynamic aliases and startup sequencing still require separate review.");
- show(lines.join("\\n"));
-}catch(error){show("INDEXEDDB STORAGE DEPENDENCY TRACE FAILED\\n"+String(error&&error.message||error)+"\\n\\nNo game data was changed.");console.error("Calvin's City static dependency trace failed:",error);}
+ show(lines.join("\n"));
+}catch(error){show("INDEXEDDB STORAGE DEPENDENCY TRACE FAILED\n"+String(error&&error.message||error)+"\n\nNo game data was changed.");console.error("Calvin's City static dependency trace failed:",error);}
 finally{button.disabled=false;}
 });
 })();
@@ -25404,7 +25405,7 @@ file.addEventListener("change",()=>{const selected=file.files&&file.files[0];if(
 </script>
 <script>
 
-/* CALVIN'S CITY v5.8.173 — INDEXEDDB JSON EXPORT/RESTORE ROUND-TRIP TEST.
+/* CALVIN'S CITY v5.8.174 — INDEXEDDB JSON EXPORT/RESTORE ROUND-TRIP TEST.
   Reads the latest verified JSON-import inactive dataset, exports it in the
   existing CALVINS_CITY_FULL_BACKUP_V1 format, parses it, stages it as a new
   inactive dataset, and verifies exact value equality. Downloads the JSON
@@ -25498,7 +25499,7 @@ if(missing.length)throw new Error("Source dataset is missing required keys: "+mi
 const main=JSON.parse(entries.calvins_city_v24);
 const backup={
 format:"CALVINS_CITY_FULL_BACKUP_V1",formatVersion:1,
-appVersion:"5.8.173",exportedAt:new Date().toISOString(),
+appVersion:"5.8.174",exportedAt:new Date().toISOString(),
 storageType:"indexedDB",entryCount:sourceRows.length,entries
 };
 const exportedText=JSON.stringify(backup,null,2);
@@ -25557,7 +25558,7 @@ button.addEventListener("click",run);
 </script>
 
 <script>
-/* CALVIN'S CITY v5.8.173 — COMPATIBILITY CACHE + ORDERED WRITE-QUEUE REHEARSAL.
+/* CALVIN'S CITY v5.8.174 — COMPATIBILITY CACHE + ORDERED WRITE-QUEUE REHEARSAL.
   This is an isolated architecture test, not the live game's storage adapter.
   It reads localStorage only, never patches Storage.prototype, and writes only
   uniquely named temporary probes to the existing bridgeJournal object store. */
