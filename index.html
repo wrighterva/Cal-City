@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.147: Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.148: Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.147">
+<meta name="calvins-city-build" content="5.8.148">
 
 
 
@@ -566,7 +566,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.147</title>
+<title>Calvin's City 5.8.148</title>
 
 <style>
 
@@ -1040,7 +1040,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.147</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.148</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -2694,7 +2694,7 @@ a high local hit-test priority without changing the global app controls. */
 
 </section>
 <script>
-/* 5.8.147: Market hub tabs are presentation-only; existing market and CalBank data engines remain unchanged. */
+/* 5.8.148: Market hub tabs are presentation-only; existing market and CalBank data engines remain unchanged. */
 (function(){
 "use strict";
 function initMarketHubTabs(){
@@ -24045,7 +24045,7 @@ var body=document.createElement("div");body.id="cc5874RecoveryText";panel.append
 }
 
 var recoveryBody=byId("cc5874RecoveryText");
-if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.147\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.148\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 }catch(ignore){}
 
 },true);
@@ -24295,4 +24295,44 @@ window.renderCalBankMasterLedger=render;
  </div>
 </div>
 </div>
+<script id="ccBetsImportExportDelegatedControls58148">
+(function(){
+ "use strict";
+ function setBetsImportExportOpen(open){
+   var modal=document.getElementById("betsImportExportModal");
+   if(!modal){
+     console.error("BETS Import/Export dialog is missing from the page.");
+     return;
+   }
+   modal.style.setProperty("display",open?"flex":"none","important");
+   modal.setAttribute("aria-hidden",open?"false":"true");
+   if(open){
+     var close=modal.querySelector('[aria-label="Close Bet Import/Export"]');
+     if(close)close.focus({preventScroll:true});
+   }
+ }
+ document.addEventListener("click",function(event){
+   var target=event.target;
+   if(!target || !target.closest)return;
+   if(target.closest("#openBetsImportExportHome")){
+     event.preventDefault();
+     setBetsImportExportOpen(true);
+     return;
+   }
+   if(target.closest('[aria-label="Close Bet Import/Export"]')){
+     event.preventDefault();
+     setBetsImportExportOpen(false);
+     return;
+   }
+   var modal=document.getElementById("betsImportExportModal");
+   if(modal && target===modal)setBetsImportExportOpen(false);
+ },true);
+ document.addEventListener("keydown",function(event){
+   if(event.key==="Escape"){
+     var modal=document.getElementById("betsImportExportModal");
+     if(modal && modal.getAttribute("aria-hidden")!=="true")setBetsImportExportOpen(false);
+   }
+ },true);
+})();
+</script>
 </body></html>
