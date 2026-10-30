@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.144: Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.146: Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.144">
+<meta name="calvins-city-build" content="5.8.146">
 
 
 
@@ -566,7 +566,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.144</title>
+<title>Calvin's City 5.8.146</title>
 
 <style>
 
@@ -1040,7 +1040,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.144</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.146</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -2694,7 +2694,7 @@ a high local hit-test priority without changing the global app controls. */
 
 </section>
 <script>
-/* 5.8.144: Market hub tabs are presentation-only; existing market and CalBank data engines remain unchanged. */
+/* 5.8.146: Market hub tabs are presentation-only; existing market and CalBank data engines remain unchanged. */
 (function(){
 "use strict";
 function initMarketHubTabs(){
@@ -3185,7 +3185,7 @@ const citizenLedgerCloseBtn=document.getElementById("citizenLedgerClose");
 
 function openCitizenLedger(){
 
-if(citizenLedgerModalEl){citizenLedgerModalEl.classList.add("show");lockCitizenLedgerScroll();}
+if(citizenLedgerModalEl){citizenLedgerModalEl.classList.add("show");if(typeof window.lockCitizenLedgerScroll==="function")window.lockCitizenLedgerScroll();}
 
 const out=document.getElementById("citizenLedgerBody");
 
@@ -3193,7 +3193,7 @@ if(out)out.innerHTML='<p class="muted">Loading Citizen Ledger…</p>';
 
 try{
 
-renderCitizenLedger();
+if(typeof window.renderCitizenLedger==="function")window.renderCitizenLedger();else throw new Error("Citizen Ledger renderer is unavailable.");
 
 }catch(err){
 
@@ -3209,7 +3209,7 @@ if(out)out.innerHTML='<p class="muted">Citizen Ledger opened, but the citizen da
 
 function closeCitizenLedger(){
 
-if(citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show");unlockCitizenLedgerScroll();}
+if(citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show");if(typeof window.unlockCitizenLedgerScroll==="function")window.unlockCitizenLedgerScroll();}
 
 }
 
@@ -4389,9 +4389,11 @@ wagers. The paired transaction handler writes the final state, preserves its
 
 exact ledger rows, and separately verifies the BETS database. */
 
+let stateRaw=null;
+
 try{
 
-const stateRaw=JSON.stringify(state);
+stateRaw=JSON.stringify(state);
 
 localStorage.setItem("calvins_city_v24",stateRaw);
 
@@ -4433,9 +4435,9 @@ if(batch&&batch.citizenById instanceof Map){const found=batch.citizenById.get(St
 return (Array.isArray(state.citizens)?state.citizens:[]).find(c=>c&&String(c.id)===String(id));
 }
 
-function sbAccountOptions(){
+function sbAccountOptions(){ 
 
-const list=[]; 
+const list=[];
 
 (Array.isArray(state.citizens)?state.citizens:[]).forEach(c=>{if(c&&c.id!=null&&c.name&&Number.isFinite(Number(c.cash)))list.push({id:"citizen:"+c.id,name:String(c.name),kind:"citizen",ref:String(c.id),cash:Number(c.cash)});});
 
@@ -4553,9 +4555,9 @@ try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));}catch(e){}
 return {ok:true,adjusted:false,observedCash:cash};
 
 }
-
-function sbCommitCashTx(tx){
  
+function sbCommitCashTx(tx){
+
 ensureBetsFinanceCollections();
 
 /* 5.8.113: During automatic betting, use the per-run transaction-ID index instead
@@ -4586,9 +4588,7 @@ rely on the preflight plus verified final writes and the existing full rollback.
 const shouldCheckStorage=!autoBetBatch;
 if(shouldCheckStorage){
 let storageChars=0;
-try{for(let i=0;i<localStorage.length;i++){const k=local
-
-Storage.key(i);storageChars+=String(k||"").length+String(localStorage.getItem(k)||"").length;}}catch(_){}
+try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);storageChars+=String(k||"").length+String(localStorage.getItem(k)||"").length;}}catch(_){}
 if(storageChars>2100000)sbCompactExactFinancialMirrorForBets();
 if(autoBetBatch)autoBetBatch.transactionsSinceStorageCheck=0;
 }
@@ -5426,6 +5426,8 @@ return '<tr><td>'+sbEsc(b.citizenName)+'</td><td>'+sbEsc(b.teamA)+' vs '+sbEsc(b
 
 }
 
+window.sbRenderFinancePanels=sbRenderFinancePanels;
+
 const sbOldRequestConfirmPracticeBet=requestConfirmPracticeBet;
 
 requestConfirmPracticeBet=sbRequestRealBet;
@@ -5659,7 +5661,8 @@ if(status){
 status.textContent="Automatic betting finished, but the game did not advance. No second betting run was started. Check the season status and saved game records before retrying.";
 status.style.display="block";
 }
-modal.style.display="flex";
+const confirmationModal=document.getElementById("betsDoneBettingModal");
+if(confirmationModal)confirmationModal.style.display="flex";
 return;
 }
 sbCloseDoneBettingModal();
@@ -5748,10 +5751,10 @@ betsDatabase=mergeBetsDatabases(betsDatabase,currentDb);
 }
 
 betsDatabase.schemaVersion=BETS_SCHEMA_VERSION;
-
+ 
 const serialized=JSON.stringify(betsDatabase);
 
- 
+
 
 /* 4.29.37: Commit and verify the authoritative BETS database FIRST.
 
@@ -5868,10 +5871,9 @@ const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json;cha
 a.href=url;a.download="Calvins_City_Full_Recovery_Snapshot_"+new Date().toISOString().replace(/[:.]/g,"-")+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 
 betsStorageMessage="Full recovery snapshot export requested. No app data was changed.";renderBetsStorageStatus();
-
 }catch(e){alert("Full recovery snapshot failed: "+String(e&&e.message||e)+". No data was intentionally changed.");}
 
-} 
+}
 
 const betsFullRecoveryButton=document.getElementById("betsExportFullRecovery");if(betsFullRecoveryButton)betsFullRecoveryButton.addEventListener("click",exportBetsFullRecoverySnapshot);
 
@@ -5975,9 +5977,7 @@ const retainedHistory=state.records&&Array.isArray(state.records.gameRecords)?st
 
 let pendingHistory=[];
 
-try{const rawPending=localStorage.getItem(BETS_PENDING_IMPORT_KEY);if(rawPending!==null){const parsedPending=JSON.parse(rawPending);if(Array.isArray(parsedPending))pendingHistory=parsedPending;}}catch(pendingReadError){cons
-
-ole.warn("Pending BETS import backup could not be read; retained records remain untouched:",pendingReadError);}
+try{const rawPending=localStorage.getItem(BETS_PENDING_IMPORT_KEY);if(rawPending!==null){const parsedPending=JSON.parse(rawPending);if(Array.isArray(parsedPending))pendingHistory=parsedPending;}}catch(pendingReadError){console.warn("Pending BETS import backup could not be read; retained records remain untouched:",pendingReadError);}
 
 const history=[...pendingHistory,...(Array.isArray(preResetSeason29GameRecords)?preResetSeason29GameRecords:[]),...retainedHistory];let imported=0;
 
@@ -5990,8 +5990,7 @@ history.forEach((g,index)=>{
 if(!g||!g.a||!g.b)return;const scoreA=Number(g.scoreA),scoreB=Number(g.scoreB);if(!Number.isFinite(scoreA)||!Number.isFinite(scoreB)||scoreA<0||scoreB<0)return;
 
 const teamA=String(g.a),teamB=String(g.b);if(!teamA||!teamB||teamA==="N/A"||teamB==="N/A")return;
-
-const sourceKey=String(g.__betsSourceKey||[Number(g.year)||0,String(g.stage||""),teamA,scoreA,teamB,scoreB,index].join("|"));if(betsDatabase.games.some(row=>row&&row.sourceRecordKey===sourceKey))return; 
+const sourceKey=String(g.__betsSourceKey||[Number(g.year)||0,String(g.stage||""),teamA,scoreA,teamB,scoreB,index].join("|"));if(betsDatabase.games.some(row=>row&&row.sourceRecordKey===sourceKey))return;
 
 const same=[teamA,scoreA,teamB,scoreB].join("|"),reverse=[teamB,scoreB,teamA,scoreA].join("|"),matchKey=availableMatches.has(same)?same:reverse,remaining=availableMatches.get(matchKey)||0;
 
@@ -6110,8 +6109,7 @@ addSource(state.records&&state.records.gameRecords, g=>g&&normalize(g.a||g.teamA
 addSource(state.gamesPlayed, entry=>{
 
 if(!entry)return null;
-
-const g=entry.game||entry; 
+const g=entry.game||entry;
 
 const a=g.A||g.a,b=g.B||g.b;
 
@@ -6231,7 +6229,7 @@ const button=document.getElementById("betsPlaceBet");if
 (button)button.disabled=true;
 
 return;
- 
+
 }
 
 const lines=betsMarketLines(match);
@@ -6350,7 +6348,8 @@ const message=document.getElementById("betsBetMessage"),draft=pendingPracticeBet
 
 if(!draft||!message){closeBetsConfirmModal();return;}
 
-const existing=betsDatabase.bets.some(b=>b.status==="pending"&&b.teamA===draft.teamA&&b.teamB===draft.teamB&&b.market===draft.market&&b.selection===draft.selection);
+const existing=betsDatabase.bets.some(b=>b.status==="pending"&&b.teamA===draft.teamA&&b.teamB===draft.teamB&&b.market===draft.market&&b.selection===draft.selection); 
+
 if(existing){closeBetsConfirmModal();message.textContent="That exact pick is already pending for this matchup. Choose a different market or selection.";return;}
 
 const bet={id:"BET-"+betsDatabase.nextBetId++,teamA:draft.teamA,teamB:draft.teamB,targetEventKey:draft.eventKey||betsCurrentEventKey(draft),market:draft.market,
@@ -6469,7 +6468,8 @@ if(!wins||!losses||!pushes||!net||!out)return;
 
 const bets=Array.isArray(betsDatabase.bets)?betsDatabase.bets:[];
 
-wins.textContent=String(bets.filter(b=>b.status==="win").length);
+wins.textContent=String(bets.filter(b=>b.status==="win").length); 
+
 losses.textContent=String(bets.filter(b=>b.status==="loss").length);
 
 pushes.textContent=String(bets.filter(b=>b.status==="push").length);
@@ -6588,7 +6588,8 @@ gameToggle.textContent=showAllBetsGameHistory?"Hide Older Game Results":"View Fu
 
 gameToggle.setAttribute("aria-expanded",showAllBetsGameHistory?"true":"false");
 
-}
+} 
+
 if(!games.length)historyOut.innerHTML='<p class="muted">No games stored yet. Complete a basketball season game to start building the database.</p>';
 
 else{
@@ -6707,7 +6708,8 @@ before/after adjustment entry; this migration runs once and never overwrites lat
 
 (function reconcileSeason29OpeningCashAllAccounts(){
 
-const version="4.24.26";
+const version="4.24.26"; 
+
 if(state.season29AllAccountOpeningCashReconciledVersion===version)return;
 
 const games=Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0;
@@ -6826,7 +6828,8 @@ businesses:[],contracts:[],shoeDeals:[],investments:[],bankAccounts:[],loans:[],
 
 state.citizens.push(citizen);
 
-return citizen;
+return citizen; 
+
 }
 
 function ensureBusinessOwnershipRegistry(){
@@ -6945,7 +6948,8 @@ const verified=JSON.parse(localStorage.getItem(backupKey)||"null");
 
 if(!verified||!verified.registry||!verified.registry.businesses)throw new Error("Ownership backup verification failed");
 
-Object.entries(BUSINESS_OWNERSHIP).forEach(([business,seedOwners])=>{
+Object.entries(BUSINESS_OWNERSHIP).forEach(([business,seedOwners])=>{ 
+
 const record=registry.businesses[business];if(!record)return;
 
 record.owners=seedOwners.map(([name,percentage])=>{const citizen=getOrCreateBusinessOwnerCitizen(name);return {name:citizen.name,citizenId:citizen.id,percentage:Number(percentage)};});
@@ -7064,7 +7068,8 @@ const alreadyPaid=Math.min(total,Math.max(0,Number(contract.totalPaid)||0));
 
 const remainder=Math.round((total-alreadyPaid)*100)/100;
 
-if(citizen&&remainder>0){
+if(citizen&&remainder>0){ 
+
 const cashBefore=Number(citizen.cash)||0;
 
 citizen.cash=cashBefore+remainder;
@@ -7077,7 +7082,8 @@ const teamCashBefore=Number(state.teamCash[team])||0;
 
 state.teamCash[team]=Math.max(0,Math.round((teamCashBefore-remainder)*100)/100);
 
-appendCashLedgerEntry("team",team,{type:"Contract Payment Migration",amount:Math.round((state.teamCash[team]-teamCashBefore)*100)/100,before:teamCashBefore,after:state.teamCash[team],reason:"Team cash paid to player during legacy contract-payment migration",player:name,source:"migrateContractPaymentsToUpfront"});
+state.teamCashLedger=Array.isArray(state.teamCashLedger)?state.teamCashLedger:[];
+state.teamCashLedger.push({id:"CONTRACT-MIGRATION-"+String(state.year||0)+"-"+String(team)+"-"+String(name).replace(/[^a-z0-9]/gi,"-"),season:Number(state.year)||29,type:"Contract Payment Migration",amount:Math.round((state.teamCash[team]-teamCashBefore)*100)/100,before:teamCashBefore,after:state.teamCash[team],reason:"Team cash paid to player during legacy contract-payment migration",player:name,source:"migrateContractPaymentsToUpfront",team,accountType:"team",createdAt:new Date().toISOString()});
 
 }
 
@@ -7182,7 +7188,7 @@ rec.totalPaid=Number(live.totalPaid)||0;
 
 rec.paymentsMade=Number(live.paymentsMade)||0;
 
-rec.paymentModel=String(live.paymentModel||"upfront-total");
+rec.paymentModel=String(live.paymentModel||"upfront-total"); 
 
 }
 
@@ -7302,9 +7308,9 @@ champStreak:0,currentChampStreak:0,businesses:[],contracts:[],shoeDeals:[],inves
 
 state.citizens.push(c);
 
-}
+} 
 
-/* 4.17.105: Initialize Season 29 opening cash exactly once. 
+/* 4.17.105: Initialize Season 29 opening cash exactly once.
 
 Existing cash is preserved after initialization. */
 
@@ -7422,9 +7428,9 @@ const freshSeason29=(Number(state.year)===29 && !state.seasonPlayed && (state.ga
 
 const players={
 
-Rims_C:{name:"Nadler",position:"C",careerPts:91,careerRebs:98,mvps:0,championships:0,
+Rims_C:{name:"Nadler",position:"C",careerPts:91,careerRebs:98,mvps:0,championships:0, 
 
-contract:{value:0,years:2,rookie:true,totalPackage:0,teamValue:0,paymentModel:"starting-balance",totalPaid:0,paymentsMade:2,contractYears:2,contractStartSeason:null},shoeDeals:[]}, 
+contract:{value:0,years:2,rookie:true,totalPackage:0,teamValue:0,paymentModel:"starting-balance",totalPaid:0,paymentsMade:2,contractYears:2,contractStartSeason:null},shoeDeals:[]},
 
 Rims_SG:{name:"Holly",position:"SG",careerPts:283,careerRebs:289,mvps:0,championships:0,
 
@@ -7542,9 +7548,9 @@ c.arenaRosterSeeded=true;
 
 }
 
-seedInitialArenaRosters();
+seedInitialArenaRosters(); 
 
- 
+
 
 /* 5.2.9 DIGGS CAREER STAT PROTECTION
 
@@ -7662,9 +7668,9 @@ A legitimate later re-sign remains untouched because it has a different
 
 contract record year/value/term. */
 
-citizen.contracts=citizen.contracts.filter(rec=>{
+citizen.contracts=citizen.contracts.filter(rec=>{ 
 
-if(!rec)return false; 
+if(!rec)return false;
 
 if(rec.action==="Contract Payment")return false;
 
@@ -7782,9 +7788,9 @@ and current-season records to the established Season 29 opening baseline.
 
 Keep Seasons 1–28 permanent history and do not reset non-basketball
 
-financial/business data stored on Citizen records. */
+financial/business data stored on Citizen records. */ 
 
-/* 4.29.20 SAFETY: legacy full Season 29 baseline reset permanently disabled. */ 
+/* 4.29.20 SAFETY: legacy full Season 29 baseline reset permanently disabled. */
 
 
 
@@ -7902,9 +7908,9 @@ CrazBo is a test citizen. Clear all prior test cash and contract data so
 
 the next test starts from a clean Free Agent state. The Citizen identity
 
-itself is preserved for the next test. */
+itself is preserved for the next test. */ 
 
-/* 4.29.20 SAFETY: test-citizen cash/contract reset permanently disabled. */ 
+/* 4.29.20 SAFETY: test-citizen cash/contract reset permanently disabled. */
 
 
 
@@ -8022,9 +8028,9 @@ let citizen=state.citizens.find(c=>c&&normalizedName(c.name)===normalized);
 
 if(!citizen){
 
-let id;
+let id; 
 
-do{maxId+=1;id="C"+String(maxId).padStart(3,"0")}while(usedIds.has(id)); 
+do{maxId+=1;id="C"+String(maxId).padStart(3,"0")}while(usedIds.has(id));
 
 usedIds.add(id);
 
@@ -8142,9 +8148,9 @@ function recordPlayerLedgerTransaction({player,amount,type,reason,payer=null,rec
 
 const name=String(player||recipient||"").trim(); if(!name)return null;
 
-const citizen=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase());
+const citizen=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase()); 
 
-const entry={id:"PLT-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),at:new Date().toISOString(),season,gameCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0,player:name,amount:Number(amount)||0,type:String(type||"Adjustment"),reason:String(reason||"Unspecified"),payer,recipient:recipient||name,source,balanceBefore:before==null?null:Number(before),balanceAfter:after==null?(citizen&&citizen.cash!=null?Number(citizen.cash):null):Number(after),delta:delta==null?(before!=null&&after!=null?Number((Number(after)-Number(before)).toFixed(2)):null):Number(delta),codeLocation:codeLocation||null}; 
+const entry={id:"PLT-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),at:new Date().toISOString(),season,gameCount:Array.isArray(state.gamesPlayed)?state.gamesPlayed.length:0,player:name,amount:Number(amount)||0,type:String(type||"Adjustment"),reason:String(reason||"Unspecified"),payer,recipient:recipient||name,source,balanceBefore:before==null?null:Number(before),balanceAfter:after==null?(citizen&&citizen.cash!=null?Number(citizen.cash):null):Number(after),delta:delta==null?(before!=null&&after!=null?Number((Number(after)-Number(before)).toFixed(2)):null):Number(delta),codeLocation:codeLocation||null};
 
 state.playerLedgerTransactions.push(entry); save(); return entry;
 
@@ -8262,9 +8268,9 @@ state.roster[key]=p.name;
 
 state.contracts[key]={
 
-...(state.contracts[key]||{}),
+...(state.contracts[key]||{}), 
 
-value:p.value, 
+value:p.value,
 
 years:p.years
 
@@ -8382,9 +8388,9 @@ c.shoeDeals=c.shoeDeals.filter(d=>{
 
 if(!d||d.startYear==null)return true;
 
-const start=Number(d.startYear);
+const start=Number(d.startYear); 
 
-return !Number.isFinite(start)||start<=currentShoeSeason; 
+return !Number.isFinite(start)||start<=currentShoeSeason;
 
 });
 
@@ -8502,9 +8508,9 @@ groups.forEach(group=>{
 group.sort((a,b)=>{
 
 const advancedA=Number(a.deal.lastAdvancedSeason)===currentShoeSeason?1:0;
-
-const advancedB=Number(b.deal.lastAdvancedSeason)===currentShoeSeason?1:0;
  
+const advancedB=Number(b.deal.lastAdvancedSeason)===currentShoeSeason?1:0;
+
 if(advancedA!==advancedB)return advancedB-advancedA;
 
 const hasAdvanceA=Number.isFinite(Number(a.deal.lastAdvancedSeason))?1:0;
@@ -8622,8 +8628,8 @@ save();
 }
 
 
-
 /* 4.17.111: Repair the complete Season 29 opening contract baseline.
+
 The prior reset could leave Rims/Dunks contract slots missing or with zero
 
 years. Restore all nine opening contracts only while Season 29 is still at
@@ -8861,9 +8867,9 @@ Dunks_SG:{name:"Pat",team:"Dunks",position:"SG",cash:0,value:0,teamValue:0,years
 
 Dunks_PG:{name:"Bic",team:"Dunks",position:"PG",cash:533,value:533,teamValue:533,years:2,rookie:false,shoe:{company:"Nike",value:233,years:2}}
 
-};
+}; 
 
-state.roster=state.roster||{}; 
+state.roster=state.roster||{};
 
 state.contracts=state.contracts||{};
 
@@ -8981,9 +8987,9 @@ contracts[key]=c;
 
 (state.citizens||[]).forEach(citizen=>{
 
-if(!citizen||!Array.isArray(citizen.shoeDeals))return;
+if(!citizen||!Array.isArray(citizen.shoeDeals))return; 
 
-citizen.shoeDeals.forEach(deal=>{ 
+citizen.shoeDeals.forEach(deal=>{
 
 if(!deal||!deal.company)return;
 
@@ -9101,9 +9107,9 @@ else citizen.contracts.push({...record,current:true});
 
 return c[key];
 
-}
+} 
 
-function applyActivePlayerContractCash(key,team,name){ 
+function applyActivePlayerContractCash(key,team,name){
 
 /* 4.17.105: Contract value is a TOTAL obligation, not an annual salary.
 
@@ -9221,9 +9227,9 @@ c.businesses=citizenBusinessSummary(name);
 
 }
 
-if(c){
+if(c){ 
 
-/* 4.29.11: retirementCash is a historical snapshot, not a live balance. Do not overwrite current citizen cash during ledger sync; ensureCitizen seeds new citizen records from retirementCash when needed. */ 
+/* 4.29.11: retirementCash is a historical snapshot, not a live balance. Do not overwrite current citizen cash during ledger sync; ensureCitizen seeds new citizen records from retirementCash when needed. */
 
 if(!p&&team&&c.cash==null)c.cash=0;
 
@@ -9341,9 +9347,9 @@ if(!g||typeof g!=="object")return;
 
 
 
-const year=Number(g.year)||0;
+const year=Number(g.year)||0; 
 
- 
+
 
 // Historical championship rows are authoritative and are recreated below.
 
@@ -9461,9 +9467,9 @@ const wall=(state.citizens||[]).find(c=>c&&String(c.name||"").trim().toLowerCase
 
 if(wall){
 
-wall.shoeDeals=[{company:"Reebok",years:2,originalYears:2,yearsRemaining:2,value:290,startYear:29,includedInContract:true}];
+wall.shoeDeals=[{company:"Reebok",years:2,originalYears:2,yearsRemaining:2,value:290,startYear:29,includedInContract:true}]; 
 
-} 
+}
 
 const cashBaseline={Wall:787,Diggs:0,Kap:450,Nadler:0,Holly:350,CJ:0,Vico:660,Pat:0,Bic:533};
 
@@ -9581,9 +9587,9 @@ const createdAt=String(entry&&(entry.createdAt||entry.at)||new Date().toISOStrin
 
 const originalId=String(entry&&entry.id||(`${kind}-${name}-${index}-${createdAt}`));
 
-const signed=Math.round(amount*10000)/10000;
+const signed=Math.round(amount*10000)/10000; 
 
-const descriptor=financialAccountDescriptor(kind,name); 
+const descriptor=financialAccountDescriptor(kind,name);
 
 return {
 
@@ -9701,9 +9707,9 @@ function save(){
 
 of app initialization and leave the season label/buttons unbound. Never clear
 
-saved data or pretend a failed write succeeded. */
+saved data or pretend a failed write succeeded. */ 
 
-try{syncUnifiedFinancialLedger();}catch(err){window.__calvinsCitySaveError=err;console.error("Calvin's City financial-ledger sync failed; existing saved data was retained.",err);} 
+try{syncUnifiedFinancialLedger();}catch(err){window.__calvinsCitySaveError=err;console.error("Calvin's City financial-ledger sync failed; existing saved data was retained.",err);}
 
 try{localStorage.setItem("calvins_city_v24",JSON.stringify(state));window.__calvinsCitySaveError=null;return true;}
 
@@ -9811,9 +9817,7 @@ if(!state.seasonPlayed || state.seasonPhase!=="offseason" || state.offseasonFina
 
 const completedSeason=Number(state.year)||0;
 
-if(typeof window.processStockMarketSeasonReport==="function")window.processStockMa
-
-rketSeasonReport(completedSeason);
+if(typeof window.processStockMarketSeasonReport==="function")window.processStockMarketSeasonReport(completedSeason);
 
 if(!force && Number(state.shoeDealNeedsPopupShownForSeason)===completedSeason)return false;
 
@@ -11811,9 +11815,7 @@ if(state.contractVerificationPayments.some(p=>p&&p.id===contractPaymentId)){aler
 
 if(citizen&&totalPackage>0){citizen.cash=(Number(citizen.cash)||0)+totalPackage;}
 
-if(salary>0){const teamCashBefore=Number(state.teamCash[team])||0;const teamCashAfter=Math.round((teamCashBefore-salary)*100)/100;state.teamCash[team]=teamCashAfter;state.teamCashLedger=Array.isArra
-
-y(state.teamCashLedger)?state.teamCashLedger:[];state.teamCashLedger.push({id:contractPaymentId+"-TEAM-PAYMENT",contractId:contractPaymentId,season:Number(state.year)||29,type:"Player Contract Payment",amount:Math.round((teamCashAfter-teamCashBefore)*100)/100,before:teamCashBefore,after:teamCashAfter,reason:"Team salary paid for player contract; decision: "+decision,player:name,source:"offseason contract verification",team,accountType:"team",createdAt:new Date().toISOString()});}
+if(salary>0){const teamCashBefore=Number(state.teamCash[team])||0;const teamCashAfter=Math.round((teamCashBefore-salary)*100)/100;state.teamCash[team]=teamCashAfter;state.teamCashLedger=Array.isArray(state.teamCashLedger)?state.teamCashLedger:[];state.teamCashLedger.push({id:contractPaymentId+"-TEAM-PAYMENT",contractId:contractPaymentId,season:Number(state.year)||29,type:"Player Contract Payment",amount:Math.round((teamCashAfter-teamCashBefore)*100)/100,before:teamCashBefore,after:teamCashAfter,reason:"Team salary paid for player contract; decision: "+decision,player:name,source:"offseason contract verification",team,accountType:"team",createdAt:new Date().toISOString()});}
 
 if(shoeCompany&&shoeValue>0){const cashBefore=Number(state.businessCash[shoeCompany])||0;const cashAfter=Math.round((cashBefore-shoeValue)*100)/100;state.businessCash[shoeCompany]=cashAfter;state.businessCashLedger=Array.isArray(state.businessCashLedger)?state.businessCashLedger:[];const shoeDealId="SHOE-DEAL-S"+(Number(state.year)||29)+"-"+String(team)+"-"+String(pos)+"-"+String(name).replace(/[^a-z0-9]/gi,"-")+"-"+String(shoeCompany).replace(/[^a-z0-9]/gi,"-");state.businessCashLedger=state.businessCashLedger.filter(e=>!(e&&e.id===contractPaymentId+"-SHOE-PAYMENT"));state.businessCashLedger.push({id:contractPaymentId+"-SHOE-PAYMENT",contractId:contractPaymentId,shoeDealId,season:Number(state.year)||29,type:"Shoe Deal Payment",company:shoeCompany,player:name,team,position:pos,years,contractValue:shoeValue,amount:Math.round((cashAfter-cashBefore)*100)/100,before:cashBefore,after:cashAfter,reason:"Cash paid for player shoe deal; decision: "+decision,createdAt:new Date().toISOString(),accountType:"business"});state.shoeDealContracts=Array.isArray(state.shoeDealContracts)?state.shoeDealContracts:[];state.shoeDealContracts=state.shoeDealContracts.filter(d=>!(d&&d.id===shoeDealId));state.shoeDealContracts.push({id:shoeDealId,contractId:contractPaymentId,season:Number(state.year)||29,player:name,team,position:pos,company:shoeCompany,years,contractValue:shoeValue,status:"active",startYear:Number(state.year)||29,yearsRemaining:years,paidInFull:true,paidAt:new Date().toISOString()});}
 
@@ -11854,8 +11856,8 @@ placeholder verification record for this roster slot. */
 state.verifiedOffseasonDecisions[k]={
 
 player:name,
-team,
 
+team,
 position:pos,
 
 decision:"Replace",
@@ -11973,8 +11975,8 @@ are bound by a later script. Export only these three required actions so
 the popup can reach the real contract workflow. */
 
 window.requestVerifyOffseasonDecision=requestVerifyOffseasonDecision;
-window.closeContractVerifyModal=closeContractVerifyModal;
 
+window.closeContractVerifyModal=closeContractVerifyModal;
 window.confirmContractVerification=confirmContractVerification;
 
 
@@ -12092,8 +12094,8 @@ let next=current;
 // 60% chance to remain in the current phase; 40% chance to move to another phase.
 
 if(Math.random()>=0.60){
-const alternatives=["Bull","Normal","Recession"].filter(p=>p!==current);
 
+const alternatives=["Bull","Normal","Recession"].filter(p=>p!==current);
 // Recorded annual revenue performance influences the direction when available.
 
 let revenueSignal=0;
@@ -12211,8 +12213,8 @@ if(Number(cb.lastInterestSeason)===cbSeason){
 const credited=entries.filter(t=>t&&t.type==="Interest Credited"&&Number(t.season)===cbSeason).reduce((sum,t)=>sum+(Number(t.amount)||0),0);
 
 const expense=entries.find(t=>t&&t.type==="Season Interest Expense"&&Number(t.season)===cbSeason);
-const zeroDue=entries.some(t=>t&&t.type==="Season Interest Processed"&&Number(t.season)===cbSeason);
 
+const zeroDue=entries.some(t=>t&&t.type==="Season Interest Processed"&&Number(t.season)===cbSeason);
 if(expense){
 
 if(Math.abs(credited-(Number(expense.amount)||0))>0.011){
@@ -12330,8 +12332,8 @@ const c=state.contracts[k]||{value:0,years:0};
 if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k])return;
 
 
-if(d.decision==="Resign"){
 
+if(d.decision==="Resign"){
 const years=Math.max(1,Math.min(3,Number(d.years)||0));
 
 const salary=Math.max(0,Number(d.salary)||0);
@@ -12449,8 +12451,8 @@ return;
 syncCitizenLedger();
 
 state.offseasonFinalized=true;
-/* Run the economy phase roll exactly once for the completed season before advancing the year. */
 
+/* Run the economy phase roll exactly once for the completed season before advancing the year. */
 transitionEconomicPhaseAtSeasonEnd(Number(state.year)||0);
 
 /* 5.8.98: capture completed-season cash before advancing the year. Snapshot save is append-only and refuses to overwrite an existing season. */
@@ -12568,8 +12570,8 @@ save();
 The prior startup-only repair could run before the user imported their backup.
 
 Permanent award rows are authoritative for Seasons 29+; historical opening
-totals remain the baseline for the original roster. This only raises totals
 
+totals remain the baseline for the original roster. This only raises totals
 when the award ledger proves a higher number; it never edits awards or games. */
 
 function reconcileChampionshipTitlesFromAwards(){
@@ -12629,6 +12631,8 @@ return counts;
 reconciler explicitly so the roster can call it without a ReferenceError. */
 
 window.reconcileChampionshipTitlesFromAwards=reconcileChampionshipTitlesFromAwards;
+
+window.renderCitizenLedger=renderCitizenLedger;
 
 function renderCitizenLedger(){
 
@@ -14168,6 +14172,10 @@ requestAnimationFrame(function(){window.scrollTo(0,citizenLedgerScrollY);});
 
 }
 
+window.lockCitizenLedgerScroll=lockCitizenLedgerScroll;
+
+window.unlockCitizenLedgerScroll=unlockCitizenLedgerScroll;
+
 /* 4.23.1: Hard-lock the page behind Citizen Ledger on mobile Safari.
 
 The previous handler allowed every gesture originating anywhere inside the
@@ -14192,7 +14200,7 @@ document.addEventListener("touchmove",function(e){
 
 if(!citizenLedgerScrollLocked)return;
 
-const box=citizenLedgerModalEl&&citizenLedgerModalEl.querySelector(".modalbox");
+const citizenLedgerModal=document.getElementById("citizenLedgerModal");const box=citizenLedgerModal&&citizenLedgerModal.querySelector(".modalbox");
 
 if(!box||!box.contains(e.target)||!e.touches||!e.touches.length){
 
@@ -14210,9 +14218,7 @@ const canScroll=box.scrollHeight>box.clientHeight+1;
 
 const atTop=box.scrollTop<=0;
 
-const atBottom=box.scr
-
-ollTop+box.clientHeight>=box.scrollHeight-1;
+const atBottom=box.scrollTop+box.clientHeight>=box.scrollHeight-1;
 
 if(!canScroll||(delta>0&&atTop)||(delta<0&&atBottom)){
 
@@ -14236,11 +14242,11 @@ document.addEventListener("wheel",function(e){
 
 if(!citizenLedgerScrollLocked)return;
 
-const box=citizenLedgerModalEl&&citizenLedgerModalEl.querySelector(".modalbox");
+const citizenLedgerModal=document.getElementById("citizenLedgerModal");const box=citizenLedgerModal&&citizenLedgerModal.querySelector(".modalbox");
 
-if(!box||!box.contains(e.target)){
+if(!box||!box.contains(e.target)){ 
 
-e.preventDefault(); 
+e.preventDefault();
 
 return;
 
@@ -14358,9 +14364,9 @@ modal.classList.add("show");
 if(typeof lockRecordsScroll==="function")lockRecordsScroll();
 
 }catch(err){
-
-console.error("Records failed to render:",err);
  
+console.error("Records failed to render:",err);
+
 const body=document.getElementById("recordsBody");
 
 if(body)body.innerHTML='<p class="muted">Records are temporarily unavailable.</p><p class="tiny">The saved game history was not changed.</p>';
@@ -14478,8 +14484,8 @@ alert("The offseason bridge did not initialize. Please refresh the page and repo
 });
 
 /* v5.8.72: Guard core startup button bindings. Missing optional UI eleme
-
 nts must not abort season initialization. */
+
 const playNextGameButton=document.getElementById("playNextGame");
 
 if(playNextGameButton)playNextGameButton.addEventListener("click",sbRequestPlayNextGame);
@@ -14597,8 +14603,8 @@ const citizenLedgerModalEl=document.getElementById("citizenLedgerModal");
 const citizenLedgerCloseBtn=document.getElementById("citizenLedgerClose");
 
 if(citizenLedgerHomeBtn){
-
 citizenLedgerHomeBtn.onclick=function(e){
+
 e.preventDefault();
 
 e.stopPropagation();
@@ -14835,8 +14841,9 @@ return;
 let changed=false;
 
 Object.keys(targets).forEach(name=>{
-
+ 
 if(after[name].points!==before[name].points||after[name].rebounds!==before[name].rebounds){
+
 players[name].careerPts=after[name].points;
 
 players[name].careerRebs=after[name].rebounds;
@@ -14954,8 +14961,8 @@ const citizens=Array.isArray(state.citizens)?state.citizens:[];
 const kap=citizens.find(c=>c&&String(c.name||"").trim().toLowerCase()==="kap");
 
 const roster=state.roster&&state.roster.Lions_PG;
-
 if(!kap){window.__kapMvpRepairDiagnostic={version:"5.8.81",status:"skipped",reason:"Kap citizen record not found; no values changed."};return;}
+
 const before={citizen:Number(kap.mvps)||0,roster:roster&&String(roster.name||"").trim().toLowerCase()==="kap"?(Number(roster.mvps)||0):null};
 
 kap.mvps=2;
@@ -15192,8 +15199,9 @@ panel.style.display="block";
 document.body.dataset.calBankPreviousOverflow=document.body.style.overflow||"";
 
 document.body.style.overflow="hidden";
-
+ 
 const close=panel.querySelector(".calbank-popup-close");
+
 if(close)close.focus();
 
 }
@@ -15311,8 +15319,8 @@ e.stopPropagation();
 setCityTab(tab);
 
 });
-
 });
+
 })();
 
 </script>
@@ -15430,8 +15438,8 @@ let st=gameState(),d=db();if(!st){status("Game state unavailable. No transaction
 const customer=selectedCustomer(st);if(!customer){status("Choose a valid customer account.");return;}
 
 const amount=round(Number(($("calBankDepositAmount")||{}).value));if(!Number.isFinite(amount)||amount<=0){status("Enter an amount greater than zero.");return;}
-
 let account=d.accounts.find(a=>a.customerKey===key(customer));
+
 if(type==="Deposit"&&!account){status("Open a CalBank deposit account for this customer first.");return;}
 
 if(type==="Withdraw"&&!account){status("This customer has no CalBank deposit account.");return;}
@@ -15549,8 +15557,8 @@ d.depositRate=round(value);try{saveDB(d);status("Deposit APR saved at "+d.deposi
 }
 
 function processSeasonInterest(){
-
 const st=gameState(),d=db();if(!st){status("Game state unavailable.");return;}
+
 const season=Number(st.year)||1;
 
 if(d.lastInterestSeason===season){status("Interest hasalready been processed for season "+season+".");return;}
@@ -15668,11 +15676,9 @@ if(debt.principalOutstanding<0.001){debt.principalOutstanding=0;debt.status="rep
 const at=new Date().toISOString(),txid=debt.id+"-REPAY-"+Date.now();
 
 d.debtLedger.push({id:txid,type:"Principal Repaid",debtId:debt.id,lenderType:debt.lenderType,lenderId:debt.lenderId,lenderName:debt.lenderName,amount,balanceBefore:principalBefore,balanceAfter:debt.principalOutstanding,bankCashBefore:bankBefore,bankCashAfter:d.bankCash,lenderCashBefore:lenderBefore,lenderCashAfter:round(Number(live.cash)),createdAt:at,season});
-
 saveGame(st);saveDB(d);
-const sg=JSON.parse(localStorage.getItem("calvins_city_v24")||"null"),sd=JSON.pars
 
-e(localStorage.getItem(STORAGE_KEY)||"null"),savedDebt=sd&&sd.debts.find(x=>x.id===debt.id);
+const sg=JSON.parse(localStorage.getItem("calvins_city_v24")||"null"),sd=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null"),savedDebt=sd&&sd.debts.find(x=>x.id===debt.id);
 
 const savedLender=debt.lenderType==="Citizen"?Number(((sg.citizens||[]).find(c=>c&&String(c.id)===String(debt.lenderId))||{}).cash):Number((debt.lenderType==="Team"?sg.teamCash:sg.businessCash||{})[debt.lenderName]);
 
@@ -17424,7 +17430,7 @@ const debtTab=document.getElementById("sportsBetsDebtTab");
 
 const debtClose=document.getElementById("sportsBetsDebtClose");
 
-if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;/* Portal directly under body and force top layer over marketplace dialog. */if(panel.parentElement!==document.body)document.body.appendChild(panel);panel.style.zIndex="2147483647";panel.style.display="flex";debtTab.setAttribute("aria-expanded","true");if(typeof sbRenderFinancePanels==="function")sbRenderFinancePanels();});}
+if(debtTab){debtTab.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(!panel)return;/* Portal directly under body and force top layer over marketplace dialog. */if(panel.parentElement!==document.body)document.body.appendChild(panel);panel.style.zIndex="2147483647";panel.style.display="flex";debtTab.setAttribute("aria-expanded","true");if(typeof window.sbRenderFinancePanels==="function")window.sbRenderFinancePanels();});}
 
 if(debtClose){debtClose.addEventListener("click",()=>{const panel=document.getElementById("sportsBetsDebtPanel");if(panel)panel.style.display="none";const tab=document.getElementById("sportsBetsDebtTab");if(tab)tab.setAttribute("aria-expanded","false");});}
 
@@ -17576,9 +17582,7 @@ function listStake(){
 const st=state(),business=businessSelect.value,actingId=citizenSelect.value,record=recordForBusiness(business);
 
 const seller=citizenById(actingId),percentToSell=Number(percentInput.value);
-if(!seller||!record){sho
-
-wOwnershipValidationPopup("Select a citizen and business first.");return;}
+if(!seller||!record){showOwnershipValidationPopup("Select a citizen and business first.");return;}
 
 if(!Number.isFinite(percentToSell)||percentToSell<=0){showOwnershipValidationPopup("Enter a percentage greater than 0.");return;}
 
@@ -17695,8 +17699,8 @@ offer.status="sold";offer.completedAt=at;offer.buyerId=buyer.id;offer.buyerName=
 st.playerLedgerTransactions=Array.isArray(st.playerLedgerTransactions)?st.playerLedgerTransactions:[];
 
 st.playerLedgerTransactions.push(
-{id:transferId+"-BUYER",at,season:tx.season,gameCount:tx.gameCount,player:buyer.name,amount:-price,type:"Business Ownership Purchase",reason:"Purchased "+pct(offerPct)+" of "+business+" from "+seller.name,payer:buyer.name,recipient:seller.name,source:"business-ownership-marketplace",balanceBefore:buyerBefore,balanceAfter:buyer.cash,ownershipTransactionId:transferId},
 
+{id:transferId+"-BUYER",at,season:tx.season,gameCount:tx.gameCount,player:buyer.name,amount:-price,type:"Business Ownership Purchase",reason:"Purchased "+pct(offerPct)+" of "+business+" from "+seller.name,payer:buyer.name,recipient:seller.name,source:"business-ownership-marketplace",balanceBefore:buyerBefore,balanceAfter:buyer.cash,ownershipTransactionId:transferId},
 {id:transferId+"-SELLER",at,season:tx.season,gameCount:tx.gameCount,player:seller.name,amount:price,type:"Business Ownership Sale",reason:"Sold "+pct(offerPct)+" of "+business+" to "+buyer.name,payer:buyer.name,recipient:seller.name,source:"business-ownership-marketplace",balanceBefore:sellerBefore,balanceAfter:seller.cash,ownershipTransactionId:transferId}
 
 );
@@ -17814,8 +17818,8 @@ const companies=[
 {name:"Sports Bets Company",category:"Sports Business",icon:"🎲",cashSeed:430,known:true,initialHoldings:[["Peb",60],["Coffvee",60],["Sam",60]],initialPrices:{"Peb":3,"Coffvee":3,"Sam":3}}
 
 ];
-const $=id=>document.getElementById(id);
 
+const $=id=>document.getElementById(id);
 const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 
 const norm=value=>String(value||"").trim().toLowerCase();
@@ -17933,8 +17937,8 @@ if(def.initialPrices&&def.initialPrices[name]!=null)co.holderPurchasePrices[key]
 });
 
 }
-db.companies[def.name]=co;
 
+db.companies[def.name]=co;
 });
 
 return db;
@@ -18052,8 +18056,8 @@ localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
 }
 
 return db;
-}
 
+}
 /* v5.8.96: var is intentional here because loadDB() can call saveDB() before this initializer returns. */
 
 var db=loadDB();
@@ -18171,8 +18175,8 @@ const hasSeason29Report=(db.annualReports||[]).some(r=>Number(r&&r.season)===29)
 const hasSeason29PriceHistory=companies.some(def=>
 
 ((db.companies[def.name]||{}).priceHistory||[]).some(r=>Number(r&&r.season)===29)
-);
 
+);
 if(hasSeason29Report||hasSeason29PriceHistory)return;
 
 if(db.season29OpeningMarketCashPriceReconciled===true)return;
@@ -18290,8 +18294,8 @@ html+='</div><p class="market-help">Select a section, then select a company to v
 out.innerHTML=html;
 
 }
-function renderCompanyDetail(name){
 
+function renderCompanyDetail(name){
 const panel=$("stockCompanyDetail"),def=companies.find(c=>c.name===name),co=db.companies[name];if(!panel||!def||!co)return;
 
 selectedMarketCompany=name;selectedMarketCategory=marketCategory(def);panel.style.display="block";
@@ -18409,8 +18413,8 @@ document.body.style.overflow='hidden';
 const closeBtn=overlay.querySelector('#closeStockPriceChart');
 
 if(closeBtn)closeBtn.addEventListener('click',closeStockChartModal);
-overlay.addEventListener('click',function(ev){if(ev.target===overlay)closeStockChartModal();});
 
+overlay.addEventListener('click',function(ev){if(ev.target===overlay)closeStockChartModal();});
 window.__calCityChartEscapeHandler=function(ev){if(ev.key==='Escape')closeStockChartModal();};
 
 document.addEventListener('keydown',window.__calCityChartEscapeHandler);
@@ -18528,8 +18532,8 @@ let escHandler=null;const closeModal=()=>{if(escHandler)document.removeEventList
 modal.querySelector('#closeStockTradeModal').addEventListener('click',closeModal);
 
 modal.addEventListener('click',ev=>{if(ev.target===modal)closeModal();});
-const modalRegister=modal.querySelector('#stockTradeModalRegister');
 
+const modalRegister=modal.querySelector('#stockTradeModalRegister');
 const holderRows=Object.entries(co.holdings||{}).filter(([key,shares])=>(Number(shares)||0)>0).map(([key,shares])=>({key,name:co.ownerNames&&co.ownerNames[key]?co.ownerNames[key]:ownerNameForKey(key,db),shares:Number(shares)})).sort((a,b)=>b.shares-a.shares||a.name.localeCompare(b.name));
 
 if(modalRegister)modalRegister.innerHTML='<h4 style="margin-bottom:8px">'+esc(name)+' Shareholder Register</h4><p class="tiny" style="color:#d5deea">'+sharesSold(co)+' shares held · '+sharesAvailable(co)+' available · 500 authorized</p>'+(holderRows.length?'<div style="overflow-x:auto"><table><thead><tr><th>Shareholder</th><th>Shares</th><th>Ownership</th><th>Current Value</th></tr></thead><tbody>'+holderRows.map(h=>'<tr><td>'+esc(h.name)+'</td><td>'+h.shares+'</td><td>'+pct(h.shares/TOTAL_SHARES*100)+'</td><td>'+money(h.shares*co.price)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted">No recovered shareholder allocations recorded.</p>')+(co.needsAllocationReview?'<p class="gold">Trading is paused while legacy allocations are reviewed. No missing shareholders have been invented.</p>':'');
@@ -18647,8 +18651,8 @@ if(def){const isArenaTeam=def.category==="Basketball Teams",cash=isArenaTeam?Num
 return;
 
 }
-const displayName=co.ownerNames&&co.ownerNames[holdingKey]?String(co.ownerNames[holdingKey]):ownerNameForKey(holdingKey,db);
 
+const displayName=co.ownerNames&&co.ownerNames[holdingKey]?String(co.ownerNames[holdingKey]):ownerNameForKey(holdingKey,db);
 const citizen=findCitizenByName(displayName);
 
 if(citizen&&citizen.id){
@@ -18766,8 +18770,8 @@ if(current&&Array.from(other.options).some(o=>o.value===current&&!o.disabled))ot
 else {const firstUsable=Array.from(other.options).find(o=>!o.disabled&&o.value);if(firstUsable)other.value=firstUsable.value;else if(other.options.length)other.selectedIndex=0;}
 
 }
-const note=$("stockTradeMessage");
 
+const note=$("stockTradeMessage");
 const hasUsableActor=Array.from(actor.options).some(o=>!o.disabled&&o.value);
 
 if(co&&co.needsAllocationReview){
@@ -18885,8 +18889,8 @@ if(sub&&sub.querySelector('h4')&&/Shareholder Register/i.test(sub.querySelector(
 else {
 
 const detail=$('stockCompanyDetail');
-if(detail&&detail.style.display!=='none'){
 
+if(detail&&detail.style.display!=='none'){
 const heldNode=Array.from(detail.querySelectorAll('.metric')).find(n=>/Shares Held \/ Available/i.test(n.textContent));
 
 if(heldNode)heldNode.innerHTML='<small>Shares Held / Available</small><strong>'+sharesSold(co)+' / '+sharesAvailable(co)+'</strong>';
@@ -18959,9 +18963,7 @@ if(ledger.some(x=>x&&String(x.id)===String(entry.id)))return false;
 
 const copy={...entry,ledgerRecordedAt:new Date().toISOString()};ledger.push(copy);
 
-try{window.syncShareholdersFromTrade(copy);}catch(e){cons
-
-ole.error("Shareholder sync hook failed.",e);}
+try{window.syncShareholdersFromTrade(copy);}catch(e){console.error("Shareholder sync hook failed.",e);}
 
 
 
@@ -19004,10 +19006,10 @@ balanceBefore:before==null?null:Number(before),balanceAfter:after==null?null:Num
 });
 
 };
+
 const buyerIsCitizen=String(entry.buyerType||"").toLowerCase()==="citizen";
 
 const sellerIsCitizen=String(entry.sellerType||"").toLowerCase()==="citizen";
-
 const isBuyback=String(entry.type||"").toLowerCase()==="market money buyback";
 
 if(isBuyback){
@@ -19123,10 +19125,10 @@ return (Array.isArray(st.teamCashLedger)?st.teamCashLedger:[]).map(e=>({...e,_ca
 .sort((a,b)=>String(b.createdAt||b.at||"").localeCompare(String(a.createdAt||a.at||"")));
 
 }
+
 function appendCashLedgerEntry(kind,name,entry){
 
 const st=getState(),listKey=kind==="team"?"teamCashLedger":"businessCashLedger";
-
 st[listKey]=Array.isArray(st[listKey])?st[listKey]:[];
 
 const saved={...entry,id:entry.id||("cash-"+kind+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)),season:Number(st.year)||29,createdAt:new Date().toISOString(),accountType:kind};
@@ -19213,7 +19215,7 @@ const st=getState(),out=$("shareOwnershipLedgerBody");if(!out)return;
 
 try{
 
-if(typeof syncUnifiedFinancialLedger==="function")syncUnifiedFinancialLedger();
+if(typeof window.syncUnifiedFinancialLedger==="function")window.syncUnifiedFinancialLedger();
 
 else if(typeof window.syncUnifiedFinancialLedger==="function")window.syncUnifiedFinancialLedger();
 
@@ -19242,10 +19244,10 @@ accounts.forEach(a=>{
 const related=entries.filter(e=>e._cashKind===a.kind&&e._cashAccount===a.name&&!(["voided","reversed"].includes(String(e.status||"").toLowerCase())||e.voidedBySelfPurchaseRepair===true));
 
 const currentSeason=related.filter(e=>Number(e.season)===(Number(st.year)||29));
+
 const ordered=currentSeason.slice().sort((x,y)=>String(x.createdAt||x.at||"").localeCompare(String(y.createdAt||y.at||"")));
 
 const last=ordered.length?ordered[ordered.length-1]:null;
-
 if(!related.length)findings.push(a.name+": no cash ledger entries exist; current cash is not yet fully traceable.");
 
 else if(!last)findings.push(a.name+": no ledger entry exists for the active Season "+(Number(st.year)||29)+"; current balance needs a documented opening-balance checkpoint.");
@@ -19361,10 +19363,10 @@ document.addEventListener("DOMContentLoaded",bindShareOwnershipLedger);if(docume
 function renderMarketMoney(){
 
 const mm=db.marketMoney||{balance:3000,interestRate:0.75,gamesSinceBuyback:0};
+
 const balance=$("marketMoneyBalance"),rate=$("marketMoneyRate"),idle=$("marketMoneyIdleGames"),status=$("marketMoneyStatus");
 
 if(balance)balance.textContent=money(Number(mm.balance)||0);
-
 if(rate)rate.textContent=(Number(mm.interestRate)||0).toFixed(2)+"%";
 
 if(idle)idle.textContent=String(Math.max(0,Number(mm.gamesSinceBuyback)||0));
@@ -19480,10 +19482,10 @@ const st=getState();let changed=false;
 (mm.transactions||[]).forEach(tx=>{
 
 if(!tx||tx.type!=="Market Money Buyback"||tx.legacyCashReconciled||tx.cashCreditVerified===true)return;
+
 const id=String(tx.citizenId||"");
 
 const citizen=(Array.isArray(st.citizens)?st.citizens:[]).find(c=>c&&String(c.id)===id);
-
 const amount=Number(tx.total),before=Number(tx.citizenCashBefore);
 
 if(!citizen||!Number.isFinite(amount)||amount<=0||!Number.isFinite(before))return;
@@ -19599,10 +19601,10 @@ if(seller){
 const sellerKey=String(seller.key);
 
 const sellerHoldingKey=String(seller.holdingKey||sellerKey);
+
 if(sharesHeld(co,sellerHoldingKey)<count){alert(seller.name+" does not have "+count+" shares available to sell.");return;}
 
 }
-
 if(Number.isFinite(buyer.getCash())){if(buyer.getCash()<total){alert(buyer.name+" does not have enough cash. Trade cost: "+money(total)+".");return;}}
 
 else {alert("The buyer account cash balance is unavailable.");return;}
@@ -19685,9 +19687,7 @@ if(!reservePurchase){
 
 st.businessCashLedger=Array.isArray(st.businessCashLedger)?st.businessCashLedger:[];
 
-[buyer,seller].filter(Boolean).forEach(account=>{if(account.kind!=="business")return;const before=account===buyer?buyerBefore:sellerBefore,after=acc
-
-ount.getCash(),amount=account===buyer?-total:total;st.businessCashLedger.push({id:id+"-"+account.kind+"-"+account.id,season:Number(st.year)||29,type:"Stock Trade Cash Flow",company:account.id,amount,before,after,reason:(amount<0?"Paid for":"Received proceeds from")+" stock trade in "+company,createdAt:at,stockTransactionId:id,accountType:account.isArenaTeam?"arena-team":"business"});});
+[buyer,seller].filter(Boolean).forEach(account=>{if(account.kind!=="business")return;const before=account===buyer?buyerBefore:sellerBefore,after=account.getCash(),amount=account===buyer?-total:total;st.businessCashLedger.push({id:id+"-"+account.kind+"-"+account.id,season:Number(st.year)||29,type:"Stock Trade Cash Flow",company:account.id,amount,before,after,reason:(amount<0?"Paid for":"Received proceeds from")+" stock trade in "+company,createdAt:at,stockTransactionId:id,accountType:account.isArenaTeam?"arena-team":"business"});});
 
 }
 
@@ -19718,12 +19718,12 @@ if(message)message.textContent="Trade completed: "+buyer.name+" purchased "+coun
 try{db=JSON.parse(snapshot);saveDB(db);}catch(e){}
 
 window.__suppressCitizenCashTrace=true;
+
 try{buyer.setCash(buyerBefore);if(seller)seller.setCash(sellerBefore);}
 
 finally{window.__suppressCitizenCashTrace=false;}
 
 if(reservePurchase&&st.businessCash)st.businessCash[company]=companyCashBefore;if(reservePurchase&&companyIsArenaTeam&&st.teamCash)st.teamCash[company]=companyCashBefore;
-
 try{bridge.save();}catch(e){}
 
 console.error("Stock trade failed:",err);alert("The trade could not be completed and cash changes were rolled back. "+String(err.message||err));
@@ -19837,12 +19837,12 @@ return {tracked:true,revenue:round4(matching.reduce((sum,e)=>sum+Math.max(0,Numb
 }
 
 function repairUntrackedTeamReports(st,season){
+
 // Repair reports created by older builds that failed to associate ticket rows with teams.
 
 // This is a reporting-only correction: it does not adjust share prices or cash balances.
 
 const year=Number(season);
-
 let changed=false;
 
 companies.filter(c=>c.category==="Basketball Teams").forEach(def=>{
@@ -19956,12 +19956,12 @@ changePct=priceAdjustment(prior.revenue,rev.revenue);
 co.price=round4(Math.max(0.0001,co.price*(1+changePct/100)));
 
 }else if(rev.tracked&&!prior){baseline=true;}
+
 const report={id:"ANNUAL-"+year+"-"+def.name,season:year,company:def.name,revenueTracked:rev.tracked,revenue:rev.revenue,revenueEntries:rev.entries,previousRevenue:prior?prior.revenue:null,revenueGrowthPct:growthPct,priceBefore:co.priceHistory.length?co.priceHistory[co.priceHistory.length-1].priceAfter:co.price,priceAfter:co.price,priceChangePct:changePct,baseline,createdAt:new Date().toISOString()};
 
 // Correct priceBefore for the adjustment, using the value immediately before this report.
 
 report.priceAfter=co.price;
-
 report.priceBefore=changePct!==0?round4(co.price/(1+changePct/100)):co.price;
 
 co.priceHistory.push({season:year,priceBefore:report.priceBefore,priceAfter:report.priceAfter,changePct,revenue:rev.revenue,revenueTracked:rev.tracked,createdAt:report.createdAt});
@@ -20195,13 +20195,13 @@ const valid=original.company==="Sports Bets Company"&&original.action==="buyRese
 
 if(!valid)return {ok:false,skipped:true,reason:"transaction does not match the confirmed invalid trade fingerprint"};
 
-const co=db.companies&&db.companies["Sports Bets Company"]; 
+const co=db.companies&&db.companies["Sports Bets Company"];
 
 if(!co||!co.holdings||Math.abs((Number(co.holdings["BUSINESS:Sports Bets Company"])||0)-60)>0.0001)return {ok:false,skipped:true,reason:"company holding is not exactly the 60 shares expected; no changes applied"};
 
 if((db.transactions||[]).some(t=>t&&String(t.id)===reverseId))return {ok:false,skipped:true,reason:"reversal record already exists; manual review required"};
 
-const st=bridge.getState();if(!st||typeof st!=="object")return {ok:false,skipped:true,reason:"saved game state unavailable"};
+const st=bridge.getState();if(!st||typeof st!=="object")return {ok:false,skipped:true,reason:"saved game state unavailable"}; 
 
 const beforeDb=JSON.stringify(db),beforeState=JSON.stringify(st),beforeMirror=localStorage.getItem(SHARE_OWNERSHIP_LEDGER_KEY);
 
@@ -20315,13 +20315,13 @@ if(stockScript&&!window.__calCityStockMarketLateRetry){window.__calCityStockMark
 
 <script>
 
-/* 4.24.36: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */ 
+/* 4.24.36: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
 
 (function(){
 
 "use strict";
 
-const bridge=window.__calvinsCityBridge;if(!bridge||typeof bridge.getState!=="function")return;
+const bridge=window.__calvinsCityBridge;if(!bridge||typeof bridge.getState!=="function")return; 
 
 const state=bridge.getState(),$=id=>document.getElementById(id);
 
@@ -20385,9 +20385,7 @@ function unlockAlertView(){if(!document.body.classList.contains("tv-broadcast-al
 
 function closeAlert(){const modal=$("tvBroadcastSeasonAlert");if(modal)modal.style.display="none";unlockAlertView();}
 
-function updateAlert(force){ensure();const modal=$("tvBroadcastSeasonAlert");if(!modal)return;const season=Number(state.year)||29,active=activeTeams();if(active.length>=2){closeAlert();return;}if(!force&&Number(state.tvBroadcastAlertDismissedSeason)===season)return;const count=$("tvBroadcastAlertCount");if(count)count.textContent=String(active.length);modal.style.display="flex";m
-
-odal.setAttribute("aria-hidden","false");lockAlertView();state.tvBroadcastAlertShownSeason=season;bridge.save();}
+function updateAlert(force){ensure();const modal=$("tvBroadcastSeasonAlert");if(!modal)return;const season=Number(state.year)||29,active=activeTeams();if(active.length>=2){closeAlert();return;}if(!force&&Number(state.tvBroadcastAlertDismissedSeason)===season)return;const count=$("tvBroadcastAlertCount");if(count)count.textContent=String(active.length);modal.style.display="flex";modal.setAttribute("aria-hidden","false");lockAlertView();state.tvBroadcastAlertShownSeason=season;bridge.save();}
 
 function bindAlertButtons(){
 
@@ -20435,7 +20433,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){const modal=$("tvCo
 
 <p class="tiny">TV Company profile, ownership, and broadcasting contracts.</p>
 
-<div class="city-tabs" role="tablist" aria-label="TV Company sections" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px"> 
+<div class="city-tabs" role="tablist" aria-label="TV Company sections" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px">
 
 <button type="button" class="city-tab active" data-tv-company-view="overview">Overview</button>
 
@@ -20443,7 +20441,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){const modal=$("tvCo
 
 <button type="button" class="city-tab" data-tv-company-view="ownership">Ownership</button>
 
-</div>
+</div> 
 
 <section id="tvCompanyOverviewPanel"
 
@@ -20555,7 +20553,7 @@ var body=document.getElementById("teamPageBody");
 
 if(!modal||!title||!body)return;
 
-title.textContent=names[key]||"Team"; 
+title.textContent=names[key]||"Team";
 
 var detail=error?(error.name?error.name+": ":"")+String(error.message||error):"Unknown error";
 
@@ -20563,7 +20561,7 @@ body.innerHTML='<p class="team-note">The team arena opened in recovery mode beca
 
 if(error)console.error("Team arena open error:",error);
 
-modal.classList.add("show");
+modal.classList.add("show"); 
 
 }
 
@@ -20675,7 +20673,7 @@ if(choose&&file)choose.addEventListener("click",()=>file.click());
 
 if(file)file.addEventListener("change",async()=>{
 
-const selected=file.files&&file.files[0]; if(!selected)return; 
+const selected=file.files&&file.files[0]; if(!selected)return;
 
 try{
 
@@ -20683,7 +20681,7 @@ if(selected.size>100*1024*1024)throw new Error("File is larger than the 100 MB s
 
 const parsed=JSON.parse(await selected.text());
 
-if(!parsed||parsed.format!==PREFIX||parsed.formatVersion!==1||!parsed.entries||typeof parsed.entries!=="object"||Array.isArray(parsed.entries))throw new Error("This is not a supported Calvin’s City backup file.");
+if(!parsed||parsed.format!==PREFIX||parsed.formatVersion!==1||!parsed.entries||typeof parsed.entries!=="object"||Array.isArray(parsed.entries))throw new Error("This is not a supported Calvin’s City backup file."); 
 
 const keys=Object.keys(parsed.entries);if(!keys.length||keys.some(k=>!relevantKey(k)||typeof parsed.entries[k]!=="string"))throw new Error("Backup contents failed validation. No data was changed.");
 
@@ -20795,7 +20793,7 @@ if(exact)delete restoreEntries["calvins_city_financial_transactions_v1"];
 
 /* 5.1.4: Remove the separate financial mirror from the restore payload only when
 
-every mirrored transaction is already present byte-for-byte in the main state's 
+every mirrored transaction is already present byte-for-byte in the main state's
 
 canonical financialTransactions array. The main state remains authoritative. */
 
@@ -20803,7 +20801,7 @@ try{
 
 const mainRaw=restoreEntries["calvins_city_v24"];
 
-const mirrorRaw=restoreEntries["calvins_city_financial_transactions_v1"];
+const mirrorRaw=restoreEntries["calvins_city_financial_transactions_v1"]; 
 
 if(typeof mainRaw==="string"&&typeof mirrorRaw==="string"){
 
@@ -20915,7 +20913,7 @@ per-origin overhead. Keep the canonical live state and ledgers. Recovery snapsho
 
 remain in the user's original downloaded JSON; do not force-write redundant snapshots
 
-into a quota-limited browser store. Never remove history from the canonical ledgers. */ 
+into a quota-limited browser store. Never remove history from the canonical ledgers. */
 
 const canonicalKeys = new Set([
 
@@ -20923,7 +20921,7 @@ const canonicalKeys = new Set([
 
 "calvins_city_stock_market_v1",
 
-"calvins_city_bets_v1",
+"calvins_city_bets_v1", 
 
 "calvins_city_bets_pending_import_v1",
 
@@ -21035,7 +21033,7 @@ throw new Error("Restored state does not contain a valid season (29 or later).")
 
 The backup was validated before any live keys were replaced, using saved historical evidence. */
 
-const betsRaw=localStorage.getItem("calvins_city_bets_v1"); 
+const betsRaw=localStorage.getItem("calvins_city_bets_v1");
 
 if(betsRaw){
 
@@ -21043,7 +21041,7 @@ const bets=JSON.parse(betsRaw);
 
 if(!Array.isArray(bets.games)||bets.games.length<1)throw new Error("Betting history verification failed.");
 
-}
+} 
 
 }catch(writeError){
 
@@ -21155,7 +21153,7 @@ renderLegacyMarketplace(st,c);
 
 }
 
-function activePlayersForCompany(st,company){ 
+function activePlayersForCompany(st,company){
 
 const season=Math.max(0,Number(st&&st.year)||0),found=[];
 
@@ -21163,7 +21161,7 @@ const season=Math.max(0,Number(st&&st.year)||0),found=[];
 
 if(!c||!c.name||String(c.status||"").toLowerCase()==="retired")return;
 
-(Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{
+(Array.isArray(c.shoeDeals)?c.shoeDeals:[]).forEach(d=>{ 
 
 if(!d||d.company!==company)return;
 
@@ -21275,7 +21273,7 @@ if(!m.legacyOwnerId){if(m.legacyOwnerType==="Bank")m.legacyOwnerId=String(m.lega
 
 if(!m.legacyOwnerName){m.legacyOwnerName=String(m.legacyOwnerType==="Bank"||m.legacyOwnerType==="Citizen"?m.legacyOwnerId:m.company||"");changed=true;}
 
-if(m.legacyListed==null){m.legacyListed=false;changed=true;} 
+if(m.legacyListed==null){m.legacyListed=false;changed=true;}
 
 if(!Array.isArray(m.legacyDividendPaidSeasons)){m.legacyDividendPaidSeasons=[];changed=true;}
 
@@ -21283,7 +21281,7 @@ if(!Array.isArray(m.legacyOwnershipHistory)){m.legacyOwnershipHistory=[];changed
 
 if(!m.legacyOwnershipHistory.length){m.legacyOwnershipHistory.push({action:"Initial Legacy Ownership",season:Number(m.legacySinceSeason)||season,ownerType:m.legacyOwnerType,ownerId:m.legacyOwnerId,ownerName:m.legacyOwnerName,at:m.legacyConvertedAt||m.retroAt||new Date().toISOString()});changed=true;}
 
-const conversionId=legacyConversionId(m);
+const conversionId=legacyConversionId(m); 
 
 if(!c.legacyShoeLedger.some(row=>row&&String(row.id)===conversionId)){
 
@@ -21395,7 +21393,7 @@ if(!st.businessCashLedger.some(x=>x&&String(x.id)===txId))st.businessCashLedger.
 
 const d=bankCtx.db;d.bankCash=cleanAfter;d.ledger=Array.isArray(d.ledger)?d.ledger:[];
 
-if(!d.ledger.some(x=>x&&String(x.id)===txId))d.ledger.push({id:txId,type,customerName:"CalBank",amount:Math.abs(signed),signedCashChange:signed,balanceBefore:before,balanceAfter:cleanAfter,bankCashBefore:before,bankCashAfter:cleanAfter,createdAt:at,season,legacyShoeId:meta.modelId,legacyShoeTransactionId:meta.transactionId,reason}); 
+if(!d.ledger.some(x=>x&&String(x.id)===txId))d.ledger.push({id:txId,type,customerName:"CalBank",amount:Math.abs(signed),signedCashChange:signed,balanceBefore:before,balanceAfter:cleanAfter,bankCashBefore:before,bankCashAfter:cleanAfter,createdAt:at,season,legacyShoeId:meta.modelId,legacyShoeTransactionId:meta.transactionId,reason});
 
 bankCtx.dirty=true;bankCtx.ledgerIds.push(txId);
 
@@ -21403,7 +21401,7 @@ bankCtx.dirty=true;bankCtx.ledgerIds.push(txId);
 
 const f=st.federalReserve;f.cash=cleanAfter;f.legacyShoeLedger=Array.isArray(f.legacyShoeLedger)?f.legacyShoeLedger:[];
 
-if(!f.legacyShoeLedger.some(x=>x&&String(x.id)===txId))f.legacyShoeLedger.push({id:txId,type,season,amount:signed,balanceBefore:before,balanceAfter:cleanAfter,createdAt:at,legacyShoeId:meta.modelId,legacyShoeTransactionId:meta.transactionId,reason,counterparty:meta.counterparty||null});
+if(!f.legacyShoeLedger.some(x=>x&&String(x.id)===txId))f.legacyShoeLedger.push({id:txId,type,season,amount:signed,balanceBefore:before,balanceAfter:cleanAfter,createdAt:at,legacyShoeId:meta.modelId,legacyShoeTransactionId:meta.transactionId,reason,counterparty:meta.counterparty||null}); 
 
 }
 
@@ -21515,7 +21513,7 @@ const retail=el("shoeRetailTabPanel"),legacy=el("legacyShoesTabPanel"),retailBtn
 
 if(retail)retail.style.display=tab==="legacy"?"none":"";if(legacy)legacy.style.display=tab==="legacy"?"":"none";
 
-if(retailBtn)retailBtn.className=tab==="legacy"?"secondary":"goodbtn";if(legacyBtn)legacyBtn.className=tab==="legacy"?"goodbtn":"secondary"; 
+if(retailBtn)retailBtn.className=tab==="legacy"?"secondary":"goodbtn";if(legacyBtn)legacyBtn.className=tab==="legacy"?"goodbtn":"secondary";
 
 render();
 
@@ -21523,7 +21521,7 @@ render();
 
 function legacyAddLedger(st,row){const c=ensure(st);c.legacyShoeLedger=Array.isArray(c.legacyShoeLedger)?c.legacyShoeLedger:[];if(!c.legacyShoeLedger.some(x=>x&&String(x.id)===String(row.id)))c.legacyShoeLedger.push(row);}
 
-function handleLegacyAction(action,id){
+function handleLegacyAction(action,id){ 
 
 const st=getState(),msg=el("legacyShoeMarketMessage");if(!st){if(msg)msg.textContent="Live game data is unavailable. No Legacy Shoe transaction was changed.";return;}
 
@@ -21635,7 +21633,7 @@ if(c.legacyShoeLedger.some(x=>x&&String(x.id)===txId)||(Array.isArray(m.legacyDi
 
 const owner=legacyResolveOwner(st,m);if(!owner){failures.
 
-push(m.name+": current owner account is unavailable; payout remains unpaid.");continue;} 
+push(m.name+": current owner account is unavailable; payout remains unpaid.");continue;}
 
 const amount=legacyRound(Math.max(0,Number(m.legacySalesTotal)||0)*LEGACY_DIVIDEND_RATE),priorState=JSON.stringify(st),bankCtx=legacyBankContext(),at=new Date().toISOString(),priorAuditBusy=window.__cashIntegrityAuditBusy;
 
@@ -21643,7 +21641,7 @@ try{
 
 window.__cashIntegrityAuditBusy=true;
 
-const meta={at,season,modelId:String(m.id),transactionId:txId,source:"legacy-shoe-dividend-system",payer:"Legacy Dividend System",recipient:owner.name,counterparty:"Legacy Dividend System"};
+const meta={at,season,modelId:String(m.id),transactionId:txId,source:"legacy-shoe-dividend-system",payer:"Legacy Dividend System",recipient:owner.name,counterparty:"Legacy Dividend System"}; 
 
 const ownerMove=legacyChangeCash(st,owner,amount,txId+"-OWNER","Legacy Shoe Dividend","Season "+season+" Legacy Shoe dividend: 10% of preserved lifetime retail sales for "+m.name,meta,bankCtx);
 
@@ -21703,9 +21701,7 @@ if(!confirm("Convert "+m.name+" for retired player "+m.playerAssociation+" into 
 
 const priorState=JSON.stringify(st),convertedAt=new Date().toISOString(),season=Number(st.year)||29;
 
-m.isRetro=true;m.isLegacy=true;m.retroSeason=season;m.retroAt=convertedAt;m.legacySinceSeason=season;m.legacyConvertedAt=c
-
-onvertedAt;m.legacySalesTotal=legacySalesBasis(c,m);m.legacySalesFrozen=true;m.legacySalesFrozenAt=convertedAt;m.legacyOwnerType="Shoe Company";m.legacyOwnerId=String(m.company||"");m.legacyOwnerName=String(m.company||"");m.legacyListed=false;m.legacyAskingPrice=null;m.legacyDividendPaidSeasons=Array.isArray(m.legacyDividendPaidSeasons)?m.legacyDividendPaidSeasons:[];m.legacyOwnershipHistory=[{action:"Initial Legacy Ownership",season,ownerType:"Shoe Company",ownerId:String(m.company||""),ownerName:String(m.company||""),at:convertedAt}];
+m.isRetro=true;m.isLegacy=true;m.retroSeason=season;m.retroAt=convertedAt;m.legacySinceSeason=season;m.legacyConvertedAt=convertedAt;m.legacySalesTotal=legacySalesBasis(c,m);m.legacySalesFrozen=true;m.legacySalesFrozenAt=convertedAt;m.legacyOwnerType="Shoe Company";m.legacyOwnerId=String(m.company||"");m.legacyOwnerName=String(m.company||"");m.legacyListed=false;m.legacyAskingPrice=null;m.legacyDividendPaidSeasons=Array.isArray(m.legacyDividendPaidSeasons)?m.legacyDividendPaidSeasons:[];m.legacyOwnershipHistory=[{action:"Initial Legacy Ownership",season,ownerType:"Shoe Company",ownerId:String(m.company||""),ownerName:String(m.company||""),at:convertedAt}];
 
 normalizeLegacyRecords(st,c);
 
@@ -21755,7 +21751,7 @@ st.businessCashLedger.push({id:attemptId+"-STORE",season,type:"Shoe Promotion Re
 
 if(success){model.popularity=70;model.boostBonus=20;model.boostUntilSeason=season+1;model.boostBonusActive=true;boostResult=boost.label+" boost succeeded: popularity increased by 20 points for two seasons.";}else boostResult=boost.label+" boost failed. The fee was not refunded, and this company cannot retry a boost this season.";
 
-} 
+}
 
 if(!save()){msg.textContent="Storage did not confirm the save. Do not retry yet; check the app's save warning and verify the model list.";return;}
 
@@ -21765,7 +21761,7 @@ el("shoeModelName").value="";el("shoeModelPlayer").value="";el("shoeModelPrice")
 
 function getPlayerMetrics(st,name){
 
-const norm=v=>String(v||"").trim().toLowerCase(),target=norm(name);
+const norm=v=>String(v||"").trim().toLowerCase(),target=norm(name); 
 
 const citizen=(Array.isArray(st&&st.citizens)?st.citizens:[]).find(x=>x&&norm(x.name)===target);
 
@@ -21875,7 +21871,7 @@ const totalBefore=Number(c.totalCash)||0,spendableBefore=Number(c.spendableCash)
 
 c.totalCash=Math.round((totalBefore+interestAmount)*100)/100;
 
-c.spendableCash=Math.round((spendableBefore+interestAmount)*100)/100; 
+c.spendableCash=Math.round((spendableBefore+interestAmount)*100)/100;
 
 c.interestLedger.push({id:interestId,gameKey:key,season,rate:interestRate,rateLabel:"2% per completed game",baseCash:interestBase,amount:interestAmount,totalBefore,totalAfter:c.totalCash,spendableBefore,spendableAfter:c.spendableCash,reserveCash:Number(c.reserveCash)||0,createdAt:new Date().toISOString(),type:"CalSims Interest Income"});
 
@@ -21885,7 +21881,7 @@ c.interestLedger.push({id:interestId,gameKey:key,season,rate:interestRate,rateLa
 
 c.models.forEach(m=>{if(m&&!m.isRetro&&m.boostBonusActive&&season>Number(m.boostUntilSeason)){m.popularity=Math.max(1,(Number(m.popularity)||50)-(Number(m.boostBonus)||20));m.boostBonusActive=false;m.boostExpiredSeason=season;}});
 
-const cycle=(Number(c.cycleCount)||0)+1,consumers=Number(c.consumerCount)||50000000;
+const cycle=(Number(c.cycleCount)||0)+1,consumers=Number(c.consumerCount)||50000000; 
 
 refreshModelPopularity(st,c,cycle);
 
@@ -21995,7 +21991,7 @@ c.spendableCash=spendableAfter;c.totalCash=totalAfter;st.businessCash[casinoName
 
 const net=won?wager:-wager;
 
-highLowResult={transactionId:highLowId,gameKey:key,cycle,season,wager,calSimsDice:[calDie1,calDie2],calSimsTotal:calTotal,casinoDice:[casinoDie1,casinoDie2],casinoTotal,won, outcome:won?"CalSims wins":"Casino wins",payout,net,spendableBefore,spendableAfter,reserveCash:reserveBefore,totalBefore,totalAfter,casinoBefore,casinoAfter,createdAt:at,status:"settled"}; 
+highLowResult={transactionId:highLowId,gameKey:key,cycle,season,wager,calSimsDice:[calDie1,calDie2],calSimsTotal:calTotal,casinoDice:[casinoDie1,casinoDie2],casinoTotal,won, outcome:won?"CalSims wins":"Casino wins",payout,net,spendableBefore,spendableAfter,reserveCash:reserveBefore,totalBefore,totalAfter,casinoBefore,casinoAfter,createdAt:at,status:"settled"};
 
 st.casinoHighLowHistory.push(highLowResult);st.casinoHighLowHistory=st.casinoHighLowHistory.slice(-500);
 
@@ -22005,7 +22001,7 @@ st.businessCashLedger.push({id:highLowId+"-CASINO",season,type:"CalSims High Low
 
 }
 
-}
+} 
 
 if(!highLowResult){
 
@@ -22115,7 +22111,7 @@ window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:verified?"saved-and-v
 
 console.info("Calvin's City 5.3.4 late Kap MVP verification",window.__kapMvpRepairDiagnostic533);
 
-try{if(typeof render==="function")render();}catch(e){} 
+try{if(typeof render==="function")render();}catch(e){}
 
 }catch(err){window.__kapMvpRepairDiagnostic533={version:"5.3.4",status:"error",reason:String(err&&err.message||err)};console.error("Kap MVP late repair error",window.__kapMvpRepairDiagnostic533);}
 
@@ -22125,7 +22121,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 })();
 
-</script>
+</script> 
 
 
 
@@ -22235,7 +22231,7 @@ if($('casinoFundingTarget'))$('casinoFundingTarget').value=target;
 
 if($('casinoInterestRate'))$('casinoInterestRate').value=Number(f.offering&&f.offering.interestRate)||0;
 
-if($('casinoLoanTerm'))$('casinoLoanTerm').value=Number(f.offering&&f.offering.termSeasons)||3; 
+if($('casinoLoanTerm'))$('casinoLoanTerm').value=Number(f.offering&&f.offering.termSeasons)||3;
 
 if($('casinoCurrentSeason'))$('casinoCurrentSeason').value='Season '+currentSeason(state);
 
@@ -22245,7 +22241,7 @@ const holders=$('casinoDebtHolders');if(holders){if(!f.loans||!f.loans.length)ho
 
 const games=$('casinoGamesLocked');if(games){games.innerHTML='<button type="button" class="goodbtn" onclick="window.openRouletteRoom()">🎡 Enter American Roulette</button> <button type="button" class="goodbtn" onclick="window.openLucy7s()">🎰 Enter Lucy 7s</button> <button type="button" class="goodbtn" onclick="window.openHighLowRoom()">🎲 High Low (Automatic CalSims)</button>'; }
 
-const highRows=(state.casinoHighLowHistory||[]).slice(-8).reverse();const highHist=$('highLowHistory');if(highHist){highHist.innerHTML=highRows.length?highRows.map(r=>'<div style="border-bottom:1px solid #354253;padding:6px 0"><strong>Season '+Number(r.season||0)+' · '+escapeHtml(r.outcome||'Round skipped')+'</strong> · '+(r.status==='settled'?'CalSims '+(r.calSimsDice||[]).join(' + ')+' = '+r.calSimsTotal+'; Casino '+(r.casinoDice||[]).join(' + ')+' = '+r.casinoTotal+'; wager '+money(r.wager)+'; CalSims net '+(Number(r.net)>=0?'+':'−')+money(Math.abs(Number(r.net)||0)):escapeHtml(r.reason||'No wager'))+'</div>').join(''):'No High Low rounds recorded yet.';}
+const highRows=(state.casinoHighLowHistory||[]).slice(-8).reverse();const highHist=$('highLowHistory');if(highHist){highHist.innerHTML=highRows.length?highRows.map(r=>'<div style="border-bottom:1px solid #354253;padding:6px 0"><strong>Season '+Number(r.season||0)+' · '+escapeHtml(r.outcome||'Round skipped')+'</strong> · '+(r.status==='settled'?'CalSims '+(r.calSimsDice||[]).join(' + ')+' = '+r.calSimsTotal+'; Casino '+(r.casinoDice||[]).join(' + ')+' = '+r.casinoTotal+'; wager '+money(r.wager)+'; CalSims net '+(Number(r.net)>=0?'+':'−')+money(Math.abs(Number(r.net)||0)):escapeHtml(r.reason||'No wager'))+'</div>').join(''):'No High Low rounds recorded yet.';} 
 
 const lastHigh=highRows[0];if(lastHigh){if($('highLowCalSimsRoll'))$('highLowCalSimsRoll').textContent=lastHigh.status==='settled'?(lastHigh.calSimsDice||[]).join(' + ')+' = '+lastHigh.calSimsTotal:'—';if($('highLowCasinoRoll'))$('highLowCasinoRoll').textContent=lastHigh.status==='settled'?(lastHigh.casinoDice||[]).join(' + ')+' = '+lastHigh.casinoTotal:'—';if($('highLowLastWager'))$('highLowLastWager').textContent=money(lastHigh.wager);if($('highLowLastOutcome'))$('highLowLastOutcome').textContent=lastHigh.outcome||'Round skipped';if($('highLowStatus'))$('highLowStatus').textContent=lastHigh.status==='settled'?'Last round: '+lastHigh.outcome+'. '+(lastHigh.won?'CalSims received '+money(lastHigh.payout)+' including its stake.':'The casino retained the wager.'):'Last round skipped: '+(lastHigh.reason||'No wager placed')+'.';}
 
@@ -22313,6 +22309,8 @@ function accountLabel(state,kind,ref){const a=getBettingAccounts(state).find(x=>
 
 function updateRoulettePlayerCash(){const state=st(),sel=$('casinoRoulettePlayer'),out=$('casinoRoulettePlayerCash');if(!state||!sel||!out)return;const prior=String(sel.value||'');const accounts=getBettingAccounts(state);sel.innerHTML='';accounts.forEach(a=>{const o=document.createElement('option');o.value=a.kind+'|'+a.ref;o.textContent=a.label+' ('+money(a.cash)+')';sel.appendChild(o);});if(accounts.some(a=>a.kind+'|'+a.ref===prior))sel.value=prior;const p=String(sel.value||'').split('|'),n=cashOf(state,p[0],p.slice(1).join('|'));out.textContent=n==null?'Player account unavailable.':'Available cash: '+money(n)+'.';}
 
+window.updateRoulettePlayerCash=updateRoulettePlayerCash;
+
 function rouletteRed(n){return [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36].includes(Number(n));}
 
 function rouletteLabel(type,target){return ({red:'Red',black:'Black',odd:'Odd',even:'Even',low:'Low (1–18)',high:'High (19–36)',dozen1:'1st Dozen',dozen2:'2nd Dozen',dozen3:'3rd Dozen',number:'Number '+target})[type]||type;}
@@ -22355,17 +22353,15 @@ const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute
 
 updateRoulettePlayerCash();
 
-}; 
+};
 
-window.closeRouletteRoom=function(){const modal=$('casinoModal');if(modal){modal.classList.remove('roulette-room-mode');modal.style.remo
-
-veProperty('display');modal.classList.add('show');const box=modal.querySelector('.modalbox');if(box){box.style.removeProperty('width');box.style.removeProperty('max-width');box.style.removeProperty('max-height');box.style.removeProperty('overflow-y');box.style.removeProperty('margin');}const panel=$('casinoRoulettePanel');if(panel)panel.style.display='none';const management=$('casinoManagement');if(management)management.style.display='block';document.body.classList.add('business-modal-open');document.body.style.removeProperty('overflow');document.documentElement.style.removeProperty('overflow');}};
+window.closeRouletteRoom=function(){const modal=$('casinoModal');if(modal){modal.classList.remove('roulette-room-mode');modal.style.removeProperty('display');modal.classList.add('show');const box=modal.querySelector('.modalbox');if(box){box.style.removeProperty('width');box.style.removeProperty('max-width');box.style.removeProperty('max-height');box.style.removeProperty('overflow-y');box.style.removeProperty('margin');}const panel=$('casinoRoulettePanel');if(panel)panel.style.display='none';const management=$('casinoManagement');if(management)management.style.display='block';document.body.classList.add('business-modal-open');document.body.style.removeProperty('overflow');document.documentElement.style.removeProperty('overflow');}};
 
 const rouletteRoomStyle=document.createElement('style');rouletteRoomStyle.textContent=`
 
 #casinoModal.roulette-room-mode{position:fixed!important;inset:0!important;z-index:99999!important;background:#080d16!important;padding:8px!important;align-items:stretch!important;justify-content:center!important;overflow:auto!important}
 
-#casinoModal.roulette-room-mode .modalbox{width:min(100%,980px)!important;max-width:980px!important;max-height:96dvh!important;border-radius:18px!important;background:#121c2a!important}
+#casinoModal.roulette-room-mode .modalbox{width:min(100%,980px)!important;max-width:980px!important;max-height:96dvh!important;border-radius:18px!important;background:#121c2a!important} 
 
 #casinoModal.roulette-room-mode #casinoManagement{display:none!important}
 
@@ -22475,7 +22471,7 @@ if(numberSel.value!==selectedNumber){selectedNumber=numberSel.value;sync();}
 
 });
 
-if(wager)wager.addEventListener('change',()=>{ 
+if(wager)wager.addEventListener('change',()=>{
 
 const v=Number(wager.value);if(Number.isFinite(v)&&v>0){currentChip=Math.round(v*100)/100;sync();}
 
@@ -22485,7 +22481,7 @@ sync();
 
 })();
 
-
+ 
 
 // v5.4.6: chip and table selection controls.
 
@@ -22595,7 +22591,7 @@ const lender=$('casinoLender');if(lender)lender.addEventListener('change',update
 
 #rouletteLiveTable .roulette-bet-spot.red{background:#b82c39!important;color:#fff!important}
 
-#rouletteLiveTable .roulette-bet-spot.black{background:#17191c!important;color:#fff!important} 
+#rouletteLiveTable .roulette-bet-spot.black{background:#17191c!important;color:#fff!important}
 
 #rouletteLiveTable .roulette-outside-layout .roulette-bet-spot.red,
 
@@ -22605,7 +22601,7 @@ const lender=$('casinoLender');if(lender)lender.addEventListener('change',update
 
 #rouletteLiveTable .roulette-bet-spot.selected{outline:3px solid #ffe58c!important;outline-offset:1px!important}
 
-#rouletteLiveTable .roulette-chip-marker{border-color:#fff9}
+#rouletteLiveTable .roulette-chip-marker{border-color:#fff9} 
 
 </style>
 
@@ -22671,7 +22667,7 @@ const t=a+step/2,rr=111,txt=document.createElementNS(NS,'text');txt.setAttribute
 
 }
 
-if(typeof updateRoulettePlayerCash==='function')updateRoulettePlayerCash();
+if(typeof window.updateRoulettePlayerCash==='function')window.updateRoulettePlayerCash();
 
 };
 
@@ -22715,7 +22711,7 @@ document.body.classList.remove('business-modal-open');
 
 document.documentElement.style.removeProperty('overflow');
 
-document.body.style.removeProperty('overflow'); 
+document.body.style.removeProperty('overflow');
 
 if(!document.body.classList.contains('verify-modal-open')&&!document.body.classList.contains('share-ledger-modal-open')&&!document.body.classList.contains('citizen-ledger-scroll-locked')&&!document.body.classList.contains('tv-broadcast-alert-open')){
 
@@ -22725,7 +22721,7 @@ document.body.style.removeProperty('position');document.body.style.removePropert
 
 };
 
-const style=document.createElement('style');
+const style=document.createElement('style'); 
 
 style.textContent=`
 
@@ -22835,7 +22831,7 @@ JSON.stringify((saved.citizens||[]).map(c=>[c&&c.id,c&&c.cash]))===JSON.stringif
 
 }catch(err){console.error('Roulette save verification failed',err);return false;}
 
-} 
+}
 
 function rouletteRefresh(){
 
@@ -22845,7 +22841,7 @@ const cash=$('casinoCash');if(cash)cash.textContent='$'+(Number(state.businessCa
 
 if(typeof window.updateRoulettePlayerCash==='function')window.updateRoulettePlayerCash();
 
-}
+} 
 
 function rouletteEscape(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
@@ -22955,7 +22951,7 @@ spot.appendChild(stack);
 
 });
 
-// Aggregate repeated wagers on the same split edge into one chip showing the full combined stake. 
+// Aggregate repeated wagers on the same split edge into one chip showing the full combined stake.
 
 numberTable.querySelectorAll('.roulette-split-overlay').forEach(el=>el.remove());
 
@@ -22965,7 +22961,7 @@ const splitBets=aggregateVisualBets(bets.filter(b=>b.type==='split'&&Array.isArr
 
 splitBets.forEach(b=>{
 
-const a=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[0]));
+const a=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[0])); 
 
 const c=numberSpots().find(el=>String(el.dataset.target)===String(b.targets[1]));if(!a||!c)return;
 
@@ -23075,7 +23071,7 @@ return pairs;
 
 }
 
-function splitAt(x,y){ 
+function splitAt(x,y){
 
 let best=null,bestDistance=Infinity;
 
@@ -23085,7 +23081,7 @@ const distance=p.axis==='x'?Math.abs(x-p.x):Math.abs(y-p.y);
 
 const along=p.axis==='x'?y>=p.y1-8&&y<=p.y2+8:x>=p.x1-8&&x<=p.x2+8;
 
-// A split must be near an edge, not merely anywhere on a number button.
+// A split must be near an edge, not merely anywhere on a number button. 
 
 if(along&&distance<=12&&distance<bestDistance){best=[p.a.n,p.b.n];bestDistance=distance;}
 
@@ -23195,7 +23191,7 @@ const state=rouletteState();if(!state){alert('Live game state is unavailable. No
 
 const accounts=[],seen=new Set();let stake=0;
 
-for(const group of roundBets){const key=group.kind+'|'+group.ref;let item=accounts.find(x=>x.key===key);if(!item){item={key,kind:group.kind,ref:group.ref,label:group.label,bets:[],stake:0,before:rouletteCash(state,group.kind,group.ref)};accounts.push(item);}item.bets.push(...group.bets);} 
+for(const group of roundBets){const key=group.kind+'|'+group.ref;let item=accounts.find(x=>x.key===key);if(!item){item={key,kind:group.kind,ref:group.ref,label:group.label,bets:[],stake:0,before:rouletteCash(state,group.kind,group.ref)};accounts.push(item);}item.bets.push(...group.bets);}
 
 for(const a of accounts){a.stake=rouletteStake(a.bets);a.before=rouletteCash(state,a.kind,a.ref);if(a.before==null||a.before<a.stake){alert(a.label+' no longer has enough cash for the placed wagers. No spin was settled.');return;}stake=Math.round((stake+a.stake)*100)/100;}
 
@@ -23205,7 +23201,7 @@ const beforeCasino=Number(state.businessCash[CASINO_ACCOUNT])||0,index=Math.floo
 
 const settled=[];for(const a of accounts){a.settled=a.bets.map((b,i)=>{const won=wonBet(result,b),profit=won?cents(b.stake*multiplier(b)):0,gross=won?cents(b.stake+profit):0;return{...b,won,profit,gross,betLabel:spotLabel(b),betIndex:i,accountKind:a.kind,accountRef:a.ref,accountLabel:a.label};});a.gross=cents(a.settled.reduce((n,b)=>n+b.gross,0));a.profit=cents(a.settled.reduce((n,b)=>n+b.profit,0));settled.push(...a.settled);}
 
-const grossTotal=cents(accounts.reduce((n,a)=>n+a.gross,0)),profitTotal=cents(accounts.reduce((n,a)=>n+a.profit,0)),casinoAfterStake=cents(beforeCasino+stake);
+const grossTotal=cents(accounts.reduce((n,a)=>n+a.gross,0)),profitTotal=cents(accounts.reduce((n,a)=>n+a.profit,0)),casinoAfterStake=cents(beforeCasino+stake); 
 
 if(casinoAfterStake<grossTotal){alert('The casino cannot cover all winning payouts on this spin. No bets were accepted.');return;}
 
@@ -23315,7 +23311,7 @@ const sel=$('lucyCitizen');if(sel)sel.addEventListener('change',update);
 })();
 
 </script>
- 
+
 
 
 <script>
@@ -23325,7 +23321,7 @@ const sel=$('lucyCitizen');if(sel)sel.addEventListener('change',update);
 (function(){
 
 "use strict";
-
+ 
 const $=id=>document.getElementById(id);
 
 const fmt=n=>"$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2})+"M";
@@ -23434,14 +23430,13 @@ const advice=$("fedBoardAdvice");advice.innerHTML='<p><strong>Suggested Treasury
 
 }
 
-$("fedBoardRefresh")?.addEventListener("click",render);$("fedBoardSaveSnapshot")?.addEventListener("click",saveSnapshot);$("fedBoardGenerateAdvice")?.addEventListener("click",advise);$("cityFederalReserveTab")?.addEventListener("click",()=>setTimeout(render,0));
- 
+$("fedBoardRefresh")?.addEventListener("click",render);$("fedBoardSaveSnapshot")?.addEventListener("click",()=>saveSnapshot());$("fedBoardGenerateAdvice")?.addEventListener("click",advise);$("cityFederalReserveTab")?.addEventListener("click",()=>setTimeout(render,0));
+
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",render);else setTimeout(render,0);
 
 })();
 
 </script>
-
 
 
 
@@ -23555,6 +23550,7 @@ max-width: 100%;
 #fedTreasuryPopup > .fed-tool-modal > .fed-tool-content {
 
 padding-left: 10px;
+
 padding-right: 10px;
 
 overflow-x: hidden;
@@ -23564,7 +23560,6 @@ overflow-x: hidden;
 #fedTreasuryPopup #fedTreasuryCard .grid {
 
 grid-template-columns: minmax(0, 1fr);
-
 }
 
 
@@ -23794,7 +23789,7 @@ try{const prior=JSON.parse(oldGame);Object.keys(st).forEach(k=>delete st[k]);Obj
 
 status("Transaction failed validation: "+String(e.message||e)+". A rollback was attempted. Check borrower cash, CalBank cash, and the loan ledger before retrying.");
 
-return; 
+return;
 
 }
 
@@ -23804,7 +23799,7 @@ render();if(typeof window.renderCalBankDeposits==="function")window.renderCalBan
 
 function raiseRate(loanId){
 
-const st=game();let d;try{d=bank();}catch(e){status(e.message);return;}
+const st=game();let d;try{d=bank();}catch(e){status(e.message);return;} 
 
 const loan=d.customerLoans.find(l=>l.id===loanId);if(!loan){status("Loan not found.");return;}
 
@@ -23914,7 +23909,7 @@ if(citizenCount)citizenCount.textContent=String(citizens.length);
 
 var records=st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords:[];
 
-var gameCount=byId("recordGameCount"); 
+var gameCount=byId("recordGameCount");
 
 if(gameCount)gameCount.textContent=String(records.length);
 
@@ -23924,7 +23919,7 @@ function activateScreen(id){
 
 var target=byId(id);
 
-if(!target||!target.classList.contains("screen"))return false;
+if(!target||!target.classList.contains("screen"))return false; 
 
 document.querySelectorAll(".screen").forEach(function(el){el.classList.toggle("active",el===target);});
 
@@ -24022,7 +24017,7 @@ var body=document.createElement("div");body.id="cc5874RecoveryText";panel.append
 }
 
 var recoveryBody=byId("cc5874RecoveryText");
-if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.144\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
+if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.146\nJavaScript error: "+String(e.message||"Unknown error")+"\nAt line "+String(e.lineno||"?")+", column "+String(e.colno||"?")+". Saved records were not modified.";
 
 }catch(ignore){}
 
@@ -24034,7 +24029,7 @@ if(recoveryBody)recoveryBody.textContent="Calvin's City startup recovery 5.8.144
 
 
 
-<script> 
+<script>
 
 /* v5.8.64 — CalBank stock-only investment portfolio.
 
@@ -24044,7 +24039,7 @@ Does not reset holdings, rewrite historical reports, or assign investments to th
 
 (function(){
 
-"use strict";
+"use strict"; 
 
 const BANK_KEY="calvins_city_calbank_v1",GAME_KEY="calvins_city_v24",MARKET_KEY="calvins_city_stock_market_v1",OWNER_KEY="CALBANK";
 
@@ -24154,7 +24149,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
 
 </script>
- 
+
 
 
 
@@ -24164,7 +24159,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 /* v5.8.85 — Unified CalBank ledger view. Read-only aggregation; source ledgers remain authoritative. */
 
 (function(){
-
+ 
 "use strict";
 
 const BANK_KEY="calvins_city_calbank_v1", GAME_KEY="calvins_city_v24", MARKET_KEY="calvins_city_stock_market_v1";
@@ -24273,4 +24268,4 @@ window.renderCalBankMasterLedger=render;
  </div>
 </div>
 </div>
-</body></html> 
+</body></html>
