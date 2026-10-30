@@ -430,9 +430,9 @@ if(proto.__ccCompressionInstalled)return;
 
 const nativeGet=proto.getItem, nativeSet=proto.setItem, nativeRemove=proto.removeItem;
 
-const PREFIX="__CCZ1__";
+const PREFIX="__CCZ1__", PREFIX2="__CCZ2__";
 
-const target=k=>/^(calvins_city_v24|calvins_city_bets_v1|calvins_city_stock_market_v1|calvins_city_share_ownership_ledger_v1|calvins_city_business_ownership_v1)$/.test(String(k||""));
+const target=k=>/^(calvins_city_v24|calvins_city_bets_v1|calvins_city_bets_pending_import_v1|calvins_city_calbank_v1|calvins_city_stock_market_v1|calvins_city_share_ownership_ledger_v1|calvins_city_business_ownership_v1)$/.test(String(k||""));
 
 const b64encode=bytes=>{
 
@@ -566,38 +566,81 @@ for(let j=0;j<len;j++)out.push(out[out.length-offset]);
 
 }
 
+
 return new Uint8Array(out);
 
+}
+
+/* v5.2.0: LZ4-compatible block codec. New writes use CCZ2; old CCZ1 saves remain readable. */
+function compressBytesV2(input){
+const out=[],n=input.length,table=new Int32Array(1<<16);table.fill(-1);
+const read32=i=>(input[i]|(input[i+1]<<8)|(input[i+2]<<16)|(input[i+3]<<24))>>>0;
+const hash=x=>Math.imul(x,2654435761)>>>16;
+function writeLength(value){while(value>=255){out.push(255);value-=255;}out.push(value);}
+let anchor=0,i=0;
+while(i+4<=n){
+const h=hash(read32(i)),ref=table[h];table[h]=i;
+if(ref>=0&&i-ref<=65535&&read32(ref)===read32(i)){
+let match=4;while(i+match<n&&input[ref+match]===input[i+match])match++;
+const literals=i-anchor,matchExtra=match-4,tokenIndex=out.length;out.push(0);
+out[tokenIndex]=(Math.min(literals,15)<<4)|Math.min(matchExtra,15);
+if(literals>=15)writeLength(literals-15);
+for(let j=anchor;j<i;j++)out.push(input[j]);
+const offset=i-ref;out.push(offset&255,(offset>>>8)&255);
+if(matchExtra>=15)writeLength(matchExtra-15);
+const end=i+match;i++;
+while(i<end){if(i+4<=n)table[hash(read32(i))]=i;i++;}
+anchor=end;i=end;
+}else i++;
+}
+const literals=n-anchor;out.push(Math.min(literals,15)<<4);
+if(literals>=15)writeLength(literals-15);
+for(let j=anchor;j<n;j++)out.push(input[j]);
+return new Uint8Array(out);
+}
+function decompressBytesV2(input,expected){
+const out=new Uint8Array(expected);let p=0,o=0;
+function readLength(base){let length=base;if(base===15){let b;do{if(p>=input.length)throw new Error("Truncated CCZ2 length.");b=input[p++];length+=b;}while(b===255);}return length;}
+while(p<input.length){
+const token=input[p++],literalLength=readLength(token>>>4);
+if(p+literalLength>input.length||o+literalLength>out.length)throw new Error("Invalid CCZ2 literal range.");
+out.set(input.subarray(p,p+literalLength),o);p+=literalLength;o+=literalLength;
+if(p===input.length)break;
+if(p+2>input.length)throw new Error("Truncated CCZ2 match offset.");
+const offset=input[p]|(input[p+1]<<8);p+=2;
+if(!offset||offset>o)throw new Error("Invalid CCZ2 back-reference.");
+const matchLength=readLength(token&15)+4;
+if(o+matchLength>out.length)throw new Error("Invalid CCZ2 match length.");
+for(let j=0;j<matchLength;j++)out[o+j]=out[o+j-offset];
+o+=matchLength;
+}
+if(o!==expected)throw new Error("CCZ2 integrity length mismatch.");
+return out;
 }
 
 const enc=new TextEncoder(),dec=new TextDecoder();
 
 function pack(value){
-
-const raw=enc.encode(value),compressed=compressBytes(raw);
-
-const payload=b64encode(compressed);
-
-return PREFIX+raw.length+":"+payload;
-
+const raw=enc.encode(value),compressed=compressBytesV2(raw);
+return PREFIX2+raw.length+":"+b64encode(compressed);
 }
-
 function unpack(value){
-
-if(typeof value!=="string"||!value.startsWith(PREFIX))return value;
-
-const sep=value.indexOf(":",PREFIX.length);
-
-if(sep<0)throw new Error("Invalid compressed Calvin's City storage header.");
-
-const expected=Number(value.slice(PREFIX.length,sep));
-
-const raw=dec.decode(decompressBytes(b64decode(value.slice(sep+1))));
-
-if(!Number.isFinite(expected)||enc.encode(raw).length!==expected)throw new Error("Calvin's City storage integrity check failed.");
-
+if(typeof value!=="string")return value;
+if(value.startsWith(PREFIX2)){
+const sep=value.indexOf(":",PREFIX2.length);
+if(sep<0)throw new Error("Invalid CCZ2 storage header.");
+const expected=Number(value.slice(PREFIX2.length,sep));
+const raw=dec.decode(decompressBytesV2(b64decode(value.slice(sep+1)),expected));
+if(!Number.isFinite(expected)||enc.encode(raw).length!==expected)throw new Error("CCZ2 storage integrity check failed.");
 return raw;
-
+}
+if(!value.startsWith(PREFIX))return value;
+const sep=value.indexOf(":",PREFIX.length);
+if(sep<0)throw new Error("Invalid compressed Calvin's City storage header.");
+const expected=Number(value.slice(PREFIX.length,sep));
+const raw=dec.decode(decompressBytes(b64decode(value.slice(sep+1))));
+if(!Number.isFinite(expected)||enc.encode(raw).length!==expected)throw new Error("Calvin's City storage integrity check failed.");
+return raw;
 }
 
 proto.getItem=function(key){return unpack(nativeGet.call(this,key));};
@@ -636,11 +679,11 @@ let keysChecked=0;
 
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
 
-window.__calvinsCityStorageCompression={version:"5.1.8",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.2.0",codec:"CCZ2-LZ4-compatible",legacyCodec:"CCZ1-readable",status:"installed-no-startup-migration",keysChecked:keysChecked};
 
 }catch(err){
 
-window.__calvinsCityStorageCompression={version:"5.1.7",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.2.0",status:"failed",message:String(err&&err.message||err)};
 
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
 
@@ -1165,8 +1208,8 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <textarea id="indexedDBCompatibilityReport" readonly style="display:none;width:100%;min-height:280px;margin-top:10px"></textarea>
 </div>
 <div class="section" style="margin-top:12px;padding:12px;border:1px solid var(--border,#555);border-radius:10px">
-<h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.164</h3>
-<p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p>
+<h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.165</h3>
+<p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p><p><strong>Storage update:</strong> Compression adapter v5.2.0 now writes the CCZ2 LZ4-compatible block format and retains CCZ1 read compatibility. It covers all seven records in the full backup. The IndexedDB staging archive remains separate and untouched.</p>
 <button type="button" id="indexedDBStartupImportAnalysis" class="secondary">Run Startup &amp; Import Flow Analysis</button>
 <textarea id="indexedDBStartupImportReport" readonly spellcheck="false" style="display:none;width:100%;min-height:520px;margin-top:12px"></textarea>
 </div>
@@ -24716,7 +24759,7 @@ const core=app?app.source:"";
 const imp=importer?importer.source:"";
 const lines=[];
 const add=(label,value)=>lines.push(label+": "+value);
-lines.push("CALVIN'S CITY — v5.8.164 STARTUP & IMPORT FLOW ANALYSIS");
+lines.push("CALVIN'S CITY — v5.8.165 STARTUP & IMPORT FLOW ANALYSIS");
 lines.push("MODE: READ-ONLY SOURCE INSPECTION");
 lines.push("Scope: inline JavaScript in this HTML file. No game storage was read or changed.");
 lines.push("");
