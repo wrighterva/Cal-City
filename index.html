@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.174: IndexedDB broken-line and display-label repair; IndexedDB JSON export and restore round-trip verification; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.175: IndexedDB broken-line and display-label repair; IndexedDB JSON export and restore round-trip verification; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.174">
+<meta name="calvins-city-build" content="5.8.175">
 
 
 
@@ -699,7 +699,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.174</title>
+<title>Calvin's City 5.8.175</title>
 
 <style>
 
@@ -1173,7 +1173,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.174</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.175</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -1211,7 +1211,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.166</h3>
 <p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p><p><strong>Storage update:</strong> Compression adapter v5.2.0 now writes the CCZ2 LZ4-compatible block format and retains CCZ1 read compatibility. It covers all seven records in the full backup. The IndexedDB staging archive remains separate and untouched.</p>
 <section id="ccIndexedDBCandidatePanel" style="margin:14px 0;padding:14px;border:1px solid #526078;border-radius:12px;background:rgba(40,55,78,.18);color:inherit">
-<h3>IndexedDB Storage Setup — v5.8.174</h3>
+<h3>IndexedDB Storage Setup — v5.8.175</h3>
 <p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p><p><strong>Bridge rehearsal:</strong> upgrades the candidate database schema safely while preserving existing stores and records; then loads the latest verified candidate into a temporary in-memory map and tests the synchronous Storage API behaviors the existing game depends on. The separate durable-write test writes only a temporary probe to its own test store, closes and reopens IndexedDB, verifies the probe, then removes it. The full JSON staging test validates the actual CALVINS_CITY_FULL_BACKUP_V1 file, writes its seven datasets under a new inactive dataset ID, and reads every value back exactly. The export/restore round-trip test serializes that inactive dataset into the existing JSON backup format, parses it again, stages a second inactive dataset, and verifies every value. The compatibility-cache test snapshots localStorage read-only into memory, tests synchronous Storage-style reads and mutations against an isolated cache, and verifies ordered durable journal writes in the existing bridgeJournal store. It never patches Storage.prototype or redirects game calls. Neither test changes the active game. All test writes/removals occur only in that temporary map; neither localStorage nor the IndexedDB candidate is modified.</p>
 <button type="button" id="ccCreateIndexedDBCandidate" style="padding:10px 14px;border-radius:8px">Create Verified IndexedDB Copy</button>
 <button type="button" id="ccVerifyIndexedDBCandidate" style="padding:10px 14px;border-radius:8px;margin-left:8px">Verify Latest Copy</button>
@@ -24890,7 +24890,7 @@ req.onerror=()=>reject(req.error||new Error("Could not open IndexedDB."));
 req.onblocked=()=>reject(new Error("IndexedDB upgrade is blocked by another open tab."));
 });
 }
-function request(req){return new Promise((resolve,reject)=>{req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>db.close();resolve(db);};req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));});}
+function request(req){return new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));});}
 function txDone(tx){return new Promise((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onabort=tx.onerror=()=>reject(tx.error||new Error("IndexedDB transaction failed."));});}
 function makeId(){return "candidate-"+Date.now()+"-"+Math.random().toString(36).slice(2,10);}
 function getCurrentSnapshot(){
@@ -25045,7 +25045,7 @@ req.onblocked=()=>reject(new Error("Candidate database open was blocked."));
 });
 }
 function request(req){return new Promise((resolve,reject)=>{
-req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>db.close();resolve(db);};
+req.onsuccess=()=>resolve(req.result);
 req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));
 });}
 function transactionDone(tx){return new Promise((resolve,reject)=>{
@@ -25195,7 +25195,7 @@ req.onblocked=()=>reject(new Error("IndexedDB upgrade is blocked by another open
 });
 }
 function reqResult(req){return new Promise((resolve,reject)=>{
-req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>db.close();resolve(db);};
+req.onsuccess=()=>resolve(req.result);
 req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));
 });}
 function txComplete(tx){return new Promise((resolve,reject)=>{
@@ -25297,7 +25297,7 @@ req.onblocked=()=>reject(new Error("IndexedDB upgrade is blocked by another open
 });
 }
 function reqResult(req){return new Promise((resolve,reject)=>{
-req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>db.close();resolve(db);};
+req.onsuccess=()=>resolve(req.result);
 req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));
 });}
 function txDone(tx){return new Promise((resolve,reject)=>{
@@ -25405,7 +25405,7 @@ file.addEventListener("change",()=>{const selected=file.files&&file.files[0];if(
 </script>
 <script>
 
-/* CALVIN'S CITY v5.8.174 — INDEXEDDB JSON EXPORT/RESTORE ROUND-TRIP TEST.
+/* CALVIN'S CITY v5.8.175 — INDEXEDDB JSON EXPORT/RESTORE ROUND-TRIP TEST.
   Reads the latest verified JSON-import inactive dataset, exports it in the
   existing CALVINS_CITY_FULL_BACKUP_V1 format, parses it, stages it as a new
   inactive dataset, and verifies exact value equality. Downloads the JSON
@@ -25436,7 +25436,7 @@ req.onerror=()=>reject(req.error||new Error("Could not open IndexedDB."));
 req.onblocked=()=>reject(new Error("IndexedDB open was blocked."));
 });}
 function reqResult(req){return new Promise((resolve,reject)=>{
-req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>db.close();resolve(db);};
+req.onsuccess=()=>resolve(req.result);
 req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));
 });}
 function txDone(tx){return new Promise((resolve,reject)=>{
@@ -25499,7 +25499,7 @@ if(missing.length)throw new Error("Source dataset is missing required keys: "+mi
 const main=JSON.parse(entries.calvins_city_v24);
 const backup={
 format:"CALVINS_CITY_FULL_BACKUP_V1",formatVersion:1,
-appVersion:"5.8.174",exportedAt:new Date().toISOString(),
+appVersion:"5.8.175",exportedAt:new Date().toISOString(),
 storageType:"indexedDB",entryCount:sourceRows.length,entries
 };
 const exportedText=JSON.stringify(backup,null,2);
@@ -25558,7 +25558,7 @@ button.addEventListener("click",run);
 </script>
 
 <script>
-/* CALVIN'S CITY v5.8.174 — COMPATIBILITY CACHE + ORDERED WRITE-QUEUE REHEARSAL.
+/* CALVIN'S CITY v5.8.175 — COMPATIBILITY CACHE + ORDERED WRITE-QUEUE REHEARSAL.
   This is an isolated architecture test, not the live game's storage adapter.
   It reads localStorage only, never patches Storage.prototype, and writes only
   uniquely named temporary probes to the existing bridgeJournal object store. */
@@ -25587,7 +25587,7 @@ return new Promise((resolve,reject)=>{
 }
 function request(req){
 return new Promise((resolve,reject)=>{
- req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>db.close();resolve(db);};
+ req.onsuccess=()=>resolve(req.result);
  req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));
 });
 }
