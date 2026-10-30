@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.170: Full JSON backup staging into inactive IndexedDB dataset; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.171: IndexedDB JSON export and restore round-trip verification; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -1211,13 +1211,15 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.166</h3>
 <p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p><p><strong>Storage update:</strong> Compression adapter v5.2.0 now writes the CCZ2 LZ4-compatible block format and retains CCZ1 read compatibility. It covers all seven records in the full backup. The IndexedDB staging archive remains separate and untouched.</p>
 <section id="ccIndexedDBCandidatePanel" style="margin:14px 0;padding:14px;border:1px solid #526078;border-radius:12px;background:rgba(40,55,78,.18);color:inherit">
-<h3>IndexedDB Storage Setup — v5.8.170</h3>
-<p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p><p><strong>Bridge rehearsal:</strong> upgrades the candidate database schema safely while preserving existing stores and records; then loads the latest verified candidate into a temporary in-memory map and tests the synchronous Storage API behaviors the existing game depends on. The separate durable-write test writes only a temporary probe to its own test store, closes and reopens IndexedDB, verifies the probe, then removes it. The full JSON staging test validates the actual CALVINS_CITY_FULL_BACKUP_V1 file, writes its seven datasets under a new inactive dataset ID, and reads every value back exactly. It does not change the active game. All test writes/removals occur only in that temporary map; neither localStorage nor the IndexedDB candidate is modified.</p>
+<h3>IndexedDB Storage Setup — v5.8.171</h3>
+<p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p><p><strong>Bridge rehearsal:</strong> upgrades the candidate database schema safely while preserving existing stores and records; then loads the latest verified candidate into a temporary in-memory map and tests the synchronous Storage API behaviors the existing game depends on. The separate durable-write test writes only a temporary probe to its own test store, closes and reopens IndexedDB, verifies the probe, then removes it. The full JSON staging test validates the actual CALVINS_CITY_FULL_BACKUP_V1 file, writes its seven datasets under a new inactive dataset ID, and reads every value back exactly. The export/restore round-trip test serializes that inactive dataset into the existing JSON backup format, parses it again, stages a second inactive dataset, and verifies every value. Neither test changes the active game. All test writes/removals occur only in that temporary map; neither localStorage nor the IndexedDB candidate is modified.</p>
 <button type="button" id="ccCreateIndexedDBCandidate" style="padding:10px 14px;border-radius:8px">Create Verified IndexedDB Copy</button>
 <button type="button" id="ccVerifyIndexedDBCandidate" style="padding:10px 14px;border-radius:8px;margin-left:8px">Verify Latest Copy</button>
 <button type="button" id="ccRunIndexedDBBridgeRehearsal" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run Read-Only Bridge Rehearsal</button>
 <button type="button" id="ccRunIndexedDBDurableWriteTest" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run Durable-Write Test</button>
 <button type="button" id="ccStageJsonBackupInIndexedDB" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Stage Full JSON Backup in IndexedDB (Do Not Activate)</button>
+<button type="button" id="ccRunIndexedDBJsonRoundTrip" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run IndexedDB JSON Export/Restore Round-Trip</button>
+
 <input type="file" id="ccIndexedDBBackupFile" accept=".json,application/json" style="display:none"/>
 
 <pre id="ccIndexedDBCandidateStatus" style="white-space:pre-wrap;overflow-wrap:anywhere;display:none;margin-top:12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.18)"></pre>
@@ -25396,6 +25398,159 @@ show(["FULL JSON BACKUP STAGING DID NOT PASS",String(err&&err.message||err),"No 
 }
 button.addEventListener("click",()=>file.click());
 file.addEventListener("change",()=>{const selected=file.files&&file.files[0];if(selected)stage(selected);});
+})();
+
+</script>
+<script>
+
+/* CALVIN'S CITY v5.8.171 — INDEXEDDB JSON EXPORT/RESTORE ROUND-TRIP TEST.
+  Reads the latest verified JSON-import inactive dataset, exports it in the
+  existing CALVINS_CITY_FULL_BACKUP_V1 format, parses it, stages it as a new
+  inactive dataset, and verifies exact value equality. Downloads the JSON
+  export for the user. Never activates a dataset or touches localStorage. */
+(function(){
+"use strict";
+const DB_NAME="calvinsCityPrimaryStorageV1",DB_VERSION=3;
+const button=document.getElementById("ccRunIndexedDBJsonRoundTrip");
+const output=document.getElementById("ccIndexedDBCandidateStatus");
+if(!button||!output)return;
+let busy=false;
+const REQUIRED=[
+"calvins_city_v24","calvins_city_bets_v1","calvins_city_bets_pending_import_v1",
+"calvins_city_calbank_v1","calvins_city_share_ownership_ledger_v1",
+"calvins_city_stock_market_v1","calvins_city_business_ownership_v1"
+];
+function show(lines){output.style.display="block";output.textContent=lines.join("\n");}
+function openDB(){return new Promise((resolve,reject)=>{
+const req=indexedDB.open(DB_NAME,DB_VERSION);
+req.onupgradeneeded=()=>{
+const db=req.result;
+if(!db.objectStoreNames.contains("datasets"))db.createObjectStore("datasets",{keyPath:"datasetId"});
+if(!db.objectStoreNames.contains("records"))db.createObjectStore("records",{keyPath:["datasetId","key"]});
+if(!db.objectStoreNames.contains("bridgeJournal"))db.createObjectStore("bridgeJournal",{keyPath:"id"});
+};
+req.onsuccess=()=>resolve(req.result);
+req.onerror=()=>reject(req.error||new Error("Could not open IndexedDB."));
+req.onblocked=()=>reject(new Error("IndexedDB open was blocked."));
+});}
+function reqResult(req){return new Promise((resolve,reject)=>{
+req.onsuccess=()=>resolve(req.result);
+req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));
+});}
+function txDone(tx){return new Promise((resolve,reject)=>{
+tx.oncomplete=()=>resolve();
+tx.onabort=()=>reject(tx.error||new Error("IndexedDB transaction aborted."));
+tx.onerror=()=>reject(tx.error||new Error("IndexedDB transaction failed."));
+});}
+function makeId(){return "json-roundtrip-"+Date.now()+"-"+Math.random().toString(36).slice(2,10);}
+function digest(rows){
+let a=0x811c9dc5,b=0x9e3779b9,total=0;
+const ordered=rows.slice().sort((x,y)=>x.key.localeCompare(y.key));
+for(const row of ordered){
+const t=row.key+"\u0000"+row.value;total+=row.value.length;
+for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,0x01000193)>>>0;b=Math.imul(b^(c+i),0x85ebca6b)>>>0;}
+}
+return {count:ordered.length,total,fingerprint:a.toString(16).padStart(8,"0")+b.toString(16).padStart(8,"0")};
+}
+async function getLatestImport(db){
+const tx=db.transaction(["datasets"],"readonly"),done=txDone(tx);
+const all=await reqResult(tx.objectStore("datasets").getAll());await done;
+const candidates=all.filter(x=>x&&x.status==="json-import-verified-inactive"&&x.format==="CALVINS_CITY_FULL_BACKUP_V1")
+.sort((a,b)=>String(b.verifiedAt||"").localeCompare(String(a.verifiedAt||"")));
+if(!candidates.length)throw new Error("No verified inactive JSON-import dataset exists. Stage the full JSON backup first.");
+return candidates[0];
+}
+async function readRows(db,id){
+const tx=db.transaction(["records"],"readonly"),done=txDone(tx);
+const all=await reqResult(tx.objectStore("records").getAll());await done;
+return all.filter(r=>r&&r.datasetId===id).sort((a,b)=>a.key.localeCompare(b.key));
+}
+async function putMeta(db,meta){const tx=db.transaction(["datasets"],"readwrite"),done=txDone(tx);tx.objectStore("datasets").put(meta);await done;}
+async function putRows(db,id,rows){
+for(let i=0;i<rows.length;i+=20){
+const tx=db.transaction(["records"],"readwrite"),done=txDone(tx),store=tx.objectStore("records");
+rows.slice(i,i+20).forEach(r=>store.put({datasetId:id,key:r.key,value:r.value,logicalLength:r.value.length}));
+await done;
+}
+}
+function downloadJSON(text){
+const blob=new Blob([text],{type:"application/json;charset=utf-8"});
+const url=URL.createObjectURL(blob),a=document.createElement("a");
+a.href=url;a.download="Calvins_City_IndexedDB_Export_RoundTrip.json";
+a.style.display="none";document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+async function run(){
+if(busy)return;busy=true;button.disabled=true;let db=null;
+try{
+show(["INDEXEDDB JSON EXPORT/RESTORE ROUND-TRIP","Finding verified inactive JSON import…"]);
+db=await openDB();
+const sourceMeta=await getLatestImport(db);
+const sourceRows=await readRows(db,sourceMeta.datasetId);
+if(sourceRows.length!==sourceMeta.recordCount)throw new Error("Source dataset record count does not match metadata.");
+const sourceDigest=digest(sourceRows);
+if(sourceDigest.total!==sourceMeta.totalCharacters||sourceDigest.fingerprint!==sourceMeta.fingerprint)throw new Error("Source dataset fingerprint does not match its verified metadata.");
+const entries={};
+sourceRows.forEach(r=>entries[r.key]=r.value);
+const missing=REQUIRED.filter(k=>typeof entries[k]!=="string");
+if(missing.length)throw new Error("Source dataset is missing required keys: "+missing.join(", "));
+const main=JSON.parse(entries.calvins_city_v24);
+const backup={
+format:"CALVINS_CITY_FULL_BACKUP_V1",formatVersion:1,
+appVersion:"5.8.171",exportedAt:new Date().toISOString(),
+storageType:"indexedDB",entryCount:sourceRows.length,entries
+};
+const exportedText=JSON.stringify(backup,null,2);
+const parsed=JSON.parse(exportedText);
+if(parsed.format!=="CALVINS_CITY_FULL_BACKUP_V1"||parsed.formatVersion!==1||Object.keys(parsed.entries).length!==sourceRows.length)
+throw new Error("Generated JSON export failed format validation.");
+const restoredRows=Object.keys(parsed.entries).sort().map(key=>({key,value:parsed.entries[key]}));
+const restoredDigest=digest(restoredRows);
+if(restoredDigest.fingerprint!==sourceDigest.fingerprint||restoredDigest.total!==sourceDigest.total)
+throw new Error("Serialized JSON export did not preserve the source dataset values.");
+const newId=makeId();
+const newMeta={
+datasetId:newId,status:"json-roundtrip-verified-inactive",
+source:"IndexedDB JSON export then parse/restore round-trip",
+format:parsed.format,formatVersion:parsed.formatVersion,sourceDatasetId:sourceMeta.datasetId,
+createdAt:new Date().toISOString(),recordCount:restoredDigest.count,totalCharacters:restoredDigest.total,
+fingerprint:restoredDigest.fingerprint,gameSeason:Number(main.year),keys:restoredRows.map(r=>r.key),
+activationState:"inactive",verifiedAt:null
+};
+await putMeta(db,newMeta);
+await putRows(db,newId,restoredRows);
+const stored=await readRows(db,newId),storedDigest=digest(stored);
+const originalMap=new Map(sourceRows.map(r=>[r.key,r.value]));
+const mismatches=stored.filter(r=>originalMap.get(r.key)!==r.value).map(r=>r.key);
+if(stored.length!==sourceRows.length||mismatches.length||storedDigest.fingerprint!==sourceDigest.fingerprint)
+throw new Error("Restored IndexedDB dataset did not exactly match its source. Differences: "+mismatches.slice(0,8).join(", "));
+await putMeta(db,{...newMeta,status:"json-roundtrip-verified-inactive",verifiedAt:new Date().toISOString(),verifiedRecordCount:stored.length});
+downloadJSON(exportedText);
+show([
+"INDEXEDDB JSON EXPORT/RESTORE ROUND-TRIP PASSED",
+"Database: "+DB_NAME,
+"Source dataset: "+sourceMeta.datasetId,
+"Round-trip dataset: "+newId,
+"Format: "+parsed.format,
+"Game season: "+main.year,
+"Datasets: "+stored.length,
+"Logical characters: "+storedDigest.total.toLocaleString(),
+"Fingerprint: "+storedDigest.fingerprint,
+"Export serialization: passed",
+"JSON parse/format validation: passed",
+"Restore into second inactive dataset: passed",
+"Exact comparison against original source: passed",
+"JSON export download: initiated",
+"Activation state: both datasets remain INACTIVE",
+"",
+"localStorage and active game were not changed.",
+"No existing candidate/import dataset was modified."
+]);
+}catch(err){
+show(["INDEXEDDB JSON EXPORT/RESTORE ROUND-TRIP DID NOT PASS",String(err&&err.message||err),"No dataset was activated. Active game/localStorage was not changed."]);
+}finally{if(db)db.close();busy=false;button.disabled=false;}
+}
+button.addEventListener("click",run);
 })();
 
 </script>
