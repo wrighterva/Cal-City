@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- CALVIN'S CITY — VERSION 5.8.168: IndexedDB schema repair and bridge rehearsal; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.169: IndexedDB durable-write rehearsal; read-only candidate hydration and synchronous storage-API compatibility test and staged-backup comparison; Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
 
@@ -1211,11 +1211,12 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 <h3>🧭 IndexedDB Startup &amp; Import Flow Analysis — v5.8.166</h3>
 <p>Read-only analysis of the actual startup and full-backup import code in this HTML. It identifies the current import sequence, startup ordering, storage dependencies, and the safe conversion requirements. It does not read, write, clear, or migrate game data.</p><p><strong>Storage update:</strong> Compression adapter v5.2.0 now writes the CCZ2 LZ4-compatible block format and retains CCZ1 read compatibility. It covers all seven records in the full backup. The IndexedDB staging archive remains separate and untouched.</p>
 <section id="ccIndexedDBCandidatePanel" style="margin:14px 0;padding:14px;border:1px solid #526078;border-radius:12px;background:rgba(40,55,78,.18);color:inherit">
-<h3>IndexedDB Storage Setup — v5.8.168</h3>
-<p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p><p><strong>Bridge rehearsal:</strong> upgrades the candidate database schema safely to version 2 if needed, preserving existing stores and records; then loads the latest verified candidate into a temporary in-memory map and tests the synchronous Storage API behaviors the existing game depends on. All test writes/removals occur only in that temporary map; neither localStorage nor the IndexedDB candidate is modified.</p>
+<h3>IndexedDB Storage Setup — v5.8.169</h3>
+<p>This creates a separate, verified IndexedDB copy of the current browser storage. It does not switch the game to IndexedDB, modify localStorage, delete records, or change game data. Keep playing normally while this candidate copy is being evaluated.</p><p><strong>Bridge rehearsal:</strong> upgrades the candidate database schema safely while preserving existing stores and records; then loads the latest verified candidate into a temporary in-memory map and tests the synchronous Storage API behaviors the existing game depends on. The separate durable-write test writes only a temporary probe to its own test store, closes and reopens IndexedDB, verifies the probe, then removes it. All test writes/removals occur only in that temporary map; neither localStorage nor the IndexedDB candidate is modified.</p>
 <button type="button" id="ccCreateIndexedDBCandidate" style="padding:10px 14px;border-radius:8px">Create Verified IndexedDB Copy</button>
 <button type="button" id="ccVerifyIndexedDBCandidate" style="padding:10px 14px;border-radius:8px;margin-left:8px">Verify Latest Copy</button>
 <button type="button" id="ccRunIndexedDBBridgeRehearsal" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run Read-Only Bridge Rehearsal</button>
+<button type="button" id="ccRunIndexedDBDurableWriteTest" style="padding:10px 14px;border-radius:8px;margin:8px 0 0">Run Durable-Write Test</button>
 <pre id="ccIndexedDBCandidateStatus" style="white-space:pre-wrap;overflow-wrap:anywhere;display:none;margin-top:12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.18)"></pre>
 </section>
 <button type="button" id="indexedDBStartupImportAnalysis" class="secondary">Run Startup &amp; Import Flow Analysis</button>
@@ -24861,7 +24862,7 @@ button.addEventListener("click",run);
   database. It never clears or writes localStorage and never changes game startup. */
 (function(){
 "use strict";
-const DB_NAME="calvinsCityPrimaryStorageV1",DB_VERSION=2;
+const DB_NAME="calvinsCityPrimaryStorageV1",DB_VERSION=3;
 const status=document.getElementById("ccIndexedDBCandidateStatus");
 const create=document.getElementById("ccCreateIndexedDBCandidate");
 const verify=document.getElementById("ccVerifyIndexedDBCandidate");
@@ -24875,6 +24876,7 @@ req.onupgradeneeded=()=>{
 const db=req.result;
 if(!db.objectStoreNames.contains("datasets"))db.createObjectStore("datasets",{keyPath:"datasetId"});
 if(!db.objectStoreNames.contains("records"))db.createObjectStore("records",{keyPath:["datasetId","key"]});
+if(!db.objectStoreNames.contains("bridgeJournal"))db.createObjectStore("bridgeJournal",{keyPath:"id"});
 };
 req.onsuccess=()=>resolve(req.result);
 req.onerror=()=>reject(req.error||new Error("Could not open IndexedDB."));
@@ -25015,7 +25017,7 @@ verify.addEventListener("click",verifyLatest);
   Test mutations are confined to the temporary map. No live data is changed. */
 (function(){
 "use strict";
-const DB_NAME="calvinsCityPrimaryStorageV1",DB_VERSION=2;
+const DB_NAME="calvinsCityPrimaryStorageV1",DB_VERSION=3;
 const button=document.getElementById("ccRunIndexedDBBridgeRehearsal");
 const output=document.getElementById("ccIndexedDBCandidateStatus");
 if(!button||!output)return;
@@ -25028,6 +25030,7 @@ req.onupgradeneeded=()=>{
 const db=req.result;
 if(!db.objectStoreNames.contains("datasets"))db.createObjectStore("datasets",{keyPath:"datasetId"});
 if(!db.objectStoreNames.contains("records"))db.createObjectStore("records",{keyPath:["datasetId","key"]});
+if(!db.objectStoreNames.contains("bridgeJournal"))db.createObjectStore("bridgeJournal",{keyPath:"id"});
 };
 req.onsuccess=()=>resolve(req.result);
 req.onerror=()=>reject(req.error||new Error("Could not open candidate database."));
@@ -25150,6 +25153,98 @@ show([
 ]);
 }catch(err){
 show(["INDEXEDDB BRIDGE REHEARSAL DID NOT PASS",String(err&&err.message||err),"No live game data or candidate records were modified."]);
+}finally{if(db)db.close();busy=false;button.disabled=false;}
+}
+button.addEventListener("click",run);
+})();
+
+</script>
+<script>
+
+/* CALVIN'S CITY v5.8.169 — ISOLATED INDEXEDDB DURABLE-WRITE TEST.
+  Writes one temporary probe to bridgeJournal, commits, closes the DB,
+  reopens it, verifies exact persistence, then deletes only that probe.
+  It never writes to datasets/records, localStorage, or active game state. */
+(function(){
+"use strict";
+const DB_NAME="calvinsCityPrimaryStorageV1",DB_VERSION=3;
+const button=document.getElementById("ccRunIndexedDBDurableWriteTest");
+const output=document.getElementById("ccIndexedDBCandidateStatus");
+if(!button||!output)return;
+let busy=false;
+function show(lines){output.style.display="block";output.textContent=lines.join("\n");}
+function openDB(){
+return new Promise((resolve,reject)=>{
+const req=indexedDB.open(DB_NAME,DB_VERSION);
+req.onupgradeneeded=()=>{
+const db=req.result;
+if(!db.objectStoreNames.contains("datasets"))db.createObjectStore("datasets",{keyPath:"datasetId"});
+if(!db.objectStoreNames.contains("records"))db.createObjectStore("records",{keyPath:["datasetId","key"]});
+if(!db.objectStoreNames.contains("bridgeJournal"))db.createObjectStore("bridgeJournal",{keyPath:"id"});
+};
+req.onsuccess=()=>resolve(req.result);
+req.onerror=()=>reject(req.error||new Error("Could not open IndexedDB."));
+req.onblocked=()=>reject(new Error("IndexedDB upgrade is blocked by another open tab."));
+});
+}
+function reqResult(req){return new Promise((resolve,reject)=>{
+req.onsuccess=()=>resolve(req.result);
+req.onerror=()=>reject(req.error||new Error("IndexedDB request failed."));
+});}
+function txComplete(tx){return new Promise((resolve,reject)=>{
+tx.oncomplete=()=>resolve();
+tx.onabort=()=>reject(tx.error||new Error("IndexedDB transaction aborted."));
+tx.onerror=()=>reject(tx.error||new Error("IndexedDB transaction failed."));
+});}
+async function run(){
+if(busy)return;busy=true;button.disabled=true;
+let db=null,probeId="bridge-probe-"+Date.now()+"-"+Math.random().toString(36).slice(2,8);
+const payload={id:probeId,createdAt:new Date().toISOString(),marker:"CALVINS_CITY_IDB_DURABLE_WRITE_TEST",value:"Season52-safe-probe-"+probeId,checksum:"cc169-isolated-write-readback"};
+try{
+show(["INDEXEDDB DURABLE-WRITE TEST","Preparing isolated test store…"]);
+db=await openDB();
+if(!db.objectStoreNames.contains("bridgeJournal"))throw new Error("The isolated bridgeJournal store is missing after schema upgrade.");
+const writeTx=db.transaction(["bridgeJournal"],"readwrite");
+const writeDone=txComplete(writeTx);
+writeTx.objectStore("bridgeJournal").put(payload);
+await writeDone;
+db.close();db=null;
+show(["Write transaction committed.","Closing database and reopening to test persistence…"]);
+db=await openDB();
+const readTx=db.transaction(["bridgeJournal"],"readonly");
+const readDone=txComplete(readTx);
+const recovered=await reqResult(readTx.objectStore("bridgeJournal").get(probeId));
+await readDone;
+if(!recovered||JSON.stringify(recovered)!==JSON.stringify(payload))throw new Error("The value recovered after reopening did not exactly match the committed probe.");
+db.close();db=null;
+db=await openDB();
+const deleteTx=db.transaction(["bridgeJournal"],"readwrite");
+const deleteDone=txComplete(deleteTx);
+deleteTx.objectStore("bridgeJournal").delete(probeId);
+await deleteDone;
+const confirmTx=db.transaction(["bridgeJournal"],"readonly");
+const confirmDone=txComplete(confirmTx);
+const afterDelete=await reqResult(confirmTx.objectStore("bridgeJournal").get(probeId));
+await confirmDone;
+if(afterDelete!==undefined)throw new Error("Temporary probe cleanup could not be confirmed.");
+show([
+"INDEXEDDB DURABLE-WRITE TEST PASSED",
+"Database: "+DB_NAME,
+"Store: bridgeJournal (isolated test store)",
+"Write transaction: committed",
+"Database close/reopen: completed",
+"Read-back: exact match",
+"Temporary probe cleanup: verified",
+"",
+"Only the temporary test record was written and deleted.",
+"Candidate datasets and records were not modified.",
+"localStorage and active game data were not modified.",
+"",
+"IMPORTANT: This proves an isolated IndexedDB transaction survives close/reopen.",
+"It does not yet prove every game save call is durably bridged."
+]);
+}catch(err){
+show(["INDEXEDDB DURABLE-WRITE TEST DID NOT PASS",String(err&&err.message||err),"No candidate records, localStorage values, or active game data were modified."]);
 }finally{if(db)db.close();busy=false;button.disabled=false;}
 }
 button.addEventListener("click",run);
