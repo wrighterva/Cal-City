@@ -1,6 +1,6 @@
 <!DOCTYPE html>
  
-<!-- CALVIN'S CITY — VERSION 5.8.142: Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
+<!-- CALVIN'S CITY — VERSION 5.8.143: Market hub tabs and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
  
@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.142">
+<meta name="calvins-city-build" content="5.8.143">
  
  
  
@@ -567,7 +567,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.142</title>
+<title>Calvin's City 5.8.143</title>
  
 <style>
  
@@ -1041,7 +1041,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.142</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.143</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -2695,7 +2695,7 @@ a high local hit-test priority without changing the global app controls. */
  
 </section>
 <script>
-/* 5.8.142: Market hub tabs are presentation-only; existing market and CalBank data engines remain unchanged. */
+/* 5.8.143: Market hub tabs are presentation-only; existing market and CalBank data engines remain unchanged. */
 (function(){
  "use strict";
  function initMarketHubTabs(){
@@ -16966,9 +16966,7 @@ const ownershipButton=document.querySelector("#shoeCompanyOwnership [data-open-b
  
 if(ownershipButton){
  
-ownershipButton.addEventLi
- 
-stener("click",function(event){
+ownershipButton.addEventListener("click",function(event){
  
 event.preventDefault();
  
