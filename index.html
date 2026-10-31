@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.153: Runtime identifier repair and startup registration fixes. -->
+<!-- CALVIN'S CITY — VERSION 5.8.154: Import quota preflight and expanded backward-compatible storage compression. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.153">
+<meta name="calvins-city-build" content="5.8.154">
  
 <script>
  
@@ -51,6 +51,8 @@ var logs = [];
 function record(kind, message, source, line, column) {
  
 var item = {
+ 
+diagnosticVersion: "5.8.154",
  
 time: new Date().toISOString(),
  
@@ -119,7 +121,7 @@ var out = document.getElementById("startupDiagnosticText");
  
 if (out) out.textContent = logs.map(function(x){
  
-return x.kind + ": " + x.message + (x.source ? "\n" + x.source + ":" + x.line + ":" + x.column : "") +
+return "diagnosticVersion=" + x.diagnosticVersion + " " + x.kind + ": " + x.message + (x.source ? "\n" + x.source + ":" + x.line + ":" + x.column : "") +
  
 "\nreadyState=" + x.readyState + " navButtons=" + x.navButtons +
  
@@ -259,9 +261,9 @@ var rescue=window.__calvinsCityEarlyUIRescue;
  
 if(rescue&&typeof rescue.showScreen==="function"&&document.getElementById("home")){
  
- rescue.showScreen("home");
+rescue.showScreen("home");
  
- active=document.querySelector(".screen.active");
+active=document.querySelector(".screen.active");
  
 }
  
@@ -324,9 +326,13 @@ if(proto.__ccCompressionInstalled)return;
  
 const nativeGet=proto.getItem, nativeSet=proto.setItem, nativeRemove=proto.removeItem;
  
-const PREFIX="__CCZ1__";
+const PREFIX_V1="__CCZ1__",PREFIX="__CCZ2__";
  
-const target=k=>/^(calvins_city_v24|calvins_city_bets_v1|calvins_city_stock_market_v1|calvins_city_share_ownership_ledger_v1|calvins_city_business_ownership_v1)$/.test(String(k||""));
+const isPacked=value=>typeof value==="string"&&(value.startsWith(PREFIX_V1)||value.startsWith(PREFIX));
+ 
+/* Compress every substantial entry in the full-backup format, including
+  CalBank and pending BETS imports. Small metadata stays plain. */
+const target=k=>/^(calvins_city_v24|calvins_city_bets_v1|calvins_city_stock_market_v1|calvins_city_share_ownership_ledger_v1|calvins_city_business_ownership_v1|calvins_city_calbank_v1|calvins_city_bets_pending_import_v1)$/.test(String(k||""));
  
 const b64encode=bytes=>{
  
@@ -348,90 +354,67 @@ return out;
  
 };
  
+ 
 function compressBytes(input){
- 
-/* Fast hash-chain LZ encoder. Keeps the existing __CCZ1__ byte format so
- 
-previously compressed game saves remain readable. */
- 
-const out=[], n=input.length, chains=new Map();
- 
-let pos=0;
- 
+const out=[],n=input.length,chains=new Map();let pos=0;
 function keyAt(i){return (input[i]<<16)|(input[i+1]<<8)|input[i+2];}
- 
 function remember(i){
- 
-if(i+2>=n)return;
- 
-const key=keyAt(i);let chain=chains.get(key);
- 
-if(!chain){chain={positions:[],head:0};chains.set(key,chain);}
- 
-chain.positions.push(i);
- 
+ if(i+2>=n)return;
+ const key=keyAt(i);let chain=chains.get(key);
+ if(!chain){chain={positions:[],head:0};chains.set(key,chain);}
+ chain.positions.push(i);
 }
- 
 while(pos<n){
- 
-const flagIndex=out.length;out.push(0);let flags=0;
- 
-for(let bit=0;bit<8&&pos<n;bit++){
- 
-const tokenStart=pos;let bestLen=0,bestOff=0;
- 
-if(pos+2<n){
- 
-const chain=chains.get(keyAt(pos));
- 
-if(chain){
- 
-const positions=chain.positions;
- 
-while(chain.head<positions.length&&positions[chain.head]<pos-4096)chain.head++;
- 
-let checked=0;
- 
-for(let j=positions.length-1;j>=chain.head&&checked<48;j--){
- 
-const cand=positions[j],off=pos-cand;
- 
-if(off<1||off>4096)continue;
- 
-checked++;
- 
-let len=3;
- 
-while(len<18&&pos+len<n&&input[cand+len]===input[pos+len])len++;
- 
-if(len>bestLen){bestLen=len;bestOff=off;if(len===18)break;}
- 
+ const flagIndex=out.length;out.push(0);let flags=0;
+ for(let bit=0;bit<8&&pos<n;bit++){
+  const tokenStart=pos;let bestLen=0,bestOff=0;
+  if(pos+2<n){
+   const chain=chains.get(keyAt(pos));
+   if(chain){
+    const positions=chain.positions;
+    while(chain.head<positions.length&&positions[chain.head]<pos-4096)chain.head++;
+    let checked=0;
+    for(let j=positions.length-1;j>=chain.head&&checked<32;j--){
+     const cand=positions[j],off=pos-cand;
+     if(off<1||off>4096)continue;
+     checked++;
+     let len=3;
+     while(len<273&&pos+len<n&&input[cand+len]===input[pos+len])len++;
+     if(len>bestLen){bestLen=len;bestOff=off;if(len===273)break;}
+    }
+   }
+  }
+  if(bestLen>=3){
+   flags|=(1<<bit);
+   const lenCode=bestLen<=17?bestLen-3:15;
+   const code=((bestOff-1)<<4)|lenCode;
+   out.push((code>>8)&255,code&255);
+   if(bestLen>=18)out.push(bestLen-18);
+   pos+=bestLen;
+  }else{out.push(input[pos++]);}
+  for(let i=tokenStart;i<pos;i++)remember(i);
+ }
+ out[flagIndex]=flags;
 }
- 
-}
- 
-}
- 
-if(bestLen>=3){
- 
-flags|=(1<<bit);const code=((bestOff-1)<<4)|(bestLen-3);
- 
-out.push((code>>8)&255,code&255);pos+=bestLen;
- 
-}else{out.push(input[pos++]);}
- 
-for(let i=tokenStart;i<pos;i++)remember(i);
- 
-}
- 
-out[flagIndex]=flags;
- 
-}
- 
 return new Uint8Array(out);
- 
 }
- 
+function decompressBytesV2(input){
+const out=[];let p=0;
+while(p<input.length){
+ const flags=input[p++];
+ for(let bit=0;bit<8&&p<input.length;bit++){
+  if(flags&(1<<bit)){
+   if(p+1>=input.length)throw new Error("Truncated compressed Calvin's City v2 value.");
+   const code=(input[p++]<<8)|input[p++];
+   const offset=(code>>4)+1,nibble=code&15;
+   const len=nibble===15?(p<input.length?18+input[p++]:(()=>{throw new Error("Truncated extended match.");})()):nibble+3;
+   if(offset>out.length)throw new Error("Invalid compressed Calvin's City v2 back-reference.");
+   for(let j=0;j<len;j++)out.push(out[out.length-offset]);
+  }else out.push(input[p++]);
+ }
+}
+return new Uint8Array(out);
+}
 function decompressBytes(input){
  
 const out=[];let p=0;
@@ -467,32 +450,34 @@ return new Uint8Array(out);
 const enc=new TextEncoder(),dec=new TextDecoder();
  
 function pack(value){
- 
 const raw=enc.encode(value),compressed=compressBytes(raw);
- 
-const payload=b64encode(compressed);
- 
-return PREFIX+raw.length+":"+payload;
- 
+return PREFIX+raw.length+":"+b64encode(compressed);
 }
  
 function unpack(value){
- 
-if(typeof value!=="string"||!value.startsWith(PREFIX))return value;
- 
-const sep=value.indexOf(":",PREFIX.length);
- 
-if(sep<0)throw new Error("Invalid compressed Calvin's City storage header.");
- 
-const expected=Number(value.slice(PREFIX.length,sep));
- 
-const raw=dec.decode(decompressBytes(b64decode(value.slice(sep+1))));
- 
-if(!Number.isFinite(expected)||enc.encode(raw).length!==expected)throw new Error("Calvin's City storage integrity check failed.");
- 
-return raw;
- 
+if(typeof value!=="string")return value;
+if(value.startsWith(PREFIX_V1)){
+ const sep=value.indexOf(":",PREFIX_V1.length);
+ if(sep<0)throw new Error("Invalid compressed Calvin's City storage header.");
+ const expected=Number(value.slice(PREFIX_V1.length,sep));
+ const raw=dec.decode(decompressBytes(b64decode(value.slice(sep+1))));
+ if(!Number.isFinite(expected)||enc.encode(raw).length!==expected)throw new Error("Calvin's City V1 storage integrity check failed.");
+ return raw;
 }
+if(!value.startsWith(PREFIX))return value;
+const sep=value.indexOf(":",PREFIX.length);
+if(sep<0)throw new Error("Invalid compressed Calvin's City v2 storage header.");
+const expected=Number(value.slice(PREFIX.length,sep));
+const raw=dec.decode(decompressBytesV2(b64decode(value.slice(sep+1))));
+if(!Number.isFinite(expected)||enc.encode(raw).length!==expected)throw new Error("Calvin's City v2 storage integrity check failed.");
+return raw;
+}
+ 
+function prepareStorageValue(key,value){
+const k=String(key),v=String(value);
+return target(k)&&v.length>8000&&!isPacked(v)?pack(v):v;
+}
+window.__calvinsCityPrepareStorageValue=prepareStorageValue;
  
 proto.getItem=function(key){return unpack(nativeGet.call(this,key));};
  
@@ -500,7 +485,7 @@ proto.setItem=function(key,value){
  
 const k=String(key),v=String(value);
  
-if(target(k)&&v.length>40000&&!v.startsWith(PREFIX)){
+if(target(k)&&v.length>8000&&!isPacked(v)){
  
 const packed=pack(v);
  
@@ -530,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.1.8",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.154",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.1.7",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.154",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -548,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.153</title>
+<title>Calvin's City 5.8.154</title>
  
 <style>
  
@@ -998,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.152</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.154</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -2674,32 +2659,32 @@ var tabs=Array.prototype.slice.call(root.querySelectorAll("[data-market-tab]"));
 if(!tabs.length)return;
 root.dataset.marketHubTabsBound="1";
 function activate(panelId,moveFocus){
-  var panel=root.querySelector("#"+panelId);
-  if(!panel)return;
-  tabs.forEach(function(tab){
-    var active=tab.getAttribute("data-market-tab")===panelId;
-    tab.classList.toggle("active",active);
-    tab.setAttribute("aria-selected",active?"true":"false");
-    tab.setAttribute("tabindex",active?"0":"-1");
-  });
-  root.querySelectorAll(".market-hub-panel").forEach(function(item){item.hidden=item.id!==panelId;});
-  if(moveFocus){
-    var activeTab=tabs.find(function(tab){return tab.getAttribute("data-market-tab")===panelId;});
-    if(activeTab)activeTab.focus();
-  }
+ var panel=root.querySelector("#"+panelId);
+ if(!panel)return;
+ tabs.forEach(function(tab){
+   var active=tab.getAttribute("data-market-tab")===panelId;
+   tab.classList.toggle("active",active);
+   tab.setAttribute("aria-selected",active?"true":"false");
+   tab.setAttribute("tabindex",active?"0":"-1");
+ });
+ root.querySelectorAll(".market-hub-panel").forEach(function(item){item.hidden=item.id!==panelId;});
+ if(moveFocus){
+   var activeTab=tabs.find(function(tab){return tab.getAttribute("data-market-tab")===panelId;});
+   if(activeTab)activeTab.focus();
+ }
 }
 tabs.forEach(function(tab,index){
-  tab.addEventListener("click",function(){activate(tab.getAttribute("data-market-tab"),false);});
-  tab.addEventListener("keydown",function(event){
-    if(event.key!=="ArrowRight"&&event.key!=="ArrowLeft"&&event.key!=="Home"&&event.key!=="End")return;
-    event.preventDefault();
-    var next=index;
-    if(event.key==="ArrowRight")next=(index+1)%tabs.length;
-    if(event.key==="ArrowLeft")next=(index-1+tabs.length)%tabs.length;
-    if(event.key==="Home")next=0;
-    if(event.key==="End")next=tabs.length-1;
-    activate(tabs[next].getAttribute("data-market-tab"),true);
-  });
+ tab.addEventListener("click",function(){activate(tab.getAttribute("data-market-tab"),false);});
+ tab.addEventListener("keydown",function(event){
+   if(event.key!=="ArrowRight"&&event.key!=="ArrowLeft"&&event.key!=="Home"&&event.key!=="End")return;
+   event.preventDefault();
+   var next=index;
+   if(event.key==="ArrowRight")next=(index+1)%tabs.length;
+   if(event.key==="ArrowLeft")next=(index-1+tabs.length)%tabs.length;
+   if(event.key==="Home")next=0;
+   if(event.key==="End")next=tabs.length-1;
+   activate(tabs[next].getAttribute("data-market-tab"),true);
+ });
 });
 activate("marketPanelOverview",false);
 }
@@ -4892,7 +4877,7 @@ Object.keys(record.baselineCash).forEach(key=>{if(key==="__sportsBetsCompany__")
 }
 if(record.betIds.length===0&&record.transactionIds.length===0&&check.ok===false&&!baselineChanged){
 /* No IDs were durably recorded yet. The batch runner defers wager/ledger
-   persistence until finalization, so a clean processing marker is restartable. */
+  persistence until finalization, so a clean processing marker is restartable. */
 if(sbClearAutoBetRecovery())return {action:"continue",recovered:true};
 return {action:"block",error:"An interrupted betting run was found, but its checkpoint could not be cleared. No new bets were placed."};
 }
@@ -20503,6 +20488,31 @@ JSON is the durable recovery source; keeping an extra full browser copy would
  
 require more storage than Safari has available. */
  
+/* 5.8.154 IMPORT PREFLIGHT:
+Prepare exact on-disk values before removing any current app key. Include
+unrelated origin storage in a conservative 4 MiB budget. If the incoming
+payload cannot fit, stop with the current game untouched. */
+const preparedEntries={};
+for(const k of Object.keys(restoreEntries)){
+const value=restoreEntries[k];
+preparedEntries[k]=typeof window.__calvinsCityPrepareStorageValue==="function"
+ ?window.__calvinsCityPrepareStorageValue(k,value):value;
+}
+let unrelatedStorageUnits=0;
+for(let i=0;i<localStorage.length;i++){
+const k=localStorage.key(i);
+if(k&&!relevantKey(k)){
+ const value=localStorage.getItem(k);
+ unrelatedStorageUnits+=k.length+(value==null?0:String(value).length);
+}
+}
+const incomingStorageUnits=Object.entries(preparedEntries).reduce((n,[k,v])=>n+k.length+String(v).length,0);
+const projectedStorageUnits=unrelatedStorageUnits+incomingStorageUnits;
+const conservativeStorageLimit=4*1024*1024;
+if(projectedStorageUnits>conservativeStorageLimit){
+throw new Error("Import stopped before changing your current game: the compressed backup is estimated at "+Math.ceil(projectedStorageUnits/1024)+" KB, above the conservative 4 MB browser-storage safety budget. Keep the current game and downloaded JSON intact; continue with the IndexedDB import path instead.");
+}
+ 
 try{
  
 const allExistingKeys=[];
@@ -20529,7 +20539,7 @@ return (ix<0?99:ix)-(iy<0?99:iy);
  
 });
  
-for(const k of ordered)localStorage.setItem(k,restoreEntries[k]);
+for(const k of ordered)localStorage.setItem(k,preparedEntries[k]);
  
 for(const k of ordered){
  
@@ -20578,13 +20588,13 @@ let rollbackError=null;
 try{
 const partialKeys=[];
 for(let i=0;i<localStorage.length;i++){
- const k=localStorage.key(i);
- if(k&&relevantKey(k))partialKeys.push(k);
+const k=localStorage.key(i);
+if(k&&relevantKey(k))partialKeys.push(k);
 }
 partialKeys.forEach(k=>localStorage.removeItem(k));
 for(const k of Object.keys(before))localStorage.setItem(k,before[k]);
 for(const k of Object.keys(before)){
- if(localStorage.getItem(k)!==before[k])throw new Error("Previous saved value could not be verified for "+k);
+if(localStorage.getItem(k)!==before[k])throw new Error("Previous saved value could not be verified for "+k);
 }
 }catch(restoreError){
 rollbackError=restoreError;
@@ -23747,9 +23757,9 @@ window.renderCalBankMasterLedger=render;
  
 <script>
 /* CALVIN'S CITY 5.8.151 — CLEAN PERMANENT HISTORY ARCHIVE.
- Uses a new isolated IndexedDB database. It copies and verifies permanent history
- from the current game save. It never changes, deletes, or redirects localStorage.
- This is the first safe installation step, not yet the final startup cutover. */
+Uses a new isolated IndexedDB database. It copies and verifies permanent history
+from the current game save. It never changes, deletes, or redirects localStorage.
+This is the first safe installation step, not yet the final startup cutover. */
 (function(){
 "use strict";
 var DB_NAME="CalvinsCityPermanentHistoryV1";
@@ -23771,10 +23781,10 @@ var request;
 try{request=window.indexedDB.open(DB_NAME,DB_VERSION);}
 catch(error){reject(error);return;}
 request.onupgradeneeded=function(){
- var db=request.result;
- if(!db.objectStoreNames.contains(STORE)){
-  db.createObjectStore(STORE,{keyPath:"id"});
- }
+var db=request.result;
+if(!db.objectStoreNames.contains(STORE)){
+ db.createObjectStore(STORE,{keyPath:"id"});
+}
 };
 request.onsuccess=function(){resolve(request.result);};
 request.onerror=function(){reject(request.error||new Error("Could not open the Permanent Database."));};
@@ -23820,21 +23830,21 @@ var db=null;
 try{
 var history=readCurrentHistory();
 var snapshot={
- id:"active",
- format:FORMAT,
- schemaVersion:1,
- createdAt:new Date().toISOString(),
- sourceKey:history.sourceKey,
- season:history.season,
- counts:history.counts,
- gameRecords:history.gameRecords,
- retiredPlayers:history.retiredPlayers
+id:"active",
+format:FORMAT,
+schemaVersion:1,
+createdAt:new Date().toISOString(),
+sourceKey:history.sourceKey,
+season:history.season,
+counts:history.counts,
+gameRecords:history.gameRecords,
+retiredPlayers:history.retiredPlayers
 };
 var expected=stableJSON({
- season:snapshot.season,
- counts:snapshot.counts,
- gameRecords:snapshot.gameRecords,
- retiredPlayers:snapshot.retiredPlayers
+season:snapshot.season,
+counts:snapshot.counts,
+gameRecords:snapshot.gameRecords,
+retiredPlayers:snapshot.retiredPlayers
 });
 db=await openDatabase();
 if(!db.objectStoreNames.contains(STORE))throw new Error("The Permanent Database is missing its history store.");
@@ -23847,29 +23857,29 @@ var stored=await requestResult(readTx.objectStore(STORE).get("active"));
 await transactionDone(readTx);
 if(!stored)throw new Error("The database write completed, but the saved history could not be read back.");
 var actual=stableJSON({
- season:stored.season,
- counts:stored.counts,
- gameRecords:stored.gameRecords,
- retiredPlayers:stored.retiredPlayers
+season:stored.season,
+counts:stored.counts,
+gameRecords:stored.gameRecords,
+retiredPlayers:stored.retiredPlayers
 });
 if(actual!==expected)throw new Error("The IndexedDB archive did not match the source history exactly. The original game save was left untouched.");
 window.__calvinsCityPermanentHistoryArchive={
- status:"verified-copy",
- database:DB_NAME,
- schemaVersion:DB_VERSION,
- season:stored.season,
- gameRecords:stored.counts.gameRecords,
- retiredPlayers:stored.counts.retiredPlayers,
- verifiedAt:new Date().toISOString(),
- sourceKey:"calvins_city_v24",
- sourceRetained:true
+status:"verified-copy",
+database:DB_NAME,
+schemaVersion:DB_VERSION,
+season:stored.season,
+gameRecords:stored.counts.gameRecords,
+retiredPlayers:stored.counts.retiredPlayers,
+verifiedAt:new Date().toISOString(),
+sourceKey:"calvins_city_v24",
+sourceRetained:true
 };
 setStatus("Verified successfully: "+stored.counts.gameRecords+" game records and "+stored.counts.retiredPlayers+" retired-player records copied for Season "+(stored.season||"unknown")+". Original game data remains untouched.",false);
 }catch(error){
 window.__calvinsCityPermanentHistoryArchive={
- status:"failed",
- message:String(error&&error.message||error),
- sourceRetained:true
+status:"failed",
+message:String(error&&error.message||error),
+sourceRetained:true
 };
 setStatus("Setup did not complete: "+String(error&&error.message||error)+". Your original game data was not deleted or replaced.",true);
 console.error("Calvin's City Permanent Database setup failed:",error);
