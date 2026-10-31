@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- CALVIN'S CITY — VERSION 5.8.153: Runtime identifier repair and startup registration fixes. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -11,8 +12,6 @@
 <!-- CALVIN'S CITY — VERSION 4.29.15: company reporting fix, preserving stable startup. -->
  
 <!-- 4.28.89: Startup recovery. Prevents a localStorage write failure from aborting app initialization; does not clear or reset saved data. -->
- 
- 
  
 <!-- CALVIN'S CITY — VERSION 4.29.3 -->
  
@@ -27,8 +26,6 @@
 <!-- Build identity: 5.3.4 Kap MVP repair uses live-state bridge across script scope. Prior app build identity: 4.29.9. Repairs paired Sports Bets cash ledger persistence after state sync; adds signed cash-mutation deltas and guarded approval semantics. Preserves all existing permanent records and current season. Based on v4.29.8. Build identity: 4.28.89. Game-start betting confirmation runs automatic citizen wagers only after user confirms Yes; manual bettors are excluded for that game.  Fixes team-card navigation so missing bridge state no longer silently blocks opening a team page; safe fallback is display-only. Uses optimized 76px embedded Lions, Rims and Dunks logo artwork in existing City team cards; reduces image payload while preserving card layout and reset markers. Hardened stock-market and shareholder registry initialization; immediate post-trade share-count refresh; Team Arena adds 🏆 Champs after Points Against, counting Seasons 1–28 from historical championships and Season 29+ from unique championship award records; Citizen Ledger Titles in a Row shows career-best TNR while Arena roster shows current TNR; guarded Season 29 clean-test reset of origi
 nal public share and business ownership allocations; canonical idempotent share-ownership reversal API for rejected share trades; cash corrections remain guarded by exact recorded balances. Share-trade rejection voids linked records and performs guarded cash/ownership reversal. Player Ledger approval buttons use green approve and red reject styling. Fix Player Ledger rendering and transaction approval controls. Player Ledger per-transaction approval and rejection controls. Authorized share-trade cash changes bypass unverified-mutation audit while transaction is committed. Cash mutation approval queue and automatic shareholder synchronization. Share transactions mirror to citizen Player Ledgers. Correct visible version labels and show voided/reversed share trades accurately. -->
  
- 
- 
 <html lang="en">
  
 <!-- CALVIN'S CITY — VERSION 5.8.85:
@@ -37,13 +34,9 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
  
- 
- 
 <head>
  
-<meta name="calvins-city-build" content="5.8.152">
- 
- 
+<meta name="calvins-city-build" content="5.8.153">
  
 <script>
  
@@ -98,7 +91,6 @@ box = document.createElement("div");
 box.id = "startupDiagnosticPanel";
  
 box.style.cssText = "position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;background:#240f12;color:#fff;border:2px solid #ff7777;border-radius:8px;padding:10px;font:12px/1.4 monospace;white-space:pre-wrap;box-shadow:0 4px 20px #0008";
- 
  
 var controls = document.createElement("div");
 controls.style.cssText = "display:flex;gap:6px;justify-content:flex-end;align-items:center;margin-bottom:8px;position:sticky;top:0;background:#240f12;padding-bottom:4px";
@@ -190,8 +182,6 @@ record("startup checkpoint", "Record counters are both zero after DOM ready; thi
 })();
  
 </script>
- 
- 
  
 <script>
  
@@ -312,14 +302,6 @@ window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"installed",reas
 })();
  
 </script>
- 
- 
- 
- 
- 
- 
- 
- 
  
 <script>
  
@@ -562,13 +544,11 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 </script>
  
- 
- 
 <meta charset="UTF-8">
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.152</title>
+<title>Calvin's City 5.8.153</title>
  
 <style>
  
@@ -577,8 +557,6 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
  
 #shareOwnershipLedgerModal [data-share-ledger-view]{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;cursor:pointer}
- 
- 
  
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
  
@@ -670,8 +648,6 @@ argin:0;padding:10px 12px;font-size:12px;white-space:nowrap}
  
 .basketball-badges .badge{margin:0}
  
- 
- 
 .team-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.team-stat{background:#121b27;border:1px solid #2d3a4d;border-radius:10px;padding:10px}.team-stat small{display:block;color:#9eabba;margin-bottom:4px}.team-stat strong{font-size:16px}
  
 .team-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #2d3a4d;border-radius:10px}.team-table{width:100%;min-width:620px;border-collapse:collapse;font-size:12px}.team-table th,.team-table td{padding:8px 5px;border-bottom:1px solid #334155;text-align:left;white-space:nowrap}.team-table th:nth-child(2),.team-tab
@@ -716,15 +692,7 @@ le td:nth-child(2){min-width:125px}.team-player-name{font-weight:900!important;f
 .player-ledger-btn{width:100%;margin-top:9px;background:#344255}.player-ledger-panel{display:none;margin-top:8px;padding:10px;background:#121b27;border:1px solid #3a4960;border-radius:9px;font-size:11px}.player-ledger-panel.open{display:block}.ledger-entry{padding:7px 0;border-bottom:1px solid #334155}.ledger-entry:last-child{border-bottom:0}.ledger-diagnostic-panel{margin-top:12px;padding
 :10px;border:1px solid #526176;border-radius:10px}.ledger-diagnostic-panel summary{font-weight:800;cursor:pointer}
  
- 
- 
- 
- 
- 
- 
 @media (max-width:760px){.offseason-roster-grid{grid-template-columns:1fr}.offseason-slot{padding:10px}.offseason-slot-head{align-items:flex-start}.offseason-contract{max-width:55%;line-height:1.25}.offseason-action-row{grid-template-columns:minmax(0,1fr) auto}.offseason-verify-wrap .verify-decision{min-width:76px}.offseason-save{min-height:42px}}
- 
- 
  
 /* 4.29.8: Debt dialog is placed above every business modal layer. */
  
@@ -744,13 +712,8 @@ le td:nth-child(2){min-width:125px}.team-player-name{font-weight:900!important;f
  
 @media(max-width:480px){.sports-bets-debt-overlay{padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))}.sports-bets-debt-dialog{width:100%;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);padding:12px;border-radius:15px}.sports-bets-debt-header{top:-12px;padding-top:2px}.sports-bets-debt-header h3{font-size:19px!important}.sports-bets-debt-header button#sportsBetsDebtClose{padding:8px 10px!important}.sports-bets-debt-dialog .grid{grid-template-columns:minmax(0,1fr)!important}}
  
- 
- 
- 
 .city-fed-tab-row{display:flex;justify-content:center;margin:0 0 14px}.city-fed-tab{width:min(100%,260px);background:#344255;border:1px solid #4f8dca}.city-fed-tab.active{background:#245b8e;border-color:#
 7db7ed}
- 
- 
  
 /* v5.8.96: CalBank's tools are grouped behind compact section tabs inside the existing centered popup. */
  
@@ -766,13 +729,9 @@ le td:nth-child(2){min-width:125px}.team-player-name{font-weight:900!important;f
  
 @media(max-width:600px){.calbank-section-tabs{gap:6px;padding:8px}.calbank-section-tab{flex:1 1 calc(50% - 6px);min-width:0;font-size:13px;padding:9px 7px!important}.calbank-section-help{margin:4px 12px 10px!important}}
  
- 
- 
 /* 5.8.44: CalBank stays centered directly beneath Federal Reserve, with a smaller visual footprint. */
  
 .city-calbank-tab-row{margin-top:-6px;margin-bottom:14px}.city-fed-tab.city-calbank-tab{width:min(100%,220px);font-size:.92em;padding:8px 12px;}
- 
- 
  
 /* 5.8.25: Treasury workflow state is visually explicit on mobile. */
  
@@ -781,8 +740,6 @@ le td:nth-child(2){min-width:125px}.team-player-name{font-weight:900!important;f
 #fedTreasuryRecommend:disabled,#fedTreasuryVerify:disabled,#fedTreasuryApprove:disabled,#fedTreasuryIssue:disabled{opacity:.48!important;filter:grayscale(.45);cursor:not-allowed!important;box-shadow:none!important;}
  
 #fedTreasuryRecommend:not(:disabled),#fedTreasuryVerify:not(:disabled),#fedTreasuryApprove:not(:disabled),#fedTreasuryIssue:not(:disabled){opacity:1!important;filter:none;cursor:pointer;}
- 
- 
  
 </style>
  
@@ -839,8 +796,6 @@ tline:3px solid #ffe58c!important;outline-offset:3px!important;transform:transla
  
 </style>
  
- 
- 
 <style>
  
 /* v5.8.45: CalBank opens as a centered modal rather than an inline page section. */
@@ -893,8 +848,6 @@ z-index:1000!important}
 @media(max-width
 :600px){#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard>div[style*="display:flex"] button{flex:1 1 100%!important;width:100%!important;margin-top:8px!important;margin-bottom:8px!important}#cityCalBankPanel.calbank-popup-panel #calBankDepositsCard button{position:relative!important;top:auto!important;transform:none!important}}
  
- 
- 
 #cityCalBankPanel.calbank-popup-panel{padding:0 0 12px!important;overflow-y:auto!important;overscroll-behavior:contain}
  
 #cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{position:sticky!important;top:0!important;z-index:100!important;display:flex!important;flex:0 0 84px!important;min-height:84px!important;height:84px!important;box-sizing:border-box!important;margin:0!important;padding:12px 16px!important;background:#182230!important;border-bottom:1px solid #334155!important;border-radius:15px 15px 0 0!important}
@@ -934,12 +887,6 @@ z-index:1000!important}
 ht:72px}#cityCalBankPanel.calbank-popup-panel>*:not(.calbank-popup-header){margin-left:12px;margin-right:12px}}
  
 </style>
- 
- 
- 
- 
- 
- 
  
 <style id="calvins-city-premium-theme-v5-8-87">
  
@@ -1047,8 +994,6 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 </style>
  
- 
- 
 </head>
  
 <body>
@@ -1072,8 +1017,6 @@ Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="o
 </div>
 <button type="button" id="exportCityBackup" class="goodbtn">⬇️ Export All Data</button><button type="button" id="chooseCityBackup" class="secondary">⬆️ Import Backup</button><input type="file" id="cityBackupFile" accept=".json,application/json" style="display:none"><p id="cityBackupStatus" class="tiny" role="status" aria-live="polite">Export creates a downloadable backup of this browser’s Calvin’s City local storage. Import validates the file and saves a recovery snapshot before restoring.</p></div></section>
  
- 
- 
 <section id="city" class="screen">
  
 <div class="card city-hub">
@@ -1081,8 +1024,6 @@ Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="o
 <h2>🏙️ Calvin's City</h2>
  
 <p>City businesses and teams. Select a section below to manage it.</p>
- 
- 
  
 <div class="city-tabs" role="tablist" aria-label="City sections">
  
@@ -1104,16 +1045,12 @@ Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="o
  
 </div>
  
- 
- 
 <div id="cityTeamsPanel" class="city-panel">
  
 <h3>🏀 Teams</h3>
  
 <p class="tiny">Open a team to view its current roster, contracts and team information. Lions roster is seeded into the permanent C
 itizen Ledger.</p>
- 
- 
  
 <button type="button" class="city-place-card" onclick="openTeamPage('lions')">
  
@@ -1138,8 +1075,6 @@ vxeixeEkNd5P8a5eekOKY+0azx4KM2dqMut+lci+z4J0BaMs8k61zfhUnVlZOpqu2H+4gvKKcq666gJm
  
 </button>
  
- 
- 
 <button type="button" class="city-place-card" onclick="openTeamPage('rims')">
  
 <div class="city-place-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEwAAABMCAYAAADHl1ErAAAxTUlEQVR42u18eVxU57n/9z3nzD4Dw86wCAKiKBIVk4hZiKjR1phWaWq8Wv0lNEZJ7CKX2iStIKHRaKKm1ppFjTWxkpgYTTRGFiUkKm6Iu6wim8AAszD7zDnP7w8Gktz23tvctvf2Lu/nMx+Gz5zzLt/zvN9neZ/nAP/XvlVj/9UTICKGwiKGwjWQ3q5gJ/vPDs/pvuB7iLt9klC4hgCAMUb/K58SFazlCODoWz4wAjhpfjZPROx/toQxBlpTyCFULcPKfC8DJHAMTC7HP1+/rPqZNjg8rKEpDEAUX2dTAxAAiOJorQlAV8vUe3vfulXf88rYNA+53IPgbd0okzQTBQBu/skZ0v8YwMQJ0zi+9sTgggQB9V5vQPypM2mymi+mo9dxD2yOJNitMXD61P9GNwMIDW6FVt2IUPUZ76QHjrdMvfd6skw2AJ8PBHAgov+MLcv+rrzU3cWz17d7mVaD+tNn05M++GABWtofoYH+FLpjwxd97Si1mNAuSWhkRAA8ACQAvP8vA6BIGnBiYmAAJgYE4oGQGDCDFmxk0lVo1fs7n8ktiY4y1MPng/nVLcraSZN8D0170PffBjAi4vC7V2TsJ79w5zfdZL+5Y5onO/DRSrrc8KCxvZV763YTjjIftQZoXTFx8c74xERRHRig9rnddgDkcbkd6sCAcAADgSqNG4AKgKajpdl8o6WFN3V26mO6jcofhkfiJ5GjwMKCXCxt1IHOnz77ZszYMZ+TzY53vjOb/9HRz8R/bMAYg7izTOCfnOFjSgXqz9V8N2n3npXSqdrZV2814oWeNlyKCPElpU/mHrznXgxYLI6OlmZ2o6VFZjKbBLfD6ZXL5fwgt4MAsL7uHllokB4JKSlSsEruHDlmvG108mhdZ3eXrPTTI876s2eU2ZDLXxydirCYEV6WNurNhlfWb0xm7LY0c76MlX7o+1tvU/a3Asvz5WmtbOq9ngZAOaqwqJhOXVp55colvNDTRrWxBmnWnDn8pHHjUXPtCk6Xl6HFbE
@@ -1163,8 +1098,6 @@ ov36wbs6bgBe1DmQ8EpaWnt814+DuOqlNfjDxeejQ1RB88DYCEBLWZvF6WdOzYf9/3i/nLUDhHa+OU9s
 <div class="city-place-arrow">›</div>
  
 </button>
- 
- 
  
 <button type="button" class="city-place-card" onclick="openTeamPage('dunks')">
  
@@ -1193,8 +1126,6 @@ ms8dXhCHXuvhg4/TmDYOjpuAgUEA2kb5V78OjK/VCIQadieGrxGNQ1uFHZFMD5Biu6HJ7fN/vktLSESH
 </button>
  
 </div>
- 
- 
  
 <div id="cityBusinessesPanel" class="city-panel" style="display:none">
  
@@ -1328,8 +1259,6 @@ secondary" style="width:auto;margin:0" onclick="window.closeHighLowRoom()">← B
  
 <div id="casinoRoulettePanel" class="card" style="display:none;margin-top:10px">
  
- 
- 
 <div id="rouletteRoomTop" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
  
 <div><h2 style="margin:0">🎡 American Roulette</h2><p class="tiny" style="margin:5px 0 0">Live-style table · American wheel · 0, 00, 1–36</p></div>
@@ -1383,8 +1312,6 @@ f,#e9e8df 48%,#a5a39b 78%,#555);box-shadow:0 1px 4px #000b,0 0 3px #fff;opacity:
  
 </div>
  
- 
- 
 <div id="rouletteLiveTable" class="card" style="margin:10px 0;padding:10px;background:#075235;border:2px solid #c6a6
  
 5d">
@@ -1392,8 +1319,6 @@ f,#e9e8df 48%,#a5a39b 78%,#555);box-shadow:0 1px 4px #000b,0 0 3px #fff;opacity:
 <h3 style="margin:0 0 8px;color:white">Roulette Betting Table</h3>
  
 <p class="tiny" style="color:#e7f3e9">Choose a citizen or business, place their chips, then press Place Bets. Select another account and repeat. Press Spin once everyone’s bets are placed.</p>
- 
- 
  
 <div id="rouletteNumberTable" class="roulette-felt-layout">
  
@@ -1437,8 +1362,6 @@ f,#e9e8df 48%,#a5a39b 78%,#555);box-shadow:0 1px 4px #000b,0 0 3px #fff;opacity:
 </div>
  
 </div>
- 
- 
  
 <div class="roulette-outside-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:8px">
  
@@ -1698,8 +1621,6 @@ tion tabs to manage deposits, borrowing, customer loans, and the bank’s stock 
  
 <div class="metric"><small>Outstanding Loans</small><strong id="calBankLoans">Not connected</strong></div>
  
- 
- 
 </div>
  
 <div class="card calbank-section-card" data-calbank-section="deposits" style="margin-top:12px" id="calBankFedCapitalCard">
@@ -1918,8 +1839,6 @@ t Collected</small><strong id="calBankCustomerLoanInterest">$0.00M</strong></div
 <h4>Customer Loan Ledger</h4><div id="calBankCustomerLoanLedger"><p class="muted">No customer loan transactions recorded.</p></div>
  
 </div>
- 
- 
  
 <div class="card calbank-section-card" data-calbank-section="portfolio" id="calBankInvestmentPortfolioCard">
  
@@ -2190,8 +2109,6 @@ s="secondary" id="fedTreasuryRecommend">1. Prepare Offering</button>
 <button type="but
 ton" class="secondary"
  
- 
- 
 id="fedTreasuryIssue" disabled>4. Issue Securities</button>
  
 </div>
@@ -2431,13 +2348,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  
 </script>
  
- 
- 
 </section>
  
 <style>
- 
- 
  
 /* 5.8.17: Federal Reserve popup scrolling/header repair. The heading and Close control
  
@@ -2462,8 +2375,6 @@ ng{position:relative;top:auto;z-index:5;display:flex;flex:0 0 auto;flex-directio
  
 .fed-tool-content{display:block;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px 16px 18px;scrollbar-gutter:stable}
  
- 
- 
 /* 5.8.19: Fix actual DOM structure, not just styling. The heading is a non-scrolling
  
 flex sibling; all tool content (including the tax input and buttons) lives in the
@@ -2479,8 +2390,6 @@ dedicated scroll area. Keep mobile form controls above decoration and touchable.
 #fedTaxRateInput{display:block;min-height:48px;opacity:1;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:manipulation!important}
  
 .fed-tool-content button{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;min-height:46px}
- 
- 
  
 .fed-tool-content>.card{margin:0;min-width:0;box-sizing:border-box}
  
@@ -2500,8 +2409,6 @@ dedicated scroll area. Keep mobile form controls above decoration and touchable.
 1rem;line-height:1.2}.fed-popup-heading button{font-size:13px;padding:9px 10px!important}.fed-tool-content{padding:10px 10px 16px}.fed-tool-content .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,135px),1fr))!important}}
  
 @media(max-width:520px){.fed-tool-modal>.fed-tool-content{min-height:0;flex:1 1 0;overflow-y:auto;overflow-x:auto}.fed-tool-content input,.fed-tool-content select{font-size:16px!important}}
- 
- 
  
 /* 5.8.20: Native mobile form interaction fix.
  
@@ -2536,11 +2443,6 @@ a high local hit-test priority without changing the global app controls. */
 #fedTaxRateInput,#fedTreasuryTarget,#fedTreasuryRate,#fedTreasuryReleaseType{pointer-events:auto!important;touch-action:auto!important;user-select:text!important;-webkit-user-select:text!important;position:relative!important;z-index:8!important}
  
 @media(max-width:520px){.fed-tool-popup{padding:6px!important}.fed-tool-modal{height:calc(100dvh - 12px)!important;max-height:calc(100dvh - 12px)!important}.fed-tool-content{overscroll-behavior:contain!important}.fed-tool-content input,.fed-tool-content select{font-size:16px!important;min-height:48px!important}}
- 
- 
- 
- 
- 
  
 .market-hub-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 16px;padding:10px;background:#0c1420;border:1px solid #354357;border-radius:14px}
 .market-hub-tab{width
@@ -2806,7 +2708,6 @@ else initMarketHubTabs();
 })();
 </script>
  
- 
 <section id="bets" class="screen">
  
 <div class="card" id="sportsBetsHubTabs">
@@ -2820,8 +2721,6 @@ ton type="button" class="city-tab active" id="sportsBetsBetsTab" role="tab" aria
 </div>
 </div>
  
- 
- 
 <div class="card">
  
 <h2>🎲 Sports Bets — BETS</h2>
@@ -2833,8 +2732,6 @@ ton type="button" class="city-tab active" id="sportsBetsBetsTab" role="tab" aria
 <div id="betsSt
  
 orageStatus" class="tiny" role="status" aria-live="polite" style="margin:10px 0;padding:10px;border:1px solid var(--border,#888);border-radius:8px">BETS database status: checking saved records…</div>
- 
- 
  
 <div class="grid">
  
@@ -2933,8 +2830,6 @@ ded from automatic wagers for that game. Automatic wagers use real citizen/compa
  
 </div>
  
- 
- 
 <div class="card">
  
 <h3>Permanent Game Results</h3>
@@ -2947,8 +2842,6 @@ ded from automatic wagers for that game. Automatic wagers use real citizen/compa
  
 </div>
 </section>
- 
- 
  
 <section id="basketball" class="screen">
  
@@ -2971,14 +2864,7 @@ ded from automatic wagers for that game. Automatic wagers use real citizen/compa
  
 </section></main>
  
- 
- 
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button></nav>
- 
- 
- 
- 
- 
  
 <div id="shoeCompanyModal" class="modal">
  
@@ -3036,8 +2922,6 @@ siness records. Displaying a deal here does not change player cash in the Citize
 <li>If tied for best record, the defending champion gets the bye when involved.</li>
  
 <li>If all three tie, the previous champion gets the bye.</li>
- 
- 
  
 <li>Season 29 starts from the permanent Season 28 championship record; Season 28 champion Dunks enters as defending champion.</li>
  
@@ -3097,8 +2981,6 @@ return Number(TEAM_CASH[team])||0;
  
 let teamPageScrollY=0;
  
- 
- 
 function lockTeamPageScroll(){
  
 teamPageScrollY=window.scrollY||window.pageYOffset||0;
@@ -3118,10 +3000,6 @@ document.body.style.overflow="";
 requestAnimationFrame(function(){window.scrollTo(0,teamPageScrollY);});
  
 }
- 
- 
- 
- 
  
 function openTeamPage(k){
  
@@ -3189,13 +3067,9 @@ titles:Number(citizen.championships??hist.championships??0)||0
  
 });
  
- 
- 
 document.getElementById("teamPageTitle").textContent=t.name;
  
 const rosterTable='<h3>Roster &amp; Contracts</h3><div class="team-table-wrap"><table class="team-table"><tr><th>Pos.</th><th>Player</th><th>Contract</th><th>Years Left</th><th>Career PTS</th><th>Career REB</th><th>MVPs</th><th>Titles</th><th>TNR</th></tr>'+rows.map(p=>'<tr><td><b>'+p.pos+'</b></td><td><input class="team-player-name" data-team="'+t.key+'" data-pos="'+p.pos+'" value="'+String(p.name).replace(/"/g,'&quot;')+'" style="margin:0;padding:7px;font-size:14px;font-weight:900;width:100%;box-sizing:border-box"></td><td>'+(p.contract?'$'+p.contract+'M':'$0M')+'</td><td>'+p.years+'</td><td>'+p.pts+'</td><td>'+p.reb+'</td><td>'+p.mvps+'</td><td>'+p.titles+'</td><td>'+p.snr+'</td></tr>').join('')+'</table></div><button id="saveTeamRoster" class="goodbtn">Save Player Names</button><p id="teamRosterSaved" class="team-note">Roster slots and contract information are connected to the same live contract database used by Offseason and the Citizen Ledger.</p>';
- 
- 
  
 const marketDB=(()=>{try{return JSON.parse(localStorage.getItem("calvins_city_stock_market_v1")||"null")}catch(e){return null}})();
  
@@ -3210,8 +3084,6 @@ const stakePanel='<div class="card" data-public-share-stakes="'+t.key+'" style="
 document.getElementById("teamPageBody").innerHTML=
  
 '<div class="team-head"><div class="team-stat"><small>Cash</small><strong>$'+getLiveTeamCash(t.key)+'M</strong></div><div class="team-stat"><small>Arena</small><strong>'+t.arena+'</strong></div><div class="team-stat"><small>Record</small><strong>'+standings.w+'-'+standings.l+'</strong></div><div class="team-stat"><small>Points For</small><strong>'+(standings.ptsFor||0)+'</strong></div><div class="team-stat"><small>Points Against</small><strong>'+(standings.ptsAgainst||0)+'</strong></div><div class="team-stat"><small>🏆 Champs</small><strong>'+((({Lions:12,Rims:9,Dunks:7})[t.key]||0)+(Array.isArray(pageState.championshipAwards)?pageState.championshipAwards.filter(a=>Number(a&&a.season||0)>28&&a.champion===t.key).length:0))+'</strong></div></div>'+stakePanel+rosterTable;
- 
- 
  
 lockTeamPageScroll();
  
@@ -3245,15 +3117,11 @@ openTeamPage(k);
  
 window.openTeamPage=openTeamPage;
  
- 
- 
 const citizenLedgerHomeBtn=document.getElementById("openCitizenLedgerHome");
  
 const citizenLedgerModalEl=document.getElementById("citizenLedgerModal");
  
 const citizenLedgerCloseBtn=document.getElementById("citizenLedgerClose");
- 
- 
  
 function openCitizenLedger()
 {
@@ -3278,15 +3146,11 @@ if(out)out.innerHTML='<p class="muted">Citizen Ledger opened, but the citizen da
  
 }
  
- 
- 
 function closeCitizenLedger(){
  
 if(citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show");if(typeof window.unlockCitizenLedgerScroll==="function")window.unlockCitizenLedgerScroll();}
  
 }
- 
- 
  
 if(citizenLedgerHomeBtn){
  
@@ -3350,8 +3214,6 @@ e.stopPropagation();
  
 }
  
- 
- 
 /* 4.17.105: Citizen Ledger scroll-lock fix. The page behind the Ledger is frozen while the Ledger itself remains scrollable. */
  
 /* 4.17.105: Team stadium modal interaction fix.
@@ -3389,8 +3251,6 @@ const close=document.getElementById("teamPageClose");
 const basketball=document.getElementById("teamPageBasketball");
  
 const box=modal?modal.querySelector(".modalbox"):null;
- 
- 
  
 if(close){
  
@@ -3477,8 +3337,6 @@ if(document.readyState!=="loading")bindTeamModal();
  
 </script>
  
- 
- 
 <script>
  
 /* v5.8.77 EARLY UI RESCUE
@@ -3557,8 +3415,6 @@ window.__calvinsCityEarlyUIRescue={version:"5.8.77",showScreen:show};
  
 </script>
  
- 
- 
 <script>
  
 (function(){
@@ -3597,25 +3453,17 @@ HISTORICAL_CHAMPIONSHIPS=[
  
 CHAMP_STREAKS={"Benmack":4,"Fox":3,"Mason":3,"Hall":2,"House":2,"June":2,"West":2,"Carter":2,"Corva":4,"Reese":4},
  
- 
- 
- 
- 
 REGULAR_SCHEDULE=[["Lions","Rims"],["Lions","Dunks"],["Rims","Dunks"]];
  
 // 4.17.105: Seasons 1–28 are permanent historical seasons. Season 28 was won by Dunks, so Dunks is the defending champion entering Season 29.
  
 const HISTORICAL_LAST_CHAMPION=HISTORICAL_CHAMPIONSHIPS[HISTORICAL_CHAMPIONSHIPS.length-1][1];
  
- 
- 
 const freshStandings=()=>Object.fromEntries(TEAMS.map(t=>[t,{w:0,l:0,ptsFor:0,ptsAgainst:0,ticket:0,shoe:{}}]));
  
 let state={year:29,defendingChampion:HISTORICAL_LAST_CHAMPION,seasonPhase:"regular",regularGameIndex:0,standings:freshStandings(),gamesPlayed:[],playoff:{bye:null,semifinal:null,championship:null},seasonPlayed:false,offseasonOpen:false,offseasonFinalized:false,roster:{},contracts:{},verifiedOffseasonDecisions:{},openRosterSpots:{},lastSeason:null,lastGame:null,citizens:[],records:{retiredPlayers:[],gameRecords:[]}};
  
 try{const v=localStorage.getItem("calvins_city_v24");if(v){state={...state,...JSON.parse(v)};state.standings=state.standings||freshStandings()}}catch(e){}
- 
- 
  
 /* 5.3.9: A duplicate game record remains in the permanent audit/history list,
  
@@ -3635,8 +3483,7 @@ const seen=new Set(),unique=[];
  
 if(!r||r.stage!=="Regular Season")return;
  
-const a=String(r.a||"").trim(),b=String(r.b||"").tri
-m();
+const a=String(r.a||"").trim(),b=String(r.b||"").trim();
  
 if(!a||!b)return;
  
@@ -3701,8 +3548,6 @@ return getUniqueRegularSeasonGames().length;
 }
  
 reconcileRegularSeasonStandings();
- 
- 
  
 /* 5.1.8: Idempotent title-count reconciliation from permanent championship awards.
  
@@ -3815,8 +3660,6 @@ console.error("5.1.8 title reconciliation did not complete; no championship reco
 }
  
 })();
- 
- 
  
 /* VERSION 5.0.9: Recover an invalid/missing season number without resetting game data.
  
@@ -3991,14 +3834,10 @@ console.warn("Existing Season 29 recovery snapshot could not be validated; it wa
  
 const season29ResetBlockedByBackup=!season29RestoreBackupReady;
  
- 
- 
 /* 4.29.20 SAFETY: Removed au
 tomatic fresh-start mutation. The recovery snapshot
  
 above is retained, but page startup must never reset the season or accounts. */
- 
- 
  
 const BETS_STORAGE_KEY="calvins_city_bets_v1";
  
@@ -4113,8 +3952,6 @@ let betsDatabase={schemaVersion:BETS_SCHEMA_VERSION,nextId:1,games:[],nextBetId:
 function isValidBetsDatabase(value){return !!value&&typeof value==="object"&&Array.isArray(value.games)&&Array.isArray(value.bets);}
  
 function ensureBetsFinanceCollections(){betsDatabase.sportsBetsInterestAccruals=Array.isArray(betsDatabase.sportsBetsInterestAccruals)?betsDatabase.sportsBetsInterestAccruals:[];betsDatabase.sportsBetsDebtIssues=Array.isArray(betsDatabase.sportsBetsDebtIssues)?betsDatabase.sportsBetsDebtIssues:[];betsDatabase.sportsBetsCashTransactions=Array.isArray(betsDatabase.sportsBetsCashTransactions)?betsDatabase.sportsBetsCashTransactions:[];betsDatabase.bets=Array.isArray(betsDatabase.bets)?betsDatabase.bets:[];}
- 
- 
  
 function betsRecordCount(db){return (Array.isArray(db&&db.games)?db.games.length:0)+(Array.isArray(db&&db.bets)?db.bets.length:0);}
  
@@ -4368,13 +4205,9 @@ console.warn("4.29.38 storage repair skipped or partially completed safely; save
  
 })();
  
- 
- 
 /* 4.29.20 SAFETY: Legacy startup reset routines were removed above.
  
 Saved state and permanent records must remain unchanged during page load. */
- 
- 
  
 // v4.28.85: game-start confirmation gates automatic citizen bets before the next game.
  
@@ -4603,7 +4436,6 @@ state[marker]=true;
  
 state.sportsBetsOpeningCashReconciliation={at:new Date().toISOString(),before,after,adjustment:delta,reason:"Exact observed $439M balance reconciled to $430M opening baseline; no citizen bet history deleted."};
  
- 
 localStorage.setItem("calvins_city_v24",JSON.stringify(state));
  
 window.__suppressCitizenCashTrace=prior;
@@ -4687,8 +4519,6 @@ try{
  
 tx.createdAt=new Date().toISOString();
  
- 
- 
 // Resolve both accounts and validate the paired movement before mutating either balance.
  
 const companyBefore=issuer.get(),companyDelta=Number(tx.companyDelta||0);
@@ -4723,15 +4553,11 @@ issuer.set(sbRound(companyBefore+companyDelta));
  
 if(other)other.set(sbRound(otherBefore+otherDelta));
  
- 
- 
 // Verify the live account objects really changed before recording the transaction.
  
 if(Math.abs(issuer.get()-sbRound(companyBefore+companyDelta))>0.000001)throw new Error("Sports Bets Company cash did not update.");
  
 if(other&&Math.abs(other.get()-sbRound(otherBefore+otherDelta))>0.000001)throw new Error("Citizen cash did not update; transaction cancelled.");
- 
- 
  
 sbLedgerMove(issuer,tx.id+"-COMPANY",companyDelta,tx.companyType||tx.type,tx.companyReason||tx.reason,companyBefore,issuer.get(),{sportsBetsTransactionId:tx.id});
  
@@ -4822,8 +4648,7 @@ return {ok:true};
 if(beforeState!==null&&beforeDb!==null){
 try{state=JSON.parse(beforeState);}catch(_){}
 try{betsDatabase=JSON.parse(beforeDb);}catch(_){}
-try{localStorage.setItem("calvins_city_v24",beforeState);sbRes
-toreFinancialMirror(beforeMirror);}catch(_){}
+try{localStorage.setItem("calvins_city_v24",beforeState);sbRestoreFinancialMirror(beforeMirror);}catch(_){}
 try{localStorage.setItem(BETS_STORAGE_KEY,beforeDb);}catch(_){}
 }else if(autoBetBatch&&autoBetBatch.deferPersistence){
 autoBetBatch.mustRollback=true;
@@ -5159,7 +4984,6 @@ if(!sbWriteAutoBetRecovery(batch.recoveryRecord)){batch.mustRollback=true;fatalE
 await new Promise(resolve=>setTimeout(resolve,0));
 }
  
- 
 /* 5.8.114: One durable batch snapshot and one verified commit replace repeated
 whole-game snapshots and multiple large localStorage writes for every wager.
 The batch still validates each cash movement individually. If any wager fails,
@@ -5204,8 +5028,7 @@ if(stake>limit-used+0.000001||Number(c.cash)<stake){skipped++;await sbAutoBetYie
  
 const companyCash=Number(company.get());
  
-if(!Number.isFinite(companyCash)||pendingExposure+2*stake>companyCash+stake+0.000001){skipped++;await sbAu
-toBetYieldProgress(processed);continue;}
+if(!Number.isFinite(companyCash)||pendingExposure+2*stake>companyCash+stake+0.000001){skipped++;await sbAutoBetYieldProgress(processed);continue;}
  
 const market=markets[made%markets.length],lines=betsMarketLines(match);let selection;
  
@@ -5251,8 +5074,7 @@ console.error("Automatic Sports Bets batch rolled back:",reason);
 }
  
 if(!autoBetBatch.mustRollback&&made>0){
-autoBetBatch.recoveryRecord.phase="finalizing";autoBetBatch.recoveryRecord.betIds=autoBetBatch.createdBetIds.slice();autoBet
-Batch.recoveryRecord.transactionIds=autoBetBatch.createdTransactionIds.slice();autoBetBatch.recoveryRecord.finalizingAt=new Date().toISOString();
+autoBetBatch.recoveryRecord.phase="finalizing";autoBetBatch.recoveryRecord.betIds=autoBetBatch.createdBetIds.slice();autoBetBatch.recoveryRecord.transactionIds=autoBetBatch.createdTransactionIds.slice();autoBetBatch.recoveryRecord.finalizingAt=new Date().toISOString();
 if(!sbWriteAutoBetRecovery(autoBetBatch.recoveryRecord)){autoBetBatch.mustRollback=true;fatalError="Automatic-betting finalization checkpoint could not be saved; the in-memory batch will be rolled back.";}
 }
 if(autoBetBatch.mustRollback){
@@ -5337,8 +5159,6 @@ sbLedgerMove(company,txId+"-COMPANY",-payout,"Sports Bet Settlement Payout",outc
  
 betsDatabase.sportsBetsCashTransactions.push({id:txId,type:"Sports Bet Settlement",betId:bet.id,gameId:row.id,citizenId:bet.citizenId,
  
- 
- 
 citizenName:bet.citizenName,outcome,stake:Number(bet.stake),payout,companyBefore,companyAfter,citizenBefore,citizenAfter,createdAt:new Date().toISOString()});
  
 bet.cashSettlementTransactionId=txId;bet.cashPayout=payout;
@@ -5384,8 +5204,7 @@ if(!sbSaveState())throw new Error("Main financial state could not be saved.");if
  
 function sbIssueDebt(){
  
-const amount=sbRound(Number(document.getElementById("betsDebtIssueAmount")?.value)),msg=document.getElementById("betsDebtMessage"),company=sb
-GetAccount("business","Sports Bets Company");if(!msg)return;
+const amount=sbRound(Number(document.getElementById("betsDebtIssueAmount")?.value)),msg=document.getElementById("betsDebtMessage"),company=sbGetAccount("business","Sports Bets Company");if(!msg)return;
  
 if(!betsStorageWritable){msg.textContent="BETS storage is write-protected; debt issuance blocked.";return;}if(!Number.isFinite(amount)||amount<=0){msg.textContent="Enter an issuance amount greater than $0M.";return;}if(!company){msg.textContent="Sports Bets Company cash account unavailable.";return;}
  
@@ -5469,8 +5288,7 @@ const reconciliation=sbReconcileSettledBetStatuses();
  
 if(reconciliation&&reconciliation.ok===false)console.warn("5.1.5: BETS display is using saved status because reconciliation could not be persisted.",reconciliation.error);
  
-ensureBetsFinanceCollections();sb
-RenderCitizenPicker();sbDebtBuyerOptions();
+ensureBetsFinanceCollections();sbRenderCitizenPicker();sbDebtBuyerOptions();
  
 const issueSel=document.getElementById("betsDebtIssueSelect"),old=issueSel&&issueSel.value;if(issueSel){const open=betsDatabase.sportsBetsDebtIssues.filter(x=>x&&["open","fully-sold"].includes(x.status));issueSel.innerHTML=open.length?open.map(x=>'<option value="'+sbEsc(x.id)+'">'+sbEsc(x.id)+' — '+sbMoney(x.principal)+' issued, '+sbMoney(x.remainingPrincipal)+' unsold</option>').join(""):'<option value="">No open debt</option>';if(open.some(x=>x.id===old))issueSel.value=old;}
  
@@ -5478,8 +5296,7 @@ const summary=document.getElementById("betsDebtSummary"),owners=document.getElem
  
 if(owners){const issues=betsDatabase.sportsBetsDebtIssues;if(!issues.length){owners.innerHTML='<p class="muted">No debt has been issued yet.</p>';return;}owners.innerHTML=issues.slice().reverse().map(issue=>{const holders=issue.holders||[],rows=holders.map(h=>'<tr><td>'+sbEsc(h.buyerName)+'</td><td>'+sbEsc(h.buyerKind)+'</td><td>'+sbMoney(h.principal)+'</td><td>'+Number(h.ownershipPct||0).toFixed(2)+'%</td><td>'+sbMoney(h.interestAtRepayment)+'</td><td>'+sbMoney(h.expectedPayoutAtRepayment)+'</td><td>'+sbEsc(h.status)+'</td></tr>').join('');const payout=holders.filter(h=>h.status==="holding").reduce((n,h)=>n+(Number(h.expectedPayoutAtRepayment)||0),0);return '<div class="card" style="margin-top:10px"><h4>'+sbEsc(issue.id)+' — '+sbMoney(issue.principal)+' issuance <span class="badge">'+sbEsc(issue.status)+'</span></h4><p class="tiny">Sold: '+sbMoney(issue.soldPrincipal)+' · Unsold: '+sbMoney(issue.remainingPrincipal)+' · Outstanding holder payoff: '+sbMoney(payout)+' · Interest rate: 0.25% at payoff</p><div style="overflow-x:auto"><table><thead><tr><th>Holder</th><th>Type</th><th>Principal</th><th>Ownership</th><th>Interest</th><th>Expected payout</th><th>Status</th></tr></thead><tbody>'+(rows||'<tr><td colspan="7">No buyers yet.</td></tr>')+'</tbody></table></div>'+(issue.status==="repaid"?'<p class="tiny">Repaid '+sbEsc(issue.repaidAt||"")+' · Total payout '+sbMoney(issue.totalPayout)+'</p>':'<button type="button" data-sb-repay="'+sbEsc(issue.id)+'" class="goodbtn">Clear / Repay This Debt</button>')+'</div>';}).join("");owners.querySelectorAll('[data-sb-repay]').forEach(b=>b.addEventListener("click",()=>sbRepayDebt(b.getAttribute("data-sb-repay"))));}
  
-const other=document.getElemen
-tById("betsOtherHistory");if(other){
+const other=document.getElementById("betsOtherHistory");if(other){
 /* 5.1.5: do not assume array order equals recency
  
 after backup merges/imports.
@@ -5629,8 +5446,6 @@ if(sbGameStartProcessing)return;
  
 const match=sbCurrentPendingGame
  
- 
- 
 ();
  
 if(!match){playNextGame();return;}
@@ -5645,8 +5460,7 @@ sbGameStartConfirmationOpen=true;if(status)status.textContent="";yes.disabled=fa
  
 }
  
-function sbCloseDoneBettingModal(){const modal=document.getEleme
-ntById("betsDoneBettingModal");if(modal)modal.style.display="none";sbGameStartConfirmationOpen=false;}
+function sbCloseDoneBettingModal(){const modal=document.getElementById("betsDoneBettingModal");if(modal)modal.style.display="none";sbGameStartConfirmationOpen=false;}
  
 const sbDoneYes=document.getElementById("betsDoneBettingYes"),sbDoneNo=document.getElementById("betsDoneBettingNo");
  
@@ -5845,8 +5659,6 @@ betsDatabase.schemaVersion=BETS_SCHEMA_VERSION;
  
 const serialized=JSON.stringify(betsDatabase);
  
- 
- 
 /* 4.29.37: Commit and verify the authoritative BETS database FIRST.
  
 Previously the full recovery copy (another ~400 KB) was rewritten first.
@@ -5862,8 +5674,6 @@ localStorage.setItem(BETS_STORAGE_KEY,serialized);
 if(localStorage.getItem(BETS_STORAGE_KEY)!==serialized)throw new Error("Primary BETS database write could not be verified.");
  
 betsRawSavedAtLoad=serialized;
- 
- 
  
 let backupUpdated=false,backupPresent=false;
  
@@ -5947,8 +5757,6 @@ const scoreA=Number(g.A.score),scoreB=Number(g.B.score);
  
 if(!Number.isFinite(scoreA)||
  
- 
- 
 !Number.isFinite(scoreB)||scoreA<0||scoreB<0)return null;
  
 const teamA=String(g.A.team),teamB=String(g.B.team),recordedAt=new Date().toISOString();
@@ -6008,8 +5816,6 @@ betsDatabase.games.push({id:"BETS-"+betsDatabase.nextId++,teamA,scoreA,teamB,sco
 if(imported)saveBetsDatabase();return imported;
  
 }
- 
- 
  
 function betsNextMatchup(){
  
@@ -6205,8 +6011,6 @@ renderBetsBetForm();
  
 }
  
- 
- 
 // 4.17.105: Bind BETS market changes inside this private IIFE.
  
 // Inline HTML handlers cannot reach this private function by name.
@@ -6214,8 +6018,6 @@ renderBetsBetForm();
 const betsMarketSelect=document.getElementById("betsMarket");
  
 if(betsMarketSelect)betsMarketSelect.addEventListener("change",handleBetsMarketChange);
- 
- 
  
 function renderBetsBetForm(){
  
@@ -6291,8 +6093,6 @@ const button=document.getElementById("betsPlaceBet");if(button)button.disabled=f
  
 let pendingPracticeBetDraft=null;
  
- 
- 
 function requestConfirmPracticeBet(){
  
 const match=betsNextMatchup(),marketEl=document.getElementById("betsMarket"),
@@ -6337,8 +6137,6 @@ const yes=document.getElementById("betsConfirmYes");if(yes)yes.focus();
  
 }
  
- 
- 
 function closeBetsConfirmModal(){
  
 const modal=document.getElementById("betsConfirmModal");if(modal)modal.style.display="none";
@@ -6346,8 +6144,6 @@ const modal=document.getElementById("betsConfirmModal");if(modal)modal.style.dis
 pendingPracticeBetDraft=null;
  
 }
- 
- 
  
 function confirmPracticeBet(){
  
@@ -6375,8 +6171,6 @@ message.textContent="Bet saved. It will settle automatically when "+draft.teamA+
  
 }
  
- 
- 
 // Legacy practice-bet handler retained for backward compatibility; live button is rebound to real-money betting.
  
 const betsPlaceButton=document.getElementById("betsPlaceBet");
@@ -6398,8 +6192,6 @@ if(betsConfirmModal)betsConfirmModal.addEventListener("click",function(event){
 if(event.target===betsConfirmModal)closeBetsConfirmModal();
  
 });
- 
- 
  
 function settleBetsForGame(game,row){
  
@@ -6625,8 +6417,6 @@ renderBetsSlipHistory();
  
 }
  
- 
- 
 // 4.17.105: Historical Seasons 1–28 remain permanent Records; live play begins at Season 29.
  
 if(Number(state.year)<29 && !state.gamesPlayed.length && !state.seasonPlayed && state.seasonPhase==="regular"){
@@ -6647,8 +6437,6 @@ state.lastGame=null;
  
 }
  
- 
- 
 // Season 29 specifically starts with the Season 28 champion as defending champion.
  
 if(Number(state.year)===29 && !state.seasonPlayed && state.seasonPhase==="regular" && !state.lastSeason){
@@ -6656,8 +6444,6 @@ if(Number(state.year)===29 && !state.seasonPlayed && state.seasonPhase==="regula
 state.defendingChampion=HISTORICAL_LAST_CHAMPION;
  
 }
- 
- 
  
 state.records=state.records||{retiredPlayers:[],gameRecords:[]};
  
@@ -6706,8 +6492,6 @@ const BUSINESS_CASH={Nike:5040,Reebok:4150,Puma:2930,Adidas:5080,"New Balance":3
 const TEAM_OPENING_CASH={Lions:4430,Rims:4470,Dunks:4450};
  
 const FINANCIAL_TRANSACTIONS_STORAGE_KEY="calvins_city_financial_transactions_v1";
- 
- 
  
 /* 4.24.25: Season 29 Game 0 opening cash restoration for every team and business.
  
@@ -6779,8 +6563,6 @@ state.season29AllAccountOpeningCashReconciledVersion=version;
 try{save();}catch(e){console.error("All-account opening cash reconciliation could not be saved.",e);}
  
 })();
- 
- 
  
 /* 4.23.1: Permanent citizen/business ownership registry.
  
@@ -7030,8 +6812,6 @@ return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&l
  
 }
  
- 
- 
 const INITIAL_LIONS_PLAYERS={
  
 Lions_C:{name:"Wall",position:"C",careerPts:568,careerRebs:549,mvps:1,championships:2},
@@ -7101,7 +6881,6 @@ state.teamCashLedger.push({id:"CONTRACT-MIGRATION-"+String(state.year||0)+"-"+St
  
 const years=Math.max(1,Number(contract.contractYears!=null?contract.contractYears:contract.years)||1);
  
- 
 contract.paymentModel="upfront-total";
  
 contract.totalPaid=total;
@@ -7110,8 +6889,7 @@ contract.paymentsMade=years;
  
 contract.contractYears=years;
  
-contract.annualValue=Math.roun
-d((total/years)*100)/100;
+contract.annualValue=Math.round((total/years)*100)/100;
  
 contract.upfrontPaid=true;
  
@@ -7216,8 +6994,6 @@ state.contractPaymentModelVersion=3;
 save();
  
 }
- 
- 
  
 function seedInitialLionsRoster(){
  
@@ -7423,8 +7199,6 @@ openingRec.season29OpeningCash=Number(SEASON_29_OPENING_CASH[name])||0;
  
 }
  
- 
- 
 /* 4.17.105: Complete the Season 29 Arena roster database for Rims and Dunks.
  
 These are opening Season 29 contracts, not re-sign transactions. Existing
@@ -7565,8 +7339,6 @@ c.arenaRosterSeeded=true;
  
 seedInitialArenaRosters();
  
- 
- 
 /* 5.2.9 DIGGS CAREER STAT PROTECTION
  
 The legacy v8 startup repair hardcoded career totals for Wall, Diggs and Kap.
@@ -7574,8 +7346,6 @@ The legacy v8 startup repair hardcoded career totals for Wall, Diggs and Kap.
 It is intentionally removed. Career totals must come from saved records or
  
 verified box scores, never from a startup target table. */
- 
- 
  
 /* 4.17.105: All nine Season 29 contracts supplied as the opening roster are
  
@@ -7636,8 +7406,6 @@ const name=o.name;
 already paid. Do not alter player cash or team cash. */
  
 if(Number(c.value)===value &&
- 
- 
  
 (Number(c.contractYears||originalTerm)===originalTerm ||
 Number(c.years)<=originalTerm)){
@@ -7721,8 +7489,6 @@ save();
 }
  
 normalizeSeason29StartingContracts();
- 
- 
  
 /* 4.17.105: Reconcile the nine Season 29 opening player cash balances.
  
@@ -7809,8 +7575,6 @@ financial/business data stored on Citizen records. */
  
 /* 4.29.20 SAFETY: legacy full Season 29 baseline reset permanently disabled. */
  
- 
- 
 /* 4.17.105: Reset both streak fields for the Season 29 opening baseline.
  
 The records display reads champStreak first, so resetting only
@@ -7842,8 +7606,6 @@ state.season29ShipsInRowResetVersion="4.17.105";
 save();
  
 }
- 
- 
  
 /* 4.17.105: Repair Rims and Dunks Season 29 opening career totals.
  
@@ -7911,13 +7673,7 @@ save();
  
 }
  
- 
- 
 const CITIZEN_NAMES=()=>Array.from(new Set([...(state.records&&state.records.retiredPlayers||[]).map(x=>x.name),...Object.values(state.roster||{}).filter(Boolean)]));
- 
- 
- 
- 
  
 /* 4.17.105: Reset CrazBo's test data once.
  
@@ -7929,8 +7685,6 @@ itself is pre
 served for the next test. */
  
 /* 4.29.20 SAFETY: test-citizen cash/contract reset permanently disabled. */
- 
- 
  
 function citizenByName(name){const key=String(name||"").trim().toLowerCase();return state.citizens.find(c=>String(c&&c.name||"").trim().toLowerCase()===key)}
  
@@ -8258,8 +8012,6 @@ return {diagnosticVersion:"4.22.1",createdAt:new Date().toISOString(),mode:"Read
  
 seedInitialLionsRoster();
  
- 
- 
 /* 4.17.105: Keep the Citizen Ledger synchronized to the exact Season 29
  
 starting cash while Season 29 has not started. Starting contracts live in
@@ -8314,8 +8066,6 @@ c.position=p.position;
  
 }
  
- 
- 
 /* 4.17.105: Complete Season 29 live-state reset.
  
 This runs once for the 4.17.105 build. It restores every live-game setting
@@ -8327,10 +8077,6 @@ Records for Seasons 1–28. */
 const season29Marker=String(state.season29StartingPointVersion||"");
  
 /* 4.29.20 SAFETY: Disabled legacy automatic Season 29 reset migration. */
- 
- 
- 
- 
  
 /* 4.17.105: Connect the five known shoe deals to their actual players.
  
@@ -8370,8 +8116,6 @@ save();
  
 }
  
- 
- 
 /* 4.17.108: Shoe deals are effective when the team re-signing is approved.
  
 Remove future-start test records fro
@@ -8384,8 +8128,6 @@ const currentShoeSeason=Number(state.year)||0;
 (state.citizens||[]).forEach(c=>{
  
 if(!c||!Array
- 
- 
  
 .isArray(c.shoeDeals))return;
  
@@ -8422,8 +8164,6 @@ state.shoeDealFutureCleanupVersion="4.17.108";
 save();
  
 }
- 
- 
  
 /* 4.17.108: Remove duplicate test shoe contracts that share the same player,
  
@@ -8481,8 +8221,6 @@ save();
  
 }
  
- 
- 
 /* 4.29.24: Repair duplicate active shoe deals after offseason verification.
  
 The legacy Wall initializer checked for an exact 2-year deal, so when the
@@ -8504,7 +8242,6 @@ if(state.shoeDealDuplicateCleanupVersion!=="4.29.24"){
 const currentShoeSeason=Number(state.year)||0;
  
 function repairDuplicateShoeDeals(list){
- 
  
 if(!Array.isArray(list))return list;
  
@@ -8568,8 +8305,6 @@ save();
  
 }
  
- 
- 
 /* 4.18.2: Restore the LIVE basketball game to the opening of Season 29 exactly once for this build.
  
 Permanent Seasons 1–28 records and non-basketball business data remain untouched. This migration resets live game state only. Permanent Seasons 1–28 records and
@@ -8579,8 +8314,6 @@ non-basketball business data remain untouched. Opening team contracts and
 their paired shoe deals start with matching terms. */
  
 /* 4.29.20 SAFETY: legacy Season 29 opening reset permanently disabled. */
- 
- 
  
 /* 4.17.110: Reset unrostered, non-retired citizens to rookie/free-agent state
  
@@ -8648,8 +8381,6 @@ save();
  
 }
  
- 
- 
 /* 4.17.111: Repair the complete Season 29 opening contract baseline.
  
 The prior reset could leave Rims/Dunks contract slots missing or with zero
@@ -8662,14 +8393,11 @@ if(state.season29OpeningContractRepairVersion!=="4.17.111" &&
  
 Number(state.year)===29 && !state.seasonPlayed &&
  
- 
 (state.gamesPlayed||[]).length===0 && state.seasonPhase==="regular"){
  
 const openingContracts={
  
 Lions_C:{name:"Wall",team:"Lions",position:"C",value:787,years:2,rookie:false,teamValue:497,
- 
- 
  
 shoe:{company:"Reebok",years:2,value:290}},
  
@@ -8728,8 +8456,6 @@ syncCitizenLedger();
 save();
  
 }
- 
- 
  
 /* 4.17.116: Reconcile Season 29 opening Citizen Ledger cash against the
  
@@ -8803,8 +8529,6 @@ save();
  
 }
  
- 
- 
 /* 4.17.116: Final authoritative cash reconciliation.
  
 The previ
@@ -8833,8 +8557,7 @@ citizen.cash=amount;
  
 citizen.startingContractAlreadyPaid=true;
  
-citizen.st
-artingContractCash=amount;
+citizen.startingContractCash=amount;
  
 citizen.season29OpeningCash=amount;
  
@@ -8847,10 +8570,6 @@ state.season29CashBaselineRepairVersion="4.17.116";
 save();
  
 }
- 
- 
- 
- 
  
 /* 4.23.1: Load permanent ownership transfers before Season 29 cash repairs,
  
@@ -8922,8 +8641,7 @@ c.cash=p.cash;
  
 c.status="Active Player";c.currentTeam=p.team;c.position=p.position;
  
-c.startingContractAlreadyPaid=true;c.startingContractC
-ash=p.cash;
+c.startingContractAlreadyPaid=true;c.startingContractCash=p.cash;
  
 c.season29OpeningCash=p.cash;c.season29OpeningCashInitialized=true;
  
@@ -8940,8 +8658,6 @@ state.season29AuthoritativeOpeningVersion="4.17.116";
 save();
  
 }
- 
- 
  
 /* 4.17.105: Season 28 champion streak carry-forward.
  
@@ -8968,8 +8684,6 @@ state.season29VicoBicStreakCarryVersion="4.17.105";
 save();
  
 }
- 
- 
  
 /* 4.29.14: Team contract years and shoe-deal years advance once per
  
@@ -9046,8 +8760,6 @@ if(deal.yearsRemaining===0)deal.endYear=completedYear;
 state.contractYearsAdvancedForSeason=completedYear;
  
 }
- 
- 
  
 function setActivePlayerContract(key,team,name,contract,options={}){
  
@@ -9147,8 +8859,6 @@ return false;
  
 }
  
- 
- 
 function paySeasonContractInstallments(completedSeason){
  
 /* 4.17.105: Contracts are paid in full when verified. There is no yearly
@@ -9161,13 +8871,7 @@ return false;
  
 }
  
- 
- 
 function syncActivePlayerContracts(){
- 
- 
- 
- 
  
 const roster=state.roster||{};
  
@@ -9188,8 +8892,6 @@ applyActivePlayerContractCash(key,team,name);
 });
  
 }
- 
- 
  
 function syncCitizenLedger(){
  
@@ -9271,8 +8973,6 @@ state.citizens.forEach(c=>{c.businesses=citizenBusinessSummary(c.name)});
  
 function citizenCount(){return state.citizens.length}
  
- 
- 
 function seedRecords(){
  
 /* 4.17.105: Historical paper records are the authoritative baseline for
@@ -9287,8 +8987,6 @@ state.records.retiredPlayers=Array.isArray(state.records.retiredPlayers)?state.r
  
 state.records.gameRecords=Array.isArray(state.records.gameRecords)?state.records.gameRecords:[];
  
- 
- 
 const cleanPlayers=[];
  
 const playerMap={};
@@ -9302,8 +9000,6 @@ if(!playerMap[p.name]){playerMap[p.name]=p;cleanPlayers.push(p);}
 });
  
 state.records.retiredPlayers=cleanPlayers;
- 
- 
  
 HISTORICAL_RETIRED.forEach(x=>{
  
@@ -9339,8 +9035,6 @@ p.retirementCash=RETIREMENT_CASH[name]??null;
  
 });
  
- 
- 
 /*
  
 4.17.105: Prevent duplicate championship seasons in Records.
@@ -9353,8 +9047,6 @@ Championship rows from previous versions, so historical rows are rebuilt
  
 from HISTORICAL_CHAMPIONSHIPS instead of trusting saved duplicates.
  
- 
- 
 Live seasons (29+) keep at most one Championship row per year as well.
  
 */
@@ -9363,23 +9055,15 @@ const cleanGames=[];
  
 const liveChampionships={};
  
- 
- 
 state.records.gameRecords.forEach(g=>{
  
 if(!g||typeof g!=="object")return;
  
- 
- 
 const year=Number(g.year)||0;
- 
- 
  
 // Historical championship rows are authoritative and are recreated below.
  
 if(g.stage==="Championship" && year>=1 && year<=28)return;
- 
- 
  
 // A live season should only have one championship record for its year.
  
@@ -9391,19 +9075,13 @@ return;
  
 }
  
- 
- 
 cleanGames.push(g);
  
 });
  
- 
- 
 Object.keys(liveChampionships).forEach(y=>cleanGames.push(liveChampionships[y]));
  
 state.records.gameRecords=cleanGames;
- 
- 
  
 HISTORICAL_CHAMPIONSHIPS.forEach(x=>{
  
@@ -9454,8 +9132,6 @@ row.winningMoneyline=null;
 row.bettingResult=null;
  
 });
- 
- 
  
 // Keep the permanent database in chronological order after rebuilding history.
  
@@ -9515,8 +9191,6 @@ save();
  
 }
  
- 
- 
 seedRecords();
  
 seedConfirmedFreeAgents();
@@ -9569,8 +9243,7 @@ abort the core game script before navigation handlers and season labels initiali
  
 try{renderRecords();}catch(err){
  
-window.__calvinsCityStartupErrors=window.__calvinsCityStartupErro
-rs||[];
+window.__calvinsCityStartupErrors=window.__calvinsCityStartupErrors||[];
  
 window.__calvinsCityStartupErrors.push({area:"Records startup render",message:String(err&&err.message||err),at:new Date().toISOString()});
  
@@ -9674,8 +9347,7 @@ try{
  
 const raw=localStorage.getItem(FINANCIAL_TRANSACTIONS_STORAGE_KEY);
  
-if(raw){const mirror=JSON.pars
-e(raw);const arr=Array.isArray(mirror)?mirror:(mirror&&Array.isArray(mirror.transactions)?mirror.transactions:[]);arr.forEach(t=>{if(t&&t.transaction_id&&!byId.has(String(t.transaction_id)))byId.set(String(t.transaction_id),t);});}
+if(raw){const mirror=JSON.parse(raw);const arr=Array.isArray(mirror)?mirror:(mirror&&Array.isArray(mirror.transactions)?mirror.transactions:[]);arr.forEach(t=>{if(t&&t.transaction_id&&!byId.has(String(t.transaction_id)))byId.set(String(t.transaction_id),t);});}
  
 }catch(e){console.warn("Unified financial ledger recovery mirror could not be read; in-state records retained.",e);}
  
@@ -9759,10 +9431,6 @@ return state.teamCash;
  
 }
  
- 
- 
- 
- 
 /* 4.17.105: Season 29 opening team cash reconciliation.
  
 The nine opening player contracts were already paid before the live game
@@ -9789,8 +9457,6 @@ state.season29OpeningTeamCashReconciledVersion="4.17.105";
 save();
  
 }
- 
- 
  
 function die(){return Math.floor(Math.random()*6)+1} function money(n){return "$"+n.toFixed(0)+"M"} function ticketRevenue(){return(die()+die())*10} function shoeRevenue(){return(die()+die())*10} function playerName(t,p){return state.roster[t+"_"+p]||p}
  
@@ -9864,8 +9530,7 @@ state.shoeDealNeedsPopupShownForSeason=completedSeason;
  
 save();
  
-return tr
-ue;
+return true;
  
 }
  
@@ -9887,8 +9552,7 @@ Per-game marker prevents a repeated completion call from double-counting. */
  
 if(!g || g.__careerStatsRecorded===true)return;
  
-[g.A,g.B].f
-orEach(teamGame=>{
+[g.A,g.B].forEach(teamGame=>{
  
 (teamGame.players||[]).forEach(p=>{
  
@@ -9991,8 +9655,6 @@ g.ticketRevenueDistribution={total,winner, winnerAmount,loser,loserAmount,season
 return true;
  
 }
- 
- 
  
 /* 4.24.2: Credit shoe-company revenue and TV Company revenue for each completed game.
  
@@ -10184,15 +9846,11 @@ catch(marketMoneyInterestError){console.error("Market Money interest accrual fai
  
 most recent completed championship BEFORE the current season.
  
- 
- 
 This is the authoritative source for the defending champion. We do not
  
 rely on a stale localStorage defendingChampion or lastSeason value when
  
 deciding a tie-break bye.
- 
- 
  
 Season 29 -> searches Season 28 -> Dunks.
  
@@ -10210,8 +9868,6 @@ let latestYear=-1;
  
 let latestWinner=null;
  
- 
- 
 // Search the permanent/live game database first.
  
 const records=state.records&&Array.isArray(state.records.gameRecords)
@@ -10220,20 +9876,13 @@ const records=state.records&&Array.isArray(state.records.gameRecords)
  
 : [];
  
- 
- 
 records.forEach(g=>{
  
 if(!g||g.stage!=="Championship")return;
  
- 
- 
 const y=Number(g.year)||0;
  
 const winner=String(g.winner||"").trim();
- 
- 
- 
  
 if(y<currentYear && winner && y>latestYear){
  
@@ -10244,8 +9893,6 @@ latestWinner=winner;
 }
  
 });
- 
- 
  
 // Years 1–28 are permanent historical records.
  
@@ -10259,8 +9906,6 @@ const y=Number(x[0])||0;
  
 const winner=String(x[1]||"").trim();
  
- 
- 
 if(y<currentYear && winner && y>latestYear){
  
 latestYear=y;
@@ -10273,29 +9918,17 @@ latestWinner=winner;
  
 }
  
- 
- 
 return latestWinner||HISTORICAL_LAST_CHAMPION;
  
 }
  
- 
- 
 function chooseBye(){
- 
- 
  
 const max=Math.max(...TEAMS.map(t=>state.standings[t].w));
  
- 
- 
 const leaders=TEAMS.filter(t=>state.standings[t].w===max);
  
- 
- 
 const defending=getLastChampionshipWinner();
- 
- 
  
 // Keep the saved defending-champion field synchronized with the
  
@@ -10303,11 +9936,7 @@ const defending=getLastChampionshipWinner();
  
 state.defendingChampion=defending;
  
- 
- 
 if(leaders.length===1)return leaders[0];
- 
- 
  
 // Any tie, including a three-way tie, goes to the most recent champion
  
@@ -10315,17 +9944,11 @@ if(leaders.length===1)return leaders[0];
  
 if(defending && leaders.includes(defending))return defending;
  
- 
- 
 // Safety fallback: never give the bye to a team outside the tied leaders.
  
 return leaders[0];
  
- 
- 
 }
- 
- 
  
 /* 4.28.86: Idempotent team playoff payouts. Each award is a single cash
  
@@ -10399,8 +10022,6 @@ return winnerPaid||runnerPaid;
  
 }
  
- 
- 
 function finishRegularSeason(){
  
 state.defendingChampion=getLastChampionshipWinner();
@@ -10451,8 +10072,6 @@ const season=Number(state.year)||0;
  
 if(state.championshipAwards.some(x=>x&&Number(x.season)===season))return;
  
- 
- 
 const winnerTeam=winningTeamGame.team;
  
 const winnerNames=winningTeamGame.players.map(p=>p&&p.name).filter(Boolean);
@@ -10466,8 +10085,6 @@ const mvpPlayer=winningTeamGame.players.slice().sort((a,b)=>
 )[0];
  
 const mvpName=mvpPlayer&&mvpPlayer.name?mvpPlayer.name:null;
- 
- 
  
 /* 4.17.105: TNR shown in the Ledger, team pages, Records, and Hall of Fame
  
@@ -10491,8 +10108,6 @@ if(isActivePlayer && !winnerNameSet.has(c.name)) c.currentChampStreak=0;
  
 });
  
- 
- 
 winnerNames.forEach(name=>{
  
 const citizen=ensureCitizen(name,{status:"Active Player",currentTeam:winnerTeam});
@@ -10513,8 +10128,6 @@ citizen.lastChampionshipSeason=season;
  
 });
  
- 
- 
 if(mvpName){
  
 const mvpCitizen=ensureCitizen(mvpName,{status:"Active Player",currentTeam:winnerTeam});
@@ -10533,8 +10146,6 @@ mvpCitizen.lastChampionshipMvpRebs=Number(mvpPlayer.rebs)||0;
  
 }
  
- 
- 
 state.championshipAwards.push({
  
 season,
@@ -10549,8 +10160,6 @@ mvpPts:mvpPlayer?Number(mvpPlayer.pts)||0:0,
 mvpRebs:mvpPlayer?Number(mvpPlayer.rebs)||0:0
  
 });
- 
- 
  
 /* Keep the permanent season ledger and live totals aligned. */
  
@@ -10656,8 +10265,7 @@ career-stat, or history side effects can run. Existing records are never deleted
  
 if(window.__calvinsCityPlayNextGameLock){return;}
  
-window.__calvinsCityPlayNextGam
-eLock=true;
+window.__calvinsCityPlayNextGameLock=true;
  
 try{
  
@@ -10874,8 +10482,6 @@ return true;
 }
  
 window.createOffseasonFreeAgent=createOffseasonFreeAgent;
- 
- 
  
 /* 4.19.9: A release moves the existing citizen to Free Agent without creating
  
@@ -11171,8 +10777,7 @@ function renderProgress(){const b=document.getElementById("nextGameBox"),btn=doc
  
 function renderStandings(){const out=document.getElementById("standingsOutput");const uniquePlayed=reconcileRegularSeasonStandings();if(!uniquePlayed){out.innerHTML='<p class="muted">Game 1 is ready. Nothing has been played yet.</p>';return}let h='<p><b>Regular-Season Matchups Counted:</b> '+uniquePlayed+' / 3</p><p class="tiny">Duplicate matchup records remain in the permanent game history, but count only once in standings.</p><table><tr><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr>';TEAMS.slice().sort((a,b)=>state.standings[b].w-state.standings[a].w).forEach(t=>h+='<tr><td>'+t+'</td><td>'+state.standings[t].w+'</td><td>'+state.standings[t].l+'</td><td>'+state.standings[t].ptsFor+'</td><td>'+state.standings[t].ptsAgainst+'</td></tr>');h+='</table>';if(state.playoff.bye)h+='<p><b>Playoff Bye:</b> '+state.playoff.bye+'</p>';if(state.lastSeason)h+='<p class="gold"><b>Champion:</b> '+state.lastSeason.champion+' • <b>MVP:</b> '+state.lastSeason.championship.mvp+'</p>';out.innerHTML=h}
  
-function buildRosterInputs(){const rosterTarget=document.getElemen
-tById("rosterInputs");if(!rosterTarget)return;let h='<table><tr><th>Team</th><th>C</th><th>SG</th><th>PG</th></tr>';TEAMS.forEach(t=>
+function buildRosterInputs(){const rosterTarget=document.getElementById("rosterInputs");if(!rosterTarget)return;let h='<table><tr><th>Team</th><th>C</th><th>SG</th><th>PG</th></tr>';TEAMS.forEach(t=>
  
 {h+='<tr><td>'+t+'</td>';POSITIONS.forEach(p=>{const k=t+"_"+p;h+='<td><input id="r_'+k+'" placeholder="'+p+'" value="'+(state.roster[k]||"")+'"></td>'});h+='</tr>'});rosterTarget.innerHTML=h+'</table>'}
  
@@ -11248,8 +10853,7 @@ const openInfo=openSpot?state.openRosterSpots[k]:null;
  
 const replacementName=openSpot&&state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].replacementName?state.offseasonDecisions[k].replacementName:"";
  
-const newPlayerSelected=openSpot&&state.offseasonDecisions&&state.offseasonDecisio
-ns[k]&&state.offseasonDecisions[k].replacementNewName?true:false;
+const newPlayerSelected=openSpot&&state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].replacementNewName?true:false;
  
 const selectValue=openSpot?(newPlayerSelected?"__NEW_PLAYER__":(replacementName||"")):(state.roster[k]||"");
  
@@ -11313,7 +10917,6 @@ document.querySelectorAll(".contract-player-select").forEach(sel=>{
  
 const k=sel.dataset.team+"_"+sel.dataset.pos;
  
- 
 sel.value=state.roster[k]||((state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].replacementNewName)?"__NEW_PLAYER__":(state.offseasonDecisions&&state.offseasonDecisions[k]&&state.offseasonDecisions[k].replacementName)||"");
  
 sel.onchange=function(){
@@ -11355,7 +10958,6 @@ delete state.roster[key];
 delete state.offseasonDecisions[key].replacementName;
  
 delete state.offseasonDecisions[key].replacementNewName;
- 
  
 }
  
@@ -11546,8 +11148,6 @@ const sal=document.querySelector('.resign-salary[data-team="'+sel.dataset.team+'
  
 entry.years=y
  
- 
- 
 &&y.value?Number(y.value):0;entry.salary=sal&&sal.value?Number(sal.value):0;
  
 state.offseasonDecisions[k]=entry;
@@ -11591,7 +11191,6 @@ const newName=card.querySelector('.replacement-new-name');
 decision="Replace";
  
 name=sel&&sel.value==="__NEW_PLAYER__"?(newName&&newName.value||"").trim():(sel&&sel.value||"").trim();
- 
  
 if(!name){alert("Select an active player or enter a new player name for this replacement slot.");return;}
  
@@ -11695,8 +11294,7 @@ if(!state.seasonPlayed||!state.offseasonOpen){alert("Open the offseason before v
  
 const k=team+"_"+pos;
  
-state.verifiedOffseasonDecisions=state.verified
-OffseasonDecisions||{};
+state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
  
 state.openRosterSpots=state.openRosterSpots||{};
  
@@ -11921,8 +11519,7 @@ const leavingCitizen=decision==="Release"
  
 :ensureCitizen(leavingName,{status:"Active Player",position:pos,currentTeam:team,cash:0});
  
-if(decision==="Retire"&&leavingCitizen){leavingCitizen.status="Retired";leavingCitizen.currentTeam=null;leavingCitizen.position=null;end
-RetiredPlayerShoeDeals(leavingName,leavingCitizen);}
+if(decision==="Retire"&&leavingCitizen){leavingCitizen.status="Retired";leavingCitizen.currentTeam=null;leavingCitizen.position=null;endRetiredPlayerShoeDeals(leavingName,leavingCitizen);}
  
 const retired={name:leavingName,careerPts:Number(leavingCitizen&&leavingCitizen.careerPts||0),careerRebs:Number(leavingCitizen&&leavingCitizen.careerRebs||0),mvps:Number(leavingCitizen&&leavingCitizen.mvps||0),championships:Number(leavingCitizen&&leavingCitizen.championships||0),retirementCash:leavingCitizen&&leavingCitizen.cash!=null?Number(leavingCitizen.cash):null,champStreak:Number(leavingCitizen&&leavingCitizen.champStreak||0),currentChampStreak:Number(leavingCitizen&&leavingCitizen.currentChampStreak||0)};
  
@@ -11997,8 +11594,7 @@ const contractSaveSucceeded=save();
  
 if(contractSaveSucceeded===false){alert("Contract verification could not be saved to this device. No live-site or backup data was changed. Do not continue to the next season; check available browser storage and retry after reopening the offseason.");return;}
  
-buildRosterInputs();buildContractBoard();renderFreeAg
-entMarket();
+buildRosterInputs();buildContractBoard();renderFreeAgentMarket();
  
 const notice=document.getElementById("contractNamesSaved");
  
@@ -12019,8 +11615,6 @@ window.requestVerifyOffseasonDecision=requestVerifyOffseasonDecision;
 window.closeContractVerifyModal=closeContractVerifyModal;
  
 window.confirmContractVerification=confirmContractVerification;
- 
- 
  
 function openOffseason(){if(!state.seasonPlayed){alert("Run a complete season first.");return}state.offseasonOpen=true;save();document.getElementById("offseasonCard").style.display="block";buildContractBoard()}
  
@@ -12185,8 +11779,6 @@ ensureEconomicPhase();
  
 document.addEventListener("DOMContentLoaded",updateEconomicPhaseDisplays);
  
- 
- 
 function finalizeOffseason(){
  
 if(!state.seasonPlayed||!state.offseasonOpen)return;
@@ -12303,8 +11895,6 @@ return;
  
 }
  
- 
- 
 state.offseasonDecisions=state.offseasonDecisions||{};
  
 state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
@@ -12312,8 +11902,6 @@ state.verifiedOffseasonDecisions=state.verifiedOffseasonDecisions||{};
 state.openRosterSpots=state.openRosterSpots||{};
  
 const errors=[];
- 
- 
  
 /* 4.17.105: Every roster spot must be filled and every decision must be
  
@@ -12354,8 +11942,6 @@ return;
  
 }
  
- 
- 
 TEAMS.forEach(t=>{
  
 POSITIONS.forEach(p=>{
@@ -12371,8 +11957,6 @@ const d=state.offseasonDecisions[k]||{decision:"Keep"};
 const c=state.contracts[k]||{value:0,years:0};
  
 if(state.verifiedOffseasonDecisions&&state.verifiedOffseasonDecisions[k])return;
- 
- 
  
 if(d.decision==="Resign"){
  
@@ -12472,8 +12056,6 @@ errors.push(name+" has no contract years remaining. Use Re-sign, Release, or Ret
  
 });
  
- 
- 
 if(errors.length){
  
 alert(errors.join("\n"));
@@ -12487,8 +12069,6 @@ buildContractBoard();
 return;
  
 }
- 
- 
  
 syncCitizenLedger();
  
@@ -12552,8 +12132,6 @@ alert("Offseason finalized. Calvin's City is ready for the new year.");
  
 }
  
- 
- 
 /* 4.17.121: One-time correction for the three confirmed Season 29 test-payment overages.
  
 The diagnostic proved these exact balances existed before startup migrations:
@@ -12605,8 +12183,6 @@ save();
 }
  
 }
- 
- 
  
 /* 5.1.9: Reconcile title totals AFTER backup import as well as at startup.
  
@@ -12727,8 +12303,6 @@ const roster=state.roster||{}, liveContracts=state.contracts||{};
 const live=Object.entries(roster).filter(([k,n])=>focusNames.has(norm(n))).map(([key,name])=>({key,name,contract:liveContracts[key]?JSON.parse(JSON.stringify(liveContracts[key])):null}));
  
 return {diagnosticVersion:"4.22.1",capturedAt:new Date().toISOString(),note:"Captured after app startup migrations but before the Citizen Ledger render-time cash reconciliation. This report does not change financial data.",state:{year:state.year,seasonPhase:state.seasonPhase,seasonPlayed:state.seasonPlayed,gamesPlayedCount:Array.isArray(state.gamesPlayed
- 
- 
  
 )?state.gamesPlayed.length:null,season29CashBaselineRepairVersion:state.season29CashBaselineRepairVersion??null,season29OpeningCashCleanupVersion:state.season29OpeningCashCleanupVersion??null,season29OpeningCashReconciledVersion:state.season29OpeningCashReconciledVersion??null,season29OpeningRestoreVersion:state.season29OpeningRestoreVersion??null,season29FullBaselineRestoreVersion:state.season29FullBaselineRestoreVersion??null,contractPaymentModelVersion:state.contractPaymentModelVersion??null,startingContractModelVersion:state.startingContractModelVersion??null,season29OpeningContractRepairVersion:state.season29OpeningContractRepairVersion??null},citizens,liveContracts:live};
  
@@ -12941,7 +12515,6 @@ const fixes={Holly:{bad:450,baseline:350},Kap:{bad:750,baseline:450},Bic:{bad:63
  
 let repaired=false;
  
- 
 Object.entries(fixes).forEach(([name,fix])=>{
 (state.citizens||[]).filter(c=>c&&String(c.name||"").trim().toLowerCase()===name.toLowerCase()).forEach(c=>{
  
@@ -13085,8 +12658,7 @@ const liveRosterContract=rosterKey && state.contracts && state.contracts[rosterK
  
 const ledgerContracts=Array.isArray(c.contracts)?c.contracts.filter(x=>!(x&&x.team==="Lions"&&Number(x.year)===29)):[];
  
-const historyActiveContract=ledgerContract
-s.slice().reverse().find(x=>x&&x.current===true)||ledgerContracts.slice().reverse().find(x=>x&&x.team===(rosterTeam||c.currentTeam))||null;
+const historyActiveContract=ledgerContracts.slice().reverse().find(x=>x&&x.current===true)||ledgerContracts.slice().reverse().find(x=>x&&x.team===(rosterTeam||c.currentTeam))||null;
  
 /* Display is read-only: this does not create history entries or change cash. */
  
@@ -13130,8 +12702,7 @@ const cards=Array.from(out.querySelectorAll(".citizen-card"));
  
 let visible=0;
  
-cards.forE
-ach(card=>{
+cards.forEach(card=>{
  
 const matches=!query||String(card.textContent||"").toLowerCase().includes(query);
  
@@ -13337,8 +12908,7 @@ if(buyerMatches)writeCash(buyerAccount,buyerPre);
  
 if(sellerMatches)writeCash(sellerAccount,sellerPre);
  
-original.status="voided";original.voidedByRejection=true;original.voidedAt=entry.app
-rovalAt;original.voidedReason=note||"Rejected from Player Ledger";
+original.status="voided";original.voidedByRejection=true;original.voidedAt=entry.approvalAt;original.voidedReason=note||"Rejected from Player Ledger";
  
 original.reversalId="REV-"+String(original.id);
  
@@ -13357,8 +12927,6 @@ if(master){master.status="voided";master.voidedByRejection=true;master.voidedAt=
 if(Array.isArray(stNow.playerLedgerTransactions)){
  
 stNow.playerLedgerTransactions.filter(x=>x&&(String(x.transactionId||"")===String(original.id)||String(x.id||
- 
- 
  
 "").startsWith(String(original.id)))).forEach(x=>{x.status="voided";x.voidedAt=entry.approvalAt;x.reversalId=reversal.id;});
  
@@ -13492,7 +13060,6 @@ renderCitizenLedger();
 }));
  
 /* 4.23.1: Delete active contracts OR individual contract-history entries from the Player Ledger.
- 
  
 Each contract package is debited from citizen cash once; no team/company receives a refund.
  
@@ -13730,8 +13297,6 @@ deleteContractFromCitizenLedger({playerName,packageValue,source:"deleteContractH
  
 });
  
- 
- 
 /* 4.18.3: Per-citizen cash source report. Read-only: combines tracked transactions
  
 with game-boundary cash deltas so unexpected increases can be traced without
@@ -13832,8 +13397,6 @@ if(copyBtn)copyBtn.addEventListener("click",async()=>{if(!latestLedgerReport){la
  
 =buildLedgerDiagnostics();if(reportBox)reportBox.value=JSON.stringify(latestLedgerReport,null,2);}const textToCopy=JSON.stringify(latestLedgerReport,null,2);try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(textToCopy);copyBtn.textContent="Copied — paste report into ChatGPT";return;}}catch(e){}if(reportBox){reportBox.focus();reportBox.select();reportBox.setSelectionRange(0,reportBox.value.length);}let copied=false;try{copied=document.execCommand("copy");}catch(e){}copyBtn.textContent=copied?"Copied — paste report into ChatGPT":"Select report text and copy it";});
  
- 
- 
 }
  
 function renderRecords(){
@@ -13867,7 +13430,6 @@ const r=state.records.retiredPlayers||[],g=state.records.gameRecords||[];
 change. The permanent retired database remains the historical source for
  
 retired players, while live Citizen records supply current active totals.
- 
  
 Merge by player name so each player appears only once. */
  
@@ -13949,8 +13511,6 @@ if(a)a.textContent=r.length;if(b)b.textContent=g.length;if(cc)cc.textContent=(st
  
 const body=document.getElementById("recordsBody");if(!body)return;
  
- 
- 
 const points=recordPlayers.slice().sort((x,y)=>(y.careerPts||0)-(x.careerPts||0)).slice(0,10);
  
 const rebounds=recordPlayers.slice().sort((x,y)=>(y.careerRebs||0)-(x.careerRebs||0)).slice(0,10);
@@ -13960,8 +13520,6 @@ const titles=recordPlayers.slice().sort((x,y)=>(y.championships||0)-(x.champions
 const mvps=recordPlayers.slice().sort((x,y)=>(y.mvps||0)-(x.mvps||0)||(y.careerPts||0)-(x.careerPts||0)).slice(0,5);
  
 const championships=g.filter(x=>x&&x.stage==="Championship"&&x.winner).slice().sort((a,b)=>(Number(a.year)||0)-(Number(b.year)||0));
- 
- 
  
 function panel(id,title,
  
@@ -13984,8 +13542,6 @@ h+='<div class="record-rank"><span class="rank">'+(i+1)+'</span><span class="nam
 return h+'</div>';
  
 }
- 
- 
  
 function renderHallOfFamePanel(){
  
@@ -14078,14 +13634,11 @@ const reb=x.mvpRebs==null?(Array.isArray(HISTORICAL_CHAMPIONSHIPS)&&HISTORICAL_C
  
 const loser=x.loser||"N/A";
  
-champHtml+='<div class="champ-record"><div class="champ-main">Year '+x.year+' — '+winnerName.toUpperC
-ase()+'</div><div class="champ-mvp">🏆 '+mvp+' — MVP • '+pts+' PTS / '+reb+' REB</div><div class="champ-loser">'+loser+' • Final: '+finalScore+'</div></div>';
+champHtml+='<div class="champ-record"><div class="champ-main">Year '+x.year+' — '+winnerName.toUpperCase()+'</div><div class="champ-mvp">🏆 '+mvp+' — MVP • '+pts+' PTS / '+reb+' REB</div><div class="champ-loser">'+loser+' • Final: '+finalScore+'</div></div>';
  
 });
  
 champHtml+='</div>';
- 
- 
  
 body.innerHTML=
  
@@ -14102,8 +13655,6 @@ panel("recordMvp","MVP Leaders — Top 5",mvps,"mvps","MVPs")+
 hofHtml+
  
 champHtml;
- 
- 
  
 const tabs=[
  
@@ -14368,7 +13919,6 @@ var own=document.getElementById("sportsBetsOwnershipTab");
 if(own){own.classList.remove("active");own.setAttribute("aria-selected","false");}
 };
  
- 
 try{sbReconcileSportsBetsOpeningCash();}catch(err){console.error("Sports Bets opening-cash reconciliation failed; core navigation will continue.",err);}
  
 try{renderBetsSection();}catch(err){console.error("Sports Bets section could not render during startup; core navigation will continue.",err);}
@@ -14385,8 +13935,7 @@ const openBasketballInfoButton=document.getElementById("openBasketballInfo");
  
 const basketballInfoModal=document.getElementById("basketballInfoModal");
  
-const basketballInfoCloseButton=docum
-ent.getElementById("basketballInfoClose");
+const basketballInfoCloseButton=document.getElementById("basketballInfoClose");
  
 if(openBasketballInfoButton&&basketballInfoModal)openBasketballInfoButton.addEventListener("click",function(){basketballInfoModal.classList.add("show");});
  
@@ -14503,8 +14052,6 @@ document.addEventListener("DOMContentLoaded",bindRecordsModal);
 if(document.readyState!=="loading")bindRecordsModal();
  
 })();
- 
- 
  
 /* 4.23.1: Continue from the shoe-deal warning into the actual Offseason workflow.
 Previously this button only closed the popup; it did not reliably reach the
@@ -14628,8 +14175,7 @@ Object.defineProperty(c,"__cashIntegrityAuditInstalled",{value:true,writable:fal
 })();
 const homeSeason=document.getElementById("homeSeason");if(homeSeason)homeSeason.textContent="Season "+state.year;
  
-const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketba
-llSeasonTop.textContent="Season "+state.year;
+const basketballSeasonTop=document.getElementById("basketballSeasonTop");if(basketballSeasonTop)basketballSeasonTop.textContent="Season "+state.year;
  
 try{renderProgress();}catch(err){console.error("Progress panel failed to render; season display and navigation remain available.",err);}
  
@@ -14717,8 +14263,6 @@ window.addEventListener("error",function(){setTimeout(showCitySaveWarning,0);});
  
 document.addEventListener("DOMContentLoaded",showCitySaveWarning);
  
- 
- 
 /* VERSION 5.2.9: Diggs career-stat protection.
  
 This startup check is read-only: it deliberately does not rewrite career
@@ -14758,8 +14302,6 @@ console.info("Calvin's City 5.2.8 Diggs stats protection",window.__diggsCareerSt
  
 })();
  
- 
- 
 /* VERSION 5.0.7: Refresh the offseason player dropdown after startup stats
  
 reconciliation. The dropdown labels are generated when buildContractBoard()
@@ -14777,8 +14319,6 @@ if(typeof buildContractBoard==="function")buildContractBoard();
 console.error("Player dropdown refresh failed.",err);
  
 }
- 
- 
  
 /* VERSION 5.0.7: Restore Wall's two historically earned MVPs.
  
@@ -14837,10 +14377,6 @@ try{if(typeof buildContractBoard==="function")buildContractBoard();}catch(err){c
 }
  
 })();
- 
- 
- 
- 
  
 /* 5.3.1 — Conservative career-stat reconciliation.
  
@@ -14945,8 +14481,7 @@ if(c)result[name]={points:Number(c.careerPts)||0,rebounds:Number(c.careerRebs)||
  
 return result;
  
-}catch(err){return
-null;}})();
+}catch(err){return null;}})();
  
 const verified=!!stored&&Object.keys(targets).every(name=>
  
@@ -14975,8 +14510,6 @@ try{if(typeof render==="function")render();}catch(err){console.error("Roster ref
 })();
  
 })();
- 
- 
  
 /* VERSION 5.3.2 — Restore Kap's two known championship-game MVP awards.
  
@@ -15037,8 +14570,6 @@ console.info("Calvin's City Kap MVP repair",window.__kapMvpRepairDiagnostic);
  
 })();
  
- 
- 
 /* VERSION 5.3.7: Refresh player-selection dropdown after startup reconciliation.
  
 The underlying fix is preserving existing career totals during roster seeding;
@@ -15057,15 +14588,9 @@ console.error("Player-selection PTS/REB refresh failed.",err);
  
 }
  
- 
- 
 /* 4.17.105: Championship awards now update Citizen/Arena/Ledger/Records.
  
- 
- 
 4.17.105: Season 29 starting-point migration plus contract-year timing.
- 
- 
  
 4.17.105: Citizen cash/contract synchronization fix.
  
@@ -15075,19 +14600,13 @@ edger sync never overwrites
  
 cash; original Season 29 contracts never trigger a new cash payment. */
  
- 
- 
 /* 4.17.105: City uses direct HTML button actions.
  
 There is no City/stadium event-binding layer. Each arena button
  
 calls the existing global openTeamPage() directly. */
  
- 
- 
 </script>
- 
- 
  
 <div id="shoeDealNeedsModal" class="modal"><div class="modalbox">
  
@@ -15116,8 +14635,7 @@ calls the existing global openTeamPage() directly. */
  
 <button id="recordTabMVP" type="button">MVP</button>
  
-<button id="recordTabChamp
-s" type="button">CHAMPS</button>
+<button id="recordTabChamps" type="button">CHAMPS</button>
  
 <button id="recordTabHOF" type="button">HOF</button>
  
@@ -15125,19 +14643,11 @@ s" type="button">CHAMPS</button>
  
 <div id="recordsBody" class="log"></div>
  
- 
- 
 <button id="recordsClose" class="secondary">Close</button>
  
 </div></div><div id="citizenLedgerModal" class="modal"><div class="modalbox"><h2>👤 Citizen Ledger</h2><div id="citizenLedgerBody" class="log"></div><button id="citizenLedgerClose" class="secondary">Close</button></div></div><div id="shareOwnershipLedgerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareOwnershipLedgerTitle"><div class="modalbox"><h2 id="shareOwnershipLedgerTitle">📒 Share &amp; Ownership Ledger</h2><p class="tiny">Append-only transaction history and reconciliation checks. This ledger reports discrepancies; it never invents cash or shares to make balances match.</p><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="metric"><small>Recorded Events</small><strong id="shareLedgerEventCount">0</strong></div><div class="metric"><small>Share Trades</small><strong id="shareLedgerTradeCount">0</strong></div><div class="metric"><small>Ownership Transfers</small><strong id="shareLedgerOwnershipCount">0</strong></div><div class="metric"><small>Reconciliation</small><strong id="shareLedgerStatus">Not checked</strong></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:10px 0"><button type="button" class="secondary" data-share-ledger-view="all">All Events</button><button type="button" class="secondary" data-share-ledger-view="trades">Share Trades</button><button type="button" class="secondary" data-share-ledger-view="ownership">Ownership Transfers</button><button type="button" class="secondary" data-share-ledger-view="audit">Audit &amp; Reconciliation</button><button type="button" class="secondary" data-share-ledger-view="businesscash">Business Cash Ledger</button><button type="button" class="secondary" data-share-ledger-view="financial">Unified Financial Ledger</button><button type="button" class="secondary" data-share-ledger-view="c
  
 ashaudit">Cash Audit &amp; Corrections</button></div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
- 
- 
- 
- 
- 
- 
  
 <script>
  
@@ -15234,15 +14744,11 @@ else bindContractVerifyModal();
  
 })();
  
- 
- 
 /* 4.17.105: Clean City controller.
  
 Arena buttons use ONLY their direct HTML onclick="openTeamPage(...)"
  
 action. No click/touchend handlers are attached to arena cards. */
- 
- 
  
 function openCalBankPopup(){
  
@@ -15382,10 +14888,6 @@ setCityTab(tab);
 </script>
  
 <script>
- 
- 
- 
- 
  
 /* 5.8.47 CalBank deposit foundation.
  
@@ -15569,8 +15071,6 @@ render();renderDebt();
  
 window.__calBankCitizenCashAudit={version:"5.8.81",status:"verified-current-transaction",customer:customer.name,customerId:customer.id,type,amount,customerCashBefore:customerBefore,customerCashAfter:round(Number(live.cash)),depositAccountBalance:round(Number(account.balance)),calBankCash:round(Number(d.bankCash)),transactionId:id,checkedAt:new Date().toISOString()};
  
- 
- 
 }catch(e){
  
 try{
@@ -15646,8 +15146,7 @@ saveDB(d);const verify=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(
  
 status("Credited "+money(total)+" in season "+season+" interest at "+rate.toFixed(2)+"% APR. One season equals one year.");render();
  
-}catch(e){try{localStorage.setItem(STORAGE_KEY,prior);}catch(x){}stat
-us("Interest processing failed and CalBank records were restored where storage permitted: "+e.message);}
+}catch(e){try{localStorage.setItem(STORAGE_KEY,prior);}catch(x){}status("Interest processing failed and CalBank records were restored where storage permitted: "+e.message);}
  
 }
  
@@ -15852,10 +15351,7 @@ render();renderDebt();
  
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
  
-window.renderCalBankDeposits=render;window.renderCalBank
-Debt=renderDebt; })();
- 
- 
+window.renderCalBankDeposits=render;window.renderCalBankDebt=renderDebt; })();
  
 /* 5.8.55: Federal Reserve-CalBank interest-free capital transfer bridge. */
  
@@ -15972,8 +15468,6 @@ const receive=$("calBankFedReceive"),ret=$("calBankFedReturn");if(receive)receiv
  
 })();
  
- 
- 
 /* 5.8.4: Read-only Federal Reserve live cash tracker. No cash mutation, tax, or debt actions. */
  
 (function(){
@@ -16049,13 +15543,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  
 })();
  
- 
- 
 </script>
  
 <script>
- 
- 
  
 /* 5.8.7: Guarded once-per-season tax collection after approval and fresh live-balance verification. */
  
@@ -16200,8 +15690,7 @@ const captured=currentPlan.accounts.map(a=>({type:a.type,name:a.name,cash:a.cash
  
 if(signature(live)!==signature(captured)){setStatus("Verification failed: eligible cash balances or accounts changed since assessment. Generate a fresh recommendation.");return;}
  
-currentPlan.status="verified";currentPlan.verifiedAt=new Date().toISOSt
-ring();
+currentPlan.status="verified";currentPlan.verifiedAt=new Date().toISOString();
  
 const plans=getSavedPlans(st);const i=plans.findIndex(p=>p&&p.id===currentPlan.id);if(i<0){setStatus("Verification failed: saved plan not found. Generate a fresh recommendation.");return;}plans[i]=currentPlan;
  
@@ -16291,10 +15780,7 @@ fed.seasonalTaxCollections.push(row);currentPlan.status="collected";currentPlan.
  
 const plans=getSavedPlans(st),idx=plans.findIndex(p=>p&&p.id===currentPlan.id);if(idx<0)throw Error("Approved plan record is missing")
  
- 
- 
-;plans[idx]=curr
-entPlan;
+;plans[idx]=currentPlan;
  
 const b=window.__calvinsCityBridge;if(!b||typeof b.save!=="function"||b.save()===false)throw Error("Game state save failed");
  
@@ -16382,13 +15868,9 @@ const details=$("fedTaxAssessmentDetails");if(details){let html='<table style="w
  
 })();
  
- 
- 
 </script>
  
 <script>
- 
- 
  
 /* 5.8.9: Fed selects one security type per offering; preserves Treasury ledger and maturity safeguards. */
  
@@ -16540,7 +16022,6 @@ if(!st){status("Purchase blocked: game state unavailable. No cash moved.");retur
 let f,off,investor,accountType,accountName,principal,oldInvestorCash,oldFederalCash,oldCalBankRaw=null,securityId,security,ledgerEntry;
  
 try{
- 
  
 f=fedState(st);off=getOffering(st);
  
@@ -16729,8 +16210,6 @@ const treasuryStepIds=new Set(["fedTreasuryRecommend","fedTreasuryVerify","fedTr
  
 document.addEventListener("click",function(ev){const button=ev.target&&ev.target.closest?ev.target.closest("button[id]"):null;if(!button||!treasuryStepIds.has(button.id))return;ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();const action=treasuryActions[button.id];if(!action)return;if(button.disabled){status("Step unavailable. Follow the status below the buttons; no Treasury cash was moved.");return;}try{action();}catch(err){status("Treasury action failed: "+String(err&&err.message||err));console.error("Treasury workflow action failed",err);}},true);
  
- 
- 
 $("fedTreasuryReleaseType")?.addEventListener("change",()=>{if(draft&&["recommended","verified"].includes(draft.status)&&Number($("fedTreasuryReleaseType").value)!==Number(draft.term)){if($("fedTreasuryVerify"))$("fedTreasuryVerify").disabled=true;if($("fedTreasuryApprove"))$("fedTreasuryApprove").disabled=true;status("Selected security changed. Generate a fresh Board recommendation before verification or approval.");}});
  
 $("cityFederalReserveTab")?.addEventListener("click",()=>setTimeout(render,0));
@@ -16742,11 +16221,7 @@ String((found.rates&&found.rates[Number(found.term)])||0);/* Security selector v
  
 })();
  
- 
- 
 </script>
- 
- 
  
 <script>
  
@@ -16882,8 +16357,6 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
  
 </script>
- 
- 
  
 <script>
  
@@ -17141,8 +16614,6 @@ if(document.readyState!=="loading")bindShoeCompanyModal();
 })();
  
 </script>
- 
- 
  
 <div id="businessOwnershipMarketplaceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="businessOwnershipMarketplaceTitle">
 <div class="modalbox">
@@ -17508,8 +16979,6 @@ if(debtClose){debtClose.addEventListener("click",()=>{const panel=document.getEl
  
 if(debtPanel){debtPanel.addEventListener("click",e=>{if(e.target===debtPanel){debtPanel.style.display="none";const tab=document.getElementById("sportsBetsDebtTab");if(tab)tab.setAttribute("aria-expanded","false");}});}
  
- 
- 
 const offers=activeOffers(business);
  
 let offerHtml='<h3>Stakes Offered for Sale</h3>';
@@ -17541,8 +17010,6 @@ offerHtml+='</tbody></table></div>';
 }
  
 offersOut.innerHTML=offerHtml;
- 
- 
  
 const history=registry().transactions.filter(t=>t&&t.business===business).slice().reverse().slice(0,10);
  
@@ -17657,8 +17124,7 @@ const seller=citizenById(actingId),percentToSell=Number(percentInput.value);
  
 if(!seller||!record){showOwnershipValidationPopup("Select a citizen and business first.");return;}
  
-if(!Number.isFinite(percentToSell)||percentToSell<=0){showOwnershipValid
-ationPopup("Enter a percentage greater than 0.");return;}
+if(!Number.isFinite(percentToSell)||percentToSell<=0){showOwnershipValidationPopup("Enter a percentage greater than 0.");return;}
  
 if(percentToSell>100){showOwnershipValidationPopup("You cannot offer more than 100% ownership.");return;}
  
@@ -17669,8 +17135,6 @@ const available=availablePercent(business,owner);
 if(!owner||percentToSell>available+0.000001){
  
 message.textContent="Offer not listed. Available to offer: "+pct(
- 
- 
  
 available)+".";
  
@@ -17845,10 +17309,6 @@ else initOwnershipMarketplace();
 })();
  
 </script>
- 
- 
- 
- 
  
 <script>
  
@@ -18651,8 +18111,6 @@ const tradeCard=$('stockTradeCard')||detachedStockTradeCard;if(tradeCard){detach
  
 }
  
- 
- 
 function renderCompanyOptions(){
  
 const companyOptions=companies.map(c=>'<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>').join("");
@@ -18688,8 +18146,6 @@ if(current&&Array.from(el.options).some(o=>o.value===current))el.value=current;
 try{updateTradeControls();}catch(err){console.error("Stock-market trade controls could not refresh.",err);}
  
 }
- 
- 
  
 function buildAccountOptions(excludeValue,companyName,holdersOnly){
  
@@ -18936,8 +18392,6 @@ it redraws views from that authoritative holdings map to avoid duplicate transfe
  
 window.syncShareholdersFromTrade=function(entry){
  
- 
- 
 try{
  
 if(!entry||!entry.company||!db.companies||!db.companies[entry.company])return false;
@@ -19047,8 +18501,6 @@ if(ledger.some(x=>x&&String(x.id)===String(entry.id)))return false;
 const copy={...entry,ledgerRecordedAt:new Date().toISOString()};ledger.push(copy);
  
 try{window.syncShareholdersFromTrade(copy);}catch(e){console.error("Shareholder sync hook failed.",e);}
- 
- 
  
 /* 4.24.57: mirror completed share-trade cash effects into each citizen's Player Ledger.
  
@@ -19249,8 +18701,7 @@ const raw=prompt("Amount of unsupported cash to void from "+account.name+" (in m
  
 if(raw===null)return;
  
-const amount=M
-ath.round(Number(raw)*100)/100;
+const amount=Math.round(Number(raw)*100)/100;
  
 if(!Number.isFinite(amount)||amount<=0){alert("Enter a valid positive amount. No cash changed.");return;}
  
@@ -19436,14 +18887,11 @@ if(e.target===modal)closeShareOwnershipLedger();
  
 }
  
-g
-etShareOwnershipLedger();
+getShareOwnershipLedger();
  
 }
  
 document.addEventListener("DOMContentLoaded",bindShareOwnershipLedger);if(document.readyState!=="loading")bindShareOwnershipLedger();
- 
- 
  
 function renderMarketMoney(){
  
@@ -19604,8 +19052,6 @@ if(changed){save();saveDB(db);}
 }
  
 try{reconcilePendingMarketMoneyCitizenCredits();}catch(reconcileError){console.error("Market Money legacy cash reconciliation needs review:",reconcileError);}
- 
- 
  
 window.processMarketMoneyGameInterest=function(season,gameCount){
  
@@ -19834,8 +19280,6 @@ share trades, opening balances, and cash interest are not operating revenue. */
  
 const companyDef=companies.find(c=>String(c.
  
- 
- 
 name||"")===String(company));
  
 const isTeam=!!(companyDef&&companyDef.category==="Basketball Teams");
@@ -20011,7 +19455,6 @@ if(growth<=-30)return -12;
 if(growth<=-20)return -8;
  
 if(growth<=-10)return -5;
- 
  
 if(growth<=-1)return -2;
  
@@ -20399,10 +19842,6 @@ if(stockScript&&!window.__calCityStockMarketLateRetry){window.__calCityStockMark
  
 </script>
  
- 
- 
- 
- 
 <script>
  
 /* 4.24.36: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
@@ -20588,11 +20027,7 @@ res.</p>
  
 <
  
- 
- 
 /div>
- 
- 
  
 <style>
  
@@ -20718,10 +20153,6 @@ open(key,event);
 })();
  
 </script>
- 
- 
- 
- 
  
 <script>
  
@@ -20996,8 +20427,6 @@ restoreEntries[recoveryKey]=JSON.stringify(snap);
 }
  
 }catch(compactError){console.warn("Recovery snapshot was retained without compaction:",compactError);}
- 
- 
  
 /* 4.29.39 SAFE IMPORT QUOTA GUARD:
  
@@ -21653,8 +21082,7 @@ const marketRows=el("legacyShoeMarketplace")?Array.from(el("legacyShoeMarketplac
  
 if(!Number.isFinite(price)||price<=0){if(msg)msg.textContent="Enter an asking price greater than $0M.No listing was changed.";return;}
  
-m.legacyListed=true;m.legacyAskingPr
-ice=legacyRound(price);
+m.legacyListed=true;m.legacyAskingPrice=legacyRound(price);
  
 const txId=legacyRandomId("LEGACY-SHOE-LIST");legacyAddLedger(st,{id:txId,type:oldPrice==null?"Listing Created":"Listing Price Updated",modelId:String(m.id),modelName:m.name,season,createdAt:at,ownerType:owner.type,ownerId:owner.id,ownerName:owner.name,previousAskingPrice:oldPrice,askingPrice:m.legacyAskingPrice,cashMovement:false,status:"listed",source:"legacy-shoe-marketplace"});
  
@@ -22045,8 +21473,6 @@ totalUnits+=units;totalRevenue+=revenue;companyPayouts+=companyShare;storePayout
  
 });}
  
- 
- 
 c.cycleCount=cycle;
  
 if(totalUnits>0){
@@ -22139,8 +21565,6 @@ render();return {ok:true,cycle,totalUnits,totalRevenue,companyPayouts,storePayou
  
 window.processCalSimsGameCycle=function(gameKey){try{return runCycle(gameKey);}catch(error){console.error("CalSims automatic retail cycle failed:",error);const msg=el("calSimsCycleMessage");if(msg)msg.textContent="CalSims could not complete the automatic sales cycle. The game remains recorded; check the console and save warning before continuing.";return {ok:false,reason:"exception"};}};
  
- 
- 
 function init(){
  
 const st=getState();if(st){ensure(st);}
@@ -22167,8 +21591,7 @@ if(companySelect&&!companySelect.dataset.playerAssociationBound){companySelect.a
  
 const migrationState=JSON.stringify(getState()||{});const migrationGame=getState();if(migrationGame){const migrationChanged=normalizeLegacyRecords(migrationGame,ensure(migrationGame));if(migrationChanged&&!save()){try{const prior=JSON.parse(migrationState);Object.keys(migrationGame).forEach(k=>delete migrationGame[k]);Object.assign(migrationGame,prior);}catch(e){console.error("Legacy Shoe migration rollback failed.",e);}}}
  
-refreshPl
-ayerAssociationOptions();
+refreshPlayerAssociationOptions();
  
 const tab=document.querySelector('.city-tab[data-city-tab="businesses"]');if(tab&&!tab.dataset.calsimsBound){tab.addEventListener("click",()=>{setTimeout(render,0);});tab.dataset.calsimsBound="1";}
  
@@ -22237,8 +21660,6 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
  
 </script>
- 
- 
  
 <script>
  
@@ -22313,8 +21734,6 @@ const out
 const teams=new Set(['Lions','Rims','Dunks',CASINO]);Object.keys(state.businessCash||{}).forEach(name=>{if(teams.has(name)||name==='Sports Bets Company'||name==='')return;const n=Number(state.businessCash[name]);if(Number.isFinite(n))out.push({kind:'business',ref:name,label:'Business — '+name,cash:n});});
  
 return out.sort((a,b)=>a.label.localeCompare(b.label));
- 
- 
  
 }
  
@@ -22435,8 +21854,6 @@ function rouletteWins(result,type,target){const n=Number(result);if(type==='numb
  
 function rouletteProfitMultiplier(type){return type==='number'?35:(type.startsWith('dozen')?2:1);}
  
- 
- 
 // v5.4.3: full-page roulette room and a numbered American wheel.
  
 window.openRouletteRoom=function(){
@@ -22497,8 +21914,6 @@ const rouletteRoomStyle=document.createElement('style');rouletteRoomStyle.textCo
 #rouletteWheelSvg.spinning{animation:roulette-wheel-spin 2.6s cubic-bezier(.12,.72,.18,1) forwards}
  
 `;document.head.appendChild(rouletteRoomStyle);
- 
- 
  
 // v5.6.2: local DOM selector is required; the casino-finance IIFE's `$` is not in this scope.
  
@@ -22597,8 +22012,6 @@ sync();
  
 })();
  
- 
- 
 // v5.4.6: chip and table selection controls.
  
 (function(){
@@ -22647,8 +22060,7 @@ if(wager)wager.value=String(chip);
  
 if(typeSel){typeSel.value=selectedType;typeSel.dispatchEvent(new Event('change',{bubbles:true}));}
  
-if(targetSel)tar
-getSel.value=selectedTarget;
+if(targetSel)targetSel.value=selectedTarget;
  
 if(table)table.querySelectorAll('.roulette-bet-spot').forEach(b=>b.classList.toggle('selected',b.dataset.type===selectedType&&(selectedType!=='number'||b.dataset.target===selectedTarget)));
  
@@ -22694,8 +22106,6 @@ e.error('Roulette settlement failed',e);}
  
 };
  
- 
- 
 const lender=$('casinoLender');if(lender)lender.addEventListener('change',updateLenderCash);const roulettePlayer=$('casinoRoulettePlayer');if(roulettePlayer)roulettePlayer.addEventListener('change',updateRoulettePlayerCash);const modal=$('casinoModal');if(modal)modal.addEventListener('click',e=>{if(e.target===modal)window.closeCasino();});
  
 })();
@@ -22737,12 +22147,6 @@ const lender=$('casinoLender');if(lender)lender.addEventListener('change',update
 #rouletteWheelSvg{transform-origin:50% 50%;will-change:transform}
  
 </style>
- 
- 
- 
- 
- 
- 
  
 <script>
  
@@ -22885,8 +22289,6 @@ document.head.appendChild(style);
  
 })();
  
- 
- 
 // v5.6.7: aggregate repeated wagers visually by spot/split edge and match chip color tiers to the rack. Bet records and settlement remain separate and unchanged.
  
 (function(){
@@ -22919,8 +22321,6 @@ function rouletteLabel(type,target){return ({red:'Red',black:'Black',odd:'Odd',e
 function rouletteWins(result,type,target){const n=Number(result);if(type==='number')return String(result)===String(target);if(result==='0'||result==='00')return false;if(type==='red')return rouletteRed(n);if(type==='black')return !rouletteRed(n);if(type==='odd')return n%2===1;if(type==='even')return n%2===0;if(type==='low')return n>=1&&n<=18;if(type==='high')return n>=19&&n<=36;if(type==='dozen1')return n>=1&&n<=12;if(type==='dozen2')return n>=13&&n<=24;if(type==='dozen3')return n>=25&&n<=36;return false;}
  
 function rouletteProfitMultiplier(type){return type==='number'?35:(type.startsWith('dozen')?2:1);}
- 
- 
  
 function rouletteAccountLabel(state,kind,ref){
  
@@ -22986,8 +22386,6 @@ if(!rows.length){host.innerHTML='<span style="font-size:12px;color:#aab4bf">No r
 host.innerHTML=rows.map(row=>{const n=String(row.result??'');const color=rouletteResultColor(n);return '<span title="Latest results first" style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 5px;box-sizing:border-box;border-radius:5px;background:'+color+';color:#fff;font-weight:800;font-size:14px;border:1px solid '+(color==='#17191c'?'#8a9299':color)+';box-shadow:inset 0 0 0 1px #ffffff12">'+rouletteEscape(n)+'</span>';}).join('');
  
 }
- 
- 
  
 let chip=1,bets=[],roundBets=[],lastSettledRound=[],spinning=false;
  
@@ -23096,8 +22494,7 @@ const marker=document.createElement('span');marker.className='roulette-split-ove
  
 marker.style.cssText='position:absolute;left:'+(x-tableRect.left)+'px;top:'+(y-tableRect.top)+'px;transform:translate(-50%,-50%);z-index:10;pointer-events:none;';
  
-marker.appen
-dChild(makeChip(b,true));numberTable.appendChild(marker);
+marker.appendChild(makeChip(b,true));numberTable.appendChild(marker);
  
 a.classList.add('selected');c.classList.add('selected');
  
@@ -23333,7 +22730,6 @@ if(hasSpinVisuals){svg.style.transition='none';orbit.style.transition='none';bal
  
 window.__roulettePlannedResult=result;
  
- 
 setTimeout(function(){try{
  
 if(hasSpinVisuals){ball.style.transition='transform .25s ease-out';ball.style.transform='translateY(2px)';}
@@ -23377,8 +22773,6 @@ console.info('Roulette multi-bet initialized',window.__rouletteMultiBetDiagnosti
  
 })()
 ;
- 
- 
  
 </script>
  
@@ -23434,8 +22828,6 @@ const sel=$('lucyCitizen');if(sel)sel.addEventListener('change',update);
 })();
  
 </script>
- 
- 
  
 <script>
  
@@ -23562,10 +22954,6 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  
 </script>
  
- 
- 
- 
- 
 <style id="cc-treasury-popup-mobile-only-5840">
  
 /* v5.8.40: Narrow mobile layout adjustment scoped ONLY to the Treasury popup.
@@ -23689,7 +23077,6 @@ grid-template-columns: minmax(0, 1fr);
  
 }
  
- 
 #fedTreasuryPopup #fedTreasuryCard img,
  
 #fedTreasuryPopup #fedTreasuryCard svg,
@@ -23718,11 +23105,7 @@ overflow-x: auto !important;
  
 </style>
  
- 
- 
 <script>
- 
- 
  
 /* 5.8.63: CalBank loan maturity alerts and capped overdue APR adjustment.
  
@@ -23974,15 +23357,7 @@ window.renderCalBankCustomerLoans=render;
  
 })();
  
- 
- 
 </script>
- 
- 
- 
- 
- 
- 
  
 <script id="ccStartupRecovery5876">
  
@@ -24055,8 +23430,7 @@ try{window.scrollTo(0,0);}catch(e){}
  
 if(id==="markets"){
  
-try{var market=window.calvin
-sCityStockMarket;if(market&&typeof market.render==="function")market.render();}catch(e){console.error("5.8.85 market refresh failed",e);}
+try{var market=window.calvinsCityStockMarket;if(market&&typeof market.render==="function")market.render();}catch(e){console.error("5.8.85 market refresh failed",e);}
  
 }
  
@@ -24156,8 +23530,6 @@ e.colno||"?")+". Saved records were not modified.";
  
 </script>
  
- 
- 
 <script>
  
 /* v5.8.64 — CalBank stock-only investment portfolio.
@@ -24228,14 +23600,11 @@ st.businessCashLedger.push(correction);
  
 st[markerKey]={status:"applied",transactionId:tx.id,sourceLedgerId:issueId,correctionId:correction.id,amount,before,after,appliedAt:correction.createdAt};
  
- 
 saveGame(st);
  
 return {status:"applied",amount,before,after,correctionId:correction.id};
  
 }
- 
- 
  
 function holdingsFor(db,name){const co=db.companies[name];if(!co.holdings||typeof co.holdings!=="object")co.holdings={};if(!co.ownerNames||typeof co.ownerNames!=="object")co.ownerNames={};return co.holdings}
  
@@ -24279,10 +23648,6 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
  
 </script>
- 
- 
- 
- 
  
 <script>
  
@@ -24379,11 +23744,6 @@ window.renderCalBankMasterLedger=render;
 })();
  
 </script>
- 
- 
- 
- 
- 
  
 <script>
 /* CALVIN'S CITY 5.8.151 — CLEAN PERMANENT HISTORY ARCHIVE.
