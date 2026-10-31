@@ -40,7 +40,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.178">
+<meta name="calvins-city-build" content="5.8.179">
  
  
  
@@ -735,7 +735,7 @@ function scheduleCompaction(){
  schedule(runCompaction,{timeout:5000});
 }
 window.addEventListener("load",function(){window.setTimeout(scheduleCompaction,3000);},{once:true});
-window.__calvinsCityStorageCompression={version:"5.8.178",codec:"CCZ2-LZ4-compatible",legacyCodec:"CCZ1-readable",status:"installed-background-compaction",keysChecked:keysChecked,writeThresholdChars:12000};
+window.__calvinsCityStorageCompression={version:"5.8.179",codec:"CCZ2-LZ4-compatible",legacyCodec:"CCZ1-readable",status:"installed-background-compaction",keysChecked:keysChecked,writeThresholdChars:12000};
  
 }catch(err){
  
@@ -755,7 +755,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.178</title>
+<title>Calvin's City 5.8.179</title>
  
 <style>
  
@@ -1229,7 +1229,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.178</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.179</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -3094,86 +3094,139 @@ ded from automatic wagers for that game. Automatic wagers use real citizen/compa
 </section></main>
 <div id="indexedDBToolsModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="indexedDBToolsTitle">
  <div class="modalbox indexeddb-modalbox">
-   <div class="indexeddb-modal-heading">
+   <header class="indexeddb-modal-heading">
      <div class="indexeddb-heading-copy">
-       <h2 id="indexedDBToolsTitle">🗄️ IndexedDB Storage &amp; Recovery</h2>
-       <p class="tiny">Storage tools are separate from the live game. Staging and diagnostics do not activate a dataset or switch gameplay to IndexedDB.</p>
+       <h2 id="indexedDBToolsTitle">🗄️ IndexedDB Storage</h2>
+       <p class="tiny">Storage management tools. These actions do not switch the live game to IndexedDB or activate a staged dataset.</p>
      </div>
      <button type="button" id="closeIndexedDBTools" class="secondary indexeddb-close">Close</button>
-   </div>
+   </header>
+ 
+   <nav class="idb-tabs" aria-label="IndexedDB tool categories">
+     <button type="button" class="idb-tab active" data-idb-tab="backup">Backup</button>
+     <button type="button" class="idb-tab" data-idb-tab="audit">Storage Audit</button>
+     <button type="button" class="idb-tab" data-idb-tab="verify">Verification</button>
+     <button type="button" class="idb-tab" data-idb-tab="diagnostics">Diagnostics</button>
+     <button type="button" class="idb-tab" data-idb-tab="advanced">Advanced</button>
+   </nav>
  
    <div class="indexeddb-modal-content">
-     <section class="idb-tool-card">
-       <h3>1. Backup &amp; Recovery</h3>
-       <p>Make a separate, verified recovery copy of a full JSON backup. This does not import it into the live game.</p>
-       <button type="button" id="stageIndexedDBBackup" class="secondary">🗄️ Stage Backup Safely in IndexedDB</button>
-       <input type="file" id="stageIndexedDBFile" accept=".json,application/json" style="display:none">
-       <p id="indexedDBStageStatus" class="tiny" role="status" aria-live="polite">No recovery backup has been staged by this control yet.</p>
-     </section>
- 
-     <section class="idb-tool-card">
-       <h3>2. Storage Audit</h3>
-       <p>Read-only report of saved-key sizes, compression status, IndexedDB availability, and browser storage estimates. It does not write or delete data.</p>
-       <button type="button" id="runStorageAudit" class="secondary">🔎 Run Read-Only Storage Audit</button>
-       <textarea id="storageAuditReport" readonly rows="8" style="display:none;width:100%;box-sizing:border-box;margin-top:8px;background:#121b27;color:#f5f7fa;border:1px solid #46556b;border-radius:8px;padding:8px;font:11px/1.4 monospace"></textarea>
-     </section>
- 
-     <details class="idb-tool-group">
-       <summary>3. Readiness &amp; Backup Verification</summary>
-       <div class="idb-tool-card idb-nested">
-         <h3>IndexedDB Read-Only Data Readiness Check</h3>
-         <p>Checks whether the seven staged Season 52 records can be read and parsed. It does not initialize the game or change stored data.</p>
-         <button type="button" id="indexedDBReadinessCheck" class="secondary">Run IndexedDB Readiness Check</button>
-         <textarea id="indexedDBReadinessReport" readonly style="display:none;width:100%;min-height:220px;margin-top:10px"></textarea>
+     <section class="idb-tab-panel active" data-idb-panel="backup">
+       <div class="idb-panel-intro">
+         <h3>Backup &amp; Recovery</h3>
+         <p>Keep a separate verified copy of your full JSON backup in IndexedDB. This does not import it into the live game.</p>
        </div>
-       <div class="idb-tool-card idb-nested">
-         <h3>Review Staged Backup Against Live Data</h3>
-         <p>Read-only comparison of the newest staged backup against current live localStorage.</p>
-         <button type="button" id="reviewIndexedDBBackup" class="secondary">🔍 Review Staged Backup Against Live Data</button>
-         <textarea id="indexedDBReviewReport" readonly rows="10" style="display:none;width:100%;box-sizing:border-box;margin-top:8px;background:#121b27;color:#f5f7fa;border:1px solid #46556b;border-radius:8px;padding:8px;font:11px/1.4 monospace"></textarea>
-       </div>
-     </details>
- 
-     <details class="idb-tool-group">
-       <summary>4. Storage Compatibility &amp; Migration Diagnostics</summary>
-       <div class="idb-tool-card idb-nested">
-         <h3>Storage Dependency Trace — Read Only</h3>
-         <p>Lists direct localStorage calls and their source locations. This is a static inventory, not runtime tracing.</p>
-         <button type="button" id="indexedDBDependencyTrace" class="secondary">Run Storage Dependency Trace</button>
-         <textarea id="indexedDBDependencyTraceReport" readonly spellcheck="false" style="display:none;width:100%;min-height:260px;margin-top:10px"></textarea>
-       </div>
-       <div class="idb-tool-card idb-nested">
-         <h3>Compatibility Map — Read Only</h3>
-         <p>Inspects staged backup structure and current source-code storage dependencies.</p>
-         <button type="button" id="indexedDBCompatibilityMap" class="secondary">Run Compatibility Map</button>
-         <textarea id="indexedDBCompatibilityReport" readonly style="display:none;width:100%;min-height:220px;margin-top:10px"></textarea>
-       </div>
-       <div class="idb-tool-card idb-nested">
-         <h3>Startup &amp; Import Flow Analysis</h3>
-         <p>Read-only inspection of startup ordering, import sequence, and storage dependencies. No game data is changed.</p>
-         <button type="button" id="indexedDBStartupImportAnalysis" class="secondary">Run Startup &amp; Import Flow Analysis</button>
-         <textarea id="indexedDBStartupImportReport" readonly spellcheck="false" style="display:none;width:100%;min-height:300px;margin-top:12px"></textarea>
-       </div>
-     </details>
- 
-     <details class="idb-tool-group">
-       <summary>5. Advanced IndexedDB Tests (Staged Data Only)</summary>
-       <section id="ccIndexedDBCandidatePanel" class="idb-tool-card idb-nested">
-         <h3>Candidate Copy &amp; Durable-Write Tests</h3>
-         <p>These tests use separate candidate datasets and temporary probes. They do not activate a dataset or redirect live gameplay saves. Close older Calvin’s City tabs before any schema-upgrade test.</p>
-         <div class="idb-button-grid">
-           <button type="button" id="ccCreateIndexedDBCandidate" class="secondary">Create Verified IndexedDB Copy</button>
-           <button type="button" id="ccVerifyIndexedDBCandidate" class="secondary">Verify Latest Copy</button>
-           <button type="button" id="ccRunIndexedDBBridgeRehearsal" class="secondary">Run Read-Only Bridge Rehearsal</button>
-           <button type="button" id="ccRunIndexedDBDurableWriteTest" class="secondary">Run Durable-Write Test</button>
-           <button type="button" id="ccStageJsonBackupInIndexedDB" class="secondary">Stage Full JSON Backup (Do Not Activate)</button>
-           <button type="button" id="ccRunIndexedDBJsonRoundTrip" class="secondary">Run JSON Export/Restore Round-Trip</button>
-           <button type="button" id="ccRunCompatibilityWriteQueue" class="secondary">Run Compatibility Cache &amp; Write-Queue Test</button>
+       <article class="idb-tool-card">
+         <div class="idb-tool-icon">🗄️</div>
+         <div class="idb-tool-copy">
+           <h4>Stage a Recovery Backup</h4>
+           <p>Select a full Calvin’s City JSON backup. The tool creates and verifies a separate copy.</p>
+           <p id="indexedDBStageStatus" class="tiny idb-status" role="status" aria-live="polite">No recovery backup has been staged by this control yet.</p>
          </div>
-         <input type="file" id="ccIndexedDBBackupFile" accept=".json,application/json" style="display:none"/>
+         <button type="button" id="stageIndexedDBBackup" class="secondary">Choose JSON Backup</button>
+         <input type="file" id="stageIndexedDBFile" accept=".json,application/json" style="display:none">
+       </article>
+     </section>
+ 
+     <section class="idb-tab-panel" data-idb-panel="audit" hidden>
+       <div class="idb-panel-intro">
+         <h3>Storage Audit</h3>
+         <p>Read-only information about saved-key sizes, compression, IndexedDB availability, and browser storage estimates.</p>
+       </div>
+       <article class="idb-tool-card">
+         <div class="idb-tool-icon">🔎</div>
+         <div class="idb-tool-copy">
+           <h4>Read-Only Storage Audit</h4>
+           <p>This report does not write, move, or delete game data.</p>
+         </div>
+         <button type="button" id="runStorageAudit" class="secondary">Run Storage Audit</button>
+         <textarea id="storageAuditReport" readonly rows="7" style="display:none" aria-label="Storage audit results"></textarea>
+       </article>
+     </section>
+ 
+     <section class="idb-tab-panel" data-idb-panel="verify" hidden>
+       <div class="idb-panel-intro">
+         <h3>Verification</h3>
+         <p>Check staged records and compare a staged backup with the current game. These checks are read-only.</p>
+       </div>
+       <article class="idb-tool-card">
+         <div class="idb-tool-icon">🧪</div>
+         <div class="idb-tool-copy">
+           <h4>IndexedDB Readiness Check</h4>
+           <p>Checks whether staged Season 52 records can be read and parsed. It does not initialize the game.</p>
+         </div>
+         <button type="button" id="indexedDBReadinessCheck" class="secondary">Run Readiness Check</button>
+         <textarea id="indexedDBReadinessReport" readonly style="display:none" aria-label="Readiness results"></textarea>
+       </article>
+       <article class="idb-tool-card">
+         <div class="idb-tool-icon">🔍</div>
+         <div class="idb-tool-copy">
+           <h4>Compare Staged Backup with Live Data</h4>
+           <p>Read-only comparison of the newest staged backup against current localStorage.</p>
+         </div>
+         <button type="button" id="reviewIndexedDBBackup" class="secondary">Compare Backup</button>
+         <textarea id="indexedDBReviewReport" readonly rows="8" style="display:none" aria-label="Backup comparison results"></textarea>
+       </article>
+     </section>
+ 
+     <section class="idb-tab-panel" data-idb-panel="diagnostics" hidden>
+       <div class="idb-panel-intro">
+         <h3>Migration Diagnostics</h3>
+         <p>Inspect how the current game uses storage and how startup and import are organized. These tools do not change game data.</p>
+       </div>
+       <article class="idb-tool-card">
+         <div class="idb-tool-icon">🧭</div>
+         <div class="idb-tool-copy">
+           <h4>Storage Dependency Trace</h4>
+           <p>Lists direct localStorage calls and source locations. This is a static inventory.</p>
+         </div>
+         <button type="button" id="indexedDBDependencyTrace" class="secondary">Run Dependency Trace</button>
+         <textarea id="indexedDBDependencyTraceReport" readonly spellcheck="false" style="display:none" aria-label="Dependency trace results"></textarea>
+       </article>
+       <article class="idb-tool-card">
+         <div class="idb-tool-icon">🗺️</div>
+         <div class="idb-tool-copy">
+           <h4>Storage Compatibility Map</h4>
+           <p>Inspects staged backup structure and source-code storage dependencies.</p>
+         </div>
+         <button type="button" id="indexedDBCompatibilityMap" class="secondary">Run Compatibility Map</button>
+         <textarea id="indexedDBCompatibilityReport" readonly style="display:none" aria-label="Compatibility map results"></textarea>
+       </article>
+       <article class="idb-tool-card">
+         <div class="idb-tool-icon">🚦</div>
+         <div class="idb-tool-copy">
+           <h4>Startup &amp; Import Flow</h4>
+           <p>Read-only inspection of startup ordering, import sequence, and storage dependencies.</p>
+         </div>
+         <button type="button" id="indexedDBStartupImportAnalysis" class="secondary">Analyze Startup &amp; Import</button>
+         <textarea id="indexedDBStartupImportReport" readonly spellcheck="false" style="display:none" aria-label="Startup and import analysis results"></textarea>
+       </article>
+     </section>
+ 
+     <section class="idb-tab-panel" data-idb-panel="advanced" hidden>
+       <div class="idb-panel-intro">
+         <h3>Advanced IndexedDB Tools</h3>
+         <p>These are development and migration rehearsals. They use staged datasets and temporary probes; they do not activate a dataset or redirect live gameplay saves.</p>
+       </div>
+       <article id="ccIndexedDBCandidatePanel" class="idb-tool-card idb-advanced-card">
+         <div class="idb-tool-icon">⚙️</div>
+         <div class="idb-tool-copy">
+           <h4>Candidate Copy &amp; Durable-Write Tests</h4>
+           <p>Close older Calvin’s City tabs before running a database schema-upgrade test. Review each result before continuing.</p>
+         </div>
+         <div class="idb-advanced-actions">
+           <button type="button" id="ccCreateIndexedDBCandidate" class="secondary">Create Verified Copy</button>
+           <button type="button" id="ccVerifyIndexedDBCandidate" class="secondary">Verify Latest Copy</button>
+           <button type="button" id="ccRunIndexedDBBridgeRehearsal" class="secondary">Bridge Rehearsal</button>
+           <button type="button" id="ccRunIndexedDBDurableWriteTest" class="secondary">Durable-Write Test</button>
+           <button type="button" id="ccStageJsonBackupInIndexedDB" class="secondary">Stage Full JSON Backup</button>
+           <button type="button" id="ccRunIndexedDBJsonRoundTrip" class="secondary">JSON Export/Restore Test</button>
+           <button type="button" id="ccRunCompatibilityWriteQueue" class="secondary">Cache &amp; Write-Queue Test</button>
+         </div>
+         <input type="file" id="ccIndexedDBBackupFile" accept=".json,application/json" style="display:none">
          <pre id="ccIndexedDBCandidateStatus" style="white-space:pre-wrap;overflow-wrap:anywhere;display:none;margin-top:12px;padding:10px;border-radius:8px;background:rgba(0,0,0,.18)"></pre>
-       </section>
-     </details>
+       </article>
+     </section>
    </div>
  </div>
 </div>
@@ -23790,38 +23843,52 @@ overflow-x: auto !important;
 }
  
  
-/* v5.8.178: Responsive IndexedDB tools layout; compact header and grouped advanced tools. */
-#indexedDBToolsModal{padding:12px!important;align-items:center!important;justify-content:center!important}
-.indexeddb-modalbox{display:flex!important;flex-direction:column!important;width:min(760px,calc(100vw - 24px))!important;max-width:760px!important;max-height:calc(100dvh - 24px)!important;height:auto!important;min-height:0!important;overflow:hidden!important;padding:0!important;overscroll-behavior:contain}
-.indexeddb-modal-heading{position:relative!important;top:auto!important;z-index:2;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:start!important;gap:12px!important;margin:0!important;padding:16px!important;background:#1B1F24;border-bottom:1px solid #46556b}
-.indexeddb-heading-copy{min-width:0!important;width:auto!important}
-.indexeddb-modal-heading h2{margin:0 0 6px!important;font-size:clamp(18px,4vw,23px)!important;line-height:1.2!important;overflow-wrap:anywhere}
-.indexeddb-modal-heading p{margin:0!important;max-width:62ch;line-height:1.4!important}
-.indexeddb-close{width:auto!important;min-width:76px!important;max-width:none!important;white-space:nowrap!important;align-self:start!important;padding:9px 13px!important}
-.indexeddb-modal-content{min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding:14px!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px}
-.idb-tool-card,.idb-tool-group{min-width:0!important;border:1px solid #46515f!important;border-radius:13px!important;background:rgba(255,255,255,.025)!important;padding:14px!important}
-.idb-tool-card h3{margin:0 0 7px!important;font-size:16px!important;line-height:1.3!important}
-.idb-tool-card p{margin:6px 0 10px!important;line-height:1.4!important}
-.idb-tool-card>button{width:100%!important;max-width:100%!important;white-space:normal!important;line-height:1.25!important;margin:5px 0!important}
-.idb-tool-group{padding:0!important;overflow:hidden}
-.idb-tool-group summary{cursor:pointer;list-style:none;padding:15px!important;font-weight:750;color:#d5dce5}
-.idb-tool-group summary::-webkit-details-marker{display:none}
-.idb-tool-group summary:after{content:"＋";float:right;color:#aeb8c5}
-.idb-tool-group[open] summary:after{content:"−"}
-.idb-nested{margin:0 10px 10px!important;background:rgba(0,0,0,.12)!important}
-.idb-button-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.idb-button-grid button{min-width:0!important;white-space:normal!important;line-height:1.25!important;padding:11px!important}
-#indexedDBToolsModal textarea{width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow-wrap:anywhere}
+/* v5.8.179: Business-style IndexedDB tool tabs and compact mobile cards. */
+#indexedDBToolsModal{padding:10px!important;align-items:center!important;justify-content:center!important}
+.indexeddb-modalbox{display:flex!important;flex-direction:column!important;width:min(680px,calc(100vw - 20px))!important;max-width:680px!important;height:min(760px,calc(100dvh - 20px))!important;max-height:calc(100dvh - 20px)!important;min-height:0!important;overflow:hidden!important;padding:0!important;overscroll-behavior:contain;background:#182230!important}
+.indexeddb-modal-heading{flex:0 0 auto;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0!important;padding:15px 16px!important;background:#1B1F24;border-bottom:1px solid #46556b}
+.indexeddb-heading-copy{min-width:0!important;flex:1}
+.indexeddb-modal-heading h2{margin:0 0 5px!important;font-size:clamp(18px,4vw,22px)!important;line-height:1.2!important}
+.indexeddb-modal-heading p{margin:0!important;max-width:60ch;font-size:12px!important;line-height:1.35!important}
+.indexeddb-close{flex:0 0 auto!important;width:auto!important;min-width:64px!important;white-space:nowrap!important;padding:8px 12px!important}
+.idb-tabs{display:flex;flex:0 0 auto;gap:7px;padding:10px 12px;background:#151b24;border-bottom:1px solid #394657;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.idb-tab{flex:0 0 auto!important;width:auto!important;min-width:0!important;padding:9px 13px!important;border:1px solid #46556b!important;border-radius:10px!important;background:#222b37!important;color:#dce4ee!important;font-size:13px!important;white-space:nowrap!important}
+.idb-tab.active{background:#35465c!important;border-color:#8ba0bb!important;color:#fff!important}
+.indexeddb-modal-content{flex:1 1 auto;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding:13px!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:block!important}
+.idb-tab-panel{display:none;min-width:0}
+.idb-tab-panel.active{display:block}
+.idb-panel-intro{padding:3px 3px 11px}
+.idb-panel-intro h3{margin:0 0 5px!important;font-size:19px!important}
+.idb-panel-intro p{margin:0!important;font-size:13px!important;line-height:1.4!important;color:#aeb9c7}
+.idb-tool-card{display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px 11px;align-items:start;margin:0 0 10px!important;padding:13px!important;border:1px solid #46515f!important;border-radius:13px!important;background:rgba(255,255,255,.035)!important;min-width:0!important}
+.idb-tool-icon{grid-column:1;grid-row:1;font-size:23px;line-height:1.3;text-align:center}
+.idb-tool-copy{grid-column:2;min-width:0}
+.idb-tool-copy h4{margin:0 0 5px!important;font-size:15px!important;line-height:1.3!important}
+.idb-tool-copy p{margin:0 0 7px!important;font-size:12px!important;line-height:1.4!important;color:#aeb9c7}
+.idb-tool-card>button,.idb-advanced-actions button{grid-column:2;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:10px 12px!important;white-space:normal!important;line-height:1.25!important;font-size:13px!important}
+.idb-tool-card textarea{grid-column:1/-1!important;display:block;width:100%!important;max-width:100%!important;box-sizing:border-box!important;height:auto!important;min-height:70px!important;max-height:170px!important;resize:vertical!important;overflow:auto!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;font:11px/1.35 monospace!important;padding:9px!important;margin:5px 0 0!important;background:#111821!important;color:#e6edf5!important;border:1px solid #46556b!important;border-radius:9px!important}
+.idb-tool-card textarea[style*="display: none"]{display:none!important}
+.idb-status{overflow-wrap:anywhere}
+.idb-advanced-card{display:block!important}
+.idb-advanced-card>.idb-tool-icon{display:inline-block;vertical-align:top;width:36px}
+.idb-advanced-card>.idb-tool-copy{display:inline-block;vertical-align:top;width:calc(100% - 48px)}
+.idb-advanced-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.idb-advanced-actions button{grid-column:auto}
+#ccIndexedDBCandidateStatus{max-height:180px;overflow:auto}
 @media(max-width:600px){
-#indexedDBToolsModal{padding:8px!important}
-.indexeddb-modalbox{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;border-radius:15px!important}
-.indexeddb-modal-heading{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;padding:13px!important}
+#indexedDBToolsModal{padding:6px!important}
+.indexeddb-modalbox{width:calc(100vw - 12px)!important;height:calc(100dvh - 12px)!important;max-height:calc(100dvh - 12px)!important;border-radius:15px!important}
+.indexeddb-modal-heading{padding:12px!important;gap:8px!important}
 .indexeddb-modal-heading h2{font-size:18px!important}
-.indexeddb-modal-heading p{font-size:12px!important}
-.indexeddb-close{min-width:64px!important;padding:8px 10px!important;font-size:13px!important}
-.indexeddb-modal-content{padding:10px!important;gap:9px!important}
-.idb-tool-card{padding:11px!important}
-.idb-button-grid{grid-template-columns:minmax(0,1fr)!important}
+.indexeddb-modal-heading p{font-size:11px!important}
+.indexeddb-close{min-width:58px!important;padding:7px 9px!important;font-size:12px!important}
+.idb-tabs{padding:8px;gap:6px}
+.idb-tab{padding:8px 11px!important;font-size:12px!important}
+.indexeddb-modal-content{padding:10px!important}
+.idb-panel-intro h3{font-size:17px!important}
+.idb-tool-card{padding:11px!important;grid-template-columns:30px minmax(0,1fr);gap:7px}
+.idb-tool-icon{font-size:20px}
+.idb-advanced-actions{grid-template-columns:minmax(0,1fr)}
 }
 </style>
  
@@ -25865,7 +25932,7 @@ button.addEventListener("click",run);
  
  
 <script>
-/* v5.8.178: IndexedDB tools popup navigation. */
+/* v5.8.179: IndexedDB tools popup navigation. */
 (function(){
  const modal=document.getElementById('indexedDBToolsModal');
  const openButton=document.getElementById('openIndexedDBTools');
@@ -25873,6 +25940,16 @@ button.addEventListener("click",run);
  if(!modal||!openButton||!closeButton)return;
  function open(){modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.classList.add('indexeddb-tools-open');closeButton.focus();}
  function close(){modal.classList.remove('show');modal.setAttribute('aria-hidden','true');document.body.classList.remove('indexeddb-tools-open');openButton.focus();}
+ const tabs=Array.from(modal.querySelectorAll('[data-idb-tab]'));
+ const panels=Array.from(modal.querySelectorAll('[data-idb-panel]'));
+ function selectTab(name){
+   tabs.forEach(function(tab){const active=tab.getAttribute('data-idb-tab')===name;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',active?'true':'false');});
+   panels.forEach(function(panel){const active=panel.getAttribute('data-idb-panel')===name;panel.classList.toggle('active',active);panel.hidden=!active;});
+   const content=modal.querySelector('.indexeddb-modal-content');if(content)content.scrollTop=0;
+ }
+ tabs.forEach(function(tab){tab.setAttribute('role','tab');tab.setAttribute('aria-selected',tab.classList.contains('active')?'true':'false');tab.addEventListener('click',function(){selectTab(tab.getAttribute('data-idb-tab'));});});
+ panels.forEach(function(panel){panel.setAttribute('role','tabpanel');});
+ selectTab('backup');
  openButton.addEventListener('click',open);
  closeButton.addEventListener('click',close);
  modal.addEventListener('click',function(event){if(event.target===modal)close();});
