@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.177: Storage-call inventory and read-only live-vs-staged comparison. -->
+<!-- CALVIN'S CITY — VERSION 5.8.178: Read-only structural difference diagnostic for staged parity mismatches. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
 
 var item = {
 
-diagnosticVersion: "5.8.176",
+diagnosticVersion: "5.8.178",
 
 time: new Date().toISOString(),
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.177</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.178</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -1039,6 +1039,14 @@ Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="o
 <button id="ccRunStorageInventoryCheck" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Live Storage vs IndexedDB Check</button>
 <p id="ccStorageInventoryStatus" aria-live="polite">Waiting for live-versus-staged comparison.</p>
 <pre id="ccStorageInventoryDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+
+<section class="card" id="ccStorageDifferenceDiagnostic" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB Migration — Storage Difference Diagnostic</h2>
+<p>This read-only diagnostic compares the two datasets that failed the previous parity check: the main game state and Business Ownership. It parses the live and staged JSON and reports differing field paths, missing keys, array-length differences, and compact value summaries. It does not write, repair, merge, or overwrite either copy.</p>
+<button id="ccRunStorageDifferenceDiagnostic" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Read-Only Difference Diagnostic</button>
+<p id="ccStorageDifferenceStatus" aria-live="polite">Waiting for structural comparison.</p>
+<pre id="ccStorageDifferenceDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
 </section>
 </section>
 
@@ -3590,6 +3598,70 @@ try{
  if(fail===0){status.textContent="STORAGE PARITY CHECK PASSED — "+pass+" checks. Safe to proceed to a separately controlled shadow-write design; gameplay remains on localStorage.";status.style.color="#34d399";}
  else{status.textContent="STORAGE PARITY CHECK NEEDS REVIEW — "+fail+" issue(s). Do not enable shadow writes or redirect gameplay.";status.style.color="#f87171";}
 }catch(e){lines.push("FAIL — "+String(e&&e.message||e));status.textContent="STORAGE PARITY CHECK FAILED — do not enable shadow writes.";status.style.color="#f87171";}
+finally{details.textContent=lines.join("\n");button.disabled=false;}
+});
+})();
+</script>
+
+<script>
+/* 5.8.178 — read-only structural comparison for the two parity mismatches. */
+(function(){
+"use strict";
+var button=document.getElementById("ccRunStorageDifferenceDiagnostic"),status=document.getElementById("ccStorageDifferenceStatus"),details=document.getElementById("ccStorageDifferenceDetails");
+if(!button||!status||!details)return;
+var targets=[{key:"calvins_city_v24",label:"Main game state"},{key:"calvins_city_business_ownership_v1",label:"Business Ownership"}];
+function describe(v){
+if(v===null)return "null";
+if(Array.isArray(v))return "array(length="+v.length+")";
+if(typeof v==="object")return "object(keys="+Object.keys(v).length+")";
+if(typeof v==="string")return "string(length="+v.length+")";
+return typeof v+"("+String(v).slice(0,80)+")";
+}
+function compare(a,b,limit){
+var diffs=[],visited=0,stack=[{a:a,b:b,path:"$"}];
+while(stack.length&&diffs.length<limit){
+ var item=stack.pop(),x=item.a,y=item.b,path=item.path;visited++;
+ if(x===y)continue;
+ if(x===null||y===null||typeof x!==typeof y||Array.isArray(x)!==Array.isArray(y)){
+  diffs.push(path+" — live "+describe(x)+"; staged "+describe(y));continue;
+ }
+ if(typeof x!=="object"){
+  diffs.push(path+" — live "+describe(x)+"; staged "+describe(y));continue;
+ }
+ var xk=Object.keys(x),yk=Object.keys(y),ym=new Set(yk),xm=new Set(xk);
+ for(var i=xk.length-1;i>=0;i--){var k=xk[i],child=path+(Array.isArray(x)?"["+k+"]":"."+k);if(!ym.has(k)){if(diffs.length<limit)diffs.push(child+" — present only in live copy: "+describe(x[k]));}else if(diffs.length<limit)stack.push({a:x[k],b:y[k],path:child});}
+ for(var j=yk.length-1;j>=0;j--){var ky=yk[j];if(!xm.has(ky)&&diffs.length<limit)diffs.push(path+(Array.isArray(y)?"["+ky+"]":"."+ky)+" — present only in staged copy: "+describe(y[ky]));}
+ if(Array.isArray(x)&&x.length!==y.length&&diffs.length<limit)diffs.push(path+" — array lengths differ: live="+x.length+", staged="+y.length);
+}
+return {diffs:diffs,visited:visited,truncated:stack.length>0||diffs.length>=limit};
+}
+button.addEventListener("click",async function(){
+button.disabled=true;status.textContent="Comparing the two mismatched datasets. Large records may take a little time…";details.textContent="";
+var lines=[],api=window.CalvinsCityIDB,anyDiff=false;
+try{
+ if(!api)throw new Error("Central IndexedDB service is unavailable.");
+ for(var t of targets){
+  lines.push("DATASET — "+t.label+" ("+t.key+")");
+  var staged=await api.read(t.key);
+  if(!staged||typeof staged.raw!=="string")throw new Error("Staged IndexedDB record is missing: "+t.key);
+  var liveRaw=window.localStorage.getItem(t.key);
+  if(typeof liveRaw!=="string")throw new Error("Live localStorage record is missing: "+t.key);
+  lines.push("INFO — live characters="+liveRaw.length+"; staged characters="+staged.raw.length);
+  var liveObj=JSON.parse(liveRaw),stagedObj=JSON.parse(staged.raw);
+  var result=compare(liveObj,stagedObj,80);
+  if(!result.diffs.length){lines.push("PASS — parsed structures match exactly despite any raw-text difference.");}
+  else{
+   anyDiff=true;lines.push("DIFFERENCES — showing up to 80 field-level findings; nodes visited="+result.visited+";");
+   result.diffs.forEach(function(x){lines.push("DIFF — "+x);});
+   if(result.truncated)lines.push("INFO — output capped; additional differences may remain.");
+  }
+  lines.push("");
+  liveObj=null;stagedObj=null;liveRaw=null;
+ }
+ lines.push("SAFETY — read-only comparison completed. No localStorage values, IndexedDB records, or Permanent Database records were written or changed.");
+ status.textContent=anyDiff?"DIAGNOSTIC COMPLETE — differences identified. Do not enable shadow writes or redirect gameplay yet.":"DIAGNOSTIC COMPLETE — parsed structures match. Raw-text differences need encoding/serialization review before proceeding.";
+ status.style.color=anyDiff?"#fbbf24":"#34d399";
+}catch(e){lines.push("FAIL — "+String(e&&e.message||e));status.textContent="DIAGNOSTIC FAILED — no data was changed.";status.style.color="#f87171";}
 finally{details.textContent=lines.join("\n");button.disabled=false;}
 });
 })();
