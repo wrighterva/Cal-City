@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.157: Read-only IndexedDB migration preparation and source-data verification. -->
+<!-- CALVIN'S CITY — VERSION 5.8.158: Read-only IndexedDB migration preparation and source-data verification. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.157">
+<meta name="calvins-city-build" content="5.8.158">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.157",
+diagnosticVersion: "5.8.158",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.157",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.158",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.157",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.158",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.157</title>
+<title>Calvin's City 5.8.158</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.157</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.158</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -1013,6 +1013,15 @@ Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="o
 <button type="button" id="ccVerifyIndexedDbReadback" class="secondary">Read Back and Verify IndexedDB Copy</button>
 <p id="ccIndexedDbReadbackStatus" class="tiny" role="status" aria-live="polite">Waiting for a verified preparation copy.</p>
 <pre id="ccIndexedDbReadbackDetails" class="tiny" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
+</div>
+ 
+ 
+<div class="card" id="ccIndexedDbStartupReadinessCard" style="margin-top:12px">
+<h3>IndexedDB Migration — Startup Readiness Check</h3>
+<p class="tiny">Read-only dry run of the saved IndexedDB data as a candidate game startup source. It checks the main game state, historical records, citizens, and the separate financial datasets. It does not initialize the game from IndexedDB or write to either database.</p>
+<button type="button" id="ccRunIndexedDbStartupReadiness" class="secondary">Run IndexedDB Startup Readiness Check</button>
+<p id="ccIndexedDbStartupReadinessStatus" class="tiny" role="status" aria-live="polite">Waiting for readback verification.</p>
+<pre id="ccIndexedDbStartupReadinessDetails" class="tiny" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
 </div>
  
 <button type="button" id="exportCityBackup" class="goodbtn">⬇️ Export All Data</button><button type="button" id="chooseCityBackup" class="secondary">⬆️ Import Backup</button><input type="file" id="cityBackupFile" accept=".json,application/json" style="display:none"><p id="cityBackupStatus" class="tiny" role="status" aria-live="polite">Export creates a downloadable backup of this browser’s Calvin’s City local storage. Import validates the file and saves a recovery snapshot before restoring.</p></div></section>
@@ -23907,7 +23916,7 @@ button.addEventListener("click",saveAndVerify);
 </script>
  
 <script>
-/* 5.8.157 — Migration preparation only. Explicit user action; source localStorage is read-only. */
+/* 5.8.158 — Migration preparation only. Explicit user action; source localStorage is read-only. */
 (function(){
 "use strict";
 var button=document.getElementById("ccPrepareIndexedDbMigration");
@@ -23931,10 +23940,10 @@ status.textContent="Copy written. Verifying every record against its source…";
 var verified=0;for(var j=0;j<items.length;j++){var got=await request(db.transaction("records","readonly").objectStore("records").get(items[j].key));if(!got||got.snapshotId!==snapshotId||got.raw!==items[j].raw||got.checksum!==items[j].checksum)throw new Error("Verification mismatch for storage key: "+items[j].key);verified++;}
 var main=items.find(function(x){return x.key==="calvins_city_v24";});var season="not detected",games="not detected",retired="not detected",citizens="not detected";
 if(main&&main.validJson&&main.parsed){var st=main.parsed;season=String(st.year==null?"not detected":st.year);games=String(st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords.length:"not detected");retired=String(st.records&&Array.isArray(st.records.retiredPlayers)?st.records.retiredPlayers.length:"not detected");citizens=String(Array.isArray(st.citizens)?st.citizens.length:"not detected");}
-var meta={id:snapshotId,appVersion:"5.8.157",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
+var meta={id:snapshotId,appVersion:"5.8.158",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
 await request(db.transaction("metadata","readwrite").objectStore("metadata").put(meta));
 status.textContent="SUCCESS — copied and verified "+verified+" of "+items.length+" records ("+total.toLocaleString()+" characters). Detected season: "+season+"; game records: "+games+"; retired players: "+retired+"; citizens: "+citizens+". Original localStorage data and Permanent Database archive were not changed. This is a preparation copy; the game still runs from its existing storage.";
-window.__calvinsCityIndexedDbPrep={version:"5.8.157",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
+window.__calvinsCityIndexedDbPrep={version:"5.8.158",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
 }catch(err){status.textContent="PREPARATION FAILED — "+String(err&&err.message||err)+". Original game storage was not intentionally changed.";console.error("IndexedDB migration preparation failed:",err);}finally{if(db)try{db.close();}catch(_){}button.disabled=false;}}
 button.addEventListener("click",prepare);
 })();
@@ -23942,7 +23951,7 @@ button.addEventListener("click",prepare);
  
  
 <script>
-/* 5.8.157 — Read-only IndexedDB readback verification. No game-state writes. */
+/* 5.8.158 — Read-only IndexedDB readback verification. No game-state writes. */
 (function(){
 "use strict";
 var button=document.getElementById("ccVerifyIndexedDbReadback");
@@ -24006,11 +24015,73 @@ status.textContent=ok
 ?"SUCCESS — read back and independently verified "+verified+" of "+expectedCount+" records. Season "+season+" data is readable from IndexedDB. No game or source data was changed."
 :"CHECK FAILED — "+failed.length+" issue(s) found. Do not switch the game to IndexedDB. The original game storage was not changed.";
 status.style.color=ok?"#34d399":"#f87171";
-window.__calvinsCityIndexedDbReadback={version:"5.8.157",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
+window.__calvinsCityIndexedDbReadback={version:"5.8.158",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
 }catch(err){status.textContent="READBACK FAILED — "+String(err&&err.message||err)+". No source data was changed.";status.style.color="#f87171";details.textContent="No changes were made to localStorage, the game state, or the Permanent Database archive.";console.error("IndexedDB readback verification failed:",err);}
 finally{if(db)try{db.close();}catch(_){}button.disabled=false;}
 }
 button.addEventListener("click",verify);
+})();
+</script>
+ 
+ 
+<script>
+/* 5.8.158 — Read-only startup readiness dry run. Does not connect live startup. */
+(function(){
+"use strict";
+var btn=document.getElementById("ccRunIndexedDbStartupReadiness");
+var status=document.getElementById("ccIndexedDbStartupReadinessStatus");
+var output=document.getElementById("ccIndexedDbStartupReadinessDetails");
+if(!btn||!status||!output)return;
+var DB="CalvinsCityStorageV2";
+function request(r){return new Promise(function(resolve,reject){r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("IndexedDB read failed"));};});}
+function openDb(){return new Promise(function(resolve,reject){var r=indexedDB.open(DB);r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("Could not open IndexedDB"));};r.onblocked=function(){reject(new Error("Database open blocked by another tab"));};});}
+function parseRecord(records,key){var r=records.find(function(x){return x.key===key;});if(!r)return {found:false,value:null};try{return {found:true,value:JSON.parse(r.raw)};}catch(e){return {found:true,value:null,error:"Invalid JSON"};}}
+function count(v){return Array.isArray(v)?v.length:"not an array";}
+function ownPath(obj,path){return path.split(".").reduce(function(v,k){return v==null?undefined:v[k];},obj);}
+btn.addEventListener("click",async function(){
+btn.disabled=true;status.textContent="Reading IndexedDB in read-only mode…";output.textContent="";
+var db;
+try{
+db=await openDb();
+if(!db.objectStoreNames.contains("records")||!db.objectStoreNames.contains("metadata"))throw new Error("Expected migration stores were not found.");
+var metaRows=await request(db.transaction("metadata","readonly").objectStore("metadata").getAll());
+if(!metaRows.length)throw new Error("No preparation snapshot metadata exists.");
+metaRows.sort(function(a,b){return String(b.createdAt||"").localeCompare(String(a.createdAt||""));});
+var meta=metaRows[0];
+var all=await request(db.transaction("records","readonly").objectStore("records").getAll());
+var rows=all.filter(function(x){return x.snapshotId===meta.id;});
+var main=parseRecord(rows,"calvins_city_v24");
+if(!main.found||!main.value)throw new Error("The main game state is missing or invalid.");
+var state=main.value;
+var checks=[
+["Main game state",true,"calvins_city_v24"],
+["Season number",Number.isFinite(Number(state.year)),"Season "+String(state.year)],
+["Citizens array",Array.isArray(state.citizens),"Citizens: "+count(state.citizens)],
+["Permanent game records",!!(state.records&&Array.isArray(state.records.gameRecords)),"Game records: "+count(state.records&&state.records.gameRecords)],
+["Retired players",!!(state.records&&Array.isArray(state.records.retiredPlayers)),"Retired players: "+count(state.records&&state.records.retiredPlayers)]
+];
+var expectedKeys=(meta.keys||[]).map(function(x){return x.key;});
+var required=["calvins_city_bets_v1","calvins_city_bets_pending_import_v1","calvins_city_stock_market_v1","calvins_city_share_ownership_ledger_v1","calvins_city_business_ownership_v1","calvins_city_calbank_v1"];
+required.forEach(function(k){var x=parseRecord(rows,k);checks.push(["Dataset: "+k, x.found&&!!x.value,x.found?(x.error||"Present and valid JSON"):"Missing"]);});
+var bank=parseRecord(rows,"calvins_city_calbank_v1");
+var bets=parseRecord(rows,"calvins_city_bets_v1");
+var stock=parseRecord(rows,"calvins_city_stock_market_v1");
+var fedTerms=[];
+function scan(obj,path,depth){if(!obj||depth>5)return;if(Array.isArray(obj)){obj.slice(0,100).forEach(function(v,i){scan(v,path+"["+i+"]",depth+1);});return;}if(typeof obj!=="object")return;Object.keys(obj).forEach(function(k){if(/fed|federal|treasury|t.?bill|reserve/i.test(k))fedTerms.push(path?path+"."+k:k);if(fedTerms.length<80)scan(obj[k],path?path+"."+k:k,depth+1);});}
+scan(state,"state",0);if(bank.value)scan(bank.value,"calbank",0);
+checks.push(["Fed-related fields discovered",fedTerms.length>0,fedTerms.length?fedTerms.slice(0,12).join("; "):"No matching field names found in scanned main state/CalBank data"]);
+checks.push(["Snapshot record count",rows.length===Number(meta.recordCount),rows.length+" of "+meta.recordCount+" records"]);
+var pass=checks.every(function(c){return c[1];});
+var lines=checks.map(function(c){return (c[1]?"PASS":"CHECK") +" — "+c[0]+": "+c[2];});
+lines.push("","Stored dataset keys:",...rows.map(function(r){return "• "+r.key+" ("+r.rawLength+" characters)";}));
+lines.push("","Startup safety note: this was a read-only dry run. The current app still starts from localStorage. No game state was loaded or changed.");
+output.textContent=lines.join("\n");
+status.textContent=pass?"READINESS CHECK PASSED — the saved data has the expected game-state structure and required companion datasets. This is not yet proof that all gameplay modules can run from IndexedDB.":"READINESS CHECK NEEDS REVIEW — one or more required checks did not pass. Do not switch startup to IndexedDB.";
+status.style.color=pass?"#34d399":"#fbbf24";
+window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.158",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
+}catch(e){status.textContent="READINESS CHECK FAILED — "+String(e&&e.message||e)+". No data was changed.";status.style.color="#f87171";output.textContent="No changes were made to localStorage, IndexedDB records, or the Permanent Database archive.";console.error(e);}
+finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
+});
 })();
 </script>
  
