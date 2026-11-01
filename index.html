@@ -515,11 +515,11 @@ let keysChecked=0;
 
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
 
-window.__calvinsCityStorageCompression={version:"5.8.171",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.172",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
 
 }catch(err){
 
-window.__calvinsCityStorageCompression={version:"5.8.171",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.172",status:"failed",message:String(err&&err.message||err)};
 
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.171</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.172</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -24608,10 +24608,10 @@ status.textContent="Copy written. Verifying every record against its source…";
 var verified=0;for(var j=0;j<items.length;j++){var got=await request(db.transaction("records","readonly").objectStore("records").get(items[j].key));if(!got||got.snapshotId!==snapshotId||got.raw!==items[j].raw||got.checksum!==items[j].checksum)throw new Error("Verification mismatch for storage key: "+items[j].key);verified++;}
 var main=items.find(function(x){return x.key==="calvins_city_v24";});var season="not detected",games="not detected",retired="not detected",citizens="not detected";
 if(main&&main.validJson&&main.parsed){var st=main.parsed;season=String(st.year==null?"not detected":st.year);games=String(st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords.length:"not detected");retired=String(st.records&&Array.isArray(st.records.retiredPlayers)?st.records.retiredPlayers.length:"not detected");citizens=String(Array.isArray(st.citizens)?st.citizens.length:"not detected");}
-var meta={id:snapshotId,appVersion:"5.8.171",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
+var meta={id:snapshotId,appVersion:"5.8.172",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
 await request(db.transaction("metadata","readwrite").objectStore("metadata").put(meta));
 status.textContent="SUCCESS — copied and verified "+verified+" of "+items.length+" records ("+total.toLocaleString()+" characters). Detected season: "+season+"; game records: "+games+"; retired players: "+retired+"; citizens: "+citizens+". Original localStorage data and Permanent Database archive were not changed. This is a preparation copy; the game still runs from its existing storage.";
-window.__calvinsCityIndexedDbPrep={version:"5.8.171",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
+window.__calvinsCityIndexedDbPrep={version:"5.8.172",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
 }catch(err){status.textContent="PREPARATION FAILED — "+String(err&&err.message||err)+". Original game storage was not intentionally changed.";console.error("IndexedDB migration preparation failed:",err);}finally{if(db)try{db.close();}catch(_){}button.disabled=false;}}
 button.addEventListener("click",prepare);
 })();
@@ -24683,7 +24683,7 @@ status.textContent=ok
 ?"SUCCESS — read back and independently verified "+verified+" of "+expectedCount+" records. Season "+season+" data is readable from IndexedDB. No game or source data was changed."
 :"CHECK FAILED — "+failed.length+" issue(s) found. Do not switch the game to IndexedDB. The original game storage was not changed.";
 status.style.color=ok?"#34d399":"#f87171";
-window.__calvinsCityIndexedDbReadback={version:"5.8.171",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
+window.__calvinsCityIndexedDbReadback={version:"5.8.172",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
 }catch(err){status.textContent="READBACK FAILED — "+String(err&&err.message||err)+". No source data was changed.";status.style.color="#f87171";details.textContent="No changes were made to localStorage, the game state, or the Permanent Database archive.";console.error("IndexedDB readback verification failed:",err);}
 finally{if(db)try{db.close();}catch(_){}button.disabled=false;}
 }
@@ -24746,7 +24746,7 @@ lines.push("","Startup safety note: this was a read-only dry run. The current ap
 output.textContent=lines.join("\n");
 status.textContent=pass?"READINESS CHECK PASSED — the saved data has the expected game-state structure and required companion datasets. This is not yet proof that all gameplay modules can run from IndexedDB.":"READINESS CHECK NEEDS REVIEW — one or more required checks did not pass. Do not switch startup to IndexedDB.";
 status.style.color=pass?"#34d399":"#fbbf24";
-window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.171",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
+window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.172",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
 }catch(e){status.textContent="READINESS CHECK FAILED — "+String(e&&e.message||e)+". No data was changed.";status.style.color="#f87171";output.textContent="No changes were made to localStorage, IndexedDB records, or the Permanent Database archive.";console.error(e);}
 finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 });
@@ -24755,5 +24755,84 @@ finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 
 
 
+
+
+<section class="card" id="ccStartupPreloadTest" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB Migration — Startup Preload & Integrity Test</h2>
+<p>This test loads all seven staged datasets through the central storage service into temporary in-memory variables, parses each JSON record, checks required game and financial structures, and reports whether the complete Season 52 data package is ready for a future startup integration. It does not replace the current game state, write to IndexedDB, change localStorage, or start gameplay from IndexedDB.</p>
+<button id="ccRunStartupPreloadTest" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Startup Preload & Integrity Test</button>
+<p id="ccStartupPreloadStatus" aria-live="polite">Waiting for startup preload test.</p>
+<pre id="ccStartupPreloadDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.172 — read-only startup preload simulation using central IDB service. */
+(function(){
+"use strict";
+var button=document.getElementById("ccRunStartupPreloadTest");
+var status=document.getElementById("ccStartupPreloadStatus");
+var details=document.getElementById("ccStartupPreloadDetails");
+if(!button||!status||!details)return;
+var specs=[
+{key:"calvins_city_v24",label:"Main game state"},
+{key:"calvins_city_bets_v1",label:"Sports Bets"},
+{key:"calvins_city_bets_pending_import_v1",label:"Pending Bets"},
+{key:"calvins_city_stock_market_v1",label:"Stock Market"},
+{key:"calvins_city_share_ownership_ledger_v1",label:"Share Ownership Ledger"},
+{key:"calvins_city_business_ownership_v1",label:"Business Ownership"},
+{key:"calvins_city_calbank_v1",label:"CalBank"}
+];
+function count(o,key){return o&&Array.isArray(o[key])?o[key].length:0;}
+button.addEventListener("click",async function(){
+button.disabled=true;status.textContent="Loading and validating the seven staged datasets…";details.textContent="";
+var lines=[],loaded=Object.create(null),pass=0;
+try{
+ var api=window.CalvinsCityIDB;
+ if(!api)throw new Error("Central storage service is unavailable.");
+ lines.push("PASS — central storage service is available");pass++;
+ var values=await Promise.all(specs.map(function(s){return api.read(s.key);}));
+ for(var i=0;i<specs.length;i++){
+  var spec=specs[i],record=values[i];
+  if(!record||typeof record.raw!=="string"||record.raw.length!==record.rawLength)throw new Error(spec.label+" is missing or has an invalid stored payload.");
+  loaded[spec.key]=JSON.parse(record.raw);
+  lines.push("PASS — "+spec.label+" loaded and parsed ("+record.raw.length.toLocaleString()+" characters)");pass++;
+ }
+ var main=loaded.calvins_city_v24;
+ var season=Number(main.year??main.season??main.currentSeason);
+ var citizens=count(main,"citizens"),games=count(main.records,"gameRecords"),retired=count(main.records,"retiredPlayers");
+ if(season!==52||citizens!==70||games!==148||retired!==57)throw new Error("Main state integrity mismatch: season "+season+", citizens "+citizens+", games "+games+", retired "+retired+".");
+ lines.push("PASS — main state integrity: Season 52; 70 citizens; 148 game records; 57 retired players");pass++;
+ var bets=loaded.calvins_city_bets_v1;
+ var betCounts={games:count(bets,"games"),bets:count(bets,"bets"),interest:count(bets,"sportsBetsInterestAccruals"),cashTransactions:count(bets,"sportsBetsCashTransactions")};
+ if(betCounts.games!==8782||betCounts.bets!==3385||betCounts.interest!==121||betCounts.cashTransactions!==6889)throw new Error("Sports Bets collection counts do not match the staged baseline: "+JSON.stringify(betCounts));
+ lines.push("PASS — Sports Bets collections match staged baseline "+JSON.stringify(betCounts));pass++;
+ var stock=loaded.calvins_city_stock_market_v1;
+ if(count(stock,"transactions")!==157||count(stock,"annualReports")!==230)throw new Error("Stock Market collection counts do not match staged baseline.");
+ lines.push("PASS — Stock Market has 157 transactions and 230 annual reports");pass++;
+ var shares=loaded.calvins_city_share_ownership_ledger_v1;
+ if(count(shares,"records")!==140)throw new Error("Share Ownership Ledger count does not match staged baseline.");
+ lines.push("PASS — Share Ownership Ledger has 140 records");pass++;
+ var bank=loaded.calvins_city_calbank_v1;
+ var bankCounts={accounts:count(bank,"accounts"),ledger:count(bank,"ledger"),debts:count(bank,"debts"),debtLedger:count(bank,"debtLedger"),fedCapitalLedger:count(bank,"fedCapitalLedger"),investmentLedger:count(bank,"investmentLedger"),customerLoans:count(bank,"customerLoans"),customerLoanLedger:count(bank,"customerLoanLedger")};
+ var expected={accounts:16,ledger:164,debts:1,debtLedger:12,fedCapitalLedger:6,investmentLedger:18,customerLoans:12,customerLoanLedger:30};
+ if(Object.keys(expected).some(function(k){return bankCounts[k]!==expected[k];}))throw new Error("CalBank collection counts do not match staged baseline: "+JSON.stringify(bankCounts));
+ lines.push("PASS — CalBank collections match staged baseline "+JSON.stringify(bankCounts));pass++;
+ if(!loaded.calvins_city_bets_pending_import_v1||!Array.isArray(loaded.calvins_city_bets_pending_import_v1.records))throw new Error("Pending Bets records array is missing.");
+ lines.push("PASS — Pending Bets records array is available ("+loaded.calvins_city_bets_pending_import_v1.records.length+" entries)");pass++;
+ if(!loaded.calvins_city_business_ownership_v1||!Array.isArray(loaded.calvins_city_business_ownership_v1.offers)||!Array.isArray(loaded.calvins_city_business_ownership_v1.transactions))throw new Error("Business Ownership arrays are missing.");
+ lines.push("PASS — Business Ownership offers and transactions arrays are available");pass++;
+ // Release the temporary references; no global game state is assigned.
+ Object.keys(loaded).forEach(function(k){delete loaded[k];});
+ status.textContent="STARTUP PRELOAD TEST PASSED — "+pass+" checks. No game state or storage was changed.";
+ status.style.color="#34d399";
+}catch(e){
+ lines.push("FAIL — "+String(e&&e.message||e));
+ status.textContent="STARTUP PRELOAD TEST FAILED — do not connect gameplay.";
+ status.style.color="#f87171";
+}finally{
+ details.textContent=lines.join("\n");button.disabled=false;
+}
+});
+})();
+</script>
 
 </body></html>
