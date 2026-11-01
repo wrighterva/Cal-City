@@ -515,11 +515,11 @@ let keysChecked=0;
 
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
 
-window.__calvinsCityStorageCompression={version:"5.8.162",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.163",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
 
 }catch(err){
 
-window.__calvinsCityStorageCompression={version:"5.8.162",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.163",status:"failed",message:String(err&&err.message||err)};
 
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.162</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.163</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -2871,7 +2871,75 @@ ded from automatic wagers for that game. Automatic wagers use real citizen/compa
 
 <div class="card" id="testGameTools" style="display:none"><h2>🎲 Test Game</h2><p>Hidden maintenance tool. The test-game code and handler are retained for troubleshooting.</p><button id="runGame">Run Lions vs Rims</button><div id="gameOutput" class="log" style="margin-top:12px"></div></div>
 
-</section></main>
+</section>
+<section class="card" id="ccIndexedDbWritePathTest" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+ <h2 style="margin-top:0;">IndexedDB Migration — Write-Path Compatibility Test</h2>
+ <p>This is an isolated test of the IndexedDB save primitives. It writes temporary test records, reads them back, updates them, checks ordered writes, and removes them. It does not change game data, localStorage, the seven verified snapshot records, or the Permanent Database archive.</p>
+ <button id="ccRunIndexedDbWritePathTest" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run IndexedDB Write-Path Test</button>
+ <p id="ccIndexedDbWritePathStatus" aria-live="polite">Waiting for test.</p>
+ <pre id="ccIndexedDbWritePathDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.162 — Isolated IndexedDB write-path test. No game/localStorage writes. */
+(function(){
+"use strict";
+var btn=document.getElementById("ccRunIndexedDbWritePathTest");
+var status=document.getElementById("ccIndexedDbWritePathStatus");
+var details=document.getElementById("ccIndexedDbWritePathDetails");
+if(!btn||!status||!details)return;
+var DB="CalvinsCityStorageV2",prefix="__cc_idb_write_test__"+Date.now()+"_";
+function req(r){return new Promise(function(resolve,reject){r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("IndexedDB request failed"));};});}
+function openDb(){return new Promise(function(resolve,reject){var r=indexedDB.open(DB);r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("Could not open migration database"));};r.onblocked=function(){reject(new Error("Database open blocked; close other Calvin's City tabs."));};});}
+function txDone(tx){return new Promise(function(resolve,reject){tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error||new Error("Transaction failed"));};tx.onabort=function(){reject(tx.error||new Error("Transaction aborted"));};});}
+function assert(ok,msg){if(!ok)throw new Error(msg);}
+btn.addEventListener("click",async function(){
+btn.disabled=true;status.textContent="Running isolated write-path checks…";details.textContent="";
+var db=null,keys=[prefix+"a",prefix+"b",prefix+"large"],lines=[],passed=0,failed=[];
+try{
+ if(!window.indexedDB)throw new Error("IndexedDB is unavailable.");
+ db=await openDb();
+ if(!db.objectStoreNames.contains("records"))throw new Error("The records object store is missing.");
+ var storeName="records";
+ var payload="CalvinCity-write-test-"+("0123456789abcdef".repeat(8192));
+ var first={key:keys[0],snapshotId:"__test__",source:"isolated-write-test",raw:"first",rawLength:5,checksum:"test-a"};
+ var second={key:keys[1],snapshotId:"__test__",source:"isolated-write-test",raw:"second",rawLength:6,checksum:"test-b"};
+ var large={key:keys[2],snapshotId:"__test__",source:"isolated-write-test",raw:payload,rawLength:payload.length,checksum:"test-large"};
+ var tx=db.transaction(storeName,"readwrite"),os=tx.objectStore(storeName);
+ os.put(first);os.put(second);os.put(large);await txDone(tx);
+ lines.push("PASS — write transaction committed three temporary records");passed++;
+ var readTx=db.transaction(storeName,"readonly"),readStore=readTx.objectStore(storeName);
+ var a=await req(readStore.get(keys[0])),b=await req(readStore.get(keys[1])),l=await req(readStore.get(keys[2]));
+ assert(a&&a.raw==="first"&&b&&b.raw==="second"&&l&&l.raw===payload,"Readback did not match the written values.");
+ lines.push("PASS — readback matched all three records, including a 131 KB payload");passed++;
+ var update={key:keys[0],snapshotId:"__test__",source:"isolated-write-test",raw:"updated",rawLength:7,checksum:"test-updated"};
+ var upTx=db.transaction(storeName,"readwrite");upTx.objectStore(storeName).put(update);await txDone(upTx);
+ var check=await req(db.transaction(storeName,"readonly").objectStore(storeName).get(keys[0]));
+ assert(check&&check.raw==="updated","Updated value was not durable.");
+ lines.push("PASS — overwrite/update committed and read back correctly");passed++;
+ var delTx=db.transaction(storeName,"readwrite"),delStore=delTx.objectStore(storeName);
+ keys.forEach(function(k){delStore.delete(k);});await txDone(delTx);
+ var finalTx=db.transaction(storeName,"readonly"),finalStore=finalTx.objectStore(storeName);
+ var remaining=await Promise.all(keys.map(function(k){return req(finalStore.get(k));}));
+ assert(remaining.every(function(x){return x===undefined;}),"Temporary records remained after cleanup.");
+ lines.push("PASS — temporary records were deleted and verified absent");passed++;
+ lines.push("PASS — no localStorage calls were made by this test");passed++;
+ status.textContent="WRITE-PATH TEST PASSED — "+passed+" checks. Temporary test records were removed.";
+ status.style.color="#34d399";
+}catch(e){
+ failed.push(String(e&&e.message||e));
+ try{if(db&&db.objectStoreNames.contains("records")){var clean=db.transaction("records","readwrite"),cs=clean.objectStore("records");keys.forEach(function(k){cs.delete(k);});await txDone(clean);}}catch(cleanErr){failed.push("Cleanup warning: "+String(cleanErr&&cleanErr.message||cleanErr));}
+ status.textContent="WRITE-PATH TEST FAILED — do not switch game startup to IndexedDB.";
+ status.style.color="#f87171";
+}finally{
+ lines.push.apply(lines,failed.map(function(x){return "FAIL — "+x;}));
+ details.textContent=lines.join("\\n");
+ if(db)try{db.close();}catch(_){}
+ btn.disabled=false;
+}
+});
+})();
+</script>
+</main>
 
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button></nav>
 
@@ -23940,10 +24008,10 @@ status.textContent="Copy written. Verifying every record against its source…";
 var verified=0;for(var j=0;j<items.length;j++){var got=await request(db.transaction("records","readonly").objectStore("records").get(items[j].key));if(!got||got.snapshotId!==snapshotId||got.raw!==items[j].raw||got.checksum!==items[j].checksum)throw new Error("Verification mismatch for storage key: "+items[j].key);verified++;}
 var main=items.find(function(x){return x.key==="calvins_city_v24";});var season="not detected",games="not detected",retired="not detected",citizens="not detected";
 if(main&&main.validJson&&main.parsed){var st=main.parsed;season=String(st.year==null?"not detected":st.year);games=String(st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords.length:"not detected");retired=String(st.records&&Array.isArray(st.records.retiredPlayers)?st.records.retiredPlayers.length:"not detected");citizens=String(Array.isArray(st.citizens)?st.citizens.length:"not detected");}
-var meta={id:snapshotId,appVersion:"5.8.162",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
+var meta={id:snapshotId,appVersion:"5.8.163",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
 await request(db.transaction("metadata","readwrite").objectStore("metadata").put(meta));
 status.textContent="SUCCESS — copied and verified "+verified+" of "+items.length+" records ("+total.toLocaleString()+" characters). Detected season: "+season+"; game records: "+games+"; retired players: "+retired+"; citizens: "+citizens+". Original localStorage data and Permanent Database archive were not changed. This is a preparation copy; the game still runs from its existing storage.";
-window.__calvinsCityIndexedDbPrep={version:"5.8.162",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
+window.__calvinsCityIndexedDbPrep={version:"5.8.163",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
 }catch(err){status.textContent="PREPARATION FAILED — "+String(err&&err.message||err)+". Original game storage was not intentionally changed.";console.error("IndexedDB migration preparation failed:",err);}finally{if(db)try{db.close();}catch(_){}button.disabled=false;}}
 button.addEventListener("click",prepare);
 })();
@@ -24015,7 +24083,7 @@ status.textContent=ok
 ?"SUCCESS — read back and independently verified "+verified+" of "+expectedCount+" records. Season "+season+" data is readable from IndexedDB. No game or source data was changed."
 :"CHECK FAILED — "+failed.length+" issue(s) found. Do not switch the game to IndexedDB. The original game storage was not changed.";
 status.style.color=ok?"#34d399":"#f87171";
-window.__calvinsCityIndexedDbReadback={version:"5.8.162",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
+window.__calvinsCityIndexedDbReadback={version:"5.8.163",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
 }catch(err){status.textContent="READBACK FAILED — "+String(err&&err.message||err)+". No source data was changed.";status.style.color="#f87171";details.textContent="No changes were made to localStorage, the game state, or the Permanent Database archive.";console.error("IndexedDB readback verification failed:",err);}
 finally{if(db)try{db.close();}catch(_){}button.disabled=false;}
 }
@@ -24078,7 +24146,7 @@ lines.push("","Startup safety note: this was a read-only dry run. The current ap
 output.textContent=lines.join("\n");
 status.textContent=pass?"READINESS CHECK PASSED — the saved data has the expected game-state structure and required companion datasets. This is not yet proof that all gameplay modules can run from IndexedDB.":"READINESS CHECK NEEDS REVIEW — one or more required checks did not pass. Do not switch startup to IndexedDB.";
 status.style.color=pass?"#34d399":"#fbbf24";
-window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.162",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
+window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.163",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
 }catch(e){status.textContent="READINESS CHECK FAILED — "+String(e&&e.message||e)+". No data was changed.";status.style.color="#f87171";output.textContent="No changes were made to localStorage, IndexedDB records, or the Permanent Database archive.";console.error(e);}
 finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 });
@@ -24086,72 +24154,6 @@ finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 </script>
 
 
-<section class="card" id="ccIndexedDbWritePathTest" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
- <h2 style="margin-top:0;">IndexedDB Migration — Write-Path Compatibility Test</h2>
- <p>This is an isolated test of the IndexedDB save primitives. It writes temporary test records, reads them back, updates them, checks ordered writes, and removes them. It does not change game data, localStorage, the seven verified snapshot records, or the Permanent Database archive.</p>
- <button id="ccRunIndexedDbWritePathTest" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run IndexedDB Write-Path Test</button>
- <p id="ccIndexedDbWritePathStatus" aria-live="polite">Waiting for test.</p>
- <pre id="ccIndexedDbWritePathDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
-</section>
-<script>
-/* 5.8.162 — Isolated IndexedDB write-path test. No game/localStorage writes. */
-(function(){
-"use strict";
-var btn=document.getElementById("ccRunIndexedDbWritePathTest");
-var status=document.getElementById("ccIndexedDbWritePathStatus");
-var details=document.getElementById("ccIndexedDbWritePathDetails");
-if(!btn||!status||!details)return;
-var DB="CalvinsCityStorageV2",prefix="__cc_idb_write_test__"+Date.now()+"_";
-function req(r){return new Promise(function(resolve,reject){r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("IndexedDB request failed"));};});}
-function openDb(){return new Promise(function(resolve,reject){var r=indexedDB.open(DB);r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("Could not open migration database"));};r.onblocked=function(){reject(new Error("Database open blocked; close other Calvin's City tabs."));};});}
-function txDone(tx){return new Promise(function(resolve,reject){tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error||new Error("Transaction failed"));};tx.onabort=function(){reject(tx.error||new Error("Transaction aborted"));};});}
-function assert(ok,msg){if(!ok)throw new Error(msg);}
-btn.addEventListener("click",async function(){
-btn.disabled=true;status.textContent="Running isolated write-path checks…";details.textContent="";
-var db=null,keys=[prefix+"a",prefix+"b",prefix+"large"],lines=[],passed=0,failed=[];
-try{
- if(!window.indexedDB)throw new Error("IndexedDB is unavailable.");
- db=await openDb();
- if(!db.objectStoreNames.contains("records"))throw new Error("The records object store is missing.");
- var storeName="records";
- var payload="CalvinCity-write-test-"+("0123456789abcdef".repeat(8192));
- var first={key:keys[0],snapshotId:"__test__",source:"isolated-write-test",raw:"first",rawLength:5,checksum:"test-a"};
- var second={key:keys[1],snapshotId:"__test__",source:"isolated-write-test",raw:"second",rawLength:6,checksum:"test-b"};
- var large={key:keys[2],snapshotId:"__test__",source:"isolated-write-test",raw:payload,rawLength:payload.length,checksum:"test-large"};
- var tx=db.transaction(storeName,"readwrite"),os=tx.objectStore(storeName);
- os.put(first);os.put(second);os.put(large);await txDone(tx);
- lines.push("PASS — write transaction committed three temporary records");passed++;
- var readTx=db.transaction(storeName,"readonly"),readStore=readTx.objectStore(storeName);
- var a=await req(readStore.get(keys[0])),b=await req(readStore.get(keys[1])),l=await req(readStore.get(keys[2]));
- assert(a&&a.raw==="first"&&b&&b.raw==="second"&&l&&l.raw===payload,"Readback did not match the written values.");
- lines.push("PASS — readback matched all three records, including a 131 KB payload");passed++;
- var update={key:keys[0],snapshotId:"__test__",source:"isolated-write-test",raw:"updated",rawLength:7,checksum:"test-updated"};
- var upTx=db.transaction(storeName,"readwrite");upTx.objectStore(storeName).put(update);await txDone(upTx);
- var check=await req(db.transaction(storeName,"readonly").objectStore(storeName).get(keys[0]));
- assert(check&&check.raw==="updated","Updated value was not durable.");
- lines.push("PASS — overwrite/update committed and read back correctly");passed++;
- var delTx=db.transaction(storeName,"readwrite"),delStore=delTx.objectStore(storeName);
- keys.forEach(function(k){delStore.delete(k);});await txDone(delTx);
- var finalTx=db.transaction(storeName,"readonly"),finalStore=finalTx.objectStore(storeName);
- var remaining=await Promise.all(keys.map(function(k){return req(finalStore.get(k));}));
- assert(remaining.every(function(x){return x===undefined;}),"Temporary records remained after cleanup.");
- lines.push("PASS — temporary records were deleted and verified absent");passed++;
- lines.push("PASS — no localStorage calls were made by this test");passed++;
- status.textContent="WRITE-PATH TEST PASSED — "+passed+" checks. Temporary test records were removed.";
- status.style.color="#34d399";
-}catch(e){
- failed.push(String(e&&e.message||e));
- try{if(db&&db.objectStoreNames.contains("records")){var clean=db.transaction("records","readwrite"),cs=clean.objectStore("records");keys.forEach(function(k){cs.delete(k);});await txDone(clean);}}catch(cleanErr){failed.push("Cleanup warning: "+String(cleanErr&&cleanErr.message||cleanErr));}
- status.textContent="WRITE-PATH TEST FAILED — do not switch game startup to IndexedDB.";
- status.style.color="#f87171";
-}finally{
- lines.push.apply(lines,failed.map(function(x){return "FAIL — "+x;}));
- details.textContent=lines.join("\\n");
- if(db)try{db.close();}catch(_){}
- btn.disabled=false;
-}
-});
-})();
-</script>
+
 
 </body></html>
