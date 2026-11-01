@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.187: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
+<!-- CALVIN'S CITY — VERSION 5.8.189: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.187">
+<meta name="calvins-city-build" content="5.8.189">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.187",
+diagnosticVersion: "5.8.189",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.187",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.189",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.187",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.189",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.187</title>
+<title>Calvin's City 5.8.189</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.187</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.189</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -2537,6 +2537,7 @@ a high local hit-test priority without changing the global app controls. */
 </div>
 <div id="marketPanelOverview" class="market-hub-panel" role="tabpanel" aria-label="Market overview">
 <div class="market-overview-intro"><strong>Market Overview</strong><span>Track listed companies, the 500-share structure, and the latest completed season report.</span></div>
+<div class="market-hub-footer-note">CalBank’s stock investments remain in CalBank’s own Portfolio section. The Market hub does not replace or merge that system.</div>
  
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px">
  
@@ -2652,7 +2653,7 @@ v><label for="stockTradingShares">Number of shares</label><input id="stockTradin
  
 </div>
  
-<div class="market-hub-footer-note">CalBank’s stock investments remain in CalBank’s own Portfolio section. The Market hub does not replace or merge that system.</div>
+ 
  
 </div>
  
@@ -3235,7 +3236,7 @@ details.textContent=lines.join("\n");if(db)try{db.close();}catch(_){}btn.disable
 <pre id="ccExistingLiveStoreVerify183Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.187 — compatibility adapter prototype startup preload; no gameplay cutover. */
+/* 5.8.189 — compatibility adapter prototype startup preload; no gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunExistingLiveStoreVerify183"),status=document.getElementById("ccExistingLiveStoreVerify183Status"),details=document.getElementById("ccExistingLiveStoreVerify183Details");
@@ -4262,6 +4263,68 @@ finally{
 });
 })();
 </script>
+<section class="card" id="ccMainStateReadOnlyValidation" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB — Main Game State Read-Only Validation</h2>
+<p>Reads the current IndexedDB main-game record and compares it with the state currently loaded by the game. Checks the durable fingerprint and basic Season/citizen/history structure. This test performs no writes, imports, repairs, or migrations.</p>
+<button id="ccRunMainStateReadOnlyValidation" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Market Notice Position Fix</button>
+<p id="ccMainStateReadOnlyStatus" aria-live="polite">Waiting for read-only validation.</p>
+<pre id="ccMainStateReadOnlyDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.189 — read-only check before any startup-loader or gameplay cutover. */
+(function(){
+"use strict";
+var button=document.getElementById("ccRunMainStateReadOnlyValidation");
+var status=document.getElementById("ccMainStateReadOnlyStatus");
+var details=document.getElementById("ccMainStateReadOnlyDetails");
+if(!button||!status||!details)return;
+function countArray(value){return Array.isArray(value)?value.length:0;}
+function checksum(raw){var h=2166136261;for(var i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}return "fnv1a:"+(h>>>0).toString(16).padStart(8,"0");}
+button.addEventListener("click",async function(){
+button.disabled=true;status.textContent="Reading IndexedDB main-state record without changing it…";details.textContent="";
+var lines=[];
+try{
+ var api=window.CalvinsCityIDB,bridge=window.__calvinsCityBridge;
+ if(!api||typeof api.read!=="function"||typeof api.fingerprint!=="function")throw new Error("IndexedDB read/fingerprint service is unavailable.");
+ if(!bridge||typeof bridge.getState!=="function"||typeof bridge.getDurableFingerprint!=="function")throw new Error("Main game bridge or durable fingerprint method is unavailable.");
+ var fp=await bridge.getDurableFingerprint();
+ if(!fp||fp.key!=="calvins_city_v24"||!(fp.checksum===null||typeof fp.checksum==="string"))throw new Error("Main-state fingerprint response has an unexpected format.");
+ var record=await api.read("calvins_city_v24");
+ if(!record||typeof record.raw!=="string")throw new Error("No valid main-game record was found in IndexedDB. No fallback or write was attempted.");
+ if(record.rawLength!==record.raw.length)throw new Error("IndexedDB main-state rawLength does not match the stored content.");
+ var actualChecksum=checksum(record.raw);
+ if(actualChecksum!==fp.checksum)throw new Error("Fingerprint does not match the independently-read IndexedDB record.");
+ var savedState=JSON.parse(record.raw);
+ if(!savedState||typeof savedState!=="object"||Array.isArray(savedState))throw new Error("IndexedDB main-game JSON root is not an object.");
+ var liveState=bridge.getState();
+ if(!liveState||typeof liveState!=="object")throw new Error("Current in-memory game state is unavailable.");
+ var savedSeason=savedState.season,liveSeason=liveState.season;
+ var savedCitizens=countArray(savedState.citizens),liveCitizens=countArray(liveState.citizens);
+ var savedGameRecords=countArray(savedState.records&&savedState.records.gameRecords);
+ var liveGameRecords=countArray(liveState.records&&liveState.records.gameRecords);
+ var savedRetired=countArray(savedState.records&&savedState.records.retiredPlayers);
+ var liveRetired=countArray(liveState.records&&liveState.records.retiredPlayers);
+ var liveRaw=JSON.stringify(liveState);
+ var exactMatch=liveRaw===record.raw;
+ lines.push("PASS — IndexedDB main-state record exists and parses as JSON.");
+ lines.push("PASS — stored rawLength and independently calculated fingerprint match.");
+ lines.push("IndexedDB record: season="+String(savedSeason)+", citizens="+savedCitizens+", gameRecords="+savedGameRecords+", retiredPlayers="+savedRetired+".");
+ lines.push("Currently loaded game: season="+String(liveSeason)+", citizens="+liveCitizens+", gameRecords="+liveGameRecords+", retiredPlayers="+liveRetired+".");
+ lines.push(exactMatch?"PASS — currently loaded game state exactly matches the IndexedDB main-state snapshot.":"NOTICE — currently loaded game state differs from the IndexedDB snapshot. This is not a failure by itself; do not enable durable saves until the difference is reviewed.");
+ lines.push("READ ONLY — no records, game state, backups, or Permanent Database entries were changed.");
+ status.textContent=exactMatch?"READ-ONLY VALIDATION PASSED — IndexedDB and loaded game state match.":"READ-ONLY VALIDATION COMPLETE — review the reported differences before cutover.";
+ status.style.color=exactMatch?"#34d399":"#fbbf24";
+}catch(e){
+ lines.push("STOP — "+String(e&&e.message||e));
+ lines.push("No writes or repairs were attempted.");
+ status.textContent="READ-ONLY VALIDATION STOPPED — do not enable durable gameplay saves.";
+ status.style.color="#f87171";
+}finally{
+ details.textContent=lines.join("\n");button.disabled=false;
+}
+});
+})();
+</script>
  
 <section id="ccCompatibilityAdapterPrototype" style="margin:18px 0;padding:16px;border:1px solid #46505c;border-radius:14px;background:#20252c;">
 <h2>IndexedDB Compatibility Adapter — Prototype Test</h2>
@@ -4271,7 +4334,7 @@ finally{
 <pre id="ccCompatibilityAdapterDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.187 — isolated synchronous cache + durable commit prototype. */
+/* 5.8.189 — isolated synchronous cache + durable commit prototype. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunCompatibilityAdapterTest"),status=document.getElementById("ccCompatibilityAdapterStatus"),details=document.getElementById("ccCompatibilityAdapterDetails");
@@ -15699,7 +15762,7 @@ if(e.target===citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show"
 });
  
  
-/* 5.8.187 — explicit durable main-state save API.
+/* 5.8.189 — explicit durable main-state save API.
   This is intentionally NOT wired into legacy synchronous save() call sites.
   Callers must first load the authoritative IndexedDB state and obtain its
   fingerprint. commitVersioned checks that fingerprint in the same
@@ -15716,7 +15779,7 @@ if(!(expectedChecksum===null||typeof expectedChecksum==="string"))throw new Erro
 syncUnifiedFinancialLedger();
 const raw=JSON.stringify(state);
 if(typeof raw!=="string"||!raw.length)throw new Error("Main game state could not be serialized.");
-const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.187",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
+const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.189",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
 return await api.commitVersioned([record],[],[{key:"calvins_city_v24",checksum:expectedChecksum}]);
 }
  
