@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.179: Read-only timestamp verification for staged parity mismatches. -->
+<!-- CALVIN'S CITY — VERSION 5.8.180: Safe timestamp-only reconciliation in the dedicated liveRecords staging store. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
 
 var item = {
 
-diagnosticVersion: "5.8.179",
+diagnosticVersion: "5.8.180",
 
 time: new Date().toISOString(),
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.179</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.180</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -3604,7 +3604,7 @@ finally{details.textContent=lines.join("\n");button.disabled=false;}
 </script>
 
 <script>
-/* 5.8.179 — read-only exact timestamp verification for the two parity mismatches. */
+/* 5.8.180 — read-only exact timestamp verification for the two parity mismatches. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunStorageDifferenceDiagnostic"),status=document.getElementById("ccStorageDifferenceStatus"),details=document.getElementById("ccStorageDifferenceDetails");
@@ -3679,6 +3679,136 @@ try{
  status.style.color=allOk?"#34d399":"#fbbf24";
 }catch(e){lines.push("FAIL — "+String(e&&e.message||e));status.textContent="TIMESTAMP VERIFICATION FAILED — no data was changed.";status.style.color="#f87171";}
 finally{details.textContent=lines.join("\n");button.disabled=false;}
+});
+})();
+</script>
+
+
+<section class="card" id="ccTimestampReconcile" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB Migration — Timestamp-Only Staging Reconciliation</h2>
+<p>This controlled repair updates only two timestamp fields in the dedicated liveRecords staging copies, using the current localStorage timestamps as the source of truth. Before writing, it confirms that every other field matches. It does not modify localStorage, the original records snapshot store, gameplay, or the Permanent Database archive.</p>
+<button id="ccRunTimestampReconcile" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Synchronize the Two Staged Timestamps</button>
+<p id="ccTimestampReconcileStatus" aria-live="polite">Waiting for timestamp-only reconciliation.</p>
+<pre id="ccTimestampReconcileDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.180 — guarded timestamp-only reconciliation in liveRecords; never writes live game storage. */
+(function(){
+"use strict";
+var button=document.getElementById("ccRunTimestampReconcile");
+var status=document.getElementById("ccTimestampReconcileStatus");
+var details=document.getElementById("ccTimestampReconcileDetails");
+if(!button||!status||!details)return;
+var targets=[
+{key:"calvins_city_v24",label:"Main game state",path:["businessOwnershipRegistry","updatedAt"]},
+{key:"calvins_city_business_ownership_v1",label:"Business Ownership",path:["updatedAt"]}
+];
+function checksum(str){
+var h=2166136261;
+for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}
+return (h>>>0).toString(16).padStart(8,"0");
+}
+function readPath(obj,path){
+var value=obj;
+for(var i=0;i<path.length;i++){
+ if(value==null||!Object.prototype.hasOwnProperty.call(value,path[i]))throw new Error("Required timestamp path is missing: "+path.join("."));
+ value=value[path[i]];
+}
+return value;
+}
+function writePath(obj,path,value){
+var target=obj;
+for(var i=0;i<path.length-1;i++){
+ if(!target[path[i]]||typeof target[path[i]]!=="object")throw new Error("Timestamp parent path is invalid: "+path.join("."));
+ target=target[path[i]];
+}
+target[path[path.length-1]]=value;
+}
+function compareIgnoringTarget(a,b,path){
+var stack=[{a:a,b:b,path:"$"}],visited=0,diffs=[];
+while(stack.length&&diffs.length<10){
+ var item=stack.pop(),x=item.a,y=item.b,p=item.path;visited++;
+ if((path[0]==="businessOwnershipRegistry"&&p==="$.businessOwnershipRegistry.updatedAt")||(path[0]==="updatedAt"&&p==="$.updatedAt"))continue;
+ if(x===y)continue;
+ if(x===null||y===null||typeof x!==typeof y||Array.isArray(x)!==Array.isArray(y)){diffs.push(p+" — type/null mismatch");continue;}
+ if(typeof x!=="object"){diffs.push(p+" — value mismatch");continue;}
+ var xk=Object.keys(x),yk=Object.keys(y),ys=new Set(yk),xs=new Set(xk);
+ for(var i=xk.length-1;i>=0;i--){
+  var k=xk[i],cp=p+(Array.isArray(x)?"["+k+"]":"."+k);
+  if(!ys.has(k))diffs.push(cp+" — live-only field");
+  else stack.push({a:x[k],b:y[k],path:cp});
+ }
+ for(var j=yk.length-1;j>=0;j--){var ky=yk[j];if(!xs.has(ky))diffs.push(p+(Array.isArray(y)?"["+ky+"]":"."+ky)+" — staged-only field");}
+ if(Array.isArray(x)&&x.length!==y.length)diffs.push(p+" — array length mismatch");
+}
+return {visited:visited,diffs:diffs,truncated:stack.length>0};
+}
+button.addEventListener("click",async function(){
+button.disabled=true;
+status.textContent="Preflighting both datasets; no changes have been made yet…";
+details.textContent="";
+var lines=[],api=window.CalvinsCityIDB,plans=[];
+try{
+ if(!api||typeof api.writeMany!=="function")throw new Error("Central IndexedDB service with atomic writeMany is unavailable.");
+ lines.push("PASS — central IndexedDB service available ("+api.version+")");
+ /* Full preflight for both datasets completes before any write is attempted. */
+ for(var t of targets){
+  var staged=await api.read(t.key);
+  if(!staged||typeof staged.raw!=="string"||staged.rawLength!==staged.raw.length)throw new Error("Staged record is missing or has an invalid length: "+t.key);
+  var liveRaw=localStorage.getItem(t.key);
+  if(typeof liveRaw!=="string")throw new Error("Current live localStorage record is missing: "+t.key);
+  var liveObj=JSON.parse(liveRaw),stagedObj=JSON.parse(staged.raw);
+  var liveTimestamp=readPath(liveObj,t.path),stagedTimestamp=readPath(stagedObj,t.path);
+  var liveMs=Date.parse(liveTimestamp),stagedMs=Date.parse(stagedTimestamp);
+  if(typeof liveTimestamp!=="string"||typeof stagedTimestamp!=="string"||!Number.isFinite(liveMs)||!Number.isFinite(stagedMs))throw new Error("Timestamp is invalid in "+t.key+"; no writes were attempted.");
+  var parity=compareIgnoringTarget(liveObj,stagedObj,t.path);
+  if(parity.diffs.length||parity.truncated)throw new Error("Non-timestamp differences exist in "+t.key+"; no writes were attempted. "+parity.diffs.join("; "));
+  lines.push("PASS — "+t.label+": all non-timestamp fields match ("+parity.visited+" nodes checked)");
+  lines.push("INFO — live timestamp "+JSON.stringify(liveTimestamp)+"; staged timestamp "+JSON.stringify(stagedTimestamp));
+  if(liveTimestamp!==stagedTimestamp){
+   writePath(stagedObj,t.path,liveTimestamp);
+   var updatedRaw=JSON.stringify(stagedObj);
+   var updatedRecord=Object.assign({},staged,{
+    raw:updatedRaw,
+    rawLength:updatedRaw.length,
+    checksum:checksum(updatedRaw),
+    timestampReconciledAt:new Date().toISOString(),
+    timestampReconciliation:"updated only "+t.path.join(".")+" from current localStorage after non-timestamp parity verification"
+   });
+   plans.push(updatedRecord);
+  }else{
+   lines.push("PASS — timestamp already matches; no update needed.");
+  }
+ }
+ if(plans.length){
+  var commit=await api.writeMany(plans);
+  if(!commit||!commit.committed||!commit.verified||commit.count!==plans.length)throw new Error("Atomic timestamp write did not return a verified commit.");
+  lines.push("PASS — atomic IndexedDB commit completed for "+plans.length+" staged record(s).");
+  for(var p of plans){
+   var saved=await api.read(p.key);
+   if(!saved||saved.raw!==p.raw||saved.rawLength!==p.raw.length||saved.checksum!==checksum(saved.raw))throw new Error("Post-commit readback/checksum verification failed for "+p.key+".");
+   var parsed=JSON.parse(saved.raw);
+   var target=targets.find(function(x){return x.key===p.key;});
+   var liveNow=JSON.parse(localStorage.getItem(p.key));
+   if(readPath(parsed,target.path)!==readPath(liveNow,target.path))throw new Error("Post-commit timestamp does not match live source for "+p.key+".");
+   var parityAfter=compareIgnoringTarget(liveNow,parsed,target.path);
+   if(parityAfter.diffs.length||parityAfter.truncated)throw new Error("Post-commit non-timestamp parity failed for "+p.key+".");
+   lines.push("PASS — "+p.key+": exact timestamp readback, checksum valid, all other fields still match.");
+  }
+ }
+ if(!plans.length)lines.push("INFO — both staged timestamps were already current; no IndexedDB write was necessary.");
+ lines.push("SAFETY — only the two timestamp fields in liveRecords were eligible for change. localStorage, the original records snapshot store, gameplay, and Permanent Database archive were not written.");
+ status.textContent="TIMESTAMP-ONLY STAGING RECONCILIATION PASSED — live game storage unchanged.";
+ status.style.color="#34d399";
+}catch(e){
+ lines.push("STOP/FAIL — "+String(e&&e.message||e));
+ lines.push("SAFETY — this routine does not write localStorage or the original records snapshot store. If the atomic commit was rejected, no staged timestamp update was committed.");
+ status.textContent="TIMESTAMP RECONCILIATION STOPPED — do not connect gameplay.";
+ status.style.color="#f87171";
+}finally{
+ details.textContent=lines.join("\n");
+ button.disabled=false;
+}
 });
 })();
 </script>
