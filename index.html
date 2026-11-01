@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.180: Safe timestamp-only reconciliation in the dedicated liveRecords staging store. -->
+<!-- CALVIN'S CITY — VERSION 5.8.181: Safe timestamp-only reconciliation in the dedicated liveRecords staging store. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
 
 var item = {
 
-diagnosticVersion: "5.8.180",
+diagnosticVersion: "5.8.181",
 
 time: new Date().toISOString(),
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.180</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.181</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -3604,7 +3604,7 @@ finally{details.textContent=lines.join("\n");button.disabled=false;}
 </script>
 
 <script>
-/* 5.8.180 — read-only exact timestamp verification for the two parity mismatches. */
+/* 5.8.181 — read-only exact timestamp verification for the two parity mismatches. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunStorageDifferenceDiagnostic"),status=document.getElementById("ccStorageDifferenceStatus"),details=document.getElementById("ccStorageDifferenceDetails");
@@ -3684,6 +3684,125 @@ finally{details.textContent=lines.join("\n");button.disabled=false;}
 </script>
 
 
+
+<section class="card" id="ccFullParity181" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB Migration — Full Seven-Dataset Exact Parity</h2>
+<p>Read-only final staging comparison. It compares each current localStorage value with its corresponding dedicated liveRecords IndexedDB copy byte-for-byte, validates JSON and critical Season 52/financial collection counts, and checks stored record lengths and checksums. It does not write to either storage system.</p>
+<button id="ccRunFullParity181" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Full Seven-Dataset Exact Parity Check</button>
+<p id="ccFullParity181Status" aria-live="polite">Waiting for full parity check.</p>
+<pre id="ccFullParity181Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.181 — read-only exact parity across all seven staged datasets. */
+(function(){
+"use strict";
+var button=document.getElementById("ccRunFullParity181");
+var status=document.getElementById("ccFullParity181Status");
+var details=document.getElementById("ccFullParity181Details");
+if(!button||!status||!details)return;
+var datasets=[
+{key:"calvins_city_v24",label:"Main game state"},
+{key:"calvins_city_bets_v1",label:"Sports Bets"},
+{key:"calvins_city_bets_pending_import_v1",label:"Pending Bets"},
+{key:"calvins_city_stock_market_v1",label:"Stock Market"},
+{key:"calvins_city_share_ownership_ledger_v1",label:"Share Ownership Ledger"},
+{key:"calvins_city_business_ownership_v1",label:"Business Ownership"},
+{key:"calvins_city_calbank_v1",label:"CalBank"}
+];
+function fnv1a(str){
+var h=2166136261;
+for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}
+return (h>>>0).toString(16).padStart(8,"0");
+}
+function count(obj,key){
+return obj&&Array.isArray(obj[key])?obj[key].length:null;
+}
+function requireCount(lines,label,actual,expected){
+if(actual!==expected)throw new Error(label+" expected "+expected+" entries; found "+actual);
+lines.push("PASS — "+label+": "+actual+" entries");
+}
+function verifyStructures(parsed,lines){
+var main=parsed.calvins_city_v24;
+if(!main||typeof main!=="object")throw new Error("Main game state root is not an object.");
+var season=Number(main.year??main.season??main.currentSeason);
+requireCount(lines,"Season number",season,52);
+requireCount(lines,"Citizens",count(main,"citizens"),70);
+if(!main.records||typeof main.records!=="object")throw new Error("Main state records object is missing.");
+requireCount(lines,"Permanent game records",count(main.records,"gameRecords"),148);
+requireCount(lines,"Retired players",count(main.records,"retiredPlayers"),57);
+requireCount(lines,"Embedded financialTransactions",count(main,"financialTransactions"),8504);
+requireCount(lines,"Embedded playerLedgerTransactions",count(main,"playerLedgerTransactions"),7211);
+requireCount(lines,"Embedded businessCashLedger",count(main,"businessCashLedger"),8087);
+
+var bets=parsed.calvins_city_bets_v1;
+requireCount(lines,"Sports Bets games",count(bets,"games"),8782);
+requireCount(lines,"Sports Bets bets",count(bets,"bets"),3385);
+requireCount(lines,"Sports Bets interest accruals",count(bets,"sportsBetsInterestAccruals"),121);
+requireCount(lines,"Sports Bets cash transactions",count(bets,"sportsBetsCashTransactions"),6889);
+requireCount(lines,"Sports Bets debt issues",count(bets,"sportsBetsDebtIssues"),0);
+
+var pending=parsed.calvins_city_bets_pending_import_v1;
+requireCount(lines,"Pending Bets records",Array.isArray(pending)?pending.length:count(pending,"records"),120);
+
+var market=parsed.calvins_city_stock_market_v1;
+requireCount(lines,"Stock Market transactions",count(market,"transactions"),157);
+requireCount(lines,"Stock Market annual reports",count(market,"annualReports"),230);
+
+var shares=parsed.calvins_city_share_ownership_ledger_v1;
+requireCount(lines,"Share Ownership Ledger records",Array.isArray(shares)?shares.length:count(shares,"records"),140);
+
+var ownership=parsed.calvins_city_business_ownership_v1;
+if(!ownership||!Array.isArray(ownership.offers)||!Array.isArray(ownership.transactions))throw new Error("Business Ownership offers/transactions arrays are missing.");
+lines.push("PASS — Business Ownership offers and transactions arrays: "+ownership.offers.length+" / "+ownership.transactions.length);
+
+var bank=parsed.calvins_city_calbank_v1;
+["accounts","ledger","debts","debtLedger","fedCapitalLedger","investmentLedger","customerLoans","customerLoanLedger"].forEach(function(k){
+ if(!Array.isArray(bank&&bank[k]))throw new Error("CalBank collection is missing or invalid: "+k);
+});
+var bankCounts={accounts:16,ledger:164,debts:1,debtLedger:12,fedCapitalLedger:6,investmentLedger:18,customerLoans:12,customerLoanLedger:30};
+Object.keys(bankCounts).forEach(function(k){requireCount(lines,"CalBank "+k,count(bank,k),bankCounts[k]);});
+}
+button.addEventListener("click",async function(){
+button.disabled=true;status.textContent="Reading seven live and staged datasets; no writes will be performed…";details.textContent="";
+var lines=[],parsed={},pass=0,fail=0,api=window.CalvinsCityIDB;
+try{
+ if(!api||typeof api.read!=="function")throw new Error("Central IndexedDB read service is unavailable.");
+ lines.push("PASS — central IndexedDB service available ("+api.version+")");pass++;
+ for(var ds of datasets){
+  var staged=await api.read(ds.key);
+  if(!staged||typeof staged.raw!=="string")throw new Error(ds.label+": staged IndexedDB record is missing or raw content is invalid.");
+  if(staged.rawLength!==staged.raw.length)throw new Error(ds.label+": staged rawLength metadata does not match stored content.");
+  var liveRaw=localStorage.getItem(ds.key);
+  if(typeof liveRaw!=="string")throw new Error(ds.label+": current localStorage record is missing.");
+  var liveObj,stagedObj;
+  try{liveObj=JSON.parse(liveRaw);}catch(e){throw new Error(ds.label+": live JSON parse failed: "+e.message);}
+  try{stagedObj=JSON.parse(staged.raw);}catch(e){throw new Error(ds.label+": staged JSON parse failed: "+e.message);}
+  var liveHash=fnv1a(liveRaw),stagedHash=fnv1a(staged.raw);
+  if(liveRaw!==staged.raw)throw new Error(ds.label+": exact content mismatch despite lengths live="+liveRaw.length+", staged="+staged.raw.length+"; hashes live="+liveHash+", staged="+stagedHash+". No data was changed.");
+  if(liveHash!==stagedHash)throw new Error(ds.label+": checksum mismatch after exact string match (unexpected).");
+  parsed[ds.key]=liveObj;
+  lines.push("PASS — "+ds.label+": exact character-for-character match; "+liveRaw.length.toLocaleString()+" characters; checksum "+liveHash);
+  pass++;
+ }
+ verifyStructures(parsed,lines);
+ pass+=22;
+ lines.push("PASS — all seven datasets parsed and matched exactly.");
+ lines.push("SAFETY — read-only check. No localStorage values, IndexedDB records, game state, or Permanent Database records were written or changed.");
+ status.textContent="FULL SEVEN-DATASET EXACT PARITY PASSED — all staged data matches live storage. Gameplay remains on existing storage.";
+ status.style.color="#34d399";
+}catch(e){
+ lines.push("FAIL/STOP — "+String(e&&e.message||e));
+ lines.push("SAFETY — no writes were performed by this check. Do not enable shadow writes or redirect gameplay.");
+ status.textContent="FULL PARITY CHECK NEEDS REVIEW — do not connect gameplay.";
+ status.style.color="#f87171";
+}finally{
+ details.textContent=lines.join("\n");
+ button.disabled=false;
+}
+});
+})();
+</script>
+
 <section class="card" id="ccTimestampReconcile" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
 <h2 style="margin-top:0;">IndexedDB Migration — Timestamp-Only Staging Reconciliation</h2>
 <p>This controlled repair updates only two timestamp fields in the dedicated liveRecords staging copies, using the current localStorage timestamps as the source of truth. Before writing, it confirms that every other field matches. It does not modify localStorage, the original records snapshot store, gameplay, or the Permanent Database archive.</p>
@@ -3692,7 +3811,7 @@ finally{details.textContent=lines.join("\n");button.disabled=false;}
 <pre id="ccTimestampReconcileDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.180 — guarded timestamp-only reconciliation in liveRecords; never writes live game storage. */
+/* 5.8.181 — guarded timestamp-only reconciliation in liveRecords; never writes live game storage. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunTimestampReconcile");
