@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.158: Read-only IndexedDB migration preparation and source-data verification. -->
+<!-- CALVIN'S CITY — VERSION 5.8.159: Read-only IndexedDB migration preparation and source-data verification. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,9 +36,9 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.158">
+<meta name="calvins-city-build" content="5.8.159">
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.158",
+diagnosticVersion: "5.8.159",
  
 time: new Date().toISOString(),
  
@@ -185,7 +185,7 @@ record("startup checkpoint", "Record counters are both zero after DOM ready; thi
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* CALVIN'S CITY v5.8.101 — iOS Home Screen resume/repaint recovery.
  
@@ -305,7 +305,7 @@ window.__calvinsCityIOSResumeRecovery={version:"5.8.101",status:"installed",reas
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* CALVIN'S CITY 5.1.7
 — transparent synchronous compression for large localStorage
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.158",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.159",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.158",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.159",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.158</title>
+<title>Calvin's City 5.8.159</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.158</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.159</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -2286,7 +2286,7 @@ r-radius:8px;border:1px solid #64748b"></div>
  
 </div></div>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 5.8.16: Robust popup controls for all Federal Reserve tools. */
  
@@ -2672,7 +2672,7 @@ ype="button" class="goodbtn" id="createFreeAgentButton" onclick="createOffseason
 </div>
  
 </section>
-<script>
+<script type="application/x-cc-deferred">
 /* 5.8.150: Market hub tabs are presentation-only; existing market and CalBank data engines remain unchanged. */
 (function(){
 "use strict";
@@ -2968,7 +2968,7 @@ siness records. Displaying a deal here does not change player cash in the Citize
  
 </div></div>
  
-<script>
+<script type="application/x-cc-deferred">
  
 (function(){
  
@@ -3346,7 +3346,7 @@ if(document.readyState!=="loading")bindTeamModal();
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* v5.8.77 EARLY UI RESCUE
  
@@ -3424,7 +3424,7 @@ window.__calvinsCityEarlyUIRescue={version:"5.8.77",showScreen:show};
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 (function(){
  
@@ -14657,7 +14657,7 @@ calls the existing global openTeamPage() directly. */
  
 ashaudit">Cash Audit &amp; Corrections</button></div><div id="shareOwnershipLedgerBody" class="log" style="max-height:55dvh;overflow:auto"></div><button id="shareOwnershipLedgerRefresh" type="button" class="goodbtn">Refresh &amp; Reconcile</button><button id="shareOwnershipLedgerClose" type="button" class="secondary">Close</button></div></div><div id="teamPageModal" class="modal"><div class="modalbox"><h2 id="teamPageTitle">Team</h2><div id="teamPageBody" class="log"></div><button id="teamPageBasketball" type="button" class="goodbtn">🏀 Open Basketball</button><button id="teamPageClose" class="secondary">Close</button></div></div>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 4.17.105: Reliable Contract Verify modal controls.
  
@@ -14895,7 +14895,7 @@ setCityTab(tab);
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 5.8.47 CalBank deposit foundation.
  
@@ -15553,7 +15553,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 5.8.7: Guarded once-per-season tax collection after approval and fresh live-balance verification. */
  
@@ -15878,7 +15878,7 @@ const details=$("fedTaxAssessmentDetails");if(details){let html='<table style="w
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 5.8.9: Fed selects one security type per offering; preserves Treasury ledger and maturity safeguards. */
  
@@ -16231,7 +16231,7 @@ String((found.rates&&found.rates[Number(found.term)])||0);/* Security selector v
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 5.8.15: Read-only Federal Reserve consolidated cash ledger. Does not mutate game state. */
  
@@ -16366,7 +16366,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 4.17.105: Registered shoe-company ownership and cash details. */
  
@@ -16721,7 +16721,7 @@ p class="tiny">Choose a percentage you own and have available. The stake is rese
  
 </div>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 4.23.1: Direct-sale business ownership marketplace.
  
@@ -17318,7 +17318,7 @@ else initOwnershipMarketplace();
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 4.24.6: User-provided shareholder registers and Team Arena public stake display; independent share-trading stock market.
  
@@ -19850,7 +19850,7 @@ if(stockScript&&!window.__calCityStockMarketLateRetry){window.__calCityStockMark
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 4.24.36: TV broadcasting contracts are relocated into the TV Company modal on DOM ready. */
  
@@ -20071,7 +20071,7 @@ tric{min-width:0;box-sizing:border-box;overflow-wrap:anywhere}
  
 \n<!-- 4.28.77: Independent mobile-safe team arena navigation and recovery. -->
  
-<script>
+<script type="application/x-cc-deferred">
  
 (function(){
  
@@ -20162,7 +20162,7 @@ open(key,event);
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 4.29.21 — Quota-safe import. Recovery snapshot stays in memory to avoid duplicating localStorage usage. */
  
@@ -20641,7 +20641,7 @@ setTimeout(()=>location.reload(),250);
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* CALVIN'S CITY 5.8.109 — Retail Stores, CalSims consumer economy, and Legacy Shoes.
  
@@ -21694,7 +21694,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* Calvin's City 5.4.0 — Casino financing foundation.
  
@@ -22181,7 +22181,7 @@ const lender=$('casinoLender');if(lender)lender.addEventListener('change',update
  
 </style>
  
-<script>
+<script type="application/x-cc-deferred">
  
 (function(){
  
@@ -22818,7 +22818,7 @@ und:linear-gradient(145deg,#fff,#e6e7ed);border:2px solid #d02d43}.s-lemon{borde
  
 </style>
  
-<script id="lucy7sGameLogic">
+<script type="application/x-cc-deferred" id="lucy7sGameLogic">
  
 (function(){
  
@@ -22862,7 +22862,7 @@ const sel=$('lucyCitizen');if(sel)sel.addEventListener('change',update);
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 5.8.16: Read-only Federal Reserve Board economic review with explicit, append-only season snapshots. */
  
@@ -23138,7 +23138,7 @@ overflow-x: auto !important;
  
 </style>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* 5.8.63: CalBank loan maturity alerts and capped overdue APR adjustment.
  
@@ -23392,7 +23392,7 @@ window.renderCalBankCustomerLoans=render;
  
 </script>
  
-<script id="ccStartupRecovery5876">
+<script type="application/x-cc-deferred" id="ccStartupRecovery5876">
  
 /* CALVIN'S CITY 5.8.86 — bank tab navigation; startup/navigation fail-safe; no synchronous storage migration.
  
@@ -23563,7 +23563,7 @@ e.colno||"?")+". Saved records were not modified.";
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* v5.8.64 — CalBank stock-only investment portfolio.
  
@@ -23682,7 +23682,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
  
 /* v5.8.85 — Unified CalBank ledger view. Read-only aggregation; source ledgers remain authoritative. */
  
@@ -23778,7 +23778,7 @@ window.renderCalBankMasterLedger=render;
  
 </script>
  
-<script>
+<script type="application/x-cc-deferred">
 /* CALVIN'S CITY 5.8.151 — CLEAN PERMANENT HISTORY ARCHIVE.
 Uses a new isolated IndexedDB database. It copies and verifies permanent history
 from the current game save. It never changes, deletes, or redirects localStorage.
@@ -23915,8 +23915,8 @@ button.addEventListener("click",saveAndVerify);
 })();
 </script>
  
-<script>
-/* 5.8.158 — Migration preparation only. Explicit user action; source localStorage is read-only. */
+<script type="application/x-cc-deferred">
+/* 5.8.159 — Migration preparation only. Explicit user action; source localStorage is read-only. */
 (function(){
 "use strict";
 var button=document.getElementById("ccPrepareIndexedDbMigration");
@@ -23940,18 +23940,18 @@ status.textContent="Copy written. Verifying every record against its source…";
 var verified=0;for(var j=0;j<items.length;j++){var got=await request(db.transaction("records","readonly").objectStore("records").get(items[j].key));if(!got||got.snapshotId!==snapshotId||got.raw!==items[j].raw||got.checksum!==items[j].checksum)throw new Error("Verification mismatch for storage key: "+items[j].key);verified++;}
 var main=items.find(function(x){return x.key==="calvins_city_v24";});var season="not detected",games="not detected",retired="not detected",citizens="not detected";
 if(main&&main.validJson&&main.parsed){var st=main.parsed;season=String(st.year==null?"not detected":st.year);games=String(st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords.length:"not detected");retired=String(st.records&&Array.isArray(st.records.retiredPlayers)?st.records.retiredPlayers.length:"not detected");citizens=String(Array.isArray(st.citizens)?st.citizens.length:"not detected");}
-var meta={id:snapshotId,appVersion:"5.8.158",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
+var meta={id:snapshotId,appVersion:"5.8.159",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
 await request(db.transaction("metadata","readwrite").objectStore("metadata").put(meta));
 status.textContent="SUCCESS — copied and verified "+verified+" of "+items.length+" records ("+total.toLocaleString()+" characters). Detected season: "+season+"; game records: "+games+"; retired players: "+retired+"; citizens: "+citizens+". Original localStorage data and Permanent Database archive were not changed. This is a preparation copy; the game still runs from its existing storage.";
-window.__calvinsCityIndexedDbPrep={version:"5.8.158",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
+window.__calvinsCityIndexedDbPrep={version:"5.8.159",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
 }catch(err){status.textContent="PREPARATION FAILED — "+String(err&&err.message||err)+". Original game storage was not intentionally changed.";console.error("IndexedDB migration preparation failed:",err);}finally{if(db)try{db.close();}catch(_){}button.disabled=false;}}
 button.addEventListener("click",prepare);
 })();
 </script>
  
  
-<script>
-/* 5.8.158 — Read-only IndexedDB readback verification. No game-state writes. */
+<script type="application/x-cc-deferred">
+/* 5.8.159 — Read-only IndexedDB readback verification. No game-state writes. */
 (function(){
 "use strict";
 var button=document.getElementById("ccVerifyIndexedDbReadback");
@@ -24015,7 +24015,7 @@ status.textContent=ok
 ?"SUCCESS — read back and independently verified "+verified+" of "+expectedCount+" records. Season "+season+" data is readable from IndexedDB. No game or source data was changed."
 :"CHECK FAILED — "+failed.length+" issue(s) found. Do not switch the game to IndexedDB. The original game storage was not changed.";
 status.style.color=ok?"#34d399":"#f87171";
-window.__calvinsCityIndexedDbReadback={version:"5.8.158",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
+window.__calvinsCityIndexedDbReadback={version:"5.8.159",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
 }catch(err){status.textContent="READBACK FAILED — "+String(err&&err.message||err)+". No source data was changed.";status.style.color="#f87171";details.textContent="No changes were made to localStorage, the game state, or the Permanent Database archive.";console.error("IndexedDB readback verification failed:",err);}
 finally{if(db)try{db.close();}catch(_){}button.disabled=false;}
 }
@@ -24024,8 +24024,8 @@ button.addEventListener("click",verify);
 </script>
  
  
-<script>
-/* 5.8.158 — Read-only startup readiness dry run. Does not connect live startup. */
+<script type="application/x-cc-deferred">
+/* 5.8.159 — Read-only startup readiness dry run. Does not connect live startup. */
 (function(){
 "use strict";
 var btn=document.getElementById("ccRunIndexedDbStartupReadiness");
@@ -24078,10 +24078,79 @@ lines.push("","Startup safety note: this was a read-only dry run. The current ap
 output.textContent=lines.join("\n");
 status.textContent=pass?"READINESS CHECK PASSED — the saved data has the expected game-state structure and required companion datasets. This is not yet proof that all gameplay modules can run from IndexedDB.":"READINESS CHECK NEEDS REVIEW — one or more required checks did not pass. Do not switch startup to IndexedDB.";
 status.style.color=pass?"#34d399":"#fbbf24";
-window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.158",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
+window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.159",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
 }catch(e){status.textContent="READINESS CHECK FAILED — "+String(e&&e.message||e)+". No data was changed.";status.style.color="#f87171";output.textContent="No changes were made to localStorage, IndexedDB records, or the Permanent Database archive.";console.error(e);}
 finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 });
+})();
+</script>
+ 
+ 
+<script>
+/* 5.8.159 — IndexedDB-first startup bridge test.
+  Reads the verified snapshot before running app scripts. Writes remain mirrored to
+  the existing localStorage recovery layer. No IndexedDB snapshot writes occur. */
+(function(){
+"use strict";
+var DB_NAME="CalvinsCityStorageV2";
+var overlay=document.createElement("div");
+overlay.id="ccIndexedDbStartupGate";
+overlay.style.cssText="position:fixed;inset:0;z-index:2147483647;background:#11151d;color:#eef2f7;display:flex;align-items:center;justify-content:center;padding:28px;font:600 16px/1.5 system-ui;text-align:center";
+overlay.textContent="Calvin’s City is checking the verified IndexedDB save before startup…";
+document.body.appendChild(overlay);
+function openDb(){return new Promise(function(resolve,reject){var r=indexedDB.open(DB_NAME);r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("Unable to open IndexedDB."));};r.onblocked=function(){reject(new Error("IndexedDB is blocked by another open tab."));};});}
+function req(r){return new Promise(function(resolve,reject){r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("IndexedDB request failed."));};});}
+function hash(t){var h=2166136261;for(var i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return("00000000"+(h>>>0).toString(16)).slice(-8);}
+function runScripts(){
+var nodes=Array.prototype.slice.call(document.querySelectorAll('script[type="application/x-cc-deferred"]'));
+nodes.forEach(function(old){
+var s=document.createElement("script");
+if(old.id)s.id=old.id;
+s.text=old.textContent||"";
+old.parentNode.replaceChild(s,old);
+});
+overlay.remove();
+window.__calvinsCityStartupBridge={version:"5.8.159",mode:"indexeddb-snapshot-read/localstorage-write-through",status:"scripts-released"};
+}
+async function start(){
+var db;
+try{
+db=await openDb();
+if(!db.objectStoreNames.contains("metadata")||!db.objectStoreNames.contains("records"))throw new Error("Migration database stores are missing.");
+var metas=await req(db.transaction("metadata","readonly").objectStore("metadata").getAll());
+if(!metas.length)throw new Error("No verified migration snapshot exists. Startup has been stopped to avoid loading a default season.");
+metas.sort(function(a,b){return String(b.createdAt||"").localeCompare(String(a.createdAt||""));});
+var meta=metas[0];
+if(meta.verifiedCount!==meta.recordCount||!Array.isArray(meta.keys)||!meta.keys.length)throw new Error("The latest snapshot metadata is incomplete or not fully verified.");
+var values=new Map();
+for(var i=0;i<meta.keys.length;i++){
+var k=meta.keys[i];
+var row=await req(db.transaction("records","readonly").objectStore("records").get(k.key));
+if(!row||row.snapshotId!==meta.id||typeof row.raw!=="string"||row.rawLength!==row.raw.length||row.checksum!==k.checksum||hash(row.raw)!==k.checksum)throw new Error("Snapshot validation failed for "+k.key+".");
+if(k.validJson){try{JSON.parse(row.raw);}catch(e){throw new Error("Stored JSON is invalid for "+k.key+".");}}
+values.set(k.key,row.raw);
+}
+var main=values.get("calvins_city_v24");
+if(!main)throw new Error("The main game state is missing from the IndexedDB snapshot.");
+var state=JSON.parse(main);
+if(!state||Number(state.year)!==52||!Array.isArray(state.citizens)||!state.records||!Array.isArray(state.records.gameRecords)||!Array.isArray(state.records.retiredPlayers))throw new Error("The main game state failed required Season 52 structure checks.");
+if(state.citizens.length!==70||state.records.gameRecords.length!==148||state.records.retiredPlayers.length!==57)throw new Error("Season 52 counts do not match the verified checkpoint.");
+var nativeGet=Storage.prototype.getItem,nativeSet=Storage.prototype.setItem,nativeRemove=Storage.prototype.removeItem;
+Storage.prototype.getItem=function(key){key=String(key);if(this===window.localStorage&&values.has(key))return values.get(key);return nativeGet.call(this,key);};
+Storage.prototype.setItem=function(key,value){key=String(key);value=String(value);if(this===window.localStorage&&values.has(key))values.set(key,value);return nativeSet.call(this,key,value);};
+Storage.prototype.removeItem=function(key){key=String(key);if(this===window.localStorage&&values.has(key))values.delete(key);return nativeRemove.call(this,key);};
+window.__calvinsCityStartupBridge={version:"5.8.159",mode:"indexeddb-snapshot-read/localstorage-write-through",status:"snapshot-loaded",snapshotId:meta.id,season:state.year,records:meta.recordCount,characters:meta.totalCharacters};
+overlay.textContent="IndexedDB Season 52 verified. Starting Calvin’s City…";
+if(db)db.close();
+runScripts();
+}catch(err){
+if(db)try{db.close();}catch(_){}
+overlay.textContent="STARTUP SAFETY STOP — "+String(err&&err.message||err)+" Your existing saved data has not been changed. Do not clear browser storage. Reload the previous working version or contact support.";
+window.__calvinsCityStartupBridge={version:"5.8.159",status:"blocked",error:String(err&&err.message||err)};
+console.error("Calvin’s City IndexedDB startup bridge stopped safely:",err);
+}
+}
+start();
 })();
 </script>
  
