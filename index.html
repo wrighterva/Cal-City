@@ -515,11 +515,11 @@ let keysChecked=0;
 
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
 
-window.__calvinsCityStorageCompression={version:"5.8.163",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.164",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
 
 }catch(err){
 
-window.__calvinsCityStorageCompression={version:"5.8.163",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.164",status:"failed",message:String(err&&err.message||err)};
 
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.163</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.164</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -2939,6 +2939,108 @@ try{
 });
 })();
 </script>
+
+<section class="card" id="ccIndexedDbCompatPrototype" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+ <h2 style="margin-top:0;">IndexedDB Migration — Compatibility Adapter Prototype</h2>
+ <p>This isolated prototype tests the bridge pattern required by the existing synchronous game code: preload an IndexedDB snapshot into a synchronous memory cache, serve synchronous get/set/remove calls from that cache, then explicitly flush queued changes to IndexedDB and verify the committed values. It uses temporary test keys only. It does not redirect game storage or change the live game.</p>
+ <button id="ccRunCompatPrototype" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Compatibility Adapter Prototype</button>
+ <p id="ccCompatPrototypeStatus" aria-live="polite">Waiting for prototype test.</p>
+ <pre id="ccCompatPrototypeDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.164 — isolated synchronous-cache / asynchronous-durability prototype.
+  No monkey-patching of Storage and no game-key redirection. */
+(function(){
+"use strict";
+var btn=document.getElementById("ccRunCompatPrototype");
+var status=document.getElementById("ccCompatPrototypeStatus");
+var details=document.getElementById("ccCompatPrototypeDetails");
+if(!btn||!status||!details)return;
+var DB="CalvinsCityStorageV2",STORE="records";
+function request(req){return new Promise(function(resolve,reject){req.onsuccess=function(){resolve(req.result);};req.onerror=function(){reject(req.error||new Error("IndexedDB request failed"));};});}
+function txComplete(tx){return new Promise(function(resolve,reject){tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error||new Error("IndexedDB transaction failed"));};tx.onabort=function(){reject(tx.error||new Error("IndexedDB transaction aborted"));};});}
+function openDb(){return new Promise(function(resolve,reject){var r=indexedDB.open(DB);r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("Could not open migration database"));};r.onblocked=function(){reject(new Error("Database open blocked; close other Calvin's City tabs."));};});}
+function makeAdapter(db){
+var cache=new Map(),pending=Promise.resolve(),failure=null,closed=false;
+return {
+ load:async function(){
+  var tx=db.transaction(STORE,"readonly"),done=txComplete(tx),rows=await request(tx.objectStore(STORE).getAll());await done;
+  rows.forEach(function(row){if(row&&typeof row.key==="string"&&typeof row.raw==="string")cache.set(row.key,row.raw);});
+  return rows.length;
+ },
+ getItem:function(key){if(closed)throw new Error("Adapter is closed.");key=String(key);return cache.has(key)?cache.get(key):null;},
+ setItem:function(key,value){
+  if(closed)throw new Error("Adapter is closed.");
+  key=String(key);value=String(value);cache.set(key,value);
+  pending=pending.then(async function(){
+   var tx=db.transaction(STORE,"readwrite"),done=txComplete(tx);
+   tx.objectStore(STORE).put({key:key,snapshotId:"__compat_test__",source:"compatibility-prototype",raw:value,rawLength:value.length,checksum:"prototype"});
+   await done;
+  }).catch(function(e){failure=e;throw e;});
+ },
+ removeItem:function(key){
+  if(closed)throw new Error("Adapter is closed.");
+  key=String(key);cache.delete(key);
+  pending=pending.then(async function(){
+   var tx=db.transaction(STORE,"readwrite"),done=txComplete(tx);tx.objectStore(STORE).delete(key);await done;
+  }).catch(function(e){failure=e;throw e;});
+ },
+ flush:async function(){await pending;if(failure)throw failure;},
+ close:function(){closed=true;cache.clear();}
+};
+}
+btn.addEventListener("click",async function(){
+btn.disabled=true;status.textContent="Loading verified IndexedDB data and testing isolated adapter…";details.textContent="";
+var db=null,adapter=null,lines=[],passed=0,keys=["__cc_compat_probe_a__","__cc_compat_probe_b__","__cc_compat_probe_large__"];
+try{
+ if(!window.indexedDB)throw new Error("IndexedDB is unavailable.");
+ db=await openDb();
+ if(!db.objectStoreNames.contains(STORE))throw new Error("The records object store is missing.");
+ adapter=makeAdapter(db);
+ var count=await adapter.load();
+ lines.push("PASS — adapter preloaded "+count+" IndexedDB records into its private memory cache");passed++;
+ var a=adapter.getItem("calvins_city_v24");
+ if(!a||a.length<1000)throw new Error("Main game snapshot was not available through the synchronous cache.");
+ lines.push("PASS — synchronous getItem returned the Season 52 main-state snapshot");passed++;
+ var large="compatibility-payload-"+("0123456789abcdef".repeat(8192));
+ adapter.setItem(keys[0],"first-value");
+ adapter.setItem(keys[1],"second-value");
+ adapter.setItem(keys[2],large);
+ if(adapter.getItem(keys[0])!=="first-value"||adapter.getItem(keys[1])!=="second-value"||adapter.getItem(keys[2])!==large)throw new Error("Synchronous cache reads did not reflect queued writes immediately.");
+ lines.push("PASS — synchronous setItem/getItem behavior worked before IndexedDB flush");passed++;
+ await adapter.flush();
+ var tx=db.transaction(STORE,"readonly"),done=txComplete(tx),os=tx.objectStore(STORE);
+ var saved=await Promise.all(keys.map(function(k){return request(os.get(k));}));await done;
+ if(!saved[0]||saved[0].raw!=="first-value"||!saved[1]||saved[1].raw!=="second-value"||!saved[2]||saved[2].raw!==large)throw new Error("Flushed values did not read back exactly.");
+ lines.push("PASS — queued writes flushed and all three values read back from IndexedDB");passed++;
+ adapter.setItem(keys[0],"updated-value");await adapter.flush();
+ if(adapter.getItem(keys[0])!=="updated-value")throw new Error("Synchronous cache did not reflect update.");
+ var check=await request(db.transaction(STORE,"readonly").objectStore(STORE).get(keys[0]));
+ if(!check||check.raw!=="updated-value")throw new Error("Updated value was not durable in IndexedDB.");
+ lines.push("PASS — update was committed and independently read back");passed++;
+ adapter.removeItem(keys[0]);adapter.removeItem(keys[1]);adapter.removeItem(keys[2]);await adapter.flush();
+ var cleanTx=db.transaction(STORE,"readonly"),cleanDone=txComplete(cleanTx),cleanStore=cleanTx.objectStore(STORE);
+ var remain=await Promise.all(keys.map(function(k){return request(cleanStore.get(k));}));await cleanDone;
+ if(remain.some(function(x){return x!==undefined;}))throw new Error("Temporary compatibility records remain after cleanup.");
+ lines.push("PASS — removeItem queued deletes, committed them, and readback confirmed cleanup");passed++;
+ lines.push("PASS — original seven snapshot keys and all game/localStorage calls were left untouched");passed++;
+ status.textContent="COMPATIBILITY PROTOTYPE PASSED — "+passed+" checks. No game storage was redirected.";
+ status.style.color="#34d399";
+}catch(e){
+ lines.push("FAIL — "+String(e&&e.message||e));
+ try{if(db&&db.objectStoreNames.contains(STORE)){var c=db.transaction(STORE,"readwrite"),cs=c.objectStore(STORE);keys.forEach(function(k){cs.delete(k);});await txComplete(c);}}catch(cleanErr){lines.push("CLEANUP WARNING — "+String(cleanErr&&cleanErr.message||cleanErr));}
+ status.textContent="COMPATIBILITY PROTOTYPE FAILED — do not enable IndexedDB game storage.";
+ status.style.color="#f87171";
+}finally{
+ details.textContent=lines.join("\n");
+ if(adapter)adapter.close();
+ if(db)try{db.close();}catch(_){}
+ btn.disabled=false;
+}
+});
+})();
+</script>
+
 </main>
 
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button></nav>
@@ -24008,10 +24110,10 @@ status.textContent="Copy written. Verifying every record against its source…";
 var verified=0;for(var j=0;j<items.length;j++){var got=await request(db.transaction("records","readonly").objectStore("records").get(items[j].key));if(!got||got.snapshotId!==snapshotId||got.raw!==items[j].raw||got.checksum!==items[j].checksum)throw new Error("Verification mismatch for storage key: "+items[j].key);verified++;}
 var main=items.find(function(x){return x.key==="calvins_city_v24";});var season="not detected",games="not detected",retired="not detected",citizens="not detected";
 if(main&&main.validJson&&main.parsed){var st=main.parsed;season=String(st.year==null?"not detected":st.year);games=String(st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords.length:"not detected");retired=String(st.records&&Array.isArray(st.records.retiredPlayers)?st.records.retiredPlayers.length:"not detected");citizens=String(Array.isArray(st.citizens)?st.citizens.length:"not detected");}
-var meta={id:snapshotId,appVersion:"5.8.163",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
+var meta={id:snapshotId,appVersion:"5.8.164",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
 await request(db.transaction("metadata","readwrite").objectStore("metadata").put(meta));
 status.textContent="SUCCESS — copied and verified "+verified+" of "+items.length+" records ("+total.toLocaleString()+" characters). Detected season: "+season+"; game records: "+games+"; retired players: "+retired+"; citizens: "+citizens+". Original localStorage data and Permanent Database archive were not changed. This is a preparation copy; the game still runs from its existing storage.";
-window.__calvinsCityIndexedDbPrep={version:"5.8.163",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
+window.__calvinsCityIndexedDbPrep={version:"5.8.164",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
 }catch(err){status.textContent="PREPARATION FAILED — "+String(err&&err.message||err)+". Original game storage was not intentionally changed.";console.error("IndexedDB migration preparation failed:",err);}finally{if(db)try{db.close();}catch(_){}button.disabled=false;}}
 button.addEventListener("click",prepare);
 })();
@@ -24083,7 +24185,7 @@ status.textContent=ok
 ?"SUCCESS — read back and independently verified "+verified+" of "+expectedCount+" records. Season "+season+" data is readable from IndexedDB. No game or source data was changed."
 :"CHECK FAILED — "+failed.length+" issue(s) found. Do not switch the game to IndexedDB. The original game storage was not changed.";
 status.style.color=ok?"#34d399":"#f87171";
-window.__calvinsCityIndexedDbReadback={version:"5.8.163",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
+window.__calvinsCityIndexedDbReadback={version:"5.8.164",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
 }catch(err){status.textContent="READBACK FAILED — "+String(err&&err.message||err)+". No source data was changed.";status.style.color="#f87171";details.textContent="No changes were made to localStorage, the game state, or the Permanent Database archive.";console.error("IndexedDB readback verification failed:",err);}
 finally{if(db)try{db.close();}catch(_){}button.disabled=false;}
 }
@@ -24146,7 +24248,7 @@ lines.push("","Startup safety note: this was a read-only dry run. The current ap
 output.textContent=lines.join("\n");
 status.textContent=pass?"READINESS CHECK PASSED — the saved data has the expected game-state structure and required companion datasets. This is not yet proof that all gameplay modules can run from IndexedDB.":"READINESS CHECK NEEDS REVIEW — one or more required checks did not pass. Do not switch startup to IndexedDB.";
 status.style.color=pass?"#34d399":"#fbbf24";
-window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.163",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
+window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.164",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
 }catch(e){status.textContent="READINESS CHECK FAILED — "+String(e&&e.message||e)+". No data was changed.";status.style.color="#f87171";output.textContent="No changes were made to localStorage, IndexedDB records, or the Permanent Database archive.";console.error(e);}
 finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 });
