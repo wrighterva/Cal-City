@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.192: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
+<!-- CALVIN'S CITY — VERSION 5.8.193: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.192">
+<meta name="calvins-city-build" content="5.8.193">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.192",
+diagnosticVersion: "5.8.193",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.192",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.193",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.192",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.193",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.192</title>
+<title>Calvin's City 5.8.193</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.192</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.193</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -3236,7 +3236,7 @@ details.textContent=lines.join("\n");if(db)try{db.close();}catch(_){}btn.disable
 <pre id="ccExistingLiveStoreVerify183Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.192 — compatibility adapter prototype startup preload; no gameplay cutover. */
+/* 5.8.193 — compatibility adapter prototype startup preload; no gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunExistingLiveStoreVerify183"),status=document.getElementById("ccExistingLiveStoreVerify183Status"),details=document.getElementById("ccExistingLiveStoreVerify183Details");
@@ -3854,7 +3854,79 @@ finally{details.textContent=lines.join("\n");button.disabled=false;}
 <button id="ccRunFullParity182" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Seven-Dataset Non-Timestamp Parity Check</button>
 <p id="ccFullParity182Status" aria-live="polite">Waiting for seven-dataset parity check.</p>
 <pre id="ccFullParity182Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section><section class="card" id="ccStartupShadowLoadRehearsal" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB Migration — Startup Shadow-Load Rehearsal</h2>
+<p>Performs a single read-only IndexedDB transaction to load all seven authoritative datasets into a temporary in-memory shadow object. Validates each record, compares it with the current localStorage copy (ignoring only the two approved updatedAt timestamps), and checks the Season 52 integrity counts. It does not replace game state, redirect storage, write records, or change startup behavior.</p>
+<button id="ccRunStartupShadowLoad" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Startup Shadow-Load Rehearsal</button>
+<p id="ccStartupShadowStatus" aria-live="polite">Waiting for shadow-load rehearsal.</p>
+<pre id="ccStartupShadowDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
+<script>
+/* 5.8.193 — manual read-only startup shadow-load rehearsal. No gameplay cutover. */
+(function(){
+"use strict";
+var button=document.getElementById("ccRunStartupShadowLoad");
+var status=document.getElementById("ccStartupShadowStatus");
+var details=document.getElementById("ccStartupShadowDetails");
+if(!button||!status||!details)return;
+var keys=["calvins_city_v24","calvins_city_bets_v1","calvins_city_bets_pending_import_v1","calvins_city_stock_market_v1","calvins_city_share_ownership_ledger_v1","calvins_city_business_ownership_v1","calvins_city_calbank_v1"];
+var labels=["Main game state","Sports Bets","Pending Bets","Stock Market","Share Ownership Ledger","Business Ownership","CalBank"];
+function normalize(value,path,allowRootTimestamp){
+if(Array.isArray(value))return value.map(function(v,i){return normalize(v,path+"["+i+"]",allowRootTimestamp);});
+if(value&&typeof value==="object"){
+ var out={};
+ Object.keys(value).sort().forEach(function(k){
+  var next=path?path+"."+k:k;
+  if((next==="businessOwnershipRegistry.updatedAt"||next==="updatedAt")&&typeof value[k]==="string")return;
+  out[k]=normalize(value[k],next);
+ });
+ return out;
+}
+return value;
+}
+function stable(value,allowRootTimestamp){return JSON.stringify(normalize(value,"",!!allowRootTimestamp));}
+function checksum(raw){var h=2166136261;for(var i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}return "fnv1a:"+(h>>>0).toString(16).padStart(8,"0");}
+function arr(v){return Array.isArray(v)?v.length:null;}
+button.addEventListener("click",async function(){
+button.disabled=true;status.textContent="Opening one read-only IndexedDB transaction for all seven datasets…";details.textContent="";
+var lines=[],shadow=Object.create(null),pass=0,fail=0;
+try{
+ var api=window.CalvinsCityIDB;
+ if(!api||typeof api.readMany!=="function")throw new Error("Central IndexedDB readMany service is unavailable.");
+ var records=await api.readMany(keys);
+ if(!Array.isArray(records)||records.length!==keys.length)throw new Error("IndexedDB did not return all seven requested records.");
+ lines.push("PASS — all seven records were requested in one read-only IndexedDB transaction.");pass++;
+ for(var i=0;i<keys.length;i++){
+  var record=records[i],key=keys[i];
+  if(!record||record.key!==key||typeof record.raw!=="string"||record.rawLength!==record.raw.length){fail++;lines.push("FAIL — "+labels[i]+": missing record, wrong key, invalid raw value, or rawLength mismatch.");continue;}
+  if(record.checksum&&record.checksum!==checksum(record.raw)){fail++;lines.push("FAIL — "+labels[i]+": record checksum does not match its content.");continue;}
+  var parsed;try{parsed=JSON.parse(record.raw);}catch(e){fail++;lines.push("FAIL — "+labels[i]+": invalid JSON ("+String(e.message||e)+").");continue;}
+  shadow[key]=parsed;
+  var liveRaw=window.localStorage.getItem(key);
+  if(typeof liveRaw!=="string"){fail++;lines.push("FAIL — "+labels[i]+": current localStorage copy is missing.");continue;}
+  var liveParsed;try{liveParsed=JSON.parse(liveRaw);}catch(e){fail++;lines.push("FAIL — "+labels[i]+": current localStorage JSON is invalid.");continue;}
+  if(stable(parsed,key==="calvins_city_business_ownership_v1")!==stable(liveParsed,key==="calvins_city_business_ownership_v1")){fail++;lines.push("FAIL — "+labels[i]+": IndexedDB and localStorage differ outside approved timestamp fields.");}
+  else{pass++;lines.push("PASS — "+labels[i]+": valid JSON and content matches current storage (approved timestamps ignored).");}
+ }
+ if(fail===0){
+  var main=shadow.calvins_city_v24;
+  if(!main||Number(main.year??main.season??main.currentSeason)!==52||arr(main.citizens)!==70||arr(main.records&&main.records.gameRecords)!==148||arr(main.records&&main.records.retiredPlayers)!==57){fail++;lines.push("FAIL — main-state integrity counts do not match the validated Season 52 baseline.");}
+  else{pass++;lines.push("PASS — Season 52 integrity: 70 citizens, 148 permanent games, 57 retired players.");}
+  var bets=shadow.calvins_city_bets_v1,pending=shadow.calvins_city_bets_pending_import_v1,stock=shadow.calvins_city_stock_market_v1,shares=shadow.calvins_city_share_ownership_ledger_v1,ownership=shadow.calvins_city_business_ownership_v1,bank=shadow.calvins_city_calbank_v1;
+  lines.push("SHADOW SUMMARY — Bets games="+arr(bets&&bets.games)+", bets="+arr(bets&&bets.bets)+", pending records="+arr(pending&&pending.records)+".");
+  lines.push("SHADOW SUMMARY — Stock transactions="+arr(stock&&stock.transactions)+", annual reports="+arr(stock&&stock.annualReports)+", share records="+arr(shares&&shares.records)+".");
+  lines.push("SHADOW SUMMARY — Business ownership offers="+arr(ownership&&ownership.offers)+", transactions="+arr(ownership&&ownership.transactions)+".");
+  lines.push("SHADOW SUMMARY — CalBank accounts="+arr(bank&&bank.accounts)+", ledger="+arr(bank&&bank.ledger)+", customer loans="+arr(bank&&bank.customerLoans)+".");
+ }
+ lines.push("SHADOW LOAD — "+Object.keys(shadow).length+" dataset(s) held temporarily in memory; game state was not replaced.");
+ lines.push("SAFETY — read-only. No IndexedDB writes, localStorage writes, imports, deletions, repairs, or Permanent Database changes.");
+ status.textContent=fail===0?"STARTUP SHADOW-LOAD REHEARSAL PASSED — seven datasets loaded and compared; gameplay remains on existing storage.":"STARTUP SHADOW-LOAD REHEARSAL FOUND "+fail+" ISSUE(S) — do not enable cutover.";
+ status.style.color=fail===0?"#34d399":"#f87171";
+}catch(e){lines.push("STOP — "+String(e&&e.message||e));lines.push("No writes or repairs were attempted.");status.textContent="STARTUP SHADOW-LOAD REHEARSAL STOPPED — do not connect gameplay.";status.style.color="#f87171";}
+finally{details.textContent=lines.join("\n");button.disabled=false;}
+});
+})();
+</script>
 <script>
 /* 5.8.182 — read-only seven-dataset structural parity; ignores only the two verified updatedAt fields. */
 (function(){
@@ -4271,7 +4343,7 @@ finally{
 <pre id="ccMainStateReadOnlyDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.192 — corrected, read-only main-state comparison. No game or IndexedDB writes. */
+/* 5.8.193 — corrected, read-only main-state comparison. No game or IndexedDB writes. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunMainStateReadOnlyValidation");
@@ -4383,7 +4455,7 @@ try{
 <pre id="ccCompatibilityAdapterDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.192 — isolated synchronous cache + durable commit prototype. */
+/* 5.8.193 — isolated synchronous cache + durable commit prototype. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunCompatibilityAdapterTest"),status=document.getElementById("ccCompatibilityAdapterStatus"),details=document.getElementById("ccCompatibilityAdapterDetails");
@@ -15811,7 +15883,7 @@ if(e.target===citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show"
 });
  
  
-/* 5.8.192 — explicit durable main-state save API.
+/* 5.8.193 — explicit durable main-state save API.
   This is intentionally NOT wired into legacy synchronous save() call sites.
   Callers must first load the authoritative IndexedDB state and obtain its
   fingerprint. commitVersioned checks that fingerprint in the same
@@ -15828,7 +15900,7 @@ if(!(expectedChecksum===null||typeof expectedChecksum==="string"))throw new Erro
 syncUnifiedFinancialLedger();
 const raw=JSON.stringify(state);
 if(typeof raw!=="string"||!raw.length)throw new Error("Main game state could not be serialized.");
-const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.192",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
+const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.193",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
 return await api.commitVersioned([record],[],[{key:"calvins_city_v24",checksum:expectedChecksum}]);
 }
  
