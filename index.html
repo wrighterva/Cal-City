@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.191: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
+<!-- CALVIN'S CITY — VERSION 5.8.192: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.191">
+<meta name="calvins-city-build" content="5.8.192">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.191",
+diagnosticVersion: "5.8.192",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.191",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.192",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.191",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.192",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.191</title>
+<title>Calvin's City 5.8.192</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.191</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.192</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -3236,7 +3236,7 @@ details.textContent=lines.join("\n");if(db)try{db.close();}catch(_){}btn.disable
 <pre id="ccExistingLiveStoreVerify183Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.191 — compatibility adapter prototype startup preload; no gameplay cutover. */
+/* 5.8.192 — compatibility adapter prototype startup preload; no gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunExistingLiveStoreVerify183"),status=document.getElementById("ccExistingLiveStoreVerify183Status"),details=document.getElementById("ccExistingLiveStoreVerify183Details");
@@ -4271,7 +4271,7 @@ finally{
 <pre id="ccMainStateReadOnlyDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.191 — corrected, read-only main-state comparison. No game or IndexedDB writes. */
+/* 5.8.192 — corrected, read-only main-state comparison. No game or IndexedDB writes. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunMainStateReadOnlyValidation");
@@ -4319,6 +4319,47 @@ try{
  lines.push("IndexedDB record: year/season="+String(savedSeason)+", citizens="+savedCitizens+", gameRecords="+savedGameRecords+", retiredPlayers="+savedRetired+".");
  lines.push("Currently loaded game: year/season="+String(liveSeason)+", citizens="+liveCitizens+", gameRecords="+liveGameRecords+", retiredPlayers="+liveRetired+".");
  lines.push(exactMatch?"PASS — saved and loaded game states match after ignoring object-key ordering.":"NOTICE — saved and loaded states differ in "+differingKeys.length+" top-level field(s): "+(differingKeys.slice(0,30).join(", ")||"(none)")+(differingKeys.length>30?" …":"")+".");
+ 
+ if(differingKeys.indexOf("businessOwnershipRegistry")!==-1){
+  var savedRegistry=savedState.businessOwnershipRegistry;
+  var liveRegistry=liveState.businessOwnershipRegistry;
+  function describeRegistry(v){
+   if(v===null)return "null";
+   if(Array.isArray(v))return "array(length="+v.length+")";
+   if(typeof v==="object")return "object(keys="+Object.keys(v).length+")";
+   return typeof v+"("+String(v).slice(0,100)+")";
+  }
+  lines.push("BUSINESS OWNERSHIP REGISTRY — IndexedDB: "+describeRegistry(savedRegistry)+"; loaded game: "+describeRegistry(liveRegistry)+".");
+  if(savedRegistry&&typeof savedRegistry==="object"&&liveRegistry&&typeof liveRegistry==="object"){
+   lines.push("IndexedDB registry top-level keys: "+Object.keys(savedRegistry).sort().slice(0,40).join(", ")+(Object.keys(savedRegistry).length>40?" …":""));
+   lines.push("Loaded registry top-level keys: "+Object.keys(liveRegistry).sort().slice(0,40).join(", ")+(Object.keys(liveRegistry).length>40?" …":""));
+   var registryDiffs=[];
+   function walkRegistry(a,b,path,depth){
+    if(registryDiffs.length>=60)return;
+    if(stable(a)===stable(b))return;
+    if(depth>=7){registryDiffs.push(path+" (nested content differs)");return;}
+    var ao=a!==null&&typeof a==="object",bo=b!==null&&typeof b==="object";
+    if(!ao||!bo||Array.isArray(a)!==Array.isArray(b)){
+     registryDiffs.push(path+" [IndexedDB="+describeRegistry(a)+"; loaded="+describeRegistry(b)+"]");
+     return;
+    }
+    var keys=Array.from(new Set(Object.keys(a).concat(Object.keys(b)))).sort();
+    if(!keys.length){registryDiffs.push(path+" (values differ)");return;}
+    for(var z=0;z<keys.length&&registryDiffs.length<60;z++){
+     var k=keys[z],next=path+(Array.isArray(a)?"["+k+"]":(path?".":"")+k);
+     if(!Object.prototype.hasOwnProperty.call(a,k)){registryDiffs.push(next+" [missing from IndexedDB]");continue;}
+     if(!Object.prototype.hasOwnProperty.call(b,k)){registryDiffs.push(next+" [missing from loaded game]");continue;}
+     walkRegistry(a[k],b[k],next,depth+1);
+    }
+   }
+   walkRegistry(savedRegistry,liveRegistry,"businessOwnershipRegistry",0);
+   lines.push("Registry difference paths ("+registryDiffs.length+(registryDiffs.length>=60?"+":"")+", maximum 60 shown):");
+   registryDiffs.forEach(function(x){lines.push("  • "+x);});
+  }else{
+   lines.push("Registry presence: IndexedDB="+(savedRegistry===undefined?"missing":"present")+", loaded game="+(liveRegistry===undefined?"missing":"present")+".");
+  }
+ }
+ 
  lines.push("Comparison preserves array order and all values; only object-key ordering is normalized.");
  lines.push("READ ONLY — no records, game state, backups, or Permanent Database entries were changed.");
  status.textContent=exactMatch?"READ-ONLY VALIDATION PASSED — saved and loaded states match.":"READ-ONLY VALIDATION COMPLETE — review listed differences before cutover.";
@@ -4342,7 +4383,7 @@ try{
 <pre id="ccCompatibilityAdapterDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.191 — isolated synchronous cache + durable commit prototype. */
+/* 5.8.192 — isolated synchronous cache + durable commit prototype. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunCompatibilityAdapterTest"),status=document.getElementById("ccCompatibilityAdapterStatus"),details=document.getElementById("ccCompatibilityAdapterDetails");
@@ -15770,7 +15811,7 @@ if(e.target===citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show"
 });
  
  
-/* 5.8.191 — explicit durable main-state save API.
+/* 5.8.192 — explicit durable main-state save API.
   This is intentionally NOT wired into legacy synchronous save() call sites.
   Callers must first load the authoritative IndexedDB state and obtain its
   fingerprint. commitVersioned checks that fingerprint in the same
@@ -15787,7 +15828,7 @@ if(!(expectedChecksum===null||typeof expectedChecksum==="string"))throw new Erro
 syncUnifiedFinancialLedger();
 const raw=JSON.stringify(state);
 if(typeof raw!=="string"||!raw.length)throw new Error("Main game state could not be serialized.");
-const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.191",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
+const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.192",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
 return await api.commitVersioned([record],[],[{key:"calvins_city_v24",checksum:expectedChecksum}]);
 }
  
