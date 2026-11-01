@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.154: Import quota preflight and expanded backward-compatible storage compression. -->
+<!-- CALVIN'S CITY — VERSION 5.8.155: Import quota preflight and expanded backward-compatible storage compression. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.154">
+<meta name="calvins-city-build" content="5.8.155">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.154",
+diagnosticVersion: "5.8.155",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.154",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.155",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.154",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.155",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.154</title>
+<title>Calvin's City 5.8.155</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.154</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.155</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -5779,8 +5779,7 @@ const history=[...pendingHistory,...(Array.isArray(preResetSeason29GameRecords)?
  
 const availableMatches=new Map();
  
-betsDatabase.games.forEach(row=>{if(!row||row.sourceRecordKey)return;const key=[String(row.teamA),Number(row.scoreA),String(row.teamB),Number(row.scoreB)].join("|");const reverse=[String(row.teamB),Number(row.scoreB),String(row.teamA),Number(row.scoreA)].join("|");const chosen=available
-Matches.has(key)?key:reverse;availableMatches.set(chosen,(availableMatches.get(chosen)||0)+1);});
+betsDatabase.games.forEach(row=>{if(!row||row.sourceRecordKey)return;const key=[String(row.teamA),Number(row.scoreA),String(row.teamB),Number(row.scoreB)].join("|");const reverse=[String(row.teamB),Number(row.scoreB),String(row.teamA),Number(row.scoreA)].join("|");const chosen=availableMatches.has(key)?key:reverse;availableMatches.set(chosen,(availableMatches.get(chosen)||0)+1);});
  
 history.forEach((g,index)=>{
  
@@ -20488,7 +20487,7 @@ JSON is the durable recovery source; keeping an extra full browser copy would
  
 require more storage than Safari has available. */
  
-/* 5.8.154 IMPORT PREFLIGHT:
+/* 5.8.155 IMPORT PREFLIGHT:
 Prepare exact on-disk values before removing any current app key. Include
 unrelated origin storage in a conservative 4 MiB budget. If the incoming
 payload cannot fit, stop with the current game untouched. */
