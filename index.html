@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.184: Adds read-only single-transaction seven-dataset startup preload; gameplay remains on localStorage. -->
+<!-- CALVIN'S CITY — VERSION 5.8.185: Adds read-only single-transaction seven-dataset startup preload; gameplay remains on localStorage. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.184">
+<meta name="calvins-city-build" content="5.8.185">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.184",
+diagnosticVersion: "5.8.185",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.184",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.185",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.184",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.185",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.184</title>
+<title>Calvin's City 5.8.185</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.184</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.185</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -3235,7 +3235,7 @@ details.textContent=lines.join("\n");if(db)try{db.close();}catch(_){}btn.disable
 <pre id="ccExistingLiveStoreVerify183Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.184 — read-only single-transaction startup preload; no gameplay cutover. */
+/* 5.8.185 — compatibility adapter prototype startup preload; no gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunExistingLiveStoreVerify183"),status=document.getElementById("ccExistingLiveStoreVerify183Status"),details=document.getElementById("ccExistingLiveStoreVerify183Details");
@@ -3487,8 +3487,9 @@ function normalizeRecord(record){
 if(!record||typeof record!=="object"||typeof record.key!=="string"||!record.key)throw new Error("Each record must have a non-empty string key.");
 return record;
 }
+function checksum(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");}
 var service={
-version:"1.0.0",
+version:"1.1.0",
 async read(key){
 if(typeof key!=="string"||!key)throw new Error("A record key is required.");
 var db=await openDatabase();
@@ -3519,6 +3520,32 @@ try{
  var saved=await this.read(record.key);
  if(!saved||JSON.stringify(saved)!==JSON.stringify(record))throw new Error("Write committed but readback verification failed for "+record.key+".");
  return {committed:true,verified:true,key:record.key};
+}finally{db.close();}
+},
+async commitMany(writes,deletes){
+writes=Array.isArray(writes)?writes:[];
+deletes=Array.isArray(deletes)?deletes:[];
+if(!writes.length&&!deletes.length)throw new Error("commitMany requires at least one write or deletion.");
+writes.forEach(normalizeRecord);
+var seen=new Set();
+writes.forEach(function(r){if(seen.has(r.key))throw new Error("Duplicate key in commitMany: "+r.key);seen.add(r.key);});
+deletes.forEach(function(k){if(typeof k!=="string"||!k)throw new Error("commitMany deletion keys must be non-empty strings.");if(seen.has(k))throw new Error("A key cannot be both written and deleted: "+k);seen.add(k);});
+var db=await openDatabase();
+try{
+ var tx=db.transaction(STORE_NAME,"readwrite"),finished=transactionResult(tx),store=tx.objectStore(STORE_NAME);
+ writes.forEach(function(r){store.put(r);});
+ deletes.forEach(function(k){store.delete(k);});
+ await finished;
+ var verifyTx=db.transaction(STORE_NAME,"readonly"),verifyFinished=transactionResult(verifyTx),verifyStore=verifyTx.objectStore(STORE_NAME);
+ var keys=Array.from(seen);
+ var checks=await Promise.all(keys.map(function(k){return requestResult(verifyStore.get(k));}));
+ await verifyFinished;
+ for(var i=0;i<keys.length;i++){
+  var expected=writes.find(function(r){return r.key===keys[i];});
+  if(expected){if(!checks[i]||JSON.stringify(checks[i])!==JSON.stringify(expected))throw new Error("commitMany readback mismatch for "+keys[i]);}
+  else if(checks[i]!==undefined)throw new Error("commitMany deletion verification failed for "+keys[i]);
+ }
+ return {committed:true,verified:true,writes:writes.length,deletes:deletes.length};
 }finally{db.close();}
 },
 async writeMany(records){
@@ -3553,6 +3580,34 @@ try{
  if(remaining.some(function(v){return v!==undefined;}))throw new Error("Delete committed but one or more records remain.");
  return {committed:true,verified:true,count:keys.length};
 }finally{db.close();}
+},
+createCompatibilityAdapter(records){
+if(!Array.isArray(records)||!records.length)throw new Error("Compatibility adapter requires preloaded records.");
+var cache=new Map(),pending=new Map(),removed=new Set(),dirty=false,closed=false;
+records.forEach(function(record){
+ if(!record||typeof record.key!=="string"||typeof record.raw!=="string"||record.rawLength!==record.raw.length)throw new Error("Invalid preloaded record supplied to compatibility adapter.");
+ if(cache.has(record.key))throw new Error("Duplicate preloaded key: "+record.key);
+ cache.set(record.key,record.raw);
+});
+function assertOpen(){if(closed)throw new Error("Compatibility adapter is closed.");}
+return {
+ getItem:function(key){assertOpen();key=String(key);return cache.has(key)?cache.get(key):null;},
+ setItem:function(key,value){assertOpen();key=String(key);value=String(value);cache.set(key,value);pending.set(key,value);removed.delete(key);dirty=true;},
+ removeItem:function(key){assertOpen();key=String(key);cache.delete(key);pending.delete(key);removed.add(key);dirty=true;},
+ key:function(index){assertOpen();var keys=Array.from(cache.keys());return Number.isInteger(index)&&index>=0&&index<keys.length?keys[index]:null;},
+ get length(){assertOpen();return cache.size;},
+ async flush(){
+  assertOpen();
+  if(!dirty)return {committed:true,verified:true,writes:0,deletes:0};
+  var writes=Array.from(pending.entries()).map(function(entry){var raw=entry[1];return {key:entry[0],snapshotId:"live",source:"compatibility-adapter",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+checksum(raw)};});
+  var deletes=Array.from(removed);
+  var result=await service.commitMany(writes,deletes);
+  pending.clear();removed.clear();dirty=false;
+  return result;
+ },
+ close:function(){closed=true;pending.clear();removed.clear();},
+ inspect:function(){assertOpen();return {keys:cache.size,pendingWrites:pending.size,pendingDeletes:removed.size,dirty:dirty};}
+};
 },
 async verifyStaged(){
 var keys=["calvins_city_v24","calvins_city_bets_v1","calvins_city_bets_pending_import_v1","calvins_city_stock_market_v1","calvins_city_share_ownership_ledger_v1","calvins_city_business_ownership_v1","calvins_city_calbank_v1"];
@@ -4109,6 +4164,59 @@ details.textContent=lines.join("\n");button.disabled=false;
 });
 })();
 </script>
+<section id="ccCompatibilityAdapterPrototype" style="margin:18px 0;padding:16px;border:1px solid #46505c;border-radius:14px;background:#20252c;">
+<h2>IndexedDB Compatibility Adapter — Prototype Test</h2>
+<p class="tiny">Tests synchronous cache behavior and an atomic durable write/delete using temporary keys only. Does not install the adapter into gameplay or alter the seven verified datasets.</p>
+<button id="ccRunCompatibilityAdapterTest" type="button" style="width:100%;padding:16px;border-radius:14px;font-weight:800;">Run Compatibility Adapter Test</button>
+<p id="ccCompatibilityAdapterStatus" aria-live="polite">Waiting for compatibility adapter test.</p>
+<pre id="ccCompatibilityAdapterDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.185 — isolated synchronous cache + durable commit prototype. */
+(function(){
+"use strict";
+var button=document.getElementById("ccRunCompatibilityAdapterTest"),status=document.getElementById("ccCompatibilityAdapterStatus"),details=document.getElementById("ccCompatibilityAdapterDetails");
+if(!button||!status||!details)return;
+button.addEventListener("click",async function(){
+button.disabled=true;status.textContent="Testing isolated compatibility adapter…";details.textContent="";
+var lines=[],passed=0,adapter=null,api=window.CalvinsCityIDB,keys=["__cc_adapter_test_a__"+Date.now(),"__cc_adapter_test_b__"+Date.now()];
+try{
+ if(!api||typeof api.readMany!=="function"||typeof api.createCompatibilityAdapter!=="function"||typeof api.commitMany!=="function")throw new Error("Required compatibility service methods are unavailable.");
+ var sourceKeys=["calvins_city_v24","calvins_city_bets_v1","calvins_city_bets_pending_import_v1","calvins_city_stock_market_v1","calvins_city_share_ownership_ledger_v1","calvins_city_business_ownership_v1","calvins_city_calbank_v1"];
+ var records=await api.readMany(sourceKeys);
+ if(records.length!==7||records.some(function(r){return !r||typeof r.raw!=="string"||r.rawLength!==r.raw.length;}))throw new Error("Seven staged records did not pass adapter preload validation.");
+ lines.push("PASS — seven existing records loaded for cache initialization");passed++;
+ adapter=api.createCompatibilityAdapter(records);
+ if(adapter.length!==7||adapter.getItem("calvins_city_v24")!==records[0].raw)throw new Error("Synchronous cache read or key count failed.");
+ lines.push("PASS — synchronous getItem and length match the preloaded data");passed++;
+ adapter.setItem(keys[0],"temporary-adapter-value");
+ if(adapter.getItem(keys[0])!=="temporary-adapter-value"||adapter.inspect().pendingWrites!==1)throw new Error("Synchronous setItem did not update cache and queue.");
+ lines.push("PASS — synchronous setItem updates cache and queues durable write");passed++;
+ adapter.removeItem(keys[1]);
+ if(adapter.getItem(keys[1])!==null||adapter.inspect().pendingDeletes!==1)throw new Error("Synchronous removeItem did not update cache and queue.");
+ lines.push("PASS — synchronous removeItem updates cache and queues deletion");passed++;
+ var commit=await adapter.flush();
+ if(!commit.committed||!commit.verified||commit.writes!==1||commit.deletes!==1)throw new Error("Atomic durable flush did not verify expected write and deletion.");
+ lines.push("PASS — queued write and deletion committed atomically and verified");passed++;
+ var stored=await api.read(keys[0]),absent=await api.read(keys[1]);
+ if(!stored||stored.raw!=="temporary-adapter-value"||stored.rawLength!==stored.raw.length||absent!==null)throw new Error("Independent IndexedDB readback did not match adapter commit.");
+ lines.push("PASS — independent IndexedDB readback confirmed write and deletion");passed++;
+ var noOp=await adapter.flush();
+ if(!noOp.committed||noOp.writes!==0||noOp.deletes!==0)throw new Error("Clean adapter flush should be a verified no-op.");
+ lines.push("PASS — clean flush does not create extra writes");passed++;
+ var cleanup=await api.removeMany([keys[0]]);
+ if(!cleanup.committed||!cleanup.verified)throw new Error("Temporary adapter test key cleanup failed.");
+ lines.push("PASS — temporary test record removed and verified");passed++;
+ status.textContent="COMPATIBILITY ADAPTER TEST PASSED — "+passed+" checks. Gameplay remains unchanged.";status.style.color="#34d399";
+}catch(e){
+ lines.push("FAIL — "+String(e&&e.message||e));
+ try{await api.removeMany(keys);lines.push("CLEANUP — temporary test keys checked and removed.");}catch(ce){lines.push("CLEANUP WARNING — "+String(ce&&ce.message||ce));}
+ status.textContent="COMPATIBILITY ADAPTER TEST FAILED — do not connect gameplay.";status.style.color="#f87171";
+}finally{if(adapter)adapter.close();details.textContent=lines.join("\n");button.disabled=false;}
+});
+})();
+</script>
+ 
 </main>
  
 <nav class="nav"><button data-nav="home" class="active">🏠<br>Home</button><button data-nav="city">🗺️<br>City</button><button data-nav="markets">📈<br>Markets</button></nav>
