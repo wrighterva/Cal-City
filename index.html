@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.178: Read-only structural difference diagnostic for staged parity mismatches. -->
+<!-- CALVIN'S CITY — VERSION 5.8.179: Read-only timestamp verification for staged parity mismatches. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
 
 var item = {
 
-diagnosticVersion: "5.8.178",
+diagnosticVersion: "5.8.179",
 
 time: new Date().toISOString(),
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.178</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.179</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -1041,10 +1041,10 @@ Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="o
 <pre id="ccStorageInventoryDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 
 <section class="card" id="ccStorageDifferenceDiagnostic" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
-<h2 style="margin-top:0;">IndexedDB Migration — Storage Difference Diagnostic</h2>
-<p>This read-only diagnostic compares the two datasets that failed the previous parity check: the main game state and Business Ownership. It parses the live and staged JSON and reports differing field paths, missing keys, array-length differences, and compact value summaries. It does not write, repair, merge, or overwrite either copy.</p>
-<button id="ccRunStorageDifferenceDiagnostic" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Read-Only Difference Diagnostic</button>
-<p id="ccStorageDifferenceStatus" aria-live="polite">Waiting for structural comparison.</p>
+<h2 style="margin-top:0;">IndexedDB Migration — Timestamp Verification</h2>
+<p>This read-only diagnostic verifies the exact live and staged update timestamps for the two datasets with timestamp-only structural differences. It reports the raw timestamp strings, date validity, and time difference. It also checks whether any non-timestamp fields differ. It does not write, repair, merge, or overwrite either copy.</p>
+<button id="ccRunStorageDifferenceDiagnostic" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Read-Only Timestamp Verification</button>
+<p id="ccStorageDifferenceStatus" aria-live="polite">Waiting for timestamp verification.</p>
 <pre id="ccStorageDifferenceDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 </section>
@@ -3604,64 +3604,80 @@ finally{details.textContent=lines.join("\n");button.disabled=false;}
 </script>
 
 <script>
-/* 5.8.178 — read-only structural comparison for the two parity mismatches. */
+/* 5.8.179 — read-only exact timestamp verification for the two parity mismatches. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunStorageDifferenceDiagnostic"),status=document.getElementById("ccStorageDifferenceStatus"),details=document.getElementById("ccStorageDifferenceDetails");
 if(!button||!status||!details)return;
-var targets=[{key:"calvins_city_v24",label:"Main game state"},{key:"calvins_city_business_ownership_v1",label:"Business Ownership"}];
-function describe(v){
-if(v===null)return "null";
-if(Array.isArray(v))return "array(length="+v.length+")";
-if(typeof v==="object")return "object(keys="+Object.keys(v).length+")";
-if(typeof v==="string")return "string(length="+v.length+")";
-return typeof v+"("+String(v).slice(0,80)+")";
+var targets=[
+{key:"calvins_city_v24",label:"Main game state",path:["businessOwnershipRegistry","updatedAt"]},
+{key:"calvins_city_business_ownership_v1",label:"Business Ownership",path:["updatedAt"]}
+];
+function readPath(obj,path){var value=obj;for(var i=0;i<path.length;i++){if(value==null||!Object.prototype.hasOwnProperty.call(value,path[i]))return {exists:false,value:undefined};value=value[path[i]];}return {exists:true,value:value};}
+function sameValue(a,b){return typeof a===typeof b&&a===b;}
+function summarizeTimestamp(label,live,staged){
+var lines=[];
+lines.push("FIELD — "+label);
+lines.push("LIVE timestamp: "+(live.exists?JSON.stringify(live.value):"<missing>"));
+lines.push("STAGED timestamp: "+(staged.exists?JSON.stringify(staged.value):"<missing>"));
+if(!live.exists||!staged.exists){lines.push("FAIL — timestamp field missing from one or both copies.");return {lines:lines,ok:false};}
+if(typeof live.value!=="string"||typeof staged.value!=="string"){
+ lines.push("FAIL — timestamp is not a string in both copies; live type="+typeof live.value+", staged type="+typeof staged.value);
+ return {lines:lines,ok:false};
 }
-function compare(a,b,limit){
-var diffs=[],visited=0,stack=[{a:a,b:b,path:"$"}];
-while(stack.length&&diffs.length<limit){
- var item=stack.pop(),x=item.a,y=item.b,path=item.path;visited++;
+var liveMs=Date.parse(live.value),stagedMs=Date.parse(staged.value);
+lines.push("LIVE date validity: "+(Number.isFinite(liveMs)?"VALID":"INVALID"));
+lines.push("STAGED date validity: "+(Number.isFinite(stagedMs)?"VALID":"INVALID"));
+if(Number.isFinite(liveMs)&&Number.isFinite(stagedMs)){
+ var delta=liveMs-stagedMs;
+ lines.push("TIME DIFFERENCE (live minus staged): "+delta+" ms ("+(delta/1000)+" seconds)");
+}
+lines.push("EXACT STRING MATCH: "+(sameValue(live.value,staged.value)?"YES":"NO"));
+return {lines:lines,ok:Number.isFinite(liveMs)&&Number.isFinite(stagedMs)};
+}
+function compareIgnoringTimestamp(a,b,path){
+var stack=[{a:a,b:b,path:"$"}],visited=0,diffs=[];
+while(stack.length&&diffs.length<20){
+ var item=stack.pop(),x=item.a,y=item.b,p=item.path;visited++;
+ var ignored=(p==="$.businessOwnershipRegistry.updatedAt"&&path[0]==="businessOwnershipRegistry")||(p==="$.updatedAt"&&path[0]==="updatedAt");
+ if(ignored)continue;
  if(x===y)continue;
- if(x===null||y===null||typeof x!==typeof y||Array.isArray(x)!==Array.isArray(y)){
-  diffs.push(path+" — live "+describe(x)+"; staged "+describe(y));continue;
- }
- if(typeof x!=="object"){
-  diffs.push(path+" — live "+describe(x)+"; staged "+describe(y));continue;
- }
- var xk=Object.keys(x),yk=Object.keys(y),ym=new Set(yk),xm=new Set(xk);
- for(var i=xk.length-1;i>=0;i--){var k=xk[i],child=path+(Array.isArray(x)?"["+k+"]":"."+k);if(!ym.has(k)){if(diffs.length<limit)diffs.push(child+" — present only in live copy: "+describe(x[k]));}else if(diffs.length<limit)stack.push({a:x[k],b:y[k],path:child});}
- for(var j=yk.length-1;j>=0;j--){var ky=yk[j];if(!xm.has(ky)&&diffs.length<limit)diffs.push(path+(Array.isArray(y)?"["+ky+"]":"."+ky)+" — present only in staged copy: "+describe(y[ky]));}
- if(Array.isArray(x)&&x.length!==y.length&&diffs.length<limit)diffs.push(path+" — array lengths differ: live="+x.length+", staged="+y.length);
+ if(x===null||y===null||typeof x!==typeof y||Array.isArray(x)!==Array.isArray(y)){diffs.push(p+" — live/staged type or null mismatch");continue;}
+ if(typeof x!=="object"){diffs.push(p+" — values differ ("+typeof x+")");continue;}
+ var xk=Object.keys(x),yk=Object.keys(y),ys=new Set(yk),xs=new Set(xk);
+ for(var i=xk.length-1;i>=0;i--){var k=xk[i],cp=p+(Array.isArray(x)?"["+k+"]":"."+k);if(!ys.has(k))diffs.push(cp+" — present only in live copy");else stack.push({a:x[k],b:y[k],path:cp});}
+ for(var j=yk.length-1;j>=0;j--){var ky=yk[j];if(!xs.has(ky))diffs.push(p+(Array.isArray(y)?"["+ky+"]":"."+ky)+" — present only in staged copy");}
+ if(Array.isArray(x)&&x.length!==y.length)diffs.push(p+" — array lengths differ: live="+x.length+", staged="+y.length);
 }
-return {diffs:diffs,visited:visited,truncated:stack.length>0||diffs.length>=limit};
+return {visited:visited,diffs:diffs,truncated:stack.length>0};
 }
 button.addEventListener("click",async function(){
-button.disabled=true;status.textContent="Comparing the two mismatched datasets. Large records may take a little time…";details.textContent="";
-var lines=[],api=window.CalvinsCityIDB,anyDiff=false;
+button.disabled=true;status.textContent="Reading exact timestamps and checking all other fields…";details.textContent="";
+var lines=[],allOk=true,api=window.CalvinsCityIDB;
 try{
- if(!api)throw new Error("Central IndexedDB service is unavailable.");
+ if(!api)throw new Error("Central IndexedDB storage service is unavailable.");
+ lines.push("PASS — central IndexedDB service available ("+api.version+")");
  for(var t of targets){
-  lines.push("DATASET — "+t.label+" ("+t.key+")");
+  lines.push("\nDATASET — "+t.label+" ("+t.key+")");
   var staged=await api.read(t.key);
-  if(!staged||typeof staged.raw!=="string")throw new Error("Staged IndexedDB record is missing: "+t.key);
+  if(!staged||typeof staged.raw!=="string")throw new Error("Staged record missing or invalid: "+t.key);
   var liveRaw=window.localStorage.getItem(t.key);
-  if(typeof liveRaw!=="string")throw new Error("Live localStorage record is missing: "+t.key);
-  lines.push("INFO — live characters="+liveRaw.length+"; staged characters="+staged.raw.length);
+  if(typeof liveRaw!=="string")throw new Error("Live localStorage record missing: "+t.key);
   var liveObj=JSON.parse(liveRaw),stagedObj=JSON.parse(staged.raw);
-  var result=compare(liveObj,stagedObj,80);
-  if(!result.diffs.length){lines.push("PASS — parsed structures match exactly despite any raw-text difference.");}
-  else{
-   anyDiff=true;lines.push("DIFFERENCES — showing up to 80 field-level findings; nodes visited="+result.visited+";");
-   result.diffs.forEach(function(x){lines.push("DIFF — "+x);});
-   if(result.truncated)lines.push("INFO — output capped; additional differences may remain.");
-  }
-  lines.push("");
+  lines.push("INFO — live characters="+liveRaw.length+"; staged characters="+staged.raw.length);
+  var liveTs=readPath(liveObj,t.path),stagedTs=readPath(stagedObj,t.path);
+  var ts=summarizeTimestamp(t.path.join("."),liveTs,stagedTs);
+  ts.lines.forEach(function(x){lines.push(x);});
+  if(!ts.ok)allOk=false;
+  var other=compareIgnoringTimestamp(liveObj,stagedObj,t.path);
+  if(other.diffs.length===0&&!other.truncated)lines.push("PASS — all non-timestamp fields match (nodes visited="+other.visited+").");
+  else{allOk=false;lines.push("FAIL — non-timestamp differences remain (nodes visited="+other.visited+"):");other.diffs.forEach(function(x){lines.push("DIFF — "+x);});if(other.truncated)lines.push("INFO — additional differences may remain; output capped.");}
   liveObj=null;stagedObj=null;liveRaw=null;
  }
- lines.push("SAFETY — read-only comparison completed. No localStorage values, IndexedDB records, or Permanent Database records were written or changed.");
- status.textContent=anyDiff?"DIAGNOSTIC COMPLETE — differences identified. Do not enable shadow writes or redirect gameplay yet.":"DIAGNOSTIC COMPLETE — parsed structures match. Raw-text differences need encoding/serialization review before proceeding.";
- status.style.color=anyDiff?"#fbbf24":"#34d399";
-}catch(e){lines.push("FAIL — "+String(e&&e.message||e));status.textContent="DIAGNOSTIC FAILED — no data was changed.";status.style.color="#f87171";}
+ lines.push("\nSAFETY — read-only verification completed. No localStorage values, IndexedDB records, or Permanent Database records were written or changed.");
+ status.textContent=allOk?"TIMESTAMP VERIFICATION PASSED — both timestamps valid and all other fields match.":"TIMESTAMP VERIFICATION NEEDS REVIEW — see exact values and remaining findings below.";
+ status.style.color=allOk?"#34d399":"#fbbf24";
+}catch(e){lines.push("FAIL — "+String(e&&e.message||e));status.textContent="TIMESTAMP VERIFICATION FAILED — no data was changed.";status.style.color="#f87171";}
 finally{details.textContent=lines.join("\n");button.disabled=false;}
 });
 })();
