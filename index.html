@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.161: Read-only IndexedDB migration preparation and source-data verification. -->
+<!-- CALVIN'S CITY — VERSION 5.8.176: Storage-call inventory and read-only live-vs-staged comparison. -->
 
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 
 <head>
 
-<meta name="calvins-city-build" content="5.8.161">
+<meta name="calvins-city-build" content="5.8.176">
 
 <script>
 
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
 
 var item = {
 
-diagnosticVersion: "5.8.161",
+diagnosticVersion: "5.8.176",
 
 time: new Date().toISOString(),
 
@@ -515,11 +515,11 @@ let keysChecked=0;
 
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
 
-window.__calvinsCityStorageCompression={version:"5.8.175",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.176",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
 
 }catch(err){
 
-window.__calvinsCityStorageCompression={version:"5.8.175",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.176",status:"failed",message:String(err&&err.message||err)};
 
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
 
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Calvin's City 5.8.161</title>
+<title>Calvin's City 5.8.176</title>
 
 <style>
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.175</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.176</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -3538,6 +3538,59 @@ try{
 
 
 
+
+
+<section class="card" id="ccStorageInventoryShadowReadiness" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB Migration — Storage Inventory & Shadow-Mode Readiness</h2>
+<p>This is a read-only compatibility checkpoint. It inventories the synchronous localStorage API used by the current game and compares the seven current localStorage datasets against their staged IndexedDB copies. It does not redirect storage calls, write to either storage system, change gameplay, or modify the Permanent Database.</p>
+<div style="padding:12px;border:1px solid var(--border,#3b4652);border-radius:12px;margin:12px 0;">
+<strong>Source inventory for this build</strong>
+<ul style="margin-bottom:0;">
+<li>localStorage.getItem: 115 call sites</li><li>localStorage.setItem: 78 call sites</li><li>localStorage.removeItem: 14 call sites</li><li>localStorage.key: 7 call sites</li><li>localStorage.length: 9 references</li>
+</ul>
+<p style="margin-bottom:0;">The game relies on synchronous reads and key enumeration. IndexedDB is asynchronous, so direct API substitution is not safe. This checkpoint measures parity before any shadow-write adapter is introduced.</p>
+</div>
+<button id="ccRunStorageInventoryCheck" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Live Storage vs IndexedDB Check</button>
+<p id="ccStorageInventoryStatus" aria-live="polite">Waiting for live-versus-staged comparison.</p>
+<pre id="ccStorageInventoryDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.176 — read-only localStorage/IndexedDB parity check; no storage redirection. */
+(function(){
+"use strict";
+var button=document.getElementById("ccRunStorageInventoryCheck"),status=document.getElementById("ccStorageInventoryStatus"),details=document.getElementById("ccStorageInventoryDetails");
+if(!button||!status||!details)return;
+var keys=["calvins_city_v24","calvins_city_bets_v1","calvins_city_bets_pending_import_v1","calvins_city_stock_market_v1","calvins_city_share_ownership_ledger_v1","calvins_city_business_ownership_v1","calvins_city_calbank_v1"];
+button.addEventListener("click",async function(){
+button.disabled=true;status.textContent="Comparing current game storage with the verified IndexedDB staging copy…";details.textContent="";
+var lines=[],pass=0,fail=0,api=window.CalvinsCityIDB;
+try{
+ if(!api)throw new Error("Central IndexedDB storage service is unavailable.");
+ lines.push("PASS — central IndexedDB service is available ("+api.version+")");pass++;
+ var results=await Promise.all(keys.map(async function(key){
+  var staged=await api.read(key);
+  if(!staged||typeof staged.raw!=="string"||staged.raw.length!==staged.rawLength) return {key:key,ok:false,reason:"staged record missing or invalid"};
+  var live=window.localStorage.getItem(key);
+  if(typeof live!=="string")return {key:key,ok:false,reason:"current localStorage record is missing"};
+  if(live!==staged.raw)return {key:key,ok:false,reason:"current localStorage content differs from staged IndexedDB copy",liveLength:live.length,stagedLength:staged.raw.length};
+  return {key:key,ok:true,length:live.length};
+ }));
+ results.forEach(function(r){
+  if(r.ok){lines.push("PASS — exact current/staged match: "+r.key+" ("+r.length.toLocaleString()+" characters)");pass++;}
+  else{lines.push("FAIL — "+r.key+": "+r.reason+(r.liveLength!==undefined?"; current="+r.liveLength+", staged="+r.stagedLength:""));fail++;}
+ });
+ var compression=window.__calvinsCityStorageCompression;
+ if(compression&&compression.status==="installed-no-startup-migration") {lines.push("PASS — compression adapter reports "+compression.format+" with no startup migration");pass++;}
+ else{lines.push("REVIEW — compression adapter status: "+JSON.stringify(compression||null));fail++;}
+ lines.push("INFO — synchronous API inventory: getItem 115; setItem 78; removeItem 14; key 7; length 9.");
+ lines.push("INFO — no localStorage or IndexedDB writes were performed by this test.");
+ if(fail===0){status.textContent="STORAGE PARITY CHECK PASSED — "+pass+" checks. Safe to proceed to a separately controlled shadow-write design; gameplay remains on localStorage.";status.style.color="#34d399";}
+ else{status.textContent="STORAGE PARITY CHECK NEEDS REVIEW — "+fail+" issue(s). Do not enable shadow writes or redirect gameplay.";status.style.color="#f87171";}
+}catch(e){lines.push("FAIL — "+String(e&&e.message||e));status.textContent="STORAGE PARITY CHECK FAILED — do not enable shadow writes.";status.style.color="#f87171";}
+finally{details.textContent=lines.join("\n");button.disabled=false;}
+});
+})();
+</script>
 
 <section class="card" id="ccStartupPreloadTest" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
 <h2 style="margin-top:0;">IndexedDB Migration — Startup Preload & Integrity Test</h2>
