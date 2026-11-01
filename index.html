@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.185: Adds read-only single-transaction seven-dataset startup preload; gameplay remains on localStorage. -->
+<!-- CALVIN'S CITY — VERSION 5.8.186: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.185">
+<meta name="calvins-city-build" content="5.8.186">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.185",
+diagnosticVersion: "5.8.186",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.185",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.186",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.185",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.186",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.185</title>
+<title>Calvin's City 5.8.186</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.185</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.186</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -3235,7 +3235,7 @@ details.textContent=lines.join("\n");if(db)try{db.close();}catch(_){}btn.disable
 <pre id="ccExistingLiveStoreVerify183Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.185 — compatibility adapter prototype startup preload; no gameplay cutover. */
+/* 5.8.186 — compatibility adapter prototype startup preload; no gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunExistingLiveStoreVerify183"),status=document.getElementById("ccExistingLiveStoreVerify183Status"),details=document.getElementById("ccExistingLiveStoreVerify183Details");
@@ -3489,7 +3489,7 @@ return record;
 }
 function checksum(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");}
 var service={
-version:"1.1.0",
+version:"1.2.0",
 async read(key){
 if(typeof key!=="string"||!key)throw new Error("A record key is required.");
 var db=await openDatabase();
@@ -3580,6 +3580,60 @@ try{
  if(remaining.some(function(v){return v!==undefined;}))throw new Error("Delete committed but one or more records remain.");
  return {committed:true,verified:true,count:keys.length};
 }finally{db.close();}
+},
+/* Serialized optimistic transaction API. Expectations are checked inside the
+  same readwrite transaction that applies the writes, so another tab cannot
+  change a record between the check and commit. An expected checksum of null
+  means the record must not exist. */
+commitTail:Promise.resolve(),
+async commitVersioned(writes,deletes,expectations){
+writes=Array.isArray(writes)?writes:[];
+deletes=Array.isArray(deletes)?deletes:[];
+expectations=Array.isArray(expectations)?expectations:[];
+if(!writes.length&&!deletes.length)throw new Error("commitVersioned requires at least one write or deletion.");
+writes.forEach(normalizeRecord);
+var changed=new Set();
+writes.forEach(function(r){if(changed.has(r.key))throw new Error("Duplicate changed key: "+r.key);changed.add(r.key);});
+deletes.forEach(function(k){if(typeof k!=="string"||!k)throw new Error("Deletion keys must be non-empty strings.");if(changed.has(k))throw new Error("A key cannot be both written and deleted: "+k);changed.add(k);});
+var expectedMap=new Map();
+expectations.forEach(function(e){if(!e||typeof e.key!=="string"||!e.key||!(e.checksum===null||typeof e.checksum==="string"))throw new Error("Each expectation requires a key and checksum (or null for absent).");if(expectedMap.has(e.key))throw new Error("Duplicate expectation: "+e.key);expectedMap.set(e.key,e.checksum);});
+if(expectedMap.size!==changed.size||Array.from(changed).some(function(k){return !expectedMap.has(k);}))throw new Error("Every changed key must have exactly one expected-current checksum.");
+var run=async function(){
+ var db=await openDatabase();
+ try{
+  var tx=db.transaction(STORE_NAME,"readwrite"),finished=transactionResult(tx),store=tx.objectStore(STORE_NAME),keys=Array.from(changed),remaining=keys.length,conflict=null,applied=false;
+  keys.forEach(function(key){
+   var req=store.get(key);
+   req.onsuccess=function(){
+    if(conflict)return;
+    var current=req.result,actual=current&&typeof current.raw==="string"?"fnv1a:"+checksum(current.raw):null;
+    if(actual!==expectedMap.get(key)){conflict=new Error("Version conflict for "+key+"; stored data changed since it was read. No records were changed.");try{tx.abort();}catch(_){}return;}
+    remaining--;
+    if(remaining===0&&!applied){
+     applied=true;
+     writes.forEach(function(record){store.put(record);});
+     deletes.forEach(function(keyToDelete){store.delete(keyToDelete);});
+    }
+   };
+  });
+  try{await finished;}catch(err){if(conflict)throw conflict;throw err;}
+  var verifyTx=db.transaction(STORE_NAME,"readonly"),verifyDone=transactionResult(verifyTx),verifyStore=verifyTx.objectStore(STORE_NAME);
+  var checks=await Promise.all(keys.map(function(k){return requestResult(verifyStore.get(k));}));await verifyDone;
+  for(var i=0;i<keys.length;i++){
+   var expectedWrite=writes.find(function(r){return r.key===keys[i];});
+   if(expectedWrite){if(!checks[i]||JSON.stringify(checks[i])!==JSON.stringify(expectedWrite))throw new Error("Committed readback verification failed for "+keys[i]+".");}
+   else if(checks[i]!==undefined)throw new Error("Deletion readback verification failed for "+keys[i]+".");
+  }
+  return {committed:true,verified:true,conflictChecked:true,writes:writes.length,deletes:deletes.length};
+ }finally{db.close();}
+};
+var result=this.commitTail.then(run,run);
+this.commitTail=result.catch(function(){});
+return result;
+},
+async fingerprint(key){
+var record=await this.read(key);
+return {key:key,checksum:record&&typeof record.raw==="string"?"fnv1a:"+checksum(record.raw):null};
 },
 createCompatibilityAdapter(records){
 if(!Array.isArray(records)||!records.length)throw new Error("Compatibility adapter requires preloaded records.");
@@ -4164,6 +4218,51 @@ details.textContent=lines.join("\n");button.disabled=false;
 });
 })();
 </script>
+<section class="card" id="ccVersionedTransactionTest" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB — Versioned Atomic Transaction Test</h2>
+<p>Tests serialized commits, in-transaction version checks, stale-write rejection, and independent readback using temporary test keys only. It does not modify any game dataset or Permanent Database record.</p>
+<button id="ccRunVersionedTransactionTest" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Versioned Transaction Safety Test</button>
+<p id="ccVersionedTransactionStatus" aria-live="polite">Waiting for versioned transaction test.</p>
+<pre id="ccVersionedTransactionDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+(function(){
+"use strict";
+var b=document.getElementById("ccRunVersionedTransactionTest"),status=document.getElementById("ccVersionedTransactionStatus"),details=document.getElementById("ccVersionedTransactionDetails");
+if(!b||!status||!details)return;
+function rawRecord(key,value){return {key:key,snapshotId:"versioned-test",source:"temporary-test",raw:value,rawLength:value.length,checksum:"fnv1a:"+((function(x){var h=2166136261;for(var i=0;i<x.length;i++){h^=x.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(value))};}
+b.addEventListener("click",async function(){
+b.disabled=true;status.textContent="Running temporary-key transaction tests…";details.textContent="";
+var api=window.CalvinsCityIDB,base="__cc_v186_tx_test_"+Date.now(),keyA=base+"_a",keyB=base+"_b",lines=[],ok=true;
+try{
+ if(!api||typeof api.commitVersioned!=="function"||typeof api.fingerprint!=="function")throw new Error("Versioned transaction API is unavailable.");
+ var initialA=await api.fingerprint(keyA),initialB=await api.fingerprint(keyB);
+ await api.commitVersioned([rawRecord(keyA,"alpha"),rawRecord(keyB,"beta")],[],[initialA,initialB]);
+ lines.push("PASS — two temporary records committed atomically.");
+ var fpA=await api.fingerprint(keyA),fpB=await api.fingerprint(keyB);
+ var first=api.commitVersioned([rawRecord(keyA,"alpha-2")],[],[fpA]);
+ var second=api.commitVersioned([rawRecord(keyB,"beta-2")],[],[fpB]);
+ await Promise.all([first,second]);
+ lines.push("PASS — concurrent same-tab commits were serialized and verified.");
+ var stale=await api.fingerprint(keyA);
+ await api.commitVersioned([rawRecord(keyA,"alpha-3")],[],[stale]);
+ var rejected=false;
+ try{await api.commitVersioned([rawRecord(keyA,"stale-overwrite")],[],[stale]);}catch(e){rejected=/Version conflict/.test(String(e&&e.message||e));}
+ if(!rejected)throw new Error("Stale version was not rejected.");
+ lines.push("PASS — stale version rejected without overwriting newer data.");
+ var finalA=await api.read(keyA),finalB=await api.read(keyB);
+ if(!finalA||finalA.raw!=="alpha-3"||!finalB||finalB.raw!=="beta-2")throw new Error("Independent readback did not match committed values.");
+ lines.push("PASS — independent readback confirms latest committed values.");
+ status.textContent="VERSIONED TRANSACTION TEST PASSED — temporary records only.";
+}catch(e){ok=false;status.textContent="VERSIONED TRANSACTION TEST FAILED — do not enable gameplay cutover.";lines.push("FAIL — "+String(e&&e.message||e));}
+finally{
+ try{await api.removeMany([keyA,keyB]);lines.push("CLEANUP — temporary test records removed.");}catch(e){ok=false;lines.push("CLEANUP WARNING — temporary test keys could not be removed: "+String(e&&e.message||e));}
+ details.textContent=lines.join("\n");b.disabled=false;
+}
+});
+})();
+</script>
+ 
 <section id="ccCompatibilityAdapterPrototype" style="margin:18px 0;padding:16px;border:1px solid #46505c;border-radius:14px;background:#20252c;">
 <h2>IndexedDB Compatibility Adapter — Prototype Test</h2>
 <p class="tiny">Tests synchronous cache behavior and an atomic durable write/delete using temporary keys only. Does not install the adapter into gameplay or alter the seven verified datasets.</p>
@@ -4172,7 +4271,7 @@ details.textContent=lines.join("\n");button.disabled=false;
 <pre id="ccCompatibilityAdapterDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.185 — isolated synchronous cache + durable commit prototype. */
+/* 5.8.186 — isolated synchronous cache + durable commit prototype. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunCompatibilityAdapterTest"),status=document.getElementById("ccCompatibilityAdapterStatus"),details=document.getElementById("ccCompatibilityAdapterDetails");
