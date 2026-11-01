@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.159: Read-only IndexedDB migration preparation and source-data verification. -->
+<!-- CALVIN'S CITY — VERSION 5.8.160: Read-only IndexedDB migration preparation and source-data verification. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.159">
+<meta name="calvins-city-build" content="5.8.160">
  
 <script type="application/x-cc-deferred">
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.159",
+diagnosticVersion: "5.8.160",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.159",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.160",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.159",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.160",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.159</title>
+<title>Calvin's City 5.8.160</title>
  
 <style>
  
@@ -612,7 +612,7 @@ ze:27px;color:#9eabba;line-height:1}
  
 .modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);padding:22px;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:auto;pointer-events:none}.modal.show{display:flex;pointer-events:auto}.modalbox{position:relative;z-index:101;width:min(100%,420px);max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#182230;border:1px solid #526176;border-radius:18px;padding:18px;pointer-events:auto}.modalbox h2{margin-top:0}body.verify-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none} body.business-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none} body.share-ledger-modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;touch-action:none}
  
-body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!important;touch-action:none!important}#citizenLedgerModal.show{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;touch-action:none}#citizenLedgerModal.show .modalbox{max-height:80dvh;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+body.citizen-ledger-scroll-locked{position:fixed!important;overflow:hidden!important}#citizenLedgerModal.show{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;touch-action:pan-y}#citizenLedgerModal.show .modalbox{height:80dvh;max-height:80dvh;overflow-y:scroll!important;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y!important;pointer-events:auto}
  
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-right));background:#111a26;border-top:1px solid #344255}
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.159</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.160</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -3135,7 +3135,7 @@ const citizenLedgerCloseBtn=document.getElementById("citizenLedgerClose");
 function openCitizenLedger()
 {
  
-if(citizenLedgerModalEl){citizenLedgerModalEl.classList.add("show");if(typeof window.lockCitizenLedgerScroll==="function")window.lockCitizenLedgerScroll();}
+if(citizenLedgerModalEl){citizenLedgerModalEl.classList.add("show");citizenLedgerModalEl.style.touchAction="pan-y";const ledgerBox=citizenLedgerModalEl.querySelector(".modalbox");if(ledgerBox){ledgerBox.style.overflowY="scroll";ledgerBox.style.webkitOverflowScrolling="touch";ledgerBox.style.touchAction="pan-y";}if(typeof window.lockCitizenLedgerScroll==="function")window.lockCitizenLedgerScroll();}
  
 const out=document.getElementById("citizenLedgerBody");
  
@@ -3157,7 +3157,7 @@ if(out)out.innerHTML='<p class="muted">Citizen Ledger opened, but the citizen da
  
 function closeCitizenLedger(){
  
-if(citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show");if(typeof window.unlockCitizenLedgerScroll==="function")window.unlockCitizenLedgerScroll();}
+if(citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show");citizenLedgerModalEl.style.touchAction="";const ledgerBox=citizenLedgerModalEl.querySelector(".modalbox");if(ledgerBox){ledgerBox.style.overflowY="";ledgerBox.style.webkitOverflowScrolling="";ledgerBox.style.touchAction="";}if(typeof window.unlockCitizenLedgerScroll==="function")window.unlockCitizenLedgerScroll();}
  
 }
  
@@ -13746,7 +13746,7 @@ document.body.style.height="100%";
  
 document.body.style.overflow="hidden";
  
-document.body.style.touchAction="none";
+document.body.style.touchAction="auto";
  
 }
  
@@ -23916,7 +23916,7 @@ button.addEventListener("click",saveAndVerify);
 </script>
  
 <script type="application/x-cc-deferred">
-/* 5.8.159 — Migration preparation only. Explicit user action; source localStorage is read-only. */
+/* 5.8.160 — Migration preparation only. Explicit user action; source localStorage is read-only. */
 (function(){
 "use strict";
 var button=document.getElementById("ccPrepareIndexedDbMigration");
@@ -23940,10 +23940,10 @@ status.textContent="Copy written. Verifying every record against its source…";
 var verified=0;for(var j=0;j<items.length;j++){var got=await request(db.transaction("records","readonly").objectStore("records").get(items[j].key));if(!got||got.snapshotId!==snapshotId||got.raw!==items[j].raw||got.checksum!==items[j].checksum)throw new Error("Verification mismatch for storage key: "+items[j].key);verified++;}
 var main=items.find(function(x){return x.key==="calvins_city_v24";});var season="not detected",games="not detected",retired="not detected",citizens="not detected";
 if(main&&main.validJson&&main.parsed){var st=main.parsed;season=String(st.year==null?"not detected":st.year);games=String(st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords.length:"not detected");retired=String(st.records&&Array.isArray(st.records.retiredPlayers)?st.records.retiredPlayers.length:"not detected");citizens=String(Array.isArray(st.citizens)?st.citizens.length:"not detected");}
-var meta={id:snapshotId,appVersion:"5.8.159",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
+var meta={id:snapshotId,appVersion:"5.8.160",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
 await request(db.transaction("metadata","readwrite").objectStore("metadata").put(meta));
 status.textContent="SUCCESS — copied and verified "+verified+" of "+items.length+" records ("+total.toLocaleString()+" characters). Detected season: "+season+"; game records: "+games+"; retired players: "+retired+"; citizens: "+citizens+". Original localStorage data and Permanent Database archive were not changed. This is a preparation copy; the game still runs from its existing storage.";
-window.__calvinsCityIndexedDbPrep={version:"5.8.159",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
+window.__calvinsCityIndexedDbPrep={version:"5.8.160",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
 }catch(err){status.textContent="PREPARATION FAILED — "+String(err&&err.message||err)+". Original game storage was not intentionally changed.";console.error("IndexedDB migration preparation failed:",err);}finally{if(db)try{db.close();}catch(_){}button.disabled=false;}}
 button.addEventListener("click",prepare);
 })();
@@ -23951,7 +23951,7 @@ button.addEventListener("click",prepare);
  
  
 <script type="application/x-cc-deferred">
-/* 5.8.159 — Read-only IndexedDB readback verification. No game-state writes. */
+/* 5.8.160 — Read-only IndexedDB readback verification. No game-state writes. */
 (function(){
 "use strict";
 var button=document.getElementById("ccVerifyIndexedDbReadback");
@@ -24015,7 +24015,7 @@ status.textContent=ok
 ?"SUCCESS — read back and independently verified "+verified+" of "+expectedCount+" records. Season "+season+" data is readable from IndexedDB. No game or source data was changed."
 :"CHECK FAILED — "+failed.length+" issue(s) found. Do not switch the game to IndexedDB. The original game storage was not changed.";
 status.style.color=ok?"#34d399":"#f87171";
-window.__calvinsCityIndexedDbReadback={version:"5.8.159",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
+window.__calvinsCityIndexedDbReadback={version:"5.8.160",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
 }catch(err){status.textContent="READBACK FAILED — "+String(err&&err.message||err)+". No source data was changed.";status.style.color="#f87171";details.textContent="No changes were made to localStorage, the game state, or the Permanent Database archive.";console.error("IndexedDB readback verification failed:",err);}
 finally{if(db)try{db.close();}catch(_){}button.disabled=false;}
 }
@@ -24025,7 +24025,7 @@ button.addEventListener("click",verify);
  
  
 <script type="application/x-cc-deferred">
-/* 5.8.159 — Read-only startup readiness dry run. Does not connect live startup. */
+/* 5.8.160 — Read-only startup readiness dry run. Does not connect live startup. */
 (function(){
 "use strict";
 var btn=document.getElementById("ccRunIndexedDbStartupReadiness");
@@ -24078,7 +24078,7 @@ lines.push("","Startup safety note: this was a read-only dry run. The current ap
 output.textContent=lines.join("\n");
 status.textContent=pass?"READINESS CHECK PASSED — the saved data has the expected game-state structure and required companion datasets. This is not yet proof that all gameplay modules can run from IndexedDB.":"READINESS CHECK NEEDS REVIEW — one or more required checks did not pass. Do not switch startup to IndexedDB.";
 status.style.color=pass?"#34d399":"#fbbf24";
-window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.159",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
+window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.160",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
 }catch(e){status.textContent="READINESS CHECK FAILED — "+String(e&&e.message||e)+". No data was changed.";status.style.color="#f87171";output.textContent="No changes were made to localStorage, IndexedDB records, or the Permanent Database archive.";console.error(e);}
 finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 });
@@ -24087,7 +24087,7 @@ finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
  
  
 <script>
-/* 5.8.159 — IndexedDB-first startup bridge test.
+/* 5.8.160 — IndexedDB-first startup bridge test.
   Reads the verified snapshot before running app scripts. Writes remain mirrored to
   the existing localStorage recovery layer. No IndexedDB snapshot writes occur. */
 (function(){
@@ -24110,7 +24110,7 @@ s.text=old.textContent||"";
 old.parentNode.replaceChild(s,old);
 });
 overlay.remove();
-window.__calvinsCityStartupBridge={version:"5.8.159",mode:"indexeddb-snapshot-read/localstorage-write-through",status:"scripts-released"};
+window.__calvinsCityStartupBridge={version:"5.8.160",mode:"indexeddb-snapshot-read/localstorage-write-through",status:"scripts-released"};
 }
 async function start(){
 var db;
@@ -24139,14 +24139,14 @@ var nativeGet=Storage.prototype.getItem,nativeSet=Storage.prototype.setItem,nati
 Storage.prototype.getItem=function(key){key=String(key);if(this===window.localStorage&&values.has(key))return values.get(key);return nativeGet.call(this,key);};
 Storage.prototype.setItem=function(key,value){key=String(key);value=String(value);if(this===window.localStorage&&values.has(key))values.set(key,value);return nativeSet.call(this,key,value);};
 Storage.prototype.removeItem=function(key){key=String(key);if(this===window.localStorage&&values.has(key))values.delete(key);return nativeRemove.call(this,key);};
-window.__calvinsCityStartupBridge={version:"5.8.159",mode:"indexeddb-snapshot-read/localstorage-write-through",status:"snapshot-loaded",snapshotId:meta.id,season:state.year,records:meta.recordCount,characters:meta.totalCharacters};
+window.__calvinsCityStartupBridge={version:"5.8.160",mode:"indexeddb-snapshot-read/localstorage-write-through",status:"snapshot-loaded",snapshotId:meta.id,season:state.year,records:meta.recordCount,characters:meta.totalCharacters};
 overlay.textContent="IndexedDB Season 52 verified. Starting Calvin’s City…";
 if(db)db.close();
 runScripts();
 }catch(err){
 if(db)try{db.close();}catch(_){}
 overlay.textContent="STARTUP SAFETY STOP — "+String(err&&err.message||err)+" Your existing saved data has not been changed. Do not clear browser storage. Reload the previous working version or contact support.";
-window.__calvinsCityStartupBridge={version:"5.8.159",status:"blocked",error:String(err&&err.message||err)};
+window.__calvinsCityStartupBridge={version:"5.8.160",status:"blocked",error:String(err&&err.message||err)};
 console.error("Calvin’s City IndexedDB startup bridge stopped safely:",err);
 }
 }
