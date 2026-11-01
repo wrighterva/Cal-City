@@ -515,11 +515,11 @@ let keysChecked=0;
 
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
 
-window.__calvinsCityStorageCompression={version:"5.8.165",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.166",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
 
 }catch(err){
 
-window.__calvinsCityStorageCompression={version:"5.8.165",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.166",status:"failed",message:String(err&&err.message||err)};
 
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
 
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 
 <body>
 
-<header><h1>🏙️ Calvin's City — 5.8.165</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.166</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 
 <main>
 
@@ -3113,6 +3113,85 @@ try{
 });
 })();
 </script>
+
+<section class="card" id="ccFinancialRoundTripTest" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+ <h2 style="margin-top:0;">IndexedDB Migration — Financial Dataset Round-Trip Test</h2>
+ <p>This read/write/readback test checks the six separate companion datasets from the verified Season 52 snapshot: Sports Bets, pending bets, stock market, share ownership ledger, business ownership, and CalBank. It validates each JSON structure, writes a separate temporary IndexedDB copy, reads it back byte-for-byte, checks important collection counts, and removes the temporary copies. It does not overwrite the seven verified snapshot records, live game storage, or the Permanent Database archive.</p>
+ <button id="ccRunFinancialRoundTrip" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Financial Dataset Round-Trip Test</button>
+ <p id="ccFinancialRoundTripStatus" aria-live="polite">Waiting for financial dataset test.</p>
+ <pre id="ccFinancialRoundTripDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.166 — Companion financial dataset JSON and IndexedDB round-trip validation. */
+(function(){
+"use strict";
+var btn=document.getElementById("ccRunFinancialRoundTrip");
+var status=document.getElementById("ccFinancialRoundTripStatus");
+var details=document.getElementById("ccFinancialRoundTripDetails");
+if(!btn||!status||!details)return;
+var DB="CalvinsCityStorageV2",STORE="records";
+var specs=[
+{key:"calvins_city_bets_v1",label:"Sports Bets",shape:"object",fields:{games:8598,bets:3385,sportsBetsInterestAccruals:121,sportsBetsDebtIssues:0,sportsBetsCashTransactions:6889}},
+{key:"calvins_city_bets_pending_import_v1",label:"Pending Bets",shape:"array",length:402},
+{key:"calvins_city_stock_market_v1",label:"Stock Market",shape:"object",fields:{transactions:157,annualReports:230}},
+{key:"calvins_city_share_ownership_ledger_v1",label:"Share Ownership Ledger",shape:"array",length:5},
+{key:"calvins_city_business_ownership_v1",label:"Business Ownership",shape:"object",fields:{offers:0,transactions:0}},
+{key:"calvins_city_calbank_v1",label:"CalBank",shape:"object",fields:{accounts:16,ledger:164,debts:1,debtLedger:12,fedCapitalLedger:6,investmentLedger:18,customerLoans:12,customerLoanLedger:30}}
+];
+function req(r){return new Promise(function(resolve,reject){r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("IndexedDB request failed"));};});}
+function done(tx){return new Promise(function(resolve,reject){tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error||new Error("IndexedDB transaction failed"));};tx.onabort=function(){reject(tx.error||new Error("IndexedDB transaction aborted"));};});}
+function open(){return new Promise(function(resolve,reject){var r=indexedDB.open(DB);r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error||new Error("Could not open migration database"));};r.onblocked=function(){reject(new Error("Database open blocked; close other Calvin's City tabs."));};});}
+function validate(spec,obj){
+if(spec.shape==="array"){if(!Array.isArray(obj))throw new Error(spec.label+" must be a JSON array.");if(obj.length!==spec.length)throw new Error(spec.label+" expected "+spec.length+" entries; found "+obj.length+".");return;}
+if(!obj||typeof obj!=="object"||Array.isArray(obj))throw new Error(spec.label+" must be a JSON object.");
+Object.keys(spec.fields||{}).forEach(function(k){if(!Array.isArray(obj[k])||obj[k].length!==spec.fields[k])throw new Error(spec.label+"."+k+" expected "+spec.fields[k]+" entries; found "+(obj[k]&&obj[k].length));});
+}
+btn.addEventListener("click",async function(){
+btn.disabled=true;status.textContent="Checking financial datasets and preparing isolated round-trip copies…";details.textContent="";
+var db=null,temps=[],lines=[],passed=0;
+try{
+ db=await open();if(!db.objectStoreNames.contains(STORE))throw new Error("IndexedDB records store is missing.");
+ for(var i=0;i<specs.length;i++){
+  var spec=specs[i],readTx=db.transaction(STORE,"readonly"),readDone=done(readTx);
+  var original=await req(readTx.objectStore(STORE).get(spec.key));await readDone;
+  if(!original||typeof original.raw!=="string")throw new Error(spec.label+" dataset is missing from IndexedDB.");
+  var parsed;try{parsed=JSON.parse(original.raw);}catch(e){throw new Error(spec.label+" contains invalid JSON: "+e.message);}
+  validate(spec,parsed);
+  lines.push("PASS — "+spec.label+": valid JSON and expected collection counts");passed++;
+  var serialized=JSON.stringify(parsed),tempKey="__cc_finance_roundtrip__"+Date.now()+"_"+i;
+  var rec={key:tempKey,snapshotId:"__financial_roundtrip_test__",source:"financial-dataset-roundtrip-test",raw:serialized,rawLength:serialized.length,checksum:"financial-test"};
+  var writeTx=db.transaction(STORE,"readwrite"),writeDone=done(writeTx);writeTx.objectStore(STORE).put(rec);await writeDone;temps.push(tempKey);
+  var verifyTx=db.transaction(STORE,"readonly"),verifyDone=done(verifyTx),saved=await req(verifyTx.objectStore(STORE).get(tempKey));await verifyDone;
+  if(!saved||saved.raw!==serialized||saved.rawLength!==serialized.length)throw new Error(spec.label+" temporary IndexedDB copy did not match byte-for-byte.");
+  var verified=JSON.parse(saved.raw);validate(spec,verified);
+  lines.push("PASS — "+spec.label+": temporary IndexedDB write/readback matched exactly");passed++;
+ }
+ // Check selected financial history embedded in the main game state as well.
+ var mainTx=db.transaction(STORE,"readonly"),mainDone=done(mainTx),mainRec=await req(mainTx.objectStore(STORE).get("calvins_city_v24"));await mainDone;
+ if(!mainRec||typeof mainRec.raw!=="string")throw new Error("Main game state missing while checking embedded financial ledgers.");
+ var main=JSON.parse(mainRec.raw);
+ var embedded={financialTransactions:Array.isArray(main.financialTransactions)?main.financialTransactions.length:0,playerLedgerTransactions:Array.isArray(main.playerLedgerTransactions)?main.playerLedgerTransactions.length:0,businessCashLedger:Array.isArray(main.businessCashLedger)?main.businessCashLedger.length:0};
+ if(embedded.financialTransactions!==8504||embedded.playerLedgerTransactions!==7211||embedded.businessCashLedger!==8087)throw new Error("Embedded financial ledger counts differ from expected snapshot: "+JSON.stringify(embedded));
+ lines.push("PASS — embedded game ledgers: financial transactions 8,504; player ledger 7,211; business cash ledger 8,087");passed++;
+ var cleanupTx=db.transaction(STORE,"readwrite"),cleanupDone=done(cleanupTx);temps.forEach(function(k){cleanupTx.objectStore(STORE).delete(k);});await cleanupDone;
+ var verifyClean=db.transaction(STORE,"readonly"),verifyCleanDone=done(verifyClean),remaining=await Promise.all(temps.map(function(k){return req(verifyClean.objectStore(STORE).get(k));}));await verifyCleanDone;
+ if(remaining.some(function(x){return x!==undefined;}))throw new Error("One or more temporary financial test records remain after cleanup.");
+ lines.push("PASS — all "+temps.length+" temporary financial copies deleted and verified absent");passed++;
+ lines.push("PASS — original seven snapshot records were only read, not overwritten");passed++;
+ status.textContent="FINANCIAL DATASET ROUND-TRIP PASSED — "+passed+" checks. Original records remain unchanged.";
+ status.style.color="#34d399";
+}catch(e){
+ lines.push("FAIL — "+String(e&&e.message||e));
+ if(db&&temps.length)try{var c=db.transaction(STORE,"readwrite"),cd=done(c);temps.forEach(function(k){c.objectStore(STORE).delete(k);});await cd;lines.push("CLEANUP — temporary test records removed.");}catch(ce){lines.push("CLEANUP WARNING — "+String(ce&&ce.message||ce));}
+ status.textContent="FINANCIAL DATASET ROUND-TRIP FAILED — do not enable live financial storage.";
+ status.style.color="#f87171";
+}finally{
+ details.textContent=lines.join("\n");if(db)try{db.close();}catch(_){}btn.disabled=false;
+}
+});
+})();
+</script>
+
 
 
 </main>
@@ -24184,10 +24263,10 @@ status.textContent="Copy written. Verifying every record against its source…";
 var verified=0;for(var j=0;j<items.length;j++){var got=await request(db.transaction("records","readonly").objectStore("records").get(items[j].key));if(!got||got.snapshotId!==snapshotId||got.raw!==items[j].raw||got.checksum!==items[j].checksum)throw new Error("Verification mismatch for storage key: "+items[j].key);verified++;}
 var main=items.find(function(x){return x.key==="calvins_city_v24";});var season="not detected",games="not detected",retired="not detected",citizens="not detected";
 if(main&&main.validJson&&main.parsed){var st=main.parsed;season=String(st.year==null?"not detected":st.year);games=String(st.records&&Array.isArray(st.records.gameRecords)?st.records.gameRecords.length:"not detected");retired=String(st.records&&Array.isArray(st.records.retiredPlayers)?st.records.retiredPlayers.length:"not detected");citizens=String(Array.isArray(st.citizens)?st.citizens.length:"not detected");}
-var meta={id:snapshotId,appVersion:"5.8.165",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
+var meta={id:snapshotId,appVersion:"5.8.166",purpose:"migration-preparation-copy-only",sourceStorage:"localStorage",database:DB_NAME,createdAt:new Date().toISOString(),recordCount:items.length,totalCharacters:total,verifiedCount:verified,season:season,gameRecords:games,retiredPlayers:retired,citizens:citizens,keys:items.map(function(x){return {key:x.key,rawLength:x.rawLength,checksum:x.checksum,validJson:x.validJson};})};
 await request(db.transaction("metadata","readwrite").objectStore("metadata").put(meta));
 status.textContent="SUCCESS — copied and verified "+verified+" of "+items.length+" records ("+total.toLocaleString()+" characters). Detected season: "+season+"; game records: "+games+"; retired players: "+retired+"; citizens: "+citizens+". Original localStorage data and Permanent Database archive were not changed. This is a preparation copy; the game still runs from its existing storage.";
-window.__calvinsCityIndexedDbPrep={version:"5.8.165",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
+window.__calvinsCityIndexedDbPrep={version:"5.8.166",database:DB_NAME,snapshotId:snapshotId,records:verified,characters:total,season:season,status:"verified-copy-only"};
 }catch(err){status.textContent="PREPARATION FAILED — "+String(err&&err.message||err)+". Original game storage was not intentionally changed.";console.error("IndexedDB migration preparation failed:",err);}finally{if(db)try{db.close();}catch(_){}button.disabled=false;}}
 button.addEventListener("click",prepare);
 })();
@@ -24259,7 +24338,7 @@ status.textContent=ok
 ?"SUCCESS — read back and independently verified "+verified+" of "+expectedCount+" records. Season "+season+" data is readable from IndexedDB. No game or source data was changed."
 :"CHECK FAILED — "+failed.length+" issue(s) found. Do not switch the game to IndexedDB. The original game storage was not changed.";
 status.style.color=ok?"#34d399":"#f87171";
-window.__calvinsCityIndexedDbReadback={version:"5.8.165",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
+window.__calvinsCityIndexedDbReadback={version:"5.8.166",database:DB_NAME,snapshotId:snapshotId,recordsRead:records.length,recordsVerified:verified,season:season,gameRecords:gameCount,retiredPlayers:retiredCount,citizens:citizens,status:ok?"verified-read-only":"failed",issues:failed};
 }catch(err){status.textContent="READBACK FAILED — "+String(err&&err.message||err)+". No source data was changed.";status.style.color="#f87171";details.textContent="No changes were made to localStorage, the game state, or the Permanent Database archive.";console.error("IndexedDB readback verification failed:",err);}
 finally{if(db)try{db.close();}catch(_){}button.disabled=false;}
 }
@@ -24322,7 +24401,7 @@ lines.push("","Startup safety note: this was a read-only dry run. The current ap
 output.textContent=lines.join("\n");
 status.textContent=pass?"READINESS CHECK PASSED — the saved data has the expected game-state structure and required companion datasets. This is not yet proof that all gameplay modules can run from IndexedDB.":"READINESS CHECK NEEDS REVIEW — one or more required checks did not pass. Do not switch startup to IndexedDB.";
 status.style.color=pass?"#34d399":"#fbbf24";
-window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.165",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
+window.__calvinsCityIndexedDbStartupReadiness={version:"5.8.166",snapshotId:meta.id,season:state.year,recordCount:rows.length,checks:checks.map(function(c){return {name:c[0],passed:c[1],detail:c[2]};}),status:pass?"readiness-structure-passed":"review-required",fedFields:fedTerms.slice(0,80)};
 }catch(e){status.textContent="READINESS CHECK FAILED — "+String(e&&e.message||e)+". No data was changed.";status.style.color="#f87171";output.textContent="No changes were made to localStorage, IndexedDB records, or the Permanent Database archive.";console.error(e);}
 finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 });
