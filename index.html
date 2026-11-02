@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.197: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
+<!-- CALVIN'S CITY — VERSION 5.8.198: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.197">
+<meta name="calvins-city-build" content="5.8.198">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.197",
+diagnosticVersion: "5.8.198",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.197",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.198",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.197",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.198",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.197</title>
+<title>Calvin's City 5.8.198</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.197</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.198</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -3236,7 +3236,7 @@ details.textContent=lines.join("\n");if(db)try{db.close();}catch(_){}btn.disable
 <pre id="ccExistingLiveStoreVerify183Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.197 — compatibility adapter prototype startup preload; no gameplay cutover. */
+/* 5.8.198 — compatibility adapter prototype startup preload; no gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunExistingLiveStoreVerify183"),status=document.getElementById("ccExistingLiveStoreVerify183Status"),details=document.getElementById("ccExistingLiveStoreVerify183Details");
@@ -3684,7 +3684,7 @@ window.CalvinsCityIDB=service;
 </script>
  
 <script>
-/* 5.8.197 — Game & Finance Atomic Transaction Layer.
+/* 5.8.198 — Temporary Atomic Transaction Test.
   Read-only preparation API only. It is NOT yet connected to gameplay startup
   or legacy save calls. Do not treat prepare() as a completed storage cutover. */
 (function(){
@@ -3765,7 +3765,7 @@ inFlight=(async function(){
 try{return await inFlight;}finally{inFlight=null;}
 }
 var coordinator={
-version:"5.8.197",
+version:"5.8.198",
 mode:"read-only-foundation",
 prepare:prepare,
 getStatus:function(){return currentReport?JSON.parse(JSON.stringify(currentReport)):{ready:false,mode:"read-only-foundation"};},
@@ -3948,21 +3948,21 @@ finally{details.textContent=lines.join("\n");button.disabled=false;}
 <p id="ccFullParity182Status" aria-live="polite">Waiting for seven-dataset parity check.</p>
 <pre id="ccFullParity182Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section><section class="card" id="ccStartupShadowLoadRehearsal" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
-<h2 style="margin-top:0;">IndexedDB Migration — Game & Finance Atomic Transaction Layer</h2>
+<h2 style="margin-top:0;">IndexedDB Migration — Temporary Atomic Transaction Test</h2>
 <p>Performs a single read-only IndexedDB transaction to load all seven authoritative datasets into a temporary in-memory shadow object. Validates each record, compares it with the current localStorage copy (ignoring only the two approved updatedAt timestamps), and checks the Season 52 integrity counts. It does not replace game state, redirect storage, write records, or change startup behavior.</p>
-<button id="ccRunStartupShadowLoad" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Game & Finance Atomic Transaction Layer</button>
+<button id="ccRunStartupShadowLoad" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Temporary Atomic Transaction Test</button>
 <p id="ccStartupShadowStatus" aria-live="polite">Waiting for shadow-load validation.</p>
 <pre id="ccStartupShadowDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <section class="card" id="ccStartupCoordinatorTest" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
-<h2 style="margin-top:0;">IndexedDB Migration — Game & Finance Atomic Transaction Layer</h2>
+<h2 style="margin-top:0;">IndexedDB Migration — Temporary Atomic Transaction Test</h2>
 <p>Calls the new central startup coordinator directly. It performs a read-only seven-dataset load, validates Season 52, and compares every dataset with the existing localStorage copy. It does not initialize gameplay from IndexedDB, redirect storage, or write data.</p>
-<button id="ccRunCoordinatorPrepare" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Game & Finance Atomic Transaction Layer</button>
+<button id="ccRunCoordinatorPrepare" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Temporary Atomic Transaction Test</button>
 <p id="ccCoordinatorPrepareStatus" aria-live="polite">Waiting for coordinator preparation test.</p>
 <pre id="ccCoordinatorPrepareDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.197 — user-invoked read-only test of the startup coordinator foundation. */
+/* 5.8.198 — user-invoked read-only test of the startup coordinator foundation. */
 (function(){
 "use strict";
 var b=document.getElementById("ccRunCoordinatorPrepare");
@@ -3993,7 +3993,7 @@ try{
 </script>
  
 <script>
-/* 5.8.197 — manual read-only startup shadow-load rehearsal. No gameplay cutover. */
+/* 5.8.198 — manual read-only startup shadow-load rehearsal. No gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunStartupShadowLoad");
@@ -4477,7 +4477,7 @@ finally{
 <pre id="ccMainStateReadOnlyDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.197 — corrected, read-only main-state comparison. No game or IndexedDB writes. */
+/* 5.8.198 — corrected, read-only main-state comparison. No game or IndexedDB writes. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunMainStateReadOnlyValidation");
@@ -4589,7 +4589,7 @@ try{
 <pre id="ccCompatibilityAdapterDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.197 — isolated synchronous cache + durable commit prototype. */
+/* 5.8.198 — isolated synchronous cache + durable commit prototype. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunCompatibilityAdapterTest"),status=document.getElementById("ccCompatibilityAdapterStatus"),details=document.getElementById("ccCompatibilityAdapterDetails");
@@ -16017,7 +16017,7 @@ if(e.target===citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show"
 });
  
  
-/* 5.8.197 — explicit durable main-state save API.
+/* 5.8.198 — explicit durable main-state save API.
   This is intentionally NOT wired into legacy synchronous save() call sites.
   Callers must first load the authoritative IndexedDB state and obtain its
   fingerprint. commitVersioned checks that fingerprint in the same
@@ -16034,11 +16034,11 @@ if(!(expectedChecksum===null||typeof expectedChecksum==="string"))throw new Erro
 syncUnifiedFinancialLedger();
 const raw=JSON.stringify(state);
 if(typeof raw!=="string"||!raw.length)throw new Error("Main game state could not be serialized.");
-const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.197",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
+const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.198",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
 return await api.commitVersioned([record],[],[{key:"calvins_city_v24",checksum:expectedChecksum}]);
 }
  
-/* 5.8.197 — atomic main-game + Sports Bets durable transaction layer.
+/* 5.8.198 — atomic main-game + Sports Bets durable transaction layer.
   This API is intentionally not wired into legacy gameplay call sites yet.
   It requires fingerprints read from IndexedDB before the in-memory changes
   were made. Both canonical records commit together or neither is changed. */
@@ -16066,7 +16066,7 @@ if(typeof mainRaw!=="string"||!mainRaw.length||typeof betsRaw!=="string"||!betsR
 function makeRecord(key,raw){
  let h=2166136261;
  for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}
- return {key:key,snapshotId:"live",source:"game-finance-atomic-v5.8.197",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+(h>>>0).toString(16).padStart(8,"0")};
+ return {key:key,snapshotId:"live",source:"game-finance-atomic-v5.8.198",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+(h>>>0).toString(16).padStart(8,"0")};
 }
 const result=await api.commitVersioned(
  [makeRecord("calvins_city_v24",mainRaw),makeRecord("calvins_city_bets_v1",betsRaw)],
@@ -16439,6 +16439,72 @@ There is no City/stadium event-binding layer. Each arena button
 calls the existing global openTeamPage() directly. */
  
 </script>
+<section class="card" id="ccAtomicTempTest197" style="margin:18px 0;padding:22px;border:1px solid var(--border,#3b4652);border-radius:22px;background:var(--card,#20252b);">
+<h2 style="margin-top:0;">IndexedDB Migration — Temporary Atomic Transaction Test</h2>
+<p>Tests the exact versioned atomic commit service used by the new game/finance transaction layer, but only with two unique temporary keys. It verifies the initial atomic commit, rejects a stale two-record write, confirms neither record was overwritten, then removes the temporary records and verifies cleanup. It does not read or write either live game dataset.</p>
+<button id="ccRunAtomicTempTest197" type="button" style="width:100%;padding:18px;border-radius:16px;font-weight:800;">Run Temporary Atomic Transaction Test</button>
+<p id="ccAtomicTempStatus197" aria-live="polite">Waiting for temporary transaction test.</p>
+<pre id="ccAtomicTempDetails197" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
+</section>
+<script>
+/* 5.8.198 — temporary-key-only test of commitVersioned. Never touches live game keys. */
+(function(){
+"use strict";
+var b=document.getElementById("ccRunAtomicTempTest197");
+var status=document.getElementById("ccAtomicTempStatus197");
+var details=document.getElementById("ccAtomicTempDetails197");
+if(!b||!status||!details)return;
+function fp(raw){var h=2166136261;for(var i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}return "fnv1a:"+(h>>>0).toString(16).padStart(8,"0");}
+function record(key,obj){var raw=JSON.stringify(obj);return {key:key,snapshotId:"temporary-test",source:"v5.8.198-atomic-test",raw:raw,rawLength:raw.length,checksum:fp(raw)};}
+b.addEventListener("click",async function(){
+b.disabled=true;status.textContent="Running temporary two-record atomic transaction test…";details.textContent="";
+var api=window.CalvinsCityIDB,lines=[],keys=["__cc_atomic197_a__"+Date.now()+"_"+Math.random().toString(36).slice(2),"__cc_atomic197_b__"+Date.now()+"_"+Math.random().toString(36).slice(2)];
+var cleanupNeeded=false,passed=0,failed=0;
+function pass(msg){passed++;lines.push("PASS — "+msg);}
+function fail(msg){failed++;lines.push("FAIL — "+msg);}
+try{
+ if(!api||typeof api.commitVersioned!=="function"||typeof api.fingerprint!=="function"||typeof api.readMany!=="function")throw new Error("Required IndexedDB transaction methods are unavailable.");
+ var before=await api.readMany(keys);
+ if(before.some(function(x){return x!==null&&x!==undefined;}))throw new Error("Temporary test key collision; refusing to overwrite existing records.");
+ pass("Both unique temporary keys are absent before the test.");
+ var first=[record(keys[0],{phase:"first",value:101}),record(keys[1],{phase:"first",value:202})];
+ var initial=await api.commitVersioned(first,[],[{key:keys[0],checksum:null},{key:keys[1],checksum:null}]);
+ if(!initial||initial.committed!==true||initial.verified!==true)throw new Error("Initial two-record commit was not verified.");
+ cleanupNeeded=true;pass("Two temporary records committed atomically and passed independent readback.");
+ var staleRejected=false;
+ try{
+  await api.commitVersioned([record(keys[0],{phase:"stale",value:999}),record(keys[1],{phase:"stale",value:999})],[],[{key:keys[0],checksum:null},{key:keys[1],checksum:null}]);
+ }catch(e){staleRejected=true;lines.push("EXPECTED REJECTION — stale two-record write: "+String(e&&e.message||e));}
+ if(!staleRejected)fail("Stale write was not rejected.");else pass("Stale two-record write rejected.");
+ var after=await api.readMany(keys);
+ var parsed=after.map(function(x){return x&&typeof x.raw==="string"?JSON.parse(x.raw):null;});
+ if(!parsed[0]||!parsed[1]||parsed[0].phase!=="first"||parsed[0].value!==101||parsed[1].phase!=="first"||parsed[1].value!==202)fail("Data changed after stale-write rejection.");
+ else pass("Both original temporary records remained unchanged after stale-write rejection.");
+ var versions=await Promise.all(keys.map(function(k){return api.fingerprint(k);}));
+ var cleanup=await api.commitVersioned([],keys,versions);
+ if(!cleanup||cleanup.committed!==true||cleanup.verified!==true)throw new Error("Temporary-record cleanup did not verify.");
+ cleanupNeeded=false;
+ var gone=await api.readMany(keys);
+ if(gone.some(function(x){return x!==null&&x!==undefined;}))fail("One or more temporary records remain after cleanup.");
+ else pass("Both temporary records removed and independently verified absent.");
+}catch(e){failed++;lines.push("STOP — "+String(e&&e.message||e));}
+finally{
+ if(cleanupNeeded){
+  try{
+   var current=await Promise.all(keys.map(function(k){return api.fingerprint(k);}));
+   var present=current.filter(function(x){return x&&x.checksum!==null;});
+   if(present.length)await api.commitVersioned([],present.map(function(x){return x.key;}),present);
+   lines.push("CLEANUP — attempted version-checked removal of any remaining temporary records.");
+  }catch(e){lines.push("CLEANUP WARNING — "+String(e&&e.message||e)+". Do not rerun until temporary keys are inspected.");}
+ }
+ details.textContent=lines.join("\n");
+ status.textContent=failed===0?"TEMPORARY ATOMIC TRANSACTION TEST PASSED — live game datasets were not touched.":"TEMPORARY ATOMIC TRANSACTION TEST FOUND "+failed+" ISSUE(S) — do not connect gameplay.";
+ status.style.color=failed===0?"#34d399":"#f87171";b.disabled=false;
+}
+});
+})();
+</script>
+ 
  
 <div id="shoeDealNeedsModal" class="modal"><div class="modalbox">
  
