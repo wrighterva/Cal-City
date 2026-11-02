@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.199: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
+<!-- CALVIN'S CITY — VERSION 5.8.200: Adds serialized, version-checked atomic IndexedDB transactions; gameplay remains on localStorage. -->
  
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
  
@@ -36,7 +36,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
  
 <head>
  
-<meta name="calvins-city-build" content="5.8.199">
+<meta name="calvins-city-build" content="5.8.200">
  
 <script>
  
@@ -52,7 +52,7 @@ function record(kind, message, source, line, column) {
  
 var item = {
  
-diagnosticVersion: "5.8.199",
+diagnosticVersion: "5.8.200",
  
 time: new Date().toISOString(),
  
@@ -515,11 +515,11 @@ let keysChecked=0;
  
 for(let i=0;i<store.length;i++){const k=store.key(i);if(k&&target(k))keysChecked++;}
  
-window.__calvinsCityStorageCompression={version:"5.8.199",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
+window.__calvinsCityStorageCompression={version:"5.8.200",format:"CCZ2",backwardCompatibleWith:"CCZ1",status:"installed-no-startup-migration",keysChecked:keysChecked};
  
 }catch(err){
  
-window.__calvinsCityStorageCompression={version:"5.8.199",status:"failed",message:String(err&&err.message||err)};
+window.__calvinsCityStorageCompression={version:"5.8.200",status:"failed",message:String(err&&err.message||err)};
  
 console.error("Calvin's City compressed storage did not initialize; original storage APIs were retained.",err);
  
@@ -533,7 +533,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
  
-<title>Calvin's City 5.8.199</title>
+<title>Calvin's City 5.8.200</title>
  
 <style>
  
@@ -983,7 +983,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
  
 <body>
  
-<header><h1>🏙️ Calvin's City — 5.8.199</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.200</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
  
 <main>
  
@@ -3236,7 +3236,7 @@ details.textContent=lines.join("\n");if(db)try{db.close();}catch(_){}btn.disable
 <pre id="ccExistingLiveStoreVerify183Details" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.199 — compatibility adapter prototype startup preload; no gameplay cutover. */
+/* 5.8.200 — compatibility adapter prototype startup preload; no gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunExistingLiveStoreVerify183"),status=document.getElementById("ccExistingLiveStoreVerify183Status"),details=document.getElementById("ccExistingLiveStoreVerify183Details");
@@ -3684,7 +3684,7 @@ window.CalvinsCityIDB=service;
 </script>
  
 <script>
-/* 5.8.199 — Temporary Atomic Transaction Test.
+/* 5.8.200 — Temporary Atomic Transaction Test.
   Read-only preparation API only. It is NOT yet connected to gameplay startup
   or legacy save calls. Do not treat prepare() as a completed storage cutover. */
 (function(){
@@ -3765,7 +3765,7 @@ inFlight=(async function(){
 try{return await inFlight;}finally{inFlight=null;}
 }
 var coordinator={
-version:"5.8.199",
+version:"5.8.200",
 mode:"read-only-foundation",
 prepare:prepare,
 getStatus:function(){return currentReport?JSON.parse(JSON.stringify(currentReport)):{ready:false,mode:"read-only-foundation"};},
@@ -3962,7 +3962,7 @@ finally{details.textContent=lines.join("\n");button.disabled=false;}
 <pre id="ccCoordinatorPrepareDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.199 — user-invoked read-only test of the startup coordinator foundation. */
+/* 5.8.200 — user-invoked read-only test of the startup coordinator foundation. */
 (function(){
 "use strict";
 var b=document.getElementById("ccRunCoordinatorPrepare");
@@ -4000,7 +4000,7 @@ try{
 <pre id="ccAtomicTempDetails199" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.199 — temporary-key-only test of commitVersioned. Never touches live game keys. */
+/* 5.8.200 — temporary-key-only test of commitVersioned. Never touches live game keys. */
 (function(){
 "use strict";
 var b=document.getElementById("ccRunAtomicTempTest199");
@@ -4008,7 +4008,7 @@ var status=document.getElementById("ccAtomicTempStatus199");
 var details=document.getElementById("ccAtomicTempDetails199");
 if(!b||!status||!details)return;
 function fp(raw){var h=2166136261;for(var i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}return "fnv1a:"+(h>>>0).toString(16).padStart(8,"0");}
-function record(key,obj){var raw=JSON.stringify(obj);return {key:key,snapshotId:"temporary-test",source:"v5.8.199-atomic-test",raw:raw,rawLength:raw.length,checksum:fp(raw)};}
+function record(key,obj){var raw=JSON.stringify(obj);return {key:key,snapshotId:"temporary-test",source:"v5.8.200-atomic-test",raw:raw,rawLength:raw.length,checksum:fp(raw)};}
 b.addEventListener("click",async function(){
 b.disabled=true;status.textContent="Running temporary two-record atomic transaction test…";details.textContent="";
 var api=window.CalvinsCityIDB,lines=[],keys=["__cc_atomic199_a__"+Date.now()+"_"+Math.random().toString(36).slice(2),"__cc_atomic199_b__"+Date.now()+"_"+Math.random().toString(36).slice(2)];
@@ -4060,7 +4060,7 @@ finally{
  
  
 <script>
-/* 5.8.199 — manual read-only startup shadow-load rehearsal. No gameplay cutover. */
+/* 5.8.200 — manual read-only startup shadow-load rehearsal. No gameplay cutover. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunStartupShadowLoad");
@@ -4544,7 +4544,7 @@ finally{
 <pre id="ccMainStateReadOnlyDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.199 — corrected, read-only main-state comparison. No game or IndexedDB writes. */
+/* 5.8.200 — corrected, read-only main-state comparison. No game or IndexedDB writes. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunMainStateReadOnlyValidation");
@@ -4656,7 +4656,7 @@ try{
 <pre id="ccCompatibilityAdapterDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;"></pre>
 </section>
 <script>
-/* 5.8.199 — isolated synchronous cache + durable commit prototype. */
+/* 5.8.200 — isolated synchronous cache + durable commit prototype. */
 (function(){
 "use strict";
 var button=document.getElementById("ccRunCompatibilityAdapterTest"),status=document.getElementById("ccCompatibilityAdapterStatus"),details=document.getElementById("ccCompatibilityAdapterDetails");
@@ -16084,7 +16084,7 @@ if(e.target===citizenLedgerModalEl){citizenLedgerModalEl.classList.remove("show"
 });
  
  
-/* 5.8.199 — explicit durable main-state save API.
+/* 5.8.200 — explicit durable main-state save API.
   This is intentionally NOT wired into legacy synchronous save() call sites.
   Callers must first load the authoritative IndexedDB state and obtain its
   fingerprint. commitVersioned checks that fingerprint in the same
@@ -16101,11 +16101,11 @@ if(!(expectedChecksum===null||typeof expectedChecksum==="string"))throw new Erro
 syncUnifiedFinancialLedger();
 const raw=JSON.stringify(state);
 if(typeof raw!=="string"||!raw.length)throw new Error("Main game state could not be serialized.");
-const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.199",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
+const record={key:"calvins_city_v24",snapshotId:"live",source:"main-game-durable-save-v5.8.200",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+((function(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,"0");})(raw))};
 return await api.commitVersioned([record],[],[{key:"calvins_city_v24",checksum:expectedChecksum}]);
 }
  
-/* 5.8.199 — atomic main-game + Sports Bets durable transaction layer.
+/* 5.8.200 — atomic main-game + Sports Bets durable transaction layer.
   This API is intentionally not wired into legacy gameplay call sites yet.
   It requires fingerprints read from IndexedDB before the in-memory changes
   were made. Both canonical records commit together or neither is changed. */
@@ -16133,7 +16133,7 @@ if(typeof mainRaw!=="string"||!mainRaw.length||typeof betsRaw!=="string"||!betsR
 function makeRecord(key,raw){
  let h=2166136261;
  for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}
- return {key:key,snapshotId:"live",source:"game-finance-atomic-v5.8.199",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+(h>>>0).toString(16).padStart(8,"0")};
+ return {key:key,snapshotId:"live",source:"game-finance-atomic-v5.8.200",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+(h>>>0).toString(16).padStart(8,"0")};
 }
 const result=await api.commitVersioned(
  [makeRecord("calvins_city_v24",mainRaw),makeRecord("calvins_city_bets_v1",betsRaw)],
@@ -16144,7 +16144,62 @@ if(!result||result.committed!==true||result.verified!==true)throw new Error("Ato
 return {committed:true,verified:true,atomic:true,records:["calvins_city_v24","calvins_city_bets_v1"],result:result};
 }
  
-window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger:syncCitizenLedger,save:save,saveDurable:saveMainStateDurable,getDurableGameFinanceFingerprints:getDurableGameFinanceFingerprints,saveGameAndBetsDurable:saveGameAndBetsDurable,getDurableFingerprint:getDurableMainStateFingerprint,recordPlayerLedgerTransaction:recordPlayerLedgerTransaction,ensureBusinessOwnershipRegistry:ensureBusinessOwnershipRegistry,saveBusinessOwnershipRegistry:persistBusinessOwnershipRegistry};
+/* 5.8.200 — guarded game/finance transaction coordinator foundation.
+  This is deliberately not connected to gameplay yet. A transaction may begin
+  only when IndexedDB, the in-memory objects, and the currently visible legacy
+  storage values are byte-for-byte aligned. The version fingerprints are then
+  consumed once by the atomic commit. This prevents stale staged data from
+  overwriting newer gameplay and makes concurrent-tab changes fail closed. */
+const durableGameFinanceTokens=new WeakMap();
+function durableGameFinanceChecksum(raw){
+let h=2166136261;
+for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}
+return "fnv1a:"+(h>>>0).toString(16).padStart(8,"0");
+}
+async function beginDurableGameFinanceTransaction(){
+const api=window.CalvinsCityIDB;
+if(!api||typeof api.readMany!=="function"||typeof api.commitVersioned!=="function")throw new Error("IndexedDB transaction service is unavailable.");
+if(typeof betsStorageWritable!=="undefined"&&!betsStorageWritable)throw new Error("Sports Bets storage is marked non-writable; no transaction was started.");
+if(!betsDatabase||!isValidBetsDatabase(betsDatabase))throw new Error("Sports Bets database failed structural validation; no transaction was started.");
+const keys=["calvins_city_v24","calvins_city_bets_v1"];
+const records=await api.readMany(keys);
+if(!Array.isArray(records)||records.length!==2)throw new Error("IndexedDB did not return both canonical game/finance records.");
+const main=records[0],bets=records[1];
+if(!main||main.key!==keys[0]||typeof main.raw!=="string"||main.rawLength!==main.raw.length)throw new Error("IndexedDB main game record is missing or malformed.");
+if(!bets||bets.key!==keys[1]||typeof bets.raw!=="string"||bets.rawLength!==bets.raw.length)throw new Error("IndexedDB Sports Bets record is missing or malformed.");
+let parsedMain,parsedBets;
+try{parsedMain=JSON.parse(main.raw);parsedBets=JSON.parse(bets.raw);}catch(e){throw new Error("An IndexedDB game/finance record contains invalid JSON: "+String(e&&e.message||e));}
+if(!parsedMain||typeof parsedMain!=="object"||!parsedBets||typeof parsedBets!=="object"||!isValidBetsDatabase(parsedBets))throw new Error("IndexedDB game/finance records failed structural validation.");
+const liveMain=JSON.stringify(state),liveBets=JSON.stringify(betsDatabase);
+const legacyMain=localStorage.getItem(keys[0]),legacyBets=localStorage.getItem(keys[1]);
+if(typeof liveMain!=="string"||typeof liveBets!=="string"||typeof legacyMain!=="string"||typeof legacyBets!=="string")throw new Error("A live in-memory or legacy storage record is unavailable. No transaction was started.");
+const mainChecksum=durableGameFinanceChecksum(main.raw),betsChecksum=durableGameFinanceChecksum(bets.raw);
+if(durableGameFinanceChecksum(liveMain)!==mainChecksum||durableGameFinanceChecksum(legacyMain)!==mainChecksum)throw new Error("Main game state is not aligned across IndexedDB, memory, and current storage. No write was attempted; reconcile before cutover.");
+if(durableGameFinanceChecksum(liveBets)!==betsChecksum||durableGameFinanceChecksum(legacyBets)!==betsChecksum)throw new Error("Sports Bets data is not aligned across IndexedDB, memory, and current storage. No write was attempted; reconcile before cutover.");
+const token=Object.freeze({createdAt:new Date().toISOString(),keys:keys.slice(),status:"prepared"});
+durableGameFinanceTokens.set(token,{main:{key:keys[0],checksum:mainChecksum},bets:{key:keys[1],checksum:betsChecksum}});
+return {token:token,verified:true,readOnly:true,records:2,keys:keys.slice(),checksums:{main:mainChecksum,bets:betsChecksum}};
+}
+async function commitDurableGameFinanceTransaction(token){
+const expected=token&&durableGameFinanceTokens.get(token);
+if(!expected)throw new Error("A fresh, unused transaction token from beginDurableGameFinanceTransaction is required.");
+durableGameFinanceTokens.delete(token);
+const api=window.CalvinsCityIDB;
+if(!api||typeof api.commitVersioned!=="function")throw new Error("IndexedDB versioned commit service is unavailable.");
+if(typeof betsStorageWritable!=="undefined"&&!betsStorageWritable)throw new Error("Sports Bets storage is marked non-writable; transaction refused.");
+if(!betsDatabase||!isValidBetsDatabase(betsDatabase))throw new Error("Sports Bets database failed structural validation; transaction refused.");
+syncUnifiedFinancialLedger();
+ensureBetsFinanceCollections();
+betsDatabase.schemaVersion=BETS_SCHEMA_VERSION;
+const mainRaw=JSON.stringify(state),betsRaw=JSON.stringify(betsDatabase);
+if(typeof mainRaw!=="string"||!mainRaw.length||typeof betsRaw!=="string"||!betsRaw.length)throw new Error("Game or Sports Bets state could not be serialized.");
+const records=[{key:expected.main.key,snapshotId:"live",source:"game-finance-transaction-v5.8.200",raw:mainRaw,rawLength:mainRaw.length,checksum:durableGameFinanceChecksum(mainRaw)},{key:expected.bets.key,snapshotId:"live",source:"game-finance-transaction-v5.8.200",raw:betsRaw,rawLength:betsRaw.length,checksum:durableGameFinanceChecksum(betsRaw)}];
+const result=await api.commitVersioned(records,[],[expected.main,expected.bets]);
+if(!result||result.committed!==true||result.verified!==true||result.conflictChecked!==true)throw new Error("Atomic IndexedDB commit did not return conflict-checked, verified success.");
+return {committed:true,verified:true,atomic:true,conflictChecked:true,records:expected.main.key+", "+expected.bets.key,result:result};
+}
+ 
+window.__calvinsCityBridge={getState:function(){return state;},syncCitizenLedger:syncCitizenLedger,save:save,saveDurable:saveMainStateDurable,getDurableGameFinanceFingerprints:getDurableGameFinanceFingerprints,saveGameAndBetsDurable:saveGameAndBetsDurable,beginDurableGameFinanceTransaction:beginDurableGameFinanceTransaction,commitDurableGameFinanceTransaction:commitDurableGameFinanceTransaction,getDurableFingerprint:getDurableMainStateFingerprint,recordPlayerLedgerTransaction:recordPlayerLedgerTransaction,ensureBusinessOwnershipRegistry:ensureBusinessOwnershipRegistry,saveBusinessOwnershipRegistry:persistBusinessOwnershipRegistry};
  
 /* 4.28.89: Surface storage failures without freezing navigation. */
  
