@@ -19,7 +19,7 @@ ash/ownership reversal. Player Ledger approval buttons use green approve and red
 Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
 <head>
-<meta name="calvins-city-build" content="5.8.211">
+<meta name="calvins-city-build" content="5.8.213">
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
 (function(){
@@ -27,7 +27,7 @@ Fast storage compression; CalBank/Federal Reserve integration retained; CalBank 
 var logs = [];
 function record(kind, message, source, line, column) {
 var item = {
-diagnosticVersion: "5.8.211",
+diagnosticVersion: "5.8.213",
 time: new Date().toISOString(),
 kind: kind,
 message: String(message || ""),
@@ -558,7 +558,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 </style>
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.211</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.213</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -575,6 +575,7 @@ Recorded</small><strong id="recordGameCount">0</strong></div></div><button id="o
 <p id="cityBackupStatus" class="tiny" role="status" aria-live="polite">Your backup files are handled through IndexedDB.</p>
 </div>
 </section>
+<section id="city" class="screen">
 <p id="fedTreasuryStatus" class="tiny" role="status" aria-live="polite">No Treasury offering has been prepared. No investor cash has moved.</p>
 <div id="fedTreasuryOfferingDetails" style="overflow-x:auto"></div>
 <h4>Investor Purchase</h4>
