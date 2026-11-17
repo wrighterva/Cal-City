@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- CALVIN'S CITY — VERSION 5.8.220: Business slide-up panels; interface-only; preserves existing business logic and storage. -->
 <!-- CALVIN'S CITY — VERSION 5.8.210: Clean Import/Export interface; IndexedDB-authoritative live storage; verified startup cutover; atomic backup import and durable export. Preserves existing UI and game systems. -->
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
@@ -19,7 +20,7 @@ ash/ownership reversal. Player Ledger approval buttons use green approve and red
 Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
 <head>
-<meta name="calvins-city-build" content="5.8.219">
+<meta name="calvins-city-build" content="5.8.220">
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
 (function(){
@@ -208,17 +209,17 @@ const tokenStart=pos;let bestLen=0,bestOff=0;
 if(pos+2<n){
 const chain=chains.get(keyAt(pos));
 if(chain){
- const positions=chain.positions;
- while(chain.head<positions.length&&positions[chain.head]<pos-4096)chain.head++;
- let checked=0;
- for(let j=positions.length-1;j>=chain.head&&checked<32;j--){
-  const cand=positions[j],off=pos-cand;
-  if(off<1||off>4096)continue;
-  checked++;
-  let len=3;
-  while(len<273&&pos+len<n&&input[cand+len]===input[pos+len])len++;
-  if(len>bestLen){bestLen=len;bestOff=off;if(len===273)break;}
- }
+const positions=chain.positions;
+while(chain.head<positions.length&&positions[chain.head]<pos-4096)chain.head++;
+let checked=0;
+for(let j=positions.length-1;j>=chain.head&&checked<32;j--){
+ const cand=positions[j],off=pos-cand;
+ if(off<1||off>4096)continue;
+ checked++;
+ let len=3;
+ while(len<273&&pos+len<n&&input[cand+len]===input[pos+len])len++;
+ if(len>bestLen){bestLen=len;bestOff=off;if(len===273)break;}
+}
 }
 }
 if(bestLen>=3){
@@ -323,7 +324,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.211</title>
+<title>Calvin's City 5.8.220</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -558,7 +559,7 @@ rder:1px solid #56504A!important;box-shadow:0 22px 70px #0009!important;border-r
 </style>
 <style id="cc-hide-all-indexeddb-migration-panels-v581215">
 /* Player UI cleanup: hide migration, parity, staging, and diagnostic panels on every screen.
-  Underlying IndexedDB storage, import/export, and recovery logic remains active. */
+ Underlying IndexedDB storage, import/export, and recovery logic remains active. */
 section[id^="cc"]{display:none!important}
 </style>
 <style id="cc-calsims-metric-overflow-fix">
@@ -575,6 +576,73 @@ section[id^="cc"]{display:none!important}
 #marketMoneyPanel .metric strong{display:block;box-sizing:border-box;min-width:0;max-width:100%;font-size:clamp(14px,4vw,18px)!important;line-height:1.2;white-space:normal;overflow-wrap:anywhere;word-break:break-word;font-variant-numeric:tabular-nums}
 @media(max-width:420px){#marketMoneyPanel .metric{padding:10px!important}#marketMoneyPanel .metric strong{font-size:14px!important}}
 </style>
+
+<style id="cc-business-slideup-panels-v581220">
+/* Business interface-only update: bottom-sheet panels. No state, ledger, or storage changes. */
+#shoeCompanyModal,#shoeStoreModal,#businessOwnershipMarketplaceModal{
+ align-items:flex-end!important;justify-content:center!important;padding:0!important;
+ background:rgba(0,0,0,.68)!important;backdrop-filter:blur(4px);
+}
+#shoeCompanyModal .modalbox,#shoeStoreModal .modalbox,#businessOwnershipMarketplaceModal .modalbox{
+ width:min(100%,980px)!important;max-width:980px!important;
+ max-height:min(90dvh,900px)!important;max-height:min(90vh,900px)!important;
+ margin:0!important;padding:18px 16px calc(18px + env(safe-area-inset-bottom))!important;
+ border-radius:22px 22px 0 0!important;border-bottom:0!important;
+ overflow-y:auto!important;overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ transform:translate3d(0,105%,0);transition:transform .28s cubic-bezier(.2,.75,.25,1);
+ will-change:transform;
+}
+#shoeCompanyModal.show .modalbox,#shoeStoreModal.show .modalbox,#businessOwnershipMarketplaceModal.show .modalbox{
+ transform:translate3d(0,0,0);
+}
+#tvCompanyDetailModal{
+ align-items:flex-end!important;justify-content:center!important;padding:0 0 env(safe-area-inset-bottom)!important;
+ background:rgba(0,0,0,.72)!important;backdrop-filter:blur(4px);
+}
+#tvCompanyDetailModal #tvCompanyDetailModalBox{
+ width:min(100%,980px)!important;max-height:90dvh!important;max-height:90vh!important;
+ margin:0!important;padding:18px 16px calc(18px + env(safe-area-inset-bottom))!important;
+ border-radius:22px 22px 0 0!important;border-bottom:0!important;
+ overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
+ transform:translate3d(0,105%,0);transition:transform .28s cubic-bezier(.2,.75,.25,1);
+ will-change:transform;
+}
+#tvCompanyDetailModal[style*="display: flex"] #tvCompanyDetailModalBox{transform:translate3d(0,0,0)}
+#cityCalBankPanel.calbank-popup-panel{
+ left:0!important;right:0!important;top:auto!important;bottom:0!important;
+ transform:translate3d(0,105%,0)!important;translate:none!important;
+ width:min(100%,980px)!important;max-width:980px!important;
+ max-height:90dvh!important;max-height:90vh!important;
+ margin:0 auto!important;border-radius:22px 22px 0 0!important;
+ border-bottom:0!important;box-shadow:0 -18px 60px rgba(0,0,0,.45)!important;
+ transition:transform .28s cubic-bezier(.2,.75,.25,1)!important;
+ padding-bottom:calc(12px + env(safe-area-inset-bottom))!important;
+}
+#cityCalBankPanel.calbank-popup-panel.cc-slide-open{transform:translate3d(0,0,0)!important}
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header:before{
+ content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);
+ width:42px;height:5px;border-radius:999px;background:#8793a1;opacity:.8;
+}
+#cityCalBankPanel.calbank-popup-panel>.calbank-popup-header{padding-top:20px!important}
+.cc-business-sheet-handle{
+ display:flex;justify-content:center;align-items:center;height:22px;margin:-7px 0 8px;
+ cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;
+}
+.cc-business-sheet-handle:before{content:"";display:block;width:42px;height:5px;border-radius:999px;background:#8793a1;opacity:.8}
+#tvCompanyDetailModalBox>.cc-business-sheet-handle{margin-top:-7px}
+@media(min-width:761px){
+#shoeCompanyModal .modalbox,#shoeStoreModal .modalbox,#businessOwnershipMarketplaceModal .modalbox,
+#tvCompanyDetailModal #tvCompanyDetailModalBox,#cityCalBankPanel.calbank-popup-panel{
+  width:min(760px,100%)!important;max-height:88vh!important;
+}
+}
+@media(prefers-reduced-motion:reduce){
+#shoeCompanyModal .modalbox,#shoeStoreModal .modalbox,#businessOwnershipMarketplaceModal .modalbox,
+#tvCompanyDetailModal #tvCompanyDetailModalBox,#cityCalBankPanel.calbank-popup-panel{transition:none!important}
+}
+</style>
+
 </head>
 <body>
 <header><h1>🏙️ Calvin's City — 5.8.219</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
@@ -2248,26 +2316,26 @@ var db=await openDatabase();
 try{
 var tx=db.transaction(STORE_NAME,"readwrite"),finished=transactionResult(tx),store=tx.objectStore(STORE_NAME),keys=Array.from(changed),remaining=keys.length,conflict=null,applied=false;
 keys.forEach(function(key){
- var req=store.get(key);
- req.onsuccess=function(){
-  if(conflict)return;
-  var current=req.result,actual=current&&typeof current.raw==="string"?"fnv1a:"+checksum(current.raw):null;
-  if(actual!==expectedMap.get(key)){conflict=new Error("Version conflict for "+key+"; stored data changed since it was read. No records were changed.");try{tx.abort();}catch(_){}return;}
-  remaining--;
-  if(remaining===0&&!applied){
-   applied=true;
-   writes.forEach(function(record){store.put(record);});
-   deletes.forEach(function(keyToDelete){store.delete(keyToDelete);});
-  }
- };
+var req=store.get(key);
+req.onsuccess=function(){
+ if(conflict)return;
+ var current=req.result,actual=current&&typeof current.raw==="string"?"fnv1a:"+checksum(current.raw):null;
+ if(actual!==expectedMap.get(key)){conflict=new Error("Version conflict for "+key+"; stored data changed since it was read. No records were changed.");try{tx.abort();}catch(_){}return;}
+ remaining--;
+ if(remaining===0&&!applied){
+  applied=true;
+  writes.forEach(function(record){store.put(record);});
+  deletes.forEach(function(keyToDelete){store.delete(keyToDelete);});
+ }
+};
 });
 try{await finished;}catch(err){if(conflict)throw conflict;throw err;}
 var verifyTx=db.transaction(STORE_NAME,"readonly"),verifyDone=transactionResult(verifyTx),verifyStore=verifyTx.objectStore(STORE_NAME);
 var checks=await Promise.all(keys.map(function(k){return requestResult(verifyStore.get(k));}));await verifyDone;
 for(var i=0;i<keys.length;i++){
- var expectedWrite=writes.find(function(r){return r.key===keys[i];});
- if(expectedWrite){if(!checks[i]||JSON.stringify(checks[i])!==JSON.stringify(expectedWrite))throw new Error("Committed readback verification failed for "+keys[i]+".");}
- else if(checks[i]!==undefined)throw new Error("Deletion readback verification failed for "+keys[i]+".");
+var expectedWrite=writes.find(function(r){return r.key===keys[i];});
+if(expectedWrite){if(!checks[i]||JSON.stringify(checks[i])!==JSON.stringify(expectedWrite))throw new Error("Committed readback verification failed for "+keys[i]+".");}
+else if(checks[i]!==undefined)throw new Error("Deletion readback verification failed for "+keys[i]+".");
 }
 return {committed:true,verified:true,conflictChecked:true,writes:writes.length,deletes:deletes.length};
 }finally{db.close();}
@@ -2300,17 +2368,17 @@ get length(){assertOpen();return cache.size;},
 flush:function(){
 assertOpen();
 var run=async function(){
- assertOpen();
- if(!hasPending())return {committed:true,verified:true,conflictChecked:true,writes:0,deletes:0};
- var writeSnapshot=Array.from(pending.entries()),deleteSnapshot=Array.from(removed);
- var writes=writeSnapshot.map(function(entry){var raw=entry[1];return {key:entry[0],snapshotId:"live",source:"compatibility-adapter",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+checksum(raw)};});
- var changed=writes.map(function(r){return r.key;}).concat(deleteSnapshot);
- var expectations=changed.map(function(key){return {key:key,checksum:versions.has(key)?versions.get(key):null};});
- var result=await service.commitVersioned(writes,deleteSnapshot,expectations);
- if(!result||result.committed!==true||result.verified!==true||result.conflictChecked!==true)throw new Error("Version-checked compatibility flush did not confirm a durable commit.");
- writeSnapshot.forEach(function(entry){var key=entry[0],raw=entry[1];versions.set(key,"fnv1a:"+checksum(raw));if(pending.get(key)===raw)pending.delete(key);});
- deleteSnapshot.forEach(function(key){versions.delete(key);if(removed.has(key))removed.delete(key);});
- return result;
+assertOpen();
+if(!hasPending())return {committed:true,verified:true,conflictChecked:true,writes:0,deletes:0};
+var writeSnapshot=Array.from(pending.entries()),deleteSnapshot=Array.from(removed);
+var writes=writeSnapshot.map(function(entry){var raw=entry[1];return {key:entry[0],snapshotId:"live",source:"compatibility-adapter",raw:raw,rawLength:raw.length,checksum:"fnv1a:"+checksum(raw)};});
+var changed=writes.map(function(r){return r.key;}).concat(deleteSnapshot);
+var expectations=changed.map(function(key){return {key:key,checksum:versions.has(key)?versions.get(key):null};});
+var result=await service.commitVersioned(writes,deleteSnapshot,expectations);
+if(!result||result.committed!==true||result.verified!==true||result.conflictChecked!==true)throw new Error("Version-checked compatibility flush did not confirm a durable commit.");
+writeSnapshot.forEach(function(entry){var key=entry[0],raw=entry[1];versions.set(key,"fnv1a:"+checksum(raw));if(pending.get(key)===raw)pending.delete(key);});
+deleteSnapshot.forEach(function(key){versions.delete(key);if(removed.has(key))removed.delete(key);});
+return result;
 };
 var result=flushTail.then(run,run);
 flushTail=result.catch(function(){});
@@ -2442,12 +2510,12 @@ report.push({key:spec.key,label:spec.label,rawLength:record.raw.length,fingerpri
 validateMain(snapshot.calvins_city_v24);
 if(options.compareLocalStorage!==false){
 for(var j=0;j<DATASETS.length;j++){
- var spec2=DATASETS[j],liveRaw=window.localStorage.getItem(spec2.key);
- if(typeof liveRaw!=="string")throw new Error(spec2.label+": localStorage comparison copy is missing.");
- var live;
- try{live=JSON.parse(liveRaw);}catch(e){throw new Error(spec2.label+": localStorage comparison copy is invalid JSON.");}
- if(stable(snapshot[spec2.key],spec2.key==="calvins_city_business_ownership_v1")!==stable(live,spec2.key==="calvins_city_business_ownership_v1"))
-   throw new Error(spec2.label+": IndexedDB and localStorage differ outside the approved timestamps .");
+var spec2=DATASETS[j],liveRaw=window.localStorage.getItem(spec2.key);
+if(typeof liveRaw!=="string")throw new Error(spec2.label+": localStorage comparison copy is missing.");
+var live;
+try{live=JSON.parse(liveRaw);}catch(e){throw new Error(spec2.label+": localStorage comparison copy is invalid JSON.");}
+if(stable(snapshot[spec2.key],spec2.key==="calvins_city_business_ownership_v1")!==stable(live,spec2.key==="calvins_city_business_ownership_v1"))
+  throw new Error(spec2.label+": IndexedDB and localStorage differ outside the approved timestamps .");
 }
 }
 currentSnapshot=snapshot;
@@ -2724,10 +2792,10 @@ else pass("Both temporary records removed and independently verified absent.");
 finally{
 if(cleanupNeeded){
 try{
- var current=await Promise.all(keys.map(function(k){return api.fingerprint(k);}));
- var present=current.filter(function(x){return x&&x.checksum!==null;});
- if(present.length)await api.commitVersioned([],present.map(function(x){return x.key;}),present);
- lines.push("CLEANUP — attempted version-checked removal of any remaining temporary records.");
+var current=await Promise.all(keys.map(function(k){return api.fingerprint(k);}));
+var present=current.filter(function(x){return x&&x.checksum!==null;});
+if(present.length)await api.commitVersioned([],present.map(function(x){return x.key;}),present);
+lines.push("CLEANUP — attempted version-checked removal of any remaining temporary records.");
 }catch(e){lines.push("CLEANUP WARNING — "+String(e&&e.message||e)+". Do not rerun until temporary keys are inspected.");}
 }
 details.textContent=lines.join("\n");
@@ -2776,8 +2844,8 @@ for(var i=0;i<keys.length;i++){
 var record=records[i],key=keys[i];
 if(!record||record.key!==key||typeof record.raw!=="string"||record.rawLength!==record.raw.length){fail++;lines.push("FAIL — "+labels[i]+": missing record, wrong key, invalid raw value, or rawLength mismatch.");continue;}
 /* The staged-copy checksum field is inherited metadata and may use a legacy format.
-   Do not treat it as authoritative. Verify content through rawLength, JSON parsing,
-   and the independent live-vs-staged structural comparison below. */
+  Do not treat it as authoritative. Verify content through rawLength, JSON parsing,
+  and the independent live-vs-staged structural comparison below. */
 var computedFingerprint=checksum(record.raw);
 var parsed;try{parsed=JSON.parse(record.raw);}catch(e){fail++;lines.push("FAIL — "+labels[i]+": invalid JSON ("+String(e.message||e)+").");continue;}
 shadow[key]=parsed;
@@ -3045,11 +3113,11 @@ if(liveTimestamp!==stagedTimestamp){
 writePath(stagedObj,t.path,liveTimestamp);
 var updatedRaw=JSON.stringify(stagedObj);
 var updatedRecord=Object.assign({},staged,{
- raw:updatedRaw,
- rawLength:updatedRaw.length,
- checksum:checksum(updatedRaw),
- timestampReconciledAt:new Date().toISOString(),
- timestampReconciliation:"updated only "+t.path.join(".")+" from current localStorage after non-timestamp parity verification"
+raw:updatedRaw,
+rawLength:updatedRaw.length,
+checksum:checksum(updatedRaw),
+timestampReconciledAt:new Date().toISOString(),
+timestampReconciliation:"updated only "+t.path.join(".")+" from current localStorage after non-timestamp parity verification"
 });
 plans.push(updatedRecord);
 }else{
@@ -3278,39 +3346,39 @@ if(differingKeys.indexOf("businessOwnershipRegistry")!==-1){
 var savedRegistry=savedState.businessOwnershipRegistry;
 var liveRegistry=liveState.businessOwnershipRegistry;
 function describeRegistry(v){
- if(v===null)return "null";
- if(Array.isArray(v))return "array(length="+v.length+")";
- if(typeof v==="object")return "object(keys="+Object.keys(v).length+")";
- return typeof v+"("+String(v).slice(0,100)+")";
+if(v===null)return "null";
+if(Array.isArray(v))return "array(length="+v.length+")";
+if(typeof v==="object")return "object(keys="+Object.keys(v).length+")";
+return typeof v+"("+String(v).slice(0,100)+")";
 }
 lines.push("BUSINESS OWNERSHIP REGISTRY — IndexedDB: "+describeRegistry(savedRegistry)+"; loaded game: "+describeRegistry(liveRegistry)+".");
 if(savedRegistry&&typeof savedRegistry==="object"&&liveRegistry&&typeof liveRegistry==="object"){
- lines.push("IndexedDB registry top-level keys: "+Object.keys(savedRegistry).sort().slice(0,40).join(", ")+(Object.keys(savedRegistry).length>40?" …":""));
- lines.push("Loaded registry top-level keys: "+Object.keys(liveRegistry).sort().slice(0,40).join(", ")+(Object.keys(liveRegistry).length>40?" …":""));
- var registryDiffs=[];
- function walkRegistry(a,b,path,depth){
-  if(registryDiffs.length>=60)return;
-  if(stable(a)===stable(b))return;
-  if(depth>=7){registryDiffs.push(path+" (nested content differs)");return;}
-  var ao=a!==null&&typeof a==="object",bo=b!==null&&typeof b==="object";
-  if(!ao||!bo||Array.isArray(a)!==Array.isArray(b)){
-   registryDiffs.push(path+" [IndexedDB="+describeRegistry(a)+"; loaded="+describeRegistry(b)+"]");
-   return;
-  }
-  var keys=Array.from(new Set(Object.keys(a).concat(Object.keys(b)))).sort();
-  if(!keys.length){registryDiffs.push(path+" (values differ)");return;}
-  for(var z=0;z<keys.length&&registryDiffs.length<60;z++){
-   var k=keys[z],next=path+(Array.isArray(a)?"["+k+"]":(path?".":"")+k);
-   if(!Object.prototype.hasOwnProperty.call(a,k)){registryDiffs.push(next+" [missing from IndexedDB]");continue;}
-   if(!Object.prototype.hasOwnProperty.call(b,k)){registryDiffs.push(next+" [missing from loaded game]");continue;}
-   walkRegistry(a[k],b[k],next,depth+1);
-  }
+lines.push("IndexedDB registry top-level keys: "+Object.keys(savedRegistry).sort().slice(0,40).join(", ")+(Object.keys(savedRegistry).length>40?" …":""));
+lines.push("Loaded registry top-level keys: "+Object.keys(liveRegistry).sort().slice(0,40).join(", ")+(Object.keys(liveRegistry).length>40?" …":""));
+var registryDiffs=[];
+function walkRegistry(a,b,path,depth){
+ if(registryDiffs.length>=60)return;
+ if(stable(a)===stable(b))return;
+ if(depth>=7){registryDiffs.push(path+" (nested content differs)");return;}
+ var ao=a!==null&&typeof a==="object",bo=b!==null&&typeof b==="object";
+ if(!ao||!bo||Array.isArray(a)!==Array.isArray(b)){
+  registryDiffs.push(path+" [IndexedDB="+describeRegistry(a)+"; loaded="+describeRegistry(b)+"]");
+  return;
  }
- walkRegistry(savedRegistry,liveRegistry,"businessOwnershipRegistry",0);
- lines.push("Registry difference paths ("+registryDiffs.length+(registryDiffs.length>=60?"+":"")+", maximum 60 shown):");
+ var keys=Array.from(new Set(Object.keys(a).concat(Object.keys(b)))).sort();
+ if(!keys.length){registryDiffs.push(path+" (values differ)");return;}
+ for(var z=0;z<keys.length&&registryDiffs.length<60;z++){
+  var k=keys[z],next=path+(Array.isArray(a)?"["+k+"]":(path?".":"")+k);
+  if(!Object.prototype.hasOwnProperty.call(a,k)){registryDiffs.push(next+" [missing from IndexedDB]");continue;}
+  if(!Object.prototype.hasOwnProperty.call(b,k)){registryDiffs.push(next+" [missing from loaded game]");continue;}
+  walkRegistry(a[k],b[k],next,depth+1);
+ }
+}
+walkRegistry(savedRegistry,liveRegistry,"businessOwnershipRegistry",0);
+lines.push("Registry difference paths ("+registryDiffs.length+(registryDiffs.length>=60?"+":"")+", maximum 60 shown):");
 registryDiffs.forEach(function(x){lines.push("  • "+x);});
 }else{
- lines.push("Registry presence: IndexedDB="+(savedRegistry===undefined?"missing":"present")+", loaded game="+(liveRegistry===undefined?"missing":"present")+".");
+lines.push("Registry presence: IndexedDB="+(savedRegistry===undefined?"missing":"present")+", loaded game="+(liveRegistry===undefined?"missing":"present")+".");
 }
 }
 lines.push("Comparison preserves array order and all values; only object-key ordering is normalized.");
@@ -9360,7 +9428,7 @@ async function saveGameAndBetsDurable(expected){
 const api=window.CalvinsCityIDB;
 if(!api||typeof api.commitVersioned!=="function")throw new Error("IndexedDB versioned transaction service is unavailable.");
 if(!expected||!expected.main||expected.main.key!=="calvins_city_v24"||!(expected.main.checksum===null||typeof expected.main.checksum==="string")||
- !expected.bets||expected.bets.key!=="calvins_city_bets_v1"||!(expected.bets.checksum===null||typeof expected.bets.checksum==="string"))
+!expected.bets||expected.bets.key!=="calvins_city_bets_v1"||!(expected.bets.checksum===null||typeof expected.bets.checksum==="string"))
 throw new Error("Fresh main-state and Sports Bets fingerprints are required.");
 if(typeof betsStorageWritable!=="undefined"&&!betsStorageWritable)throw new Error("Sports Bets storage is marked non-writable; transaction refused.");
 if(!betsDatabase||!isValidBetsDatabase(betsDatabase))throw new Error("Sports Bets database failed structural validation; transaction refused.");
@@ -9695,6 +9763,7 @@ function openCalBankPopup(){
 const panel=document.getElementById("cityCalBankPanel");
 if(!panel)return;
 panel.style.display="block";
+panel.classList.remove("cc-slide-open");requestAnimationFrame(function(){requestAnimationFrame(function(){panel.classList.add("cc-slide-open");});});
 document.body.dataset.calBankPreviousOverflow=document.body.style.overflow||"";
 document.body.style.overflow="hidden";
 const close=panel.querySelector(".calbank-popup-close");
@@ -9703,7 +9772,7 @@ if(close)close.focus();
 function closeCalBankPopup(){
 const panel=document.getElementById("cityCalBankPanel");
 if(!panel)return;
-panel.style.display="none";
+panel.classList.remove("cc-slide-open");panel.style.display="none";
 document.body.style.overflow=document.body.dataset.calBankPreviousOverflow||"";
 }
 /* v5.8.96: switch visible CalBank section without moving or rebuilding existing controls. */
@@ -12169,8 +12238,8 @@ const rawKey=String(holderKey||"").trim();
 let direct=allCitizens.find(c=>c&&c.id!=null&&String(c.id)===rawKey);
 if(direct)return direct;
 /* Historical stock databases may store a permanent ID, a plain citizen name,
-  a LEGACY:name key, or a display label in ownerNames. Try each supported form,
-  but only accept one unique citizen match. Business account keys are excluded. */
+ a LEGACY:name key, or a display label in ownerNames. Try each supported form,
+ but only accept one unique citizen match. Business account keys are excluded. */
 if(/^BUSINESS:/i.test(rawKey)||/^LEGACY:BUSINESS:/i.test(rawKey))return null;
 const labels=[String((co.ownerNames||{})[rawKey]||"").trim(),rawKey.replace(/^LEGACY:/i,"").trim()];
 for(const label of labels){
@@ -12513,7 +12582,7 @@ for(let i=0;i<localStorage.length;i++){
 const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in IndexedDB.");
-return {format:PREFIX,formatVersion:1,appVersion:"5.8.211",exportedAt:new Date().toISOString(),storageType:"indexedDB",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"5.8.220",exportedAt:new Date().toISOString(),storageType:"indexedDB",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -14612,8 +14681,8 @@ finally{if(db)try{db.close();}catch(_){}btn.disabled=false;}
 </script>
 <script id="ccIndexedDbLiveBootstrap">
 /* CALVIN'S CITY 5.8.204 — IndexedDB is the authoritative live store.
-  Legacy synchronous Storage calls are served from a verified memory cache and
-  committed through the existing version-checked IndexedDB transaction service. */
+ Legacy synchronous Storage calls are served from a verified memory cache and
+ committed through the existing version-checked IndexedDB transaction service. */
 (function(){
 "use strict";
 var DB="CalvinsCityStorageV2",META_KEY="__cc_live_storage_meta_v1__";
@@ -14644,7 +14713,7 @@ function say(message,error){overlayDetail.textContent=message||"";overlayDetail.
 function relevantKey(key){return /calvins_city|calvin.?s.?city|city.*bets|bets.*city/i.test(String(key||""));}
 function hash(raw){var h=2166136261;for(var i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}return "fnv1a:"+(h>>>0).toString(16).padStart(8,"0");}
 /* Legacy v1.3.0 records stored the same FNV-1a digest without the "fnv1a:" prefix.
-  Accept either serialized form, but always recompute the digest from the raw payload. */
+ Accept either serialized form, but always recompute the digest from the raw payload. */
 function checksumMatches(raw,stored){
 if(!stored)return true;
 var current=hash(raw);
@@ -14894,4 +14963,75 @@ console.error("Calvin's City IndexedDB startup blocked safely:",error);
 start();
 })();
 </script>
+
+<script id="cc-business-slideup-interactions-v581220">
+/* Swipe-down dismissal is attached only to the grab handle, never to business controls. */
+(function(){
+"use strict";
+var selectors=[
+ "#shoeCompanyModal .modalbox",
+ "#shoeStoreModal .modalbox",
+ "#businessOwnershipMarketplaceModal .modalbox",
+ "#tvCompanyDetailModal #tvCompanyDetailModalBox"
+];
+function closeSheet(el){
+ if(!el)return;
+ if(el.id==="cityCalBankPanel"||el.closest("#cityCalBankPanel")){
+   if(typeof window.closeCalBankPopup==="function")window.closeCalBankPopup();
+   return;
+ }
+ var modal=el.closest(".modal")||el.closest("#tvCompanyDetailModal");
+ if(!modal)return;
+ if(modal.id==="shoeCompanyModal"){
+   var b=document.getElementById("shoeCompanyClose");if(b)b.click();else modal.classList.remove("show");
+ }else if(modal.id==="shoeStoreModal"){
+   var b=document.getElementById("shoeStoreClose");if(b)b.click();else modal.classList.remove("show");
+ }else if(modal.id==="businessOwnershipMarketplaceModal"){
+   var b=document.getElementById("ownershipMarketplaceClose");if(b)b.click();else modal.classList.remove("show");
+ }else if(modal.id==="tvCompanyDetailModal"){
+   if(typeof window.closeTVCompanyModal==="function")window.closeTVCompanyModal();
+   else {modal.style.display="none";modal.setAttribute("aria-hidden","true");}
+ }
+}
+function bindHandle(handle,owner){
+ if(handle.dataset.ccSwipeBound==="1")return;
+ handle.dataset.ccSwipeBound="1";
+ var startY=null,startX=null;
+ handle.addEventListener("touchstart",function(e){
+   if(!e.touches||e.touches.length!==1)return;
+   startY=e.touches[0].clientY;startX=e.touches[0].clientX;
+ },{passive:true});
+ handle.addEventListener("touchend",function(e){
+   if(startY===null||!e.changedTouches||!e.changedTouches.length)return;
+   var dy=e.changedTouches[0].clientY-startY,dx=e.changedTouches[0].clientX-startX;
+   if(dy>85&&Math.abs(dy)>Math.abs(dx)*1.25)closeSheet(owner);
+   startY=null;startX=null;
+ },{passive:true});
+ handle.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse")return;startY=e.clientY;startX=e.clientX;},{passive:true});
+ handle.addEventListener("pointerup",function(e){
+   if(startY===null)return;
+   var dy=e.clientY-startY,dx=e.clientX-startX;
+   if(dy>85&&Math.abs(dy)>Math.abs(dx)*1.25)closeSheet(owner);
+   startY=null;startX=null;
+ },{passive:true});
+}
+function setup(){
+ selectors.forEach(function(sel){
+   document.querySelectorAll(sel).forEach(function(box){
+     var handle=box.querySelector(":scope > .cc-business-sheet-handle");
+     if(!handle){handle=document.createElement("div");handle.className="cc-business-sheet-handle";handle.setAttribute("aria-label","Swipe down to close");handle.setAttribute("role","button");handle.setAttribute("tabindex","0");box.insertBefore(handle,box.firstChild);}
+     bindHandle(handle,box);
+   });
+ });
+ var cal=document.getElementById("cityCalBankPanel");
+ if(cal){
+   var head=cal.querySelector(".calbank-popup-header");
+   if(head)bindHandle(head,cal);
+ }
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup,{once:true});else setup();
+window.addEventListener("load",setup);
+})();
+</script>
+
 </body></html>
