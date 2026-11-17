@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CALVIN'S CITY — VERSION 5.8.220: Business slide-up panels; interface-only; preserves existing business logic and storage. -->
+<!-- CALVIN'S CITY — VERSION 5.8.221: Business slide-up panels; interface-only; preserves existing business logic and storage. -->
 <!-- CALVIN'S CITY — VERSION 5.8.210: Clean Import/Export interface; IndexedDB-authoritative live storage; verified startup cutover; atomic backup import and durable export. Preserves existing UI and game systems. -->
 <!-- CALVIN'S CITY — VERSION 5.8.152: Restores interrupted JavaScript tokens and literals; preserves game logic and saved data and navigation refresh; spelling, markup, and CSS typo repairs; preserves existing game logic, CalBank investment framework, storage keys, share ownership, ledgers, and permanent records. -->
 <!-- CALVIN'S CITY — VERSION 5.8.96: prevent Season 29 opening-cash repairs from overwriting cash after CalBank activity. -->
@@ -20,7 +20,7 @@ ash/ownership reversal. Player Ledger approval buttons use green approve and red
 Fast storage compression; CalBank/Federal Reserve integration retained; CalBank stock portfolio UI and transaction module excluded. Preserves game records and existing localStorage keys. Based on v5.8.72 startup recovery. -->
 <!-- CALVIN'S CITY — VERSION 5.8.45: CalBank centered popup.  Each popup now has a real, dedicated scroll container; restores native pointer/touch interaction for form controls; tax workflow transitions are synchronized to saved state. -->
 <head>
-<meta name="calvins-city-build" content="5.8.220">
+<meta name="calvins-city-build" content="5.8.221">
 <script>
 /* v5.8.72 STARTUP DIAGNOSTICS — read-only; does not alter game state or localStorage. */
 (function(){
@@ -324,7 +324,7 @@ console.error("Calvin's City compressed storage did not initialize; original sto
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calvin's City 5.8.220</title>
+<title>Calvin's City 5.8.221</title>
 <style>
 /* v4.24.36: ensure Share & Ownership Ledger view controls remain above modal content and receive taps on mobile */
 #shareOwnershipLedgerModal .modalbox{position:relative;z-index:1;pointer-events:auto}
@@ -576,7 +576,7 @@ section[id^="cc"]{display:none!important}
 #marketMoneyPanel .metric strong{display:block;box-sizing:border-box;min-width:0;max-width:100%;font-size:clamp(14px,4vw,18px)!important;line-height:1.2;white-space:normal;overflow-wrap:anywhere;word-break:break-word;font-variant-numeric:tabular-nums}
 @media(max-width:420px){#marketMoneyPanel .metric{padding:10px!important}#marketMoneyPanel .metric strong{font-size:14px!important}}
 </style>
-
+ 
 <style id="cc-business-slideup-panels-v581220">
 /* Business interface-only update: bottom-sheet panels. No state, ledger, or storage changes. */
 #shoeCompanyModal,#shoeStoreModal,#businessOwnershipMarketplaceModal{
@@ -585,7 +585,7 @@ section[id^="cc"]{display:none!important}
 }
 #shoeCompanyModal .modalbox,#shoeStoreModal .modalbox,#businessOwnershipMarketplaceModal .modalbox{
  width:min(100%,980px)!important;max-width:980px!important;
- max-height:min(90dvh,900px)!important;max-height:min(90vh,900px)!important;
+ max-height:min(90vh,900px)!important;max-height:min(90dvh,900px)!important;
  margin:0!important;padding:18px 16px calc(18px + env(safe-area-inset-bottom))!important;
  border-radius:22px 22px 0 0!important;border-bottom:0!important;
  overflow-y:auto!important;overscroll-behavior:contain!important;
@@ -601,7 +601,7 @@ section[id^="cc"]{display:none!important}
  background:rgba(0,0,0,.72)!important;backdrop-filter:blur(4px);
 }
 #tvCompanyDetailModal #tvCompanyDetailModalBox{
- width:min(100%,980px)!important;max-height:90dvh!important;max-height:90vh!important;
+ width:min(100%,980px)!important;max-height:90vh!important;max-height:90dvh!important;
  margin:0!important;padding:18px 16px calc(18px + env(safe-area-inset-bottom))!important;
  border-radius:22px 22px 0 0!important;border-bottom:0!important;
  overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
@@ -613,7 +613,7 @@ section[id^="cc"]{display:none!important}
  left:0!important;right:0!important;top:auto!important;bottom:0!important;
  transform:translate3d(0,105%,0)!important;translate:none!important;
  width:min(100%,980px)!important;max-width:980px!important;
- max-height:90dvh!important;max-height:90vh!important;
+ max-height:90vh!important;max-height:90dvh!important;
  margin:0 auto!important;border-radius:22px 22px 0 0!important;
  border-bottom:0!important;box-shadow:0 -18px 60px rgba(0,0,0,.45)!important;
  transition:transform .28s cubic-bezier(.2,.75,.25,1)!important;
@@ -642,10 +642,10 @@ section[id^="cc"]{display:none!important}
 #tvCompanyDetailModal #tvCompanyDetailModalBox,#cityCalBankPanel.calbank-popup-panel{transition:none!important}
 }
 </style>
-
+ 
 </head>
 <body>
-<header><h1>🏙️ Calvin's City — 5.8.219</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
+<header><h1>🏙️ Calvin's City — 5.8.221</h1><p>Personal Paper City → Digital City</p><div class="status">PERMANENT BETS LEDGER — SEASON-INDEPENDENT</div></header>
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="basketball-card-head"><h2>🏀 Basketball</h2><div class="basketball-season-chip"><small>Current Season</small><strong id="homeSeason">Season —</strong></div></div><p>Basketball games are played and saved one at a time.</p><div class="grid"><div class="metric"><small>Teams</small><strong>3</strong></div><div class="metric"><small>Players / Team</small><strong>3</strong></div><div class="metric"><small>Regular Games</small><strong>3</strong></div><div class="metric"><small>Championship</small><strong>$100M</strong></div></div><button data-navjump="basketball">Open Basketball</button></div>
@@ -5929,8 +5929,7 @@ Number(c.years)<=originalTerm)){
 c.value=value;
 c.totalPackage=value;
 c.teamValue=Number(c.teamValue!=null?c.teamValue:value);
-c.
-years=currentYears;
+c.years=currentYears;
 c.contractYears=originalTerm;
 c.totalPaid=value;
 c.paymentsMade=originalTerm;
@@ -12582,7 +12581,7 @@ for(let i=0;i<localStorage.length;i++){
 const k=localStorage.key(i); if(k&&relevantKey(k)) entries[k]=localStorage.getItem(k);
 }
 if(!Object.keys(entries).length) throw new Error("No Calvin’s City saved data was found in IndexedDB.");
-return {format:PREFIX,formatVersion:1,appVersion:"5.8.220",exportedAt:new Date().toISOString(),storageType:"indexedDB",entryCount:Object.keys(entries).length,entries};
+return {format:PREFIX,formatVersion:1,appVersion:"5.8.221",exportedAt:new Date().toISOString(),storageType:"indexedDB",entryCount:Object.keys(entries).length,entries};
 }
 function download(blob,name){
 const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -14963,7 +14962,7 @@ console.error("Calvin's City IndexedDB startup blocked safely:",error);
 start();
 })();
 </script>
-
+ 
 <script id="cc-business-slideup-interactions-v581220">
 /* Swipe-down dismissal is attached only to the grab handle, never to business controls. */
 (function(){
@@ -15033,5 +15032,5 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 window.addEventListener("load",setup);
 })();
 </script>
-
+ 
 </body></html>
